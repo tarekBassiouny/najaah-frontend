@@ -4,43 +4,81 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NAV_DATA } from "./data";
 import { ArrowLeftIcon, ChevronUp } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
+import { can } from "@/lib/capabilities";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  const toggleExpanded = (title: string) => {
+  const normalizedPath = useCallback((path: string) => {
+    if (!path) return "/";
+    return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+  }, []);
+
+  const getBasePath = useCallback((url?: string) => {
+    if (!url) return "/";
+    const segments = url.split("/").filter(Boolean);
+    return segments.length ? `/${segments[0]}` : "/";
+  }, []);
+
+  const toggleExpanded = useCallback((title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? [] : [title]));
 
     // Uncomment the following line to enable multiple expanded items
     // setExpandedItems((prev) =>
     //   prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
     // );
-  };
+  }, []);
 
   useEffect(() => {
-    // Keep collapsible open, when it's subpage is active
-    NAV_DATA.some((section) => {
-      return section.items.some((item) => {
-        return item.items.some((subItem) => {
-          if (subItem.url === pathname) {
-            if (!expandedItems.includes(item.title)) {
-              toggleExpanded(item.title);
-            }
+    const currentPath = normalizedPath(pathname);
+    let activeParent: string | null = null;
 
-            // Break the loop
-            return true;
-          }
+    NAV_DATA.some((section) =>
+      section.items.some((item) => {
+        if (!item.items.length) return false;
+        const isActive = item.items.some((subItem) => {
+          const subItemPath = normalizedPath(subItem.url);
+          const basePath = getBasePath(subItem.url);
+          return (
+            currentPath === subItemPath ||
+            currentPath === basePath ||
+            currentPath.startsWith(basePath + "/")
+          );
         });
-      });
-    });
-  }, [pathname]);
+
+        if (isActive) {
+          activeParent = item.title;
+          return true;
+        }
+
+        return false;
+      }),
+    );
+
+    if (activeParent && !expandedItems.includes(activeParent)) {
+      setExpandedItems([activeParent]);
+    }
+  }, [expandedItems, getBasePath, normalizedPath, pathname]);
+
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isMobile, isOpen, setIsOpen]);
 
   return (
     <>
@@ -60,10 +98,15 @@ export function Sidebar() {
           isOpen ? "w-full" : "w-0",
         )}
         aria-label="Main navigation"
-        aria-hidden={!isOpen}
-        inert={!isOpen}
+        aria-hidden={isMobile ? !isOpen : false}
+        inert={isMobile && !isOpen}
       >
-        <div className="flex h-full flex-col py-10 pl-[25px] pr-[7px]">
+        <div
+          className={cn(
+            "flex h-full flex-col py-10",
+            "pl-[25px] pr-[7px]",
+          )}
+        >
           <div className="relative pr-4.5">
             <Link
               href={"/"}
@@ -95,14 +138,26 @@ export function Sidebar() {
 
                 <nav role="navigation" aria-label={section.label}>
                   <ul className="space-y-2">
-                    {section.items.map((item) => (
+                    {section.items
+                      .filter((item) =>
+                        item.capability ? can(item.capability) : true,
+                      )
+                      .map((item) => (
                       <li key={item.title}>
                         {item.items.length ? (
                           <div>
                             <MenuItem
-                              isActive={item.items.some(
-                                ({ url }) => url === pathname,
-                              )}
+                              isActive={item.items.some(({ url }) => {
+                                const itemPath = normalizedPath(url);
+                                const basePath = getBasePath(url);
+                                return (
+                                  normalizedPath(pathname) === itemPath ||
+                                  normalizedPath(pathname) === basePath ||
+                                  normalizedPath(pathname).startsWith(
+                                    basePath + "/",
+                                  )
+                                );
+                              })}
                               onClick={() => toggleExpanded(item.title)}
                             >
                               <item.icon
@@ -127,12 +182,26 @@ export function Sidebar() {
                                 className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2"
                                 role="menu"
                               >
-                                {item.items.map((subItem) => (
+                                {item.items
+                                  .filter((subItem) =>
+                                    subItem.capability
+                                      ? can(subItem.capability)
+                                      : true,
+                                  )
+                                  .map((subItem) => (
                                   <li key={subItem.title} role="none">
                                     <MenuItem
                                       as="link"
                                       href={subItem.url}
-                                      isActive={pathname === subItem.url}
+                                      isActive={
+                                        normalizedPath(pathname) ===
+                                          normalizedPath(subItem.url) ||
+                                        normalizedPath(pathname) ===
+                                          getBasePath(subItem.url) ||
+                                        normalizedPath(pathname).startsWith(
+                                          `${normalizedPath(subItem.url)}/`,
+                                        )
+                                      }
                                     >
                                       <span>{subItem.title}</span>
                                     </MenuItem>
@@ -154,7 +223,13 @@ export function Sidebar() {
                                 className="flex items-center gap-3 py-3"
                                 as="link"
                                 href={href}
-                                isActive={pathname === href}
+                                isActive={
+                                  normalizedPath(pathname) ===
+                                    normalizedPath(href) ||
+                                  normalizedPath(pathname).startsWith(
+                                    `${normalizedPath(href)}/`,
+                                  )
+                                }
                               >
                                 <item.icon
                                   className="size-6 shrink-0"

@@ -1,0 +1,226 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useCenters } from "@/features/centers/hooks/use-centers";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import * as Icons from "@/components/Layouts/sidebar/icons";
+
+const DEFAULT_PER_PAGE = 10;
+const BADGE_BASE =
+  "inline-flex rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap";
+
+function formatBadgeLabel(value: string) {
+  return value
+    .replace(/[_-]/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getBadgeClass(value: string) {
+  const normalized = value.toLowerCase();
+  if (["active", "enabled", "approved"].includes(normalized)) {
+    return `${BADGE_BASE} bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200`;
+  }
+  if (["pending", "processing"].includes(normalized)) {
+    return `${BADGE_BASE} bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200`;
+  }
+  if (["inactive", "disabled"].includes(normalized)) {
+    return `${BADGE_BASE} bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200`;
+  }
+  if (["failed", "rejected", "error"].includes(normalized)) {
+    return `${BADGE_BASE} bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200`;
+  }
+  return `${BADGE_BASE} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`;
+}
+
+export function CentersTable() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+
+  const params = useMemo(
+    () => ({
+      page,
+      per_page: DEFAULT_PER_PAGE,
+      search: query || undefined,
+    }),
+    [page, query],
+  );
+
+  const { data, isLoading, isError, isFetching } = useCenters(params);
+
+  const items = data?.items ?? [];
+  const meta = data?.meta;
+  const total = meta?.total ?? 0;
+  const perPage = meta?.per_page ?? DEFAULT_PER_PAGE;
+  const maxPage = Math.max(1, Math.ceil(total / perPage));
+  const nextDisabled = page * perPage >= total;
+  const isLoadingState = isLoading || isFetching;
+  const showEmptyState = !isLoadingState && !isError && items.length === 0;
+
+  return (
+    <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-dark dark:text-white">
+            Centers
+          </h1>
+          <p className="text-sm text-dark-5 dark:text-dark-4">
+            Admin list of training centers.
+          </p>
+        </div>
+
+        <div className="flex w-full max-w-md items-center gap-2">
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search centers"
+            aria-label="Search centers"
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              setPage(1);
+              setQuery(search.trim());
+            }}
+            disabled={isFetching}
+          >
+            Search
+          </Button>
+        </div>
+      </div>
+
+      {isError ? (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-800 dark:text-dark-4">
+          Failed to load data. Please try again later.
+        </div>
+      ) : null}
+
+      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
+                ID
+              </TableHead>
+              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
+                Name
+              </TableHead>
+              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
+                Slug
+              </TableHead>
+              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
+                Type
+              </TableHead>
+              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
+                Status
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+                {isLoadingState
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="px-3 py-2">
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              : showEmptyState
+                ? (
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <div className="flex flex-col items-center gap-2 py-10 text-center">
+                        <Icons.Table className="h-8 w-8 text-dark-4" />
+                        <p className="text-sm font-medium text-dark dark:text-white">
+                          No centers found
+                        </p>
+                        <p className="text-sm text-dark-5 dark:text-dark-4">
+                          There are no centers matching the current criteria.
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+                : items.map((center) => (
+                  <TableRow key={center.id}>
+                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
+                      {center.id}
+                    </TableCell>
+                    <TableCell className="max-w-[220px] truncate px-3 py-2 text-sm">
+                      {center.name ?? "—"}
+                    </TableCell>
+                    <TableCell className="max-w-[180px] truncate px-3 py-2 text-sm">
+                      {center.slug ?? "—"}
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-sm">
+                      {center.type ? (
+                        <span className={getBadgeClass(center.type)}>
+                          {formatBadgeLabel(center.type)}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-sm">
+                      {center.status ? (
+                        <span className={getBadgeClass(center.status)}>
+                          {formatBadgeLabel(center.status)}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm text-dark-5 dark:text-dark-4">
+          Page {meta?.page ?? page} of {maxPage}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={page <= 1 || isFetching}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
+            disabled={nextDisabled || isFetching}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

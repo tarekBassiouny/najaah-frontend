@@ -2,103 +2,239 @@ import * as Icons from "../icons";
 
 export const NAV_DATA = [
   {
-    label: "MAIN MENU",
+    label: "LMS",
     items: [
       {
         title: "Dashboard",
+        capability: "view_dashboard",
         icon: Icons.HomeIcon,
         items: [
           {
-            title: "eCommerce",
-            url: "/",
+            title: "Overview",
+            url: "/dashboard",
+            capability: "view_dashboard",
           },
         ],
       },
       {
-        title: "Calendar",
-        url: "/calendar",
-        icon: Icons.Calendar,
-        items: [],
-      },
-      {
-        title: "Profile",
-        url: "/profile",
-        icon: Icons.User,
-        items: [],
-      },
-      {
-        title: "Forms",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "Form Elements",
-            url: "/forms/form-elements",
-          },
-          {
-            title: "Form Layout",
-            url: "/forms/form-layout",
-          },
-        ],
-      },
-      {
-        title: "Tables",
-        url: "/tables",
+        title: "Centers",
+        capability: "manage_centers",
         icon: Icons.Table,
         items: [
           {
-            title: "Tables",
-            url: "/tables",
+            title: "List",
+            url: "/centers/list",
+            capability: "manage_centers",
           },
-        ],
-      },
-      {
-        title: "Pages",
-        icon: Icons.Alphabet,
-        items: [
+          {
+            title: "Create",
+            url: "/centers/create",
+            capability: "manage_centers",
+          },
           {
             title: "Settings",
-            url: "/pages/settings",
+            url: "/centers/settings",
+            capability: "manage_centers",
           },
         ],
       },
     ],
   },
   {
-    label: "OTHERS",
+    label: "OPERATIONS",
     items: [
       {
-        title: "Charts",
-        icon: Icons.PieChart,
+        title: "Courses",
+        capability: "manage_courses",
+        icon: Icons.Alphabet,
         items: [
           {
-            title: "Basic Chart",
-            url: "/charts/basic-chart",
+            title: "List",
+            url: "/courses/list",
+            capability: "manage_courses",
+          },
+          {
+            title: "Create",
+            url: "/courses/create",
+            capability: "manage_courses",
+          },
+          {
+            title: "Upload Sessions",
+            url: "/courses/upload-sessions",
+            capability: "manage_courses",
+          },
+          {
+            title: "Sections",
+            url: "/courses/sections",
+            capability: "manage_courses",
           },
         ],
       },
       {
-        title: "UI Elements",
+        title: "Videos",
+        capability: "manage_videos",
         icon: Icons.FourCircle,
         items: [
           {
-            title: "Alerts",
-            url: "/ui-elements/alerts",
+            title: "Library",
+            url: "/videos/library",
+            capability: "manage_videos",
           },
           {
-            title: "Buttons",
-            url: "/ui-elements/buttons",
+            title: "Upload Queue",
+            url: "/videos/upload-queue",
+            capability: "manage_videos",
+          },
+          {
+            title: "Processing Status",
+            url: "/videos/processing-status",
+            capability: "manage_videos",
           },
         ],
       },
       {
-        title: "Authentication",
-        icon: Icons.Authentication,
+        title: "PDFs",
+        capability: "manage_pdfs",
+        icon: Icons.Table,
         items: [
           {
-            title: "Sign In",
-            url: "/auth/sign-in",
+            title: "Library",
+            url: "/pdfs/library",
+            capability: "manage_pdfs",
           },
         ],
+      },
+      {
+        title: "Students",
+        capability: "manage_students",
+        icon: Icons.User,
+        items: [
+          {
+            title: "List",
+            url: "/students/list",
+            capability: "manage_students",
+          },
+          {
+            title: "Devices",
+            url: "/students/devices",
+            capability: "manage_students",
+          },
+          {
+            title: "Enrollments",
+            url: "/students/enrollments",
+            capability: "manage_students",
+          },
+          {
+            title: "Settings",
+            url: "/students/settings",
+            capability: "manage_students",
+          },
+        ],
+      },
+      {
+        title: "Enrollments",
+        url: "/enrollments",
+        capability: "view_dashboard",
+        icon: Icons.Alphabet,
+        items: [],
+      },
+      {
+        title: "Device Change Requests",
+        url: "/device-change-requests",
+        capability: "manage_device_change_requests",
+        icon: Icons.Table,
+        items: [],
+      },
+      {
+        title: "Extra View Requests",
+        url: "/extra-view-requests",
+        capability: "manage_extra_view_requests",
+        icon: Icons.Table,
+        items: [],
+      },
+      {
+        title: "Instructors",
+        url: "/instructors",
+        capability: "manage_instructors",
+        icon: Icons.User,
+        items: [],
+      },
+      {
+        title: "Admin Users",
+        url: "/admin-users",
+        capability: "manage_admin_users",
+        icon: Icons.User,
+        items: [],
+      },
+      {
+        title: "Roles",
+        url: "/roles",
+        capability: "manage_roles",
+        icon: Icons.User,
+        items: [],
+      },
+      {
+        title: "Permissions",
+        url: "/permissions",
+        capability: "view_permissions",
+        icon: Icons.User,
+        items: [],
+      },
+      {
+        title: "Playback",
+        capability: "view_dashboard",
+        icon: Icons.PieChart,
+        items: [
+          {
+            title: "View Limits",
+            url: "/playback/view-limits",
+            capability: "view_dashboard",
+          },
+          {
+            title: "Playback Sessions",
+            url: "/playback/playback-sessions",
+            capability: "view_dashboard",
+          },
+          {
+            title: "Violations",
+            url: "/playback/violations",
+            capability: "view_dashboard",
+          },
+        ],
+      },
+      {
+        title: "Settings",
+        capability: "view_dashboard",
+        icon: Icons.Calendar,
+        items: [
+          {
+            title: "Center Settings",
+            url: "/settings/center-settings",
+            capability: "view_dashboard",
+          },
+          {
+            title: "Course Settings",
+            url: "/settings/course-settings",
+            capability: "view_dashboard",
+          },
+          {
+            title: "Video Settings",
+            url: "/settings/video-settings",
+            capability: "view_dashboard",
+          },
+          {
+            title: "Student Settings",
+            url: "/settings/student-settings",
+            capability: "view_dashboard",
+          },
+        ],
+      },
+      {
+        title: "Audit Logs",
+        url: "/audit-logs",
+        capability: "view_audit_logs",
+        icon: Icons.Authentication,
+        items: [],
       },
     ],
   },

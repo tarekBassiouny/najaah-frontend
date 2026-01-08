@@ -8,7 +8,7 @@ type SidebarState = "expanded" | "collapsed";
 type SidebarContextType = {
   state: SidebarState;
   isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
+  setIsOpen: (_open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
 };
@@ -43,6 +43,10 @@ export function SidebarProvider({
 
   function toggleSidebar() {
     setIsOpen((prev) => !prev);
+  }
+
+  function toggleCollapse() {
+    setIsCollapsed((prev) => !prev);
   }
 
   return (

@@ -1,9 +1,10 @@
 "use client";
 
-import { SidebarProvider } from "@/components/Layouts/sidebar/sidebar-context";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { AppBootstrapProvider } from "./app-bootstrap-provider";
+import { TenantProvider } from "./tenant-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -21,7 +22,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider defaultTheme="light" attribute="class">
       <QueryClientProvider client={queryClient}>
-        <SidebarProvider>{children}</SidebarProvider>
+        <TenantProvider>
+          <AppBootstrapProvider>
+            {children}
+          </AppBootstrapProvider>
+        </TenantProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

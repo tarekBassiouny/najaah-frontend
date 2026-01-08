@@ -14,6 +14,7 @@
 - Language: TypeScript + React Server/Client Components; prefer server components unless the code needs client-only features.
 - Formatting: Prettier (with `prettier-plugin-tailwindcss`) and ESLint (`eslint-config-next`). Use 2-space indentation, single quotes only when lint allows string consistency, semicolons per formatter.
 - Naming: PascalCase for components, camelCase for functions/variables, kebab-case for files and route segments. Tailwind classes should be ordered by the plugin; avoid inline styles when a utility class exists.
+- UI styling: follow `docs/STYLE_GUIDE.md` as the single source of truth for NextAdmin tokens, tables, badges, and layout rules.
 
 ## Testing Guidelines
 - No dedicated test runner is configured yet. For changes with logic risk, add lightweight checks using your preferred Next-friendly stack (e.g., React Testing Library + Vitest) and document commands in the PR. At minimum, exercise new behavior manually and note steps in the PR description.

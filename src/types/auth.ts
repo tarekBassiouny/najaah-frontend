@@ -4,7 +4,12 @@ export type AdminUser = {
   email: string;
   role?: string;
   avatar?: string | null;
+  permissions?: string[];
   [key: string]: unknown;
+};
+
+export type AdminAuthTokens = {
+  access_token: string;
 };
 
 export type AdminLoginPayload = {
@@ -14,10 +19,12 @@ export type AdminLoginPayload = {
 };
 
 export type AdminAuthResponse = {
-  user?: AdminUser;
-  data?: AdminUser;
+  success: boolean;
+  data?: {
+    user: AdminUser;
+    token: string;
+  };
   message?: string;
-  token?: string;
 };
 
 export type ApiErrorResponse = {

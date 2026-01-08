@@ -2,14 +2,25 @@
   "name": "lms-admin-panel",
   "version": "1.2.2",
   "private": true,
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "type-check": "next type-check",
+    "format:check": "prettier --check \"**/*.{js,ts,tsx,md,css,scss,json}\"",
+    "test": "vitest run",
+    "test:unit": "vitest run --config vitest.config.ts tests/unit",
+    "test:integration": "vitest run --config vitest.integration.config.ts tests/integration",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.10",
+    "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-slot": "^1.1.2",
     "apexcharts": "^4.5.0",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
@@ -23,19 +34,28 @@
     "react": "^19.2.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.2.0",
-    "tailwind-merge": "^2.6.0"
+    "react-hook-form": "^7.53.0",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.23.8",
+    "@hookform/resolvers": "^3.9.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/node": "^22",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
     "autoprefixer": "^10.4.20",
+    "msw": "^2.4.11",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
+    "jsdom": "^25.0.1",
     "postcss": "^8",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^3.4.16",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,24 +1,86 @@
+import { setAuthPermissions } from "@/lib/auth-state";
 import { http } from "@/lib/http";
+import { tokenStorage } from "@/lib/token-storage";
 import {
   type AdminAuthResponse,
+  type AdminAuthTokens,
   type AdminLoginPayload,
   type AdminUser,
   type ApiErrorResponse,
 } from "@/types/auth";
 import { isAxiosError } from "axios";
 
+const isAdminUser = (value: unknown): value is AdminUser =>
+  Boolean(
+    value &&
+      typeof value === "object" &&
+      "id" in value &&
+      "email" in value &&
+      "name" in value,
+  );
+
 function extractUser(payload: AdminAuthResponse | AdminUser): AdminUser {
-  if ("user" in payload && payload.user) return payload.user;
-  if ("data" in payload && payload.data) return payload.data;
-  return payload as AdminUser;
+  if (isAdminUser(payload)) return payload;
+  if (payload.data?.user && isAdminUser(payload.data.user)) return payload.data.user;
+  if (payload.data && isAdminUser(payload.data)) return payload.data;
+  if (
+    payload.data &&
+    typeof payload.data === "object" &&
+    "user" in payload.data &&
+    isAdminUser((payload.data as { user: unknown }).user)
+  ) {
+    return (payload.data as { user: AdminUser }).user;
+  }
+  throw new Error("Invalid authentication response: missing user data");
+}
+
+type RolePayload = {
+  permissions?: string[];
+};
+
+function normalizePermissions(user: AdminUser & { roles?: RolePayload[] }) {
+  const permissions = (user.roles ?? [])
+    .flatMap((role) => role.permissions ?? [])
+    .filter((permission): permission is string => typeof permission === "string");
+
+  return Array.from(new Set(permissions));
+}
+
+function normalizeAdminUser(user: AdminUser & { roles?: RolePayload[] }) {
+  const { roles: _roles, ...rest } = user;
+  return {
+    ...rest,
+    permissions: normalizePermissions(user),
+  };
+}
+
+function extractTokens(payload: AdminAuthResponse): AdminAuthTokens {
+  if (!payload?.data?.token) {
+    throw new Error("Invalid authentication response: missing token");
+  }
+
+  return {
+    access_token: payload.data.token,
+  };
 }
 
 export async function loginAdmin(payload: AdminLoginPayload) {
   const { data } = await http.post<AdminAuthResponse>(
     "/api/v1/admin/auth/login",
     payload,
+    { skipAuth: true },
   );
-  return extractUser(data);
+  const tokens = extractTokens(data);
+  tokenStorage.setTokens({
+    accessToken: tokens.access_token
+  });
+  let user: AdminUser | null = null;
+  try {
+    user = normalizeAdminUser(extractUser(data));
+  } catch {
+    user = null;
+  }
+  return { tokens, user };
 }
 
 export async function fetchAdminProfile(): Promise<AdminUser | null> {
@@ -26,10 +88,14 @@ export async function fetchAdminProfile(): Promise<AdminUser | null> {
     const { data } = await http.get<AdminAuthResponse>(
       "/api/v1/admin/auth/me",
     );
-    return extractUser(data);
+    // /auth/me returns: { data: { user: { roles: [{ permissions: string[] }] } } }
+    const user = normalizeAdminUser(extractUser(data));
+    setAuthPermissions(user.permissions ?? []);
+    return user;
   } catch (error) {
     if (isAxiosError<ApiErrorResponse>(error)) {
       if (error.response?.status === 401) {
+        setAuthPermissions(null);
         return null;
       }
     }
@@ -37,6 +103,23 @@ export async function fetchAdminProfile(): Promise<AdminUser | null> {
   }
 }
 
+export async function refreshAdminSession() {
+  const response = await http.post("/api/v1/admin/auth/refresh");
+
+  if (!response?.data?.token) {
+    throw new Error("Invalid refresh response: missing token");
+  }
+
+  return {
+    access_token: response.data.token,
+  };
+}
+
 export async function logoutAdmin() {
-  await http.post("/api/v1/admin/auth/logout");
+  try {
+    await http.post("/api/v1/admin/auth/logout");
+  } finally {
+    tokenStorage.clear();
+    setAuthPermissions(null);
+  }
 }

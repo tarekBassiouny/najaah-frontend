@@ -10,20 +10,24 @@ export const handlers = [
 
     if (body.password !== "admin123") {
       return HttpResponse.json(
-        { message: "Invalid credentials" },
+        { success: false, message: "Invalid credentials" },
         { status: 401 },
       );
     }
 
     return HttpResponse.json({
-      user: { id: 1, name: "Admin", email: body.email ?? "admin@example.com" },
-      token: "mock-token",
+      success: true,
+      data: {
+        user: { id: 1, name: "Admin", email: body.email ?? "admin@example.com" },
+        token: "mock-token",
+      },
     });
   }),
 
   http.get(meRoute, () => {
     return HttpResponse.json({
-      user: { id: 1, name: "Admin", email: "admin@example.com" },
+      success: true,
+      data: { user: { id: 1, name: "Admin", email: "admin@example.com" } },
     });
   }),
 

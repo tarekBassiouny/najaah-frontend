@@ -60,6 +60,12 @@ http.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (originalConfig.url?.includes("/api/v1/admin/auth/refresh")) {
+      tokenStorage.clear();
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
     originalConfig._retry = true;
 
     try {

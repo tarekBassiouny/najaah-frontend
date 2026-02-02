@@ -1,0 +1,85 @@
+name: Create Release Tag
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tag:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect release label
+        id: bump
+        run: |
+          labels='${{ join(github.event.pull_request.labels.*.name, ' ') }}'
+          echo "PR Labels: $labels"
+
+          if echo "$labels" | grep -qw "release:major"; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif echo "$labels" | grep -qw "release:minor"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif echo "$labels" | grep -qw "release:patch"; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "❌ No release label found (release:major | release:minor | release:patch)"
+            exit 1
+          fi
+
+      - name: Calculate next version
+        id: version
+        run: |
+          latest=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+          echo "Latest tag: $latest"
+
+          base="${latest#v}"
+          IFS='.' read -r major minor patch <<< "$base"
+
+          case "${{ steps.bump.outputs.type }}" in
+            major)
+              major=$((major+1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor+1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch+1))
+              ;;
+          esac
+
+          new="v$major.$minor.$patch"
+          echo "new_tag=$new" >> $GITHUB_OUTPUT
+          echo "Next tag: $new"
+
+      - name: Create Git tag
+        run: |
+          git tag ${{ steps.version.outputs.new_tag }}
+          git push origin ${{ steps.version.outputs.new_tag }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          name: "Release ${{ steps.version.outputs.new_tag }}"
+          body: |
+            Automatic release created from merging into main.
+            Version bump: **${{ steps.bump.outputs.type }}**

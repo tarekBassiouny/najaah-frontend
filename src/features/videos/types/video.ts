@@ -8,3 +8,10 @@ export type Video = {
   course_id?: string | number | null;
   [key: string]: unknown;
 };
+
+export type VideoUploadSession = {
+  id: string | number;
+  upload_url?: string;
+  status?: string;
+  [key: string]: unknown;
+};

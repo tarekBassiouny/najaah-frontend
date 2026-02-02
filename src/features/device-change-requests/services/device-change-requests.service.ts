@@ -48,3 +48,49 @@ export async function listDeviceChangeRequests(
     },
   };
 }
+
+export async function approveDeviceChangeRequest(
+  requestId: string | number,
+): Promise<DeviceChangeRequest> {
+  const { data } = await http.post(
+    `/api/v1/admin/device-change-requests/${requestId}/approve`,
+  );
+  return data?.data ?? (data as unknown as DeviceChangeRequest);
+}
+
+export async function rejectDeviceChangeRequest(
+  requestId: string | number,
+): Promise<DeviceChangeRequest> {
+  const { data } = await http.post(
+    `/api/v1/admin/device-change-requests/${requestId}/reject`,
+  );
+  return data?.data ?? (data as unknown as DeviceChangeRequest);
+}
+
+export async function preApproveDeviceChangeRequest(
+  requestId: string | number,
+): Promise<DeviceChangeRequest> {
+  const { data } = await http.post(
+    `/api/v1/admin/device-change-requests/${requestId}/pre-approve`,
+  );
+  return data?.data ?? (data as unknown as DeviceChangeRequest);
+}
+
+export type CreateDeviceChangeRequestPayload = {
+  device_uuid?: string;
+  device_name?: string;
+  device_os?: string;
+  device_type?: string;
+  [key: string]: unknown;
+};
+
+export async function createDeviceChangeRequestForStudent(
+  studentId: string | number,
+  payload: CreateDeviceChangeRequestPayload,
+): Promise<DeviceChangeRequest> {
+  const { data } = await http.post(
+    `/api/v1/admin/students/${studentId}/device-change-requests`,
+    payload,
+  );
+  return data?.data ?? (data as unknown as DeviceChangeRequest);
+}

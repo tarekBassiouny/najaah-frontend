@@ -38,16 +38,49 @@ type RolePayload = {
   permissions?: string[];
 };
 
-function normalizePermissions(user: AdminUser & { roles?: RolePayload[] }) {
-  const permissions = (user.roles ?? [])
-    .flatMap((role) => role.permissions ?? [])
+type RolesWithPermissionsPayload = {
+  permissions?: string[];
+};
+
+function normalizePermissions(
+  user: AdminUser & {
+    roles?: RolePayload[] | string[];
+    roles_with_permissions?: RolesWithPermissionsPayload[] | null;
+  },
+) {
+  const rolePermissions = Array.isArray(user.roles)
+    ? user.roles.flatMap((role) => {
+        if (role && typeof role === "object" && "permissions" in role) {
+          return (role as RolePayload).permissions ?? [];
+        }
+        return [];
+      })
+    : [];
+
+  const rolesWithPermissions = Array.isArray(user.roles_with_permissions)
+    ? user.roles_with_permissions.flatMap(
+        (role) => role.permissions ?? [],
+      )
+    : [];
+
+  const directPermissions = Array.isArray(user.permissions)
+    ? user.permissions
+    : [];
+
+  const permissions = [...rolePermissions, ...rolesWithPermissions, ...directPermissions]
     .filter((permission): permission is string => typeof permission === "string");
 
   return Array.from(new Set(permissions));
 }
 
-function normalizeAdminUser(user: AdminUser & { roles?: RolePayload[] }) {
-  const { roles: _roles, ...rest } = user;
+function normalizeAdminUser(
+  user: AdminUser & {
+    roles?: RolePayload[] | string[];
+    roles_with_permissions?: RolesWithPermissionsPayload[] | null;
+  },
+) {
+  const { roles: _roles, roles_with_permissions: _rolesWithPermissions, ...rest } =
+    user;
   return {
     ...rest,
     permissions: normalizePermissions(user),

@@ -13,6 +13,9 @@ export type ListCoursesParams = {
   page: number;
   per_page: number;
   search?: string;
+  center_id?: string | number;
+  category_id?: string | number;
+  primary_instructor_id?: string | number;
 };
 
 export type CoursesResponse = {
@@ -77,8 +80,173 @@ export async function listCourses(params: ListCoursesParams) {
       page: params.page,
       per_page: params.per_page,
       search: params.search || undefined,
+      center_id: params.center_id ?? undefined,
+      category_id: params.category_id ?? undefined,
+      primary_instructor_id: params.primary_instructor_id ?? undefined,
     },
   });
 
   return normalizeCoursesResponse(data, params);
+}
+
+export async function getCourse(id: string | number): Promise<Course> {
+  const { data } = await http.get<RawResponse>(`/api/v1/admin/courses/${id}`);
+  const course = (data?.data ?? data) as Course;
+  return course;
+}
+
+export type CreateCoursePayload = {
+  title: string;
+  slug?: string;
+  description?: string;
+  category_id?: string | number;
+  instructor_id?: string | number;
+  status?: string;
+  [key: string]: unknown;
+};
+
+export async function createCourse(payload: CreateCoursePayload): Promise<Course> {
+  const { data } = await http.post<RawResponse>("/api/v1/admin/courses", payload);
+  return (data?.data ?? data) as Course;
+}
+
+export type UpdateCoursePayload = Partial<CreateCoursePayload> & {
+  status?: string;
+};
+
+export async function updateCourse(id: string | number, payload: UpdateCoursePayload): Promise<Course> {
+  const { data } = await http.put<RawResponse>(`/api/v1/admin/courses/${id}`, payload);
+  return (data?.data ?? data) as Course;
+}
+
+export async function deleteCourse(id: string | number): Promise<void> {
+  await http.delete(`/api/v1/admin/courses/${id}`);
+}
+
+export type ListCenterCoursesParams = Omit<ListCoursesParams, "center_id"> & {
+  center_id: string | number;
+};
+
+export async function listCenterCourses(params: ListCenterCoursesParams) {
+  const { data } = await http.get<RawResponse>(
+    `/api/v1/admin/centers/${params.center_id}/courses`,
+    {
+      params: {
+        page: params.page,
+        per_page: params.per_page,
+        search: params.search || undefined,
+        center_id: params.center_id ?? undefined,
+        category_id: params.category_id ?? undefined,
+        primary_instructor_id: params.primary_instructor_id ?? undefined,
+      },
+    },
+  );
+
+  return normalizeCoursesResponse(data, params);
+}
+
+export async function getCenterCourse(
+  centerId: string | number,
+  courseId: string | number,
+): Promise<Course> {
+  const { data } = await http.get<RawResponse>(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}`,
+  );
+  return (data?.data ?? data) as Course;
+}
+
+export async function createCenterCourse(
+  centerId: string | number,
+  payload: CreateCoursePayload,
+): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/centers/${centerId}/courses`,
+    payload,
+  );
+  return (data?.data ?? data) as Course;
+}
+
+export async function updateCenterCourse(
+  centerId: string | number,
+  courseId: string | number,
+  payload: UpdateCoursePayload,
+): Promise<Course> {
+  const { data } = await http.put<RawResponse>(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}`,
+    payload,
+  );
+  return (data?.data ?? data) as Course;
+}
+
+export async function deleteCenterCourse(
+  centerId: string | number,
+  courseId: string | number,
+): Promise<void> {
+  await http.delete(`/api/v1/admin/centers/${centerId}/courses/${courseId}`);
+}
+
+export async function cloneCourse(courseId: string | number): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/courses/${courseId}/clone`,
+  );
+  return (data?.data ?? data) as Course;
+}
+
+export async function publishCourse(courseId: string | number): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/courses/${courseId}/publish`,
+  );
+  return (data?.data ?? data) as Course;
+}
+
+export type CourseMediaAssignmentPayload = {
+  video_id?: string | number;
+  pdf_id?: string | number;
+  [key: string]: unknown;
+};
+
+export async function assignCourseVideo(
+  centerId: string | number,
+  courseId: string | number,
+  payload: CourseMediaAssignmentPayload,
+) {
+  const { data } = await http.post(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/videos`,
+    payload,
+  );
+  return data;
+}
+
+export async function removeCourseVideo(
+  centerId: string | number,
+  courseId: string | number,
+  videoId: string | number,
+) {
+  const { data } = await http.delete(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/videos/${videoId}`,
+  );
+  return data;
+}
+
+export async function assignCoursePdf(
+  centerId: string | number,
+  courseId: string | number,
+  payload: CourseMediaAssignmentPayload,
+) {
+  const { data } = await http.post(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/pdfs`,
+    payload,
+  );
+  return data;
+}
+
+export async function removeCoursePdf(
+  centerId: string | number,
+  courseId: string | number,
+  pdfId: string | number,
+) {
+  const { data } = await http.delete(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/pdfs/${pdfId}`,
+  );
+  return data;
 }

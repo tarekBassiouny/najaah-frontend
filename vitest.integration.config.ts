@@ -12,8 +12,27 @@ export default defineConfig({
     },
     testTimeout: 10000,
     coverage: {
-      reporter: ["text", "lcov"],
+      provider: "v8",
+      reporter: ["text", "lcov", "html"],
       enabled: false,
+      reportsDirectory: "./coverage/integration",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/**/*.d.ts",
+        "src/**/__tests__/**",
+        "src/**/tests/**",
+        "src/**/types/**",
+        "src/**/app/**/layout.tsx",
+        "src/**/app/**/loading.tsx",
+        "src/**/app/**/error.tsx",
+        "src/**/app/**/not-found.tsx",
+      ],
+      thresholds: {
+        statements: 5,
+        branches: 35,
+        functions: 35,
+        lines: 5,
+      },
     },
   },
   esbuild: {

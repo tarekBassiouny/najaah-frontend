@@ -1,6 +1,8 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
 import {
+  approveExtraViewRequest,
   listExtraViewRequests,
+  rejectExtraViewRequest,
   type ListExtraViewRequestsParams,
 } from "../services/extra-view-requests.service";
 import type { PaginatedResponse } from "@/types/pagination";
@@ -20,5 +22,27 @@ export function useExtraViewRequests(
     queryFn: () => listExtraViewRequests(params),
     placeholderData: (previous) => previous,
     ...options,
+  });
+}
+
+export function useApproveExtraViewRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (requestId: string | number) => approveExtraViewRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+    },
+  });
+}
+
+export function useRejectExtraViewRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (requestId: string | number) => rejectExtraViewRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+    },
   });
 }

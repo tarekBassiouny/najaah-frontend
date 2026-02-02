@@ -1,16 +1,17 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 type SidebarState = "expanded" | "collapsed";
 
 type SidebarContextType = {
   state: SidebarState;
   isOpen: boolean;
-  setIsOpen: (_open: boolean) => void;
+  setIsOpen: (_value: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  closeSidebar: () => void;
 };
 
 const SidebarContext = createContext<SidebarContextType | null>(null);
@@ -41,13 +42,13 @@ export function SidebarProvider({
     }
   }, [isMobile]);
 
-  function toggleSidebar() {
+  const toggleSidebar = useCallback(() => {
     setIsOpen((prev) => !prev);
-  }
+  }, []);
 
-  function toggleCollapse() {
-    setIsCollapsed((prev) => !prev);
-  }
+  const closeSidebar = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
   return (
     <SidebarContext.Provider
@@ -57,6 +58,7 @@ export function SidebarProvider({
         setIsOpen,
         isMobile,
         toggleSidebar,
+        closeSidebar,
       }}
     >
       {children}

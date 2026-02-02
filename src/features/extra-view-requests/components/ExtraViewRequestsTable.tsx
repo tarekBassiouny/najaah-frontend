@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useExtraViewRequests } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
+import {
+  useApproveExtraViewRequest,
+  useExtraViewRequests,
+  useRejectExtraViewRequest,
+} from "@/features/extra-view-requests/hooks/use-extra-view-requests";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -44,6 +48,8 @@ function getBadgeClass(value: string) {
 }
 
 export function ExtraViewRequestsTable() {
+  const { mutate: approveRequest, isPending: isApproving } = useApproveExtraViewRequest();
+  const { mutate: rejectRequest, isPending: isRejecting } = useRejectExtraViewRequest();
   const [page, setPage] = useState(1);
   const [perPage] = useState(DEFAULT_PER_PAGE);
 
@@ -65,6 +71,7 @@ export function ExtraViewRequestsTable() {
   const nextDisabled = page * perPage >= total;
   const isLoadingState = isLoading || isFetching;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
+  const isBusy = isApproving || isRejecting;
 
   return (
     <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
@@ -104,6 +111,9 @@ export function ExtraViewRequestsTable() {
               <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
                 Created At
               </TableHead>
+              <TableHead className="h-11 px-3 text-right text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -125,12 +135,15 @@ export function ExtraViewRequestsTable() {
                     <TableCell className="px-3 py-2">
                       <Skeleton className="h-4 w-28" />
                     </TableCell>
+                    <TableCell className="px-3 py-2">
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
                   </TableRow>
                 ))
               : showEmptyState
                 ? (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <div className="flex flex-col items-center gap-2 py-10 text-center">
                         <Icons.Table className="h-8 w-8 text-dark-4" />
                         <p className="text-sm font-medium text-dark dark:text-white">
@@ -143,31 +156,55 @@ export function ExtraViewRequestsTable() {
                     </TableCell>
                   </TableRow>
                 )
-                : items.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                      {request.id}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {request.status ? (
-                        <span className={getBadgeClass(request.status)}>
-                          {formatBadgeLabel(request.status)}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {request.user_id ?? "—"}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {request.center_id ?? "—"}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {formatDateTime(request.created_at)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                : items.map((request) => {
+                  const status = String(request.status ?? "pending").toLowerCase();
+                  const isFinal = ["approved", "rejected"].includes(status);
+                  return (
+                    <TableRow key={request.id}>
+                      <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
+                        {request.id}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-sm">
+                        {request.status ? (
+                          <span className={getBadgeClass(request.status)}>
+                            {formatBadgeLabel(request.status)}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-sm">
+                        {request.user_id ?? "—"}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-sm">
+                        {request.center_id ?? "—"}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-sm">
+                        {formatDateTime(request.created_at)}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => approveRequest(request.id)}
+                            disabled={isBusy || isFinal}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => rejectRequest(request.id)}
+                            disabled={isBusy || isFinal}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
           </TableBody>
         </Table>
       </div>

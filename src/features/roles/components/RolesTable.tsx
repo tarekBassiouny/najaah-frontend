@@ -1,9 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRoles } from "@/features/roles/hooks/use-roles";
+import Link from "next/link";
+import { useCreateRole, useDeleteRole, useRoles } from "@/features/roles/hooks/use-roles";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -12,14 +17,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import * as Icons from "@/components/Layouts/sidebar/icons";
 import { formatDateTime } from "@/lib/format-date-time";
 
 const DEFAULT_PER_PAGE = 10;
 
 export function RolesTable() {
+  const { mutate: createRole, isPending: isCreating } = useCreateRole();
+  const { mutate: deleteRole, isPending: isDeleting } = useDeleteRole();
   const [page, setPage] = useState(1);
   const [perPage] = useState(DEFAULT_PER_PAGE);
+  const [formData, setFormData] = useState({
+    name: "",
+    slug: "",
+    description: "",
+  });
 
   const params = useMemo(
     () => ({
@@ -35,132 +46,226 @@ export function RolesTable() {
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
-  const nextDisabled = page * perPage >= total;
   const isLoadingState = isLoading || isFetching;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
+  const isBusy = isCreating || isDeleting;
+
+  const handleCreate = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!formData.name.trim()) return;
+
+    createRole(
+      {
+        name: formData.name.trim(),
+        slug: formData.slug.trim() || undefined,
+        description: formData.description.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setFormData({ name: "", slug: "", description: "" });
+        },
+      },
+    );
+  };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-dark dark:text-white">
-            Roles
-          </h1>
-          <p className="text-sm text-dark-5 dark:text-dark-4">
-            Admin role list.
-          </p>
-        </div>
-      </div>
-
-      {isError ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-800 dark:text-dark-4">
-          Failed to load data. Please try again later.
-        </div>
-      ) : null}
-
-      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                ID
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Name
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Slug
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Description
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Created At
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoadingState
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-16" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-48" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-28" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : showEmptyState
-                ? (
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <div className="flex flex-col items-center gap-2 py-10 text-center">
-                        <Icons.Table className="h-8 w-8 text-dark-4" />
-                        <p className="text-sm font-medium text-dark dark:text-white">
-                          No roles found
-                        </p>
-                        <p className="text-sm text-dark-5 dark:text-dark-4">
-                          There are no roles matching the current criteria.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-                : items.map((role) => (
-                  <TableRow key={role.id}>
-                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                      {role.id}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate px-3 py-2 text-sm">
-                      {role.name ?? "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[180px] truncate px-3 py-2 text-sm">
-                      {role.slug ?? "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[240px] truncate px-3 py-2 text-sm">
-                      {role.description ?? "—"}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {formatDateTime(role.created_at)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-dark-5 dark:text-dark-4">
-          Page {meta?.page ?? page} of {maxPage}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            disabled={page <= 1 || isFetching}
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="p-4">
+          <form
+            onSubmit={handleCreate}
+            className="grid gap-3 md:grid-cols-[1fr_1fr_2fr_auto]"
           >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
-            disabled={nextDisabled || isFetching}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+            <div className="space-y-1">
+              <Label htmlFor="role-name">Name *</Label>
+              <Input
+                id="role-name"
+                value={formData.name}
+                onChange={(event) =>
+                  setFormData((prev) => ({ ...prev, name: event.target.value }))
+                }
+                placeholder="e.g., Content Admin"
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="role-slug">Slug</Label>
+              <Input
+                id="role-slug"
+                value={formData.slug}
+                onChange={(event) =>
+                  setFormData((prev) => ({ ...prev, slug: event.target.value }))
+                }
+                placeholder="content_admin"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="role-desc">Description</Label>
+              <Input
+                id="role-desc"
+                value={formData.description}
+                onChange={(event) =>
+                  setFormData((prev) => ({ ...prev, description: event.target.value }))
+                }
+                placeholder="Short description"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button type="submit" disabled={isCreating || !formData.name.trim()}>
+                {isCreating ? "Creating..." : "Create Role"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {total} {total === 1 ? "role" : "roles"}
+            </div>
+          </div>
+
+          {isError ? (
+            <div className="p-6">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  Failed to load roles. Please try again.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 dark:bg-gray-800/50">
+                    <TableHead className="font-medium">ID</TableHead>
+                    <TableHead className="font-medium">Name</TableHead>
+                    <TableHead className="font-medium">Slug</TableHead>
+                    <TableHead className="font-medium">Description</TableHead>
+                    <TableHead className="font-medium">Created At</TableHead>
+                    <TableHead className="text-right font-medium">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingState ? (
+                    <>
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Skeleton className="h-4 w-16" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-40" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-32" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-48" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-28" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-8 w-24 ml-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  ) : showEmptyState ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-48">
+                        <EmptyState
+                          title="No roles yet"
+                          description="Create your first role using the form above"
+                          className="border-0 bg-transparent"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    items.map((role) => (
+                      <TableRow key={role.id} className="group">
+                        <TableCell className="font-medium text-gray-900 dark:text-white">
+                          {role.id}
+                        </TableCell>
+                        <TableCell className="text-gray-500 dark:text-gray-400">
+                          {role.name ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-gray-500 dark:text-gray-400">
+                          {role.slug ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-gray-500 dark:text-gray-400">
+                          {role.description ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-gray-500 dark:text-gray-400">
+                          {formatDateTime(role.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                            <Link href={`/roles/${role.id}/permissions`}>
+                              <Button variant="ghost" size="sm">
+                                Permissions
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (window.confirm("Delete this role?")) {
+                                  deleteRole(role.id);
+                                }
+                              }}
+                              disabled={isBusy}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {!isError && maxPage > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Page {page} of {maxPage}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page <= 1 || isFetching}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
+                  disabled={page >= maxPage || isFetching}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

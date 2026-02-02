@@ -8,3 +8,10 @@ export type Pdf = {
   course_id?: string | number | null;
   [key: string]: unknown;
 };
+
+export type PdfUploadSession = {
+  id: string | number;
+  upload_url?: string;
+  status?: string;
+  [key: string]: unknown;
+};

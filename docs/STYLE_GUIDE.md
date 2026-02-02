@@ -35,6 +35,7 @@ Do not introduce new global styles or one-off inline styles when a token/class a
 
 ## 6) Sidebar & Navigation
 - Sidebar config is canonical at `src/components/Layouts/sidebar/data/index.ts`.
+- Route access rules are derived from the same sidebar config (no duplicate maps).
 - Active state is derived from `usePathname()` only.
 - Collapse state lives in `SidebarProvider` and must not be reimplemented per page.
 - Sidebar only appears in dashboard layout.

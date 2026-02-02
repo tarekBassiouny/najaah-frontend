@@ -48,3 +48,21 @@ export async function listExtraViewRequests(
     },
   };
 }
+
+export async function approveExtraViewRequest(
+  requestId: string | number,
+): Promise<ExtraViewRequest> {
+  const { data } = await http.post(
+    `/api/v1/admin/extra-view-requests/${requestId}/approve`,
+  );
+  return data?.data ?? (data as unknown as ExtraViewRequest);
+}
+
+export async function rejectExtraViewRequest(
+  requestId: string | number,
+): Promise<ExtraViewRequest> {
+  const { data } = await http.post(
+    `/api/v1/admin/extra-view-requests/${requestId}/reject`,
+  );
+  return data?.data ?? (data as unknown as ExtraViewRequest);
+}

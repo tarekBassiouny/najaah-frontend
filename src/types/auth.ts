@@ -3,6 +3,11 @@ export type AdminUser = {
   name: string;
   email: string;
   role?: string;
+  roles?: string[];
+  roles_with_permissions?: Array<{
+    permissions?: string[];
+    [key: string]: unknown;
+  }> | null;
   avatar?: string | null;
   permissions?: string[];
   [key: string]: unknown;

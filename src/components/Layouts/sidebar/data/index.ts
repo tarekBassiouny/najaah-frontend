@@ -1,241 +1,119 @@
-import * as Icons from "../icons";
+import { type Capability } from "@/lib/capabilities";
+import { CENTER_SIDEBAR } from "./sidebar.center";
+import { PLATFORM_SIDEBAR } from "./sidebar.platform";
 
-export const NAV_DATA = [
-  {
-    label: "LMS",
-    items: [
-      {
-        title: "Dashboard",
-        capability: "view_dashboard",
-        icon: Icons.HomeIcon,
-        items: [
-          {
-            title: "Overview",
-            url: "/dashboard",
-            capability: "view_dashboard",
-          },
-        ],
-      },
-      {
-        title: "Centers",
-        capability: "manage_centers",
-        icon: Icons.Table,
-        items: [
-          {
-            title: "List",
-            url: "/centers/list",
-            capability: "manage_centers",
-          },
-          {
-            title: "Create",
-            url: "/centers/create",
-            capability: "manage_centers",
-          },
-          {
-            title: "Settings",
-            url: "/centers/settings",
-            capability: "manage_centers",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "OPERATIONS",
-    items: [
-      {
-        title: "Courses",
-        capability: "manage_courses",
-        icon: Icons.Alphabet,
-        items: [
-          {
-            title: "List",
-            url: "/courses/list",
-            capability: "manage_courses",
-          },
-          {
-            title: "Create",
-            url: "/courses/create",
-            capability: "manage_courses",
-          },
-          {
-            title: "Upload Sessions",
-            url: "/courses/upload-sessions",
-            capability: "manage_courses",
-          },
-          {
-            title: "Sections",
-            url: "/courses/sections",
-            capability: "manage_courses",
-          },
-        ],
-      },
-      {
-        title: "Videos",
-        capability: "manage_videos",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Library",
-            url: "/videos/library",
-            capability: "manage_videos",
-          },
-          {
-            title: "Upload Queue",
-            url: "/videos/upload-queue",
-            capability: "manage_videos",
-          },
-          {
-            title: "Processing Status",
-            url: "/videos/processing-status",
-            capability: "manage_videos",
-          },
-        ],
-      },
-      {
-        title: "PDFs",
-        capability: "manage_pdfs",
-        icon: Icons.Table,
-        items: [
-          {
-            title: "Library",
-            url: "/pdfs/library",
-            capability: "manage_pdfs",
-          },
-        ],
-      },
-      {
-        title: "Students",
-        capability: "manage_students",
-        icon: Icons.User,
-        items: [
-          {
-            title: "List",
-            url: "/students/list",
-            capability: "manage_students",
-          },
-          {
-            title: "Devices",
-            url: "/students/devices",
-            capability: "manage_students",
-          },
-          {
-            title: "Enrollments",
-            url: "/students/enrollments",
-            capability: "manage_students",
-          },
-          {
-            title: "Settings",
-            url: "/students/settings",
-            capability: "manage_students",
-          },
-        ],
-      },
-      {
-        title: "Enrollments",
-        url: "/enrollments",
-        capability: "view_dashboard",
-        icon: Icons.Alphabet,
-        items: [],
-      },
-      {
-        title: "Device Change Requests",
-        url: "/device-change-requests",
-        capability: "manage_device_change_requests",
-        icon: Icons.Table,
-        items: [],
-      },
-      {
-        title: "Extra View Requests",
-        url: "/extra-view-requests",
-        capability: "manage_extra_view_requests",
-        icon: Icons.Table,
-        items: [],
-      },
-      {
-        title: "Instructors",
-        url: "/instructors",
-        capability: "manage_instructors",
-        icon: Icons.User,
-        items: [],
-      },
-      {
-        title: "Admin Users",
-        url: "/admin-users",
-        capability: "manage_admin_users",
-        icon: Icons.User,
-        items: [],
-      },
-      {
-        title: "Roles",
-        url: "/roles",
-        capability: "manage_roles",
-        icon: Icons.User,
-        items: [],
-      },
-      {
-        title: "Permissions",
-        url: "/permissions",
-        capability: "view_permissions",
-        icon: Icons.User,
-        items: [],
-      },
-      {
-        title: "Playback",
-        capability: "view_dashboard",
-        icon: Icons.PieChart,
-        items: [
-          {
-            title: "View Limits",
-            url: "/playback/view-limits",
-            capability: "view_dashboard",
-          },
-          {
-            title: "Playback Sessions",
-            url: "/playback/playback-sessions",
-            capability: "view_dashboard",
-          },
-          {
-            title: "Violations",
-            url: "/playback/violations",
-            capability: "view_dashboard",
-          },
-        ],
-      },
-      {
-        title: "Settings",
-        capability: "view_dashboard",
-        icon: Icons.Calendar,
-        items: [
-          {
-            title: "Center Settings",
-            url: "/settings/center-settings",
-            capability: "view_dashboard",
-          },
-          {
-            title: "Course Settings",
-            url: "/settings/course-settings",
-            capability: "view_dashboard",
-          },
-          {
-            title: "Video Settings",
-            url: "/settings/video-settings",
-            capability: "view_dashboard",
-          },
-          {
-            title: "Student Settings",
-            url: "/settings/student-settings",
-            capability: "view_dashboard",
-          },
-        ],
-      },
-      {
-        title: "Audit Logs",
-        url: "/audit-logs",
-        capability: "view_audit_logs",
-        icon: Icons.Authentication,
-        items: [],
-      },
-    ],
-  },
+export type SidebarSubItem = {
+  title: string;
+  url: string;
+  capability?: Capability;
+};
+
+export type SidebarItem = {
+  title: string;
+  url?: string;
+  capability?: Capability;
+  items: SidebarSubItem[];
+};
+
+export type SidebarSection = {
+  label: string;
+  items: SidebarItem[];
+};
+
+type RouteCapabilityRule = {
+  pattern: string;
+  capabilities: Capability[];
+};
+
+const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
+  { pattern: "/settings", capabilities: ["view_dashboard"] },
+  { pattern: "/settings/*", capabilities: ["view_dashboard"] },
+  { pattern: "/playback", capabilities: ["view_dashboard"] },
+  { pattern: "/playback/*", capabilities: ["view_dashboard"] },
+  { pattern: "/devices/*", capabilities: ["view_dashboard"] },
 ];
+
+const PLATFORM_ROUTE_EXTRAS: RouteCapabilityRule[] = [
+  { pattern: "/roles/*/permissions", capabilities: ["assign_role_permissions"] },
+  { pattern: "/permissions", capabilities: ["view_permissions"] },
+  { pattern: "/audit", capabilities: ["view_audit_logs"] },
+  { pattern: "/audit/*", capabilities: ["view_audit_logs"] },
+];
+
+export function getSidebarSections(isPlatformAdmin: boolean): SidebarSection[] {
+  return isPlatformAdmin ? PLATFORM_SIDEBAR : CENTER_SIDEBAR;
+}
+
+function normalizePath(pathname: string) {
+  if (!pathname) return "/";
+  return pathname.length > 1 && pathname.endsWith("/")
+    ? pathname.slice(0, -1)
+    : pathname;
+}
+
+function matchRoute(pathname: string, pattern: string) {
+  if (!pattern.includes("*")) {
+    return pathname === pattern;
+  }
+
+  const [prefix, suffix] = pattern.split("*");
+  if (!pathname.startsWith(prefix)) return false;
+  if (suffix && !pathname.endsWith(suffix)) return false;
+  if (pathname.length < prefix.length + suffix.length) return false;
+  return true;
+}
+
+function collectRouteRules(sections: SidebarSection[]) {
+  const rules: RouteCapabilityRule[] = [];
+
+  sections.forEach((section) => {
+    section.items.forEach((item) => {
+      if (item.url) {
+        const capabilities = item.capability ? [item.capability] : [];
+        rules.push({ pattern: item.url, capabilities });
+        rules.push({ pattern: `${item.url}/*`, capabilities });
+      }
+
+      item.items.forEach((subItem) => {
+        const capabilities = subItem.capability ? [subItem.capability] : [];
+        rules.push({ pattern: subItem.url, capabilities });
+        rules.push({ pattern: `${subItem.url}/*`, capabilities });
+      });
+    });
+  });
+
+  return rules;
+}
+
+export function getRouteCapabilities(
+  pathname: string,
+  isPlatformAdmin: boolean,
+): Capability[] | null {
+  const normalized = normalizePath(pathname);
+  const sections = getSidebarSections(isPlatformAdmin);
+  const extras = isPlatformAdmin
+    ? [...SHARED_ROUTE_EXTRAS, ...PLATFORM_ROUTE_EXTRAS]
+    : SHARED_ROUTE_EXTRAS;
+
+  const ruleMap = new Map<string, Capability[]>();
+  collectRouteRules(sections).forEach((rule) => {
+    ruleMap.set(rule.pattern, rule.capabilities);
+  });
+  extras.forEach((rule) => {
+    ruleMap.set(rule.pattern, rule.capabilities);
+  });
+
+  const patterns = Array.from(ruleMap.keys()).sort(
+    (a, b) => b.length - a.length,
+  );
+
+  for (const pattern of patterns) {
+    if (matchRoute(normalized, pattern)) {
+      return ruleMap.get(pattern) ?? [];
+    }
+  }
+
+  return null;
+}
+
+export { PLATFORM_SIDEBAR, CENTER_SIDEBAR };

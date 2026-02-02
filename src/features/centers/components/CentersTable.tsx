@@ -1,10 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useCenters } from "@/features/centers/hooks/use-centers";
+import Link from "next/link";
+import { useCenters, useDeleteCenter } from "@/features/centers/hooks/use-centers";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -13,37 +17,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import * as Icons from "@/components/Layouts/sidebar/icons";
 
 const DEFAULT_PER_PAGE = 10;
-const BADGE_BASE =
-  "inline-flex rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap";
 
-function formatBadgeLabel(value: string) {
-  return value
-    .replace(/[_-]/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
+type CenterStatus = "active" | "inactive" | "pending" | string;
 
-function getBadgeClass(value: string) {
-  const normalized = value.toLowerCase();
-  if (["active", "enabled", "approved"].includes(normalized)) {
-    return `${BADGE_BASE} bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200`;
-  }
-  if (["pending", "processing"].includes(normalized)) {
-    return `${BADGE_BASE} bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200`;
-  }
-  if (["inactive", "disabled"].includes(normalized)) {
-    return `${BADGE_BASE} bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200`;
-  }
-  if (["failed", "rejected", "error"].includes(normalized)) {
-    return `${BADGE_BASE} bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200`;
-  }
-  return `${BADGE_BASE} bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300`;
+const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+  active: { variant: "success", label: "Active" },
+  enabled: { variant: "success", label: "Enabled" },
+  approved: { variant: "success", label: "Approved" },
+  pending: { variant: "warning", label: "Pending" },
+  processing: { variant: "warning", label: "Processing" },
+  inactive: { variant: "default", label: "Inactive" },
+  disabled: { variant: "default", label: "Disabled" },
+  failed: { variant: "error", label: "Failed" },
+  rejected: { variant: "error", label: "Rejected" },
+  error: { variant: "error", label: "Error" },
+};
+
+function getStatusConfig(status: CenterStatus) {
+  const normalized = status.toLowerCase();
+  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
 }
 
 export function CentersTable() {
+  const { mutate: deleteCenter, isPending: isDeleting } = useDeleteCenter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -64,163 +62,209 @@ export function CentersTable() {
   const total = meta?.total ?? 0;
   const perPage = meta?.per_page ?? DEFAULT_PER_PAGE;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
-  const nextDisabled = page * perPage >= total;
   const isLoadingState = isLoading || isFetching;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      setPage(1);
+      setQuery(search.trim());
+    }
+  };
+
   return (
-    <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-dark dark:text-white">
-            Centers
-          </h1>
-          <p className="text-sm text-dark-5 dark:text-dark-4">
-            Admin list of training centers.
-          </p>
+    <Card>
+      <CardContent className="p-0">
+        <div className="flex flex-col gap-4 border-b border-gray-200 p-4 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full max-w-sm">
+            <svg
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Search centers..."
+              className="pl-10"
+            />
+          </div>
+
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {total} {total === 1 ? "center" : "centers"}
+          </div>
         </div>
 
-        <div className="flex w-full max-w-md items-center gap-2">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search centers"
-            aria-label="Search centers"
-          />
-          <Button
-            variant="outline"
-            onClick={() => {
-              setPage(1);
-              setQuery(search.trim());
-            }}
-            disabled={isFetching}
-          >
-            Search
-          </Button>
-        </div>
-      </div>
-
-      {isError ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-800 dark:text-dark-4">
-          Failed to load data. Please try again later.
-        </div>
-      ) : null}
-
-      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                ID
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Name
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Slug
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Type
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Status
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-                {isLoadingState
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-16" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : showEmptyState
-                ? (
+        {isError ? (
+          <div className="p-6">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Failed to load centers. Please try again.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 dark:bg-gray-800/50">
+                  <TableHead className="font-medium">ID</TableHead>
+                  <TableHead className="font-medium">Name</TableHead>
+                  <TableHead className="font-medium">Slug</TableHead>
+                  <TableHead className="font-medium">Type</TableHead>
+                  <TableHead className="font-medium">Status</TableHead>
+                  <TableHead className="text-right font-medium">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoadingState ? (
+                  <>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <Skeleton className="h-4 w-16" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-5 w-24 rounded-full" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-5 w-20 rounded-full" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-16 ml-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </>
+                ) : showEmptyState ? (
                   <TableRow>
-                    <TableCell colSpan={5}>
-                      <div className="flex flex-col items-center gap-2 py-10 text-center">
-                        <Icons.Table className="h-8 w-8 text-dark-4" />
-                        <p className="text-sm font-medium text-dark dark:text-white">
-                          No centers found
-                        </p>
-                        <p className="text-sm text-dark-5 dark:text-dark-4">
-                          There are no centers matching the current criteria.
-                        </p>
-                      </div>
+                    <TableCell colSpan={6} className="h-48">
+                      <EmptyState
+                        title={query ? "No centers found" : "No centers yet"}
+                        description={
+                          query
+                            ? "Try adjusting your search terms"
+                            : "Get started by creating your first center"
+                        }
+                        action={
+                          !query && (
+                            <Link href="/centers/create">
+                              <Button size="sm">Create Center</Button>
+                            </Link>
+                          )
+                        }
+                        className="border-0 bg-transparent"
+                      />
                     </TableCell>
                   </TableRow>
-                )
-                : items.map((center) => (
-                  <TableRow key={center.id}>
-                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                      {center.id}
-                    </TableCell>
-                    <TableCell className="max-w-[220px] truncate px-3 py-2 text-sm">
-                      {center.name ?? "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[180px] truncate px-3 py-2 text-sm">
-                      {center.slug ?? "—"}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {center.type ? (
-                        <span className={getBadgeClass(center.type)}>
-                          {formatBadgeLabel(center.type)}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {center.status ? (
-                        <span className={getBadgeClass(center.status)}>
-                          {formatBadgeLabel(center.status)}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
+                ) : (
+                  items.map((center) => (
+                    <TableRow key={center.id} className="group">
+                      <TableCell className="font-medium text-gray-900 dark:text-white">
+                        {center.id}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {center.name ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {center.slug ?? "—"}
+                      </TableCell>
+                      <TableCell>
+                        {center.type ? (
+                          <Badge variant={getStatusConfig(center.type).variant}>
+                            {getStatusConfig(center.type).label}
+                          </Badge>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {center.status ? (
+                          <Badge variant={getStatusConfig(center.status).variant}>
+                            {getStatusConfig(center.status).label}
+                          </Badge>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                          <Link href={`/centers/${center.id}`}>
+                            <Button variant="ghost" size="sm">
+                              Manage
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (window.confirm("Delete this center?")) {
+                                deleteCenter(center.id);
+                              }
+                            }}
+                            disabled={isDeleting}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-dark-5 dark:text-dark-4">
-          Page {meta?.page ?? page} of {maxPage}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            disabled={page <= 1 || isFetching}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
-            disabled={nextDisabled || isFetching}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-    </div>
+        {!isError && maxPage > 1 && (
+          <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Page {page} of {maxPage}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page <= 1 || isFetching}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
+                disabled={page >= maxPage || isFetching}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

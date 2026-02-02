@@ -3,7 +3,8 @@ import "@/css/style.css";
 import "flatpickr/dist/flatpickr.min.css";
 import "jsvectormap/dist/jsvectormap.css";
 
-import type { Metadata, PropsWithChildren } from "next";
+import type { Metadata } from "next";
+import type { PropsWithChildren } from "react";
 import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
 

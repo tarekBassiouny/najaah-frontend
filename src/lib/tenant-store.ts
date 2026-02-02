@@ -10,6 +10,7 @@ export type TenantState = {
   apiKey: string;
   centerSlug: string | null;
   centerId: string | number | null;
+  centerName: string | null;
   branding: Branding | null;
   isResolved: boolean;
 };
@@ -20,6 +21,7 @@ let tenantState: TenantState = {
   apiKey: defaultApiKey,
   centerSlug: null,
   centerId: null,
+  centerName: null,
   branding: null,
   isResolved: false,
 };

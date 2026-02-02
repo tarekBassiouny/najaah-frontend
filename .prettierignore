@@ -4,3 +4,17 @@ coverage
 playwright-report
 test-results
 tests/setup/storageState.json
+
+# Claude configuration files
+.claude/
+
+# Documentation
+docs/
+AGENTS.md
+CLAUDE.md
+README.md
+
+# Vendor/external files
+jsvectormap.d.ts
+src/css/satoshi.css
+src/css/style.css

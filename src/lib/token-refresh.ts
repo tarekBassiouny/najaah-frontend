@@ -11,6 +11,7 @@ const REFRESH_BUFFER_MS = 2 * 60 * 1000;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
+let visibilityListenerAttached = false;
 
 /**
  * Decode JWT payload without verification (client-side only)
@@ -93,6 +94,9 @@ export async function refreshToken(): Promise<string> {
  * Schedule proactive token refresh
  */
 export function scheduleTokenRefresh(): void {
+  // Setup visibility listener to handle background tab throttling
+  setupVisibilityListener();
+
   // Clear any existing timer
   if (refreshTimer) {
     clearTimeout(refreshTimer);
@@ -129,6 +133,48 @@ export function cancelTokenRefresh(): void {
     clearTimeout(refreshTimer);
     refreshTimer = null;
   }
+}
+
+/**
+ * Check if token needs refresh and do it
+ * Called when tab becomes visible again
+ */
+function checkAndRefreshIfNeeded(): void {
+  const token = tokenStorage.getAccessToken();
+  if (!token) return;
+
+  const timeUntilRefresh = getTimeUntilRefresh(token);
+  if (timeUntilRefresh === null) return;
+
+  // If within buffer window or expired, refresh now
+  if (timeUntilRefresh <= 0) {
+    refreshToken().catch(() => {
+      // Refresh failed, will be handled by 401 interceptor
+    });
+  } else {
+    // Reschedule the timer (in case it was throttled)
+    scheduleTokenRefresh();
+  }
+}
+
+/**
+ * Handle visibility change - refresh token when tab becomes visible
+ * Browsers throttle timers in background tabs, so we need this fallback
+ */
+function handleVisibilityChange(): void {
+  if (document.visibilityState === "visible") {
+    checkAndRefreshIfNeeded();
+  }
+}
+
+/**
+ * Setup visibility listener (only once)
+ */
+function setupVisibilityListener(): void {
+  if (visibilityListenerAttached || typeof document === "undefined") return;
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  visibilityListenerAttached = true;
 }
 
 /**

@@ -18,7 +18,7 @@ function redirectToLogin() {
 
 export const http = axios.create({
   baseURL: apiBaseUrl,
-  withCredentials: true,
+  withCredentials: false,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",

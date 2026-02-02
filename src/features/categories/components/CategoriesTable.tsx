@@ -4,14 +4,25 @@ import { useMemo, useState } from "react";
 import { useCategories } from "@/features/categories/hooks/use-categories";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ResourceTable,
+  type ResourceTableColumn,
+} from "@/components/ui/resource-table";
 import type { Category } from "@/features/categories/types/category";
 
 const DEFAULT_PER_PAGE = 10;
+const ALL_STATUS_VALUE = "all";
+const STATUS_ACTIVE_VALUE = "active";
+const STATUS_INACTIVE_VALUE = "inactive";
+const ALL_PARENTS_VALUE = "all";
 
 type CategoriesTableProps = {
   centerId: string | number;
@@ -42,8 +53,12 @@ export function CategoriesTable({
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
-  const [parentId, setParentId] = useState<string>("all");
+  const [status, setStatus] = useState<
+    | typeof ALL_STATUS_VALUE
+    | typeof STATUS_ACTIVE_VALUE
+    | typeof STATUS_INACTIVE_VALUE
+  >(ALL_STATUS_VALUE);
+  const [parentId, setParentId] = useState<string>(ALL_PARENTS_VALUE);
 
   const params = useMemo(
     () => ({
@@ -51,8 +66,10 @@ export function CategoriesTable({
       per_page: DEFAULT_PER_PAGE,
       search: query || undefined,
       is_active:
-        status === "all" ? undefined : status === "active",
-      parent_id: parentId === "all" ? undefined : parentId,
+        status === ALL_STATUS_VALUE
+          ? undefined
+          : status === STATUS_ACTIVE_VALUE,
+      parent_id: parentId === ALL_PARENTS_VALUE ? undefined : parentId,
     }),
     [page, query, status, parentId],
   );
@@ -65,7 +82,10 @@ export function CategoriesTable({
     [],
   );
 
-  const { data, isLoading, isError, isFetching } = useCategories(centerId, params);
+  const { data, isLoading, isError, isFetching } = useCategories(
+    centerId,
+    params,
+  );
   const { data: parentData } = useCategories(centerId, parentFilterParams, {
     staleTime: 1000 * 60,
   });
@@ -85,8 +105,6 @@ export function CategoriesTable({
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / DEFAULT_PER_PAGE));
-  const isLoadingState = isLoading || isFetching;
-  const showEmptyState = !isLoadingState && !isError && items.length === 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -95,9 +113,80 @@ export function CategoriesTable({
     }
   };
 
+  const columns = useMemo<ResourceTableColumn<Category>[]>(
+    () => [
+      {
+        id: "title",
+        header: "Title",
+        cellClassName: "font-medium text-gray-900 dark:text-white",
+        render: (category) => getCategoryTitle(category),
+      },
+      {
+        id: "parent",
+        header: "Parent",
+        cellClassName: "text-gray-500 dark:text-gray-400",
+        render: (category) => getParentLabel(category, parentLabelMap),
+      },
+      {
+        id: "order",
+        header: "Order",
+        cellClassName: "text-gray-500 dark:text-gray-400",
+        render: (category) => category.order_index ?? "—",
+      },
+      {
+        id: "status",
+        header: "Status",
+        render: (category) => (
+          <Badge variant={category.is_active ? "success" : "default"}>
+            {category.is_active ? "Active" : "Inactive"}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        headerClassName: "text-right",
+        cellClassName: "text-right",
+        render: (category) => (
+          <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit?.(category)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:text-red-600"
+              onClick={() => onDelete?.(category)}
+            >
+              Delete
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [onDelete, onEdit, parentLabelMap],
+  );
+
   return (
-    <Card>
-      <CardContent className="p-0">
+    <ResourceTable
+      columns={columns}
+      rows={items}
+      rowKey={(category) => category.id}
+      isLoading={isLoading}
+      isFetching={isFetching}
+      isError={isError}
+      emptyTitle={query ? "No categories found" : "No categories yet"}
+      emptyDescription={
+        query
+          ? "Try adjusting your search terms"
+          : "Create a category to start organizing your content"
+      }
+      onRetry={() => window.location.reload()}
+      toolbar={
         <div className="flex flex-col gap-4 border-b border-gray-200 p-4 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full max-w-sm">
             <svg
@@ -123,176 +212,62 @@ export function CategoriesTable({
           </div>
 
           <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-3">
-            <select
+            <Select
               value={status}
-              onChange={(event) => {
+              onValueChange={(value) => {
                 setPage(1);
-                setStatus(event.target.value as "all" | "active" | "inactive");
+                setStatus(
+                  value as
+                    | typeof ALL_STATUS_VALUE
+                    | typeof STATUS_ACTIVE_VALUE
+                    | typeof STATUS_INACTIVE_VALUE,
+                );
               }}
-              className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_STATUS_VALUE}>All Statuses</SelectItem>
+                <SelectItem value={STATUS_ACTIVE_VALUE}>Active</SelectItem>
+                <SelectItem value={STATUS_INACTIVE_VALUE}>Inactive</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <select
+            <Select
               value={parentId}
-              onChange={(event) => {
+              onValueChange={(value) => {
                 setPage(1);
-                setParentId(event.target.value);
+                setParentId(value);
               }}
-              className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
             >
-              <option value="all">All Parents</option>
-              {parentOptions.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {getCategoryTitle(category)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_PARENTS_VALUE}>All Parents</SelectItem>
+                {parentOptions.map((category) => (
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {getCategoryTitle(category)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <div className="flex h-10 items-center justify-end text-sm text-gray-500 dark:text-gray-400">
               {total} {total === 1 ? "category" : "categories"}
             </div>
           </div>
         </div>
-
-        {isError ? (
-          <div className="p-6">
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
-              <p className="text-sm text-red-600 dark:text-red-400">
-                Failed to load categories. Please try again.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={() => window.location.reload()}
-              >
-                Retry
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                  <TableHead className="font-medium">Title</TableHead>
-                  <TableHead className="font-medium">Parent</TableHead>
-                  <TableHead className="font-medium">Order</TableHead>
-                  <TableHead className="font-medium">Status</TableHead>
-                  <TableHead className="text-right font-medium">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingState ? (
-                  <>
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <Skeleton className="h-4 w-40" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-24" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-10" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-5 w-20 rounded-full" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="ml-auto h-8 w-24" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                ) : showEmptyState ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-48">
-                      <EmptyState
-                        title={query ? "No categories found" : "No categories yet"}
-                        description={
-                          query
-                            ? "Try adjusting your search terms"
-                            : "Create a category to start organizing your content"
-                        }
-                        className="border-0 bg-transparent"
-                      />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  items.map((category) => (
-                    <TableRow key={category.id} className="group">
-                      <TableCell className="font-medium text-gray-900 dark:text-white">
-                        {getCategoryTitle(category)}
-                      </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400">
-                        {getParentLabel(category, parentLabelMap)}
-                      </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400">
-                        {category.order_index ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={category.is_active ? "success" : "default"}>
-                          {category.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEdit?.(category)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-600"
-                            onClick={() => onDelete?.(category)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
-        {!isError && maxPage > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Page {page} of {maxPage}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                disabled={page <= 1 || isFetching}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
-                disabled={page >= maxPage || isFetching}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      }
+      pagination={{
+        page,
+        lastPage: maxPage,
+        onPrevious: () => setPage((prev) => Math.max(prev - 1, 1)),
+        onNext: () => setPage((prev) => Math.min(prev + 1, maxPage)),
+        disablePrevious: page <= 1 || isFetching,
+        disableNext: page >= maxPage || isFetching,
+      }}
+    />
   );
 }

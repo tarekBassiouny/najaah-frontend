@@ -75,13 +75,25 @@ export default function CenterPdfDetailPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {isError || !pdf ? (
-            <p className="text-red-600 dark:text-red-400">Failed to load PDF.</p>
+            <p className="text-red-600 dark:text-red-400">
+              Failed to load PDF.
+            </p>
           ) : (
             <>
-              <p><span className="font-medium">ID:</span> {String(pdf.id)}</p>
-              <p><span className="font-medium">Status:</span> {pdf.status ?? "—"}</p>
-              <p><span className="font-medium">File Size:</span> {String(pdf.file_size ?? "—")}</p>
-              <p><span className="font-medium">Created:</span> {String(pdf.created_at ?? "—")}</p>
+              <p>
+                <span className="font-medium">ID:</span> {String(pdf.id)}
+              </p>
+              <p>
+                <span className="font-medium">Status:</span> {pdf.status ?? "—"}
+              </p>
+              <p>
+                <span className="font-medium">File Size:</span>{" "}
+                {String(pdf.file_size ?? "—")}
+              </p>
+              <p>
+                <span className="font-medium">Created:</span>{" "}
+                {String(pdf.created_at ?? "—")}
+              </p>
             </>
           )}
         </CardContent>

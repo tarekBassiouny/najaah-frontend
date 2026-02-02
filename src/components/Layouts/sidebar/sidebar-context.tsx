@@ -1,7 +1,13 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type SidebarState = "expanded" | "collapsed";
 

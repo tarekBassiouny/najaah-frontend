@@ -1,4 +1,8 @@
-export type AgentExecutionStatus = "pending" | "running" | "completed" | "failed";
+export type AgentExecutionStatus =
+  | "pending"
+  | "running"
+  | "completed"
+  | "failed";
 
 export type AgentType =
   | "content_publishing"

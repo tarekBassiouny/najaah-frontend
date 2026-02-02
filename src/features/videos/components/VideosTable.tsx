@@ -23,7 +23,13 @@ const DEFAULT_PER_PAGE = 10;
 
 type VideoStatus = "active" | "processing" | "failed" | string;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   active: { variant: "success", label: "Active" },
   enabled: { variant: "success", label: "Enabled" },
   approved: { variant: "success", label: "Approved" },
@@ -38,7 +44,12 @@ const statusConfig: Record<string, { variant: "success" | "warning" | "secondary
 
 function getStatusConfig(status: VideoStatus) {
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
+  return (
+    statusConfig[normalized] || {
+      variant: "default" as const,
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+    }
+  );
 }
 
 type VideosTableProps = {
@@ -148,7 +159,9 @@ export function VideosTable({ centerId: centerIdProp }: VideosTableProps) {
                   <TableHead className="font-medium">Title</TableHead>
                   <TableHead className="font-medium">Status</TableHead>
                   <TableHead className="font-medium">Duration</TableHead>
-                  <TableHead className="text-right font-medium">Actions</TableHead>
+                  <TableHead className="text-right font-medium">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -169,7 +182,7 @@ export function VideosTable({ centerId: centerIdProp }: VideosTableProps) {
                           <Skeleton className="h-4 w-24" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-8 w-16 ml-auto" />
+                          <Skeleton className="ml-auto h-8 w-16" />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -199,7 +212,9 @@ export function VideosTable({ centerId: centerIdProp }: VideosTableProps) {
                       </TableCell>
                       <TableCell>
                         {video.status ? (
-                          <Badge variant={getStatusConfig(video.status).variant}>
+                          <Badge
+                            variant={getStatusConfig(video.status).variant}
+                          >
                             {getStatusConfig(video.status).label}
                           </Badge>
                         ) : (
@@ -211,12 +226,16 @@ export function VideosTable({ centerId: centerIdProp }: VideosTableProps) {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                          <Link href={`/centers/${centerId}/videos/${video.id}`}>
+                          <Link
+                            href={`/centers/${centerId}/videos/${video.id}`}
+                          >
                             <Button variant="ghost" size="sm">
                               View
                             </Button>
                           </Link>
-                          <Link href={`/centers/${centerId}/videos/${video.id}/edit`}>
+                          <Link
+                            href={`/centers/${centerId}/videos/${video.id}/edit`}
+                          >
                             <Button variant="ghost" size="sm">
                               Edit
                             </Button>

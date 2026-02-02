@@ -22,7 +22,13 @@ const DEFAULT_PER_PAGE = 10;
 
 type StudentStatus = "active" | "inactive" | "pending" | string;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   active: { variant: "success", label: "Active" },
   enabled: { variant: "success", label: "Enabled" },
   approved: { variant: "success", label: "Approved" },
@@ -37,7 +43,12 @@ const statusConfig: Record<string, { variant: "success" | "warning" | "secondary
 
 function getStatusConfig(status: StudentStatus) {
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
+  return (
+    statusConfig[normalized] || {
+      variant: "default" as const,
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+    }
+  );
 }
 
 type StudentsTableProps = {
@@ -62,8 +73,7 @@ export function StudentsTable({ centerId: centerIdProp }: StudentsTableProps) {
     [page, perPage, query, centerId],
   );
 
-  const { data, isLoading, isError, isFetching } =
-    useStudents(params);
+  const { data, isLoading, isError, isFetching } = useStudents(params);
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -190,7 +200,9 @@ export function StudentsTable({ centerId: centerIdProp }: StudentsTableProps) {
                       </TableCell>
                       <TableCell>
                         {student.status ? (
-                          <Badge variant={getStatusConfig(student.status).variant}>
+                          <Badge
+                            variant={getStatusConfig(student.status).variant}
+                          >
                             {getStatusConfig(student.status).label}
                           </Badge>
                         ) : (

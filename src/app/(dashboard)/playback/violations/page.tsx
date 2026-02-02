@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Alerts",
-    "description": "Concurrent sessions, VPN, and device mismatch signals."
+    title: "Alerts",
+    description: "Concurrent sessions, VPN, and device mismatch signals.",
   },
   {
-    "title": "Resolution",
-    "description": "Workflows for reviewing and clearing incidents."
+    title: "Resolution",
+    description: "Workflows for reviewing and clearing incidents.",
   },
   {
-    "title": "Trends",
-    "description": "Patterns by center, course, or device type."
-  }
+    title: "Trends",
+    description: "Patterns by center, course, or device type.",
+  },
 ];
 
 export default function PlaybackViolationsPage() {

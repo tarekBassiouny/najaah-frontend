@@ -1,6 +1,7 @@
 import { setAuthPermissions } from "@/lib/auth-state";
 import { http } from "@/lib/http";
 import { tokenStorage } from "@/lib/token-storage";
+import { scheduleTokenRefresh, cancelTokenRefresh } from "@/lib/token-refresh";
 import {
   type AdminAuthResponse,
   type AdminAuthTokens,
@@ -13,15 +14,16 @@ import { isAxiosError } from "axios";
 const isAdminUser = (value: unknown): value is AdminUser =>
   Boolean(
     value &&
-      typeof value === "object" &&
-      "id" in value &&
-      "email" in value &&
-      "name" in value,
+    typeof value === "object" &&
+    "id" in value &&
+    "email" in value &&
+    "name" in value,
   );
 
 function extractUser(payload: AdminAuthResponse | AdminUser): AdminUser {
   if (isAdminUser(payload)) return payload;
-  if (payload.data?.user && isAdminUser(payload.data.user)) return payload.data.user;
+  if (payload.data?.user && isAdminUser(payload.data.user))
+    return payload.data.user;
   if (payload.data && isAdminUser(payload.data)) return payload.data;
   if (
     payload.data &&
@@ -58,17 +60,20 @@ function normalizePermissions(
     : [];
 
   const rolesWithPermissions = Array.isArray(user.roles_with_permissions)
-    ? user.roles_with_permissions.flatMap(
-        (role) => role.permissions ?? [],
-      )
+    ? user.roles_with_permissions.flatMap((role) => role.permissions ?? [])
     : [];
 
   const directPermissions = Array.isArray(user.permissions)
     ? user.permissions
     : [];
 
-  const permissions = [...rolePermissions, ...rolesWithPermissions, ...directPermissions]
-    .filter((permission): permission is string => typeof permission === "string");
+  const permissions = [
+    ...rolePermissions,
+    ...rolesWithPermissions,
+    ...directPermissions,
+  ].filter(
+    (permission): permission is string => typeof permission === "string",
+  );
 
   return Array.from(new Set(permissions));
 }
@@ -79,8 +84,11 @@ function normalizeAdminUser(
     roles_with_permissions?: RolesWithPermissionsPayload[] | null;
   },
 ) {
-  const { roles: _roles, roles_with_permissions: _rolesWithPermissions, ...rest } =
-    user;
+  const {
+    roles: _roles,
+    roles_with_permissions: _rolesWithPermissions,
+    ...rest
+  } = user;
   return {
     ...rest,
     permissions: normalizePermissions(user),
@@ -105,8 +113,12 @@ export async function loginAdmin(payload: AdminLoginPayload) {
   );
   const tokens = extractTokens(data);
   tokenStorage.setTokens({
-    accessToken: tokens.access_token
+    accessToken: tokens.access_token,
   });
+
+  // Schedule proactive token refresh (2 min before expiry)
+  scheduleTokenRefresh();
+
   let user: AdminUser | null = null;
   try {
     user = normalizeAdminUser(extractUser(data));
@@ -118,16 +130,19 @@ export async function loginAdmin(payload: AdminLoginPayload) {
 
 export async function fetchAdminProfile(): Promise<AdminUser | null> {
   try {
-    const { data } = await http.get<AdminAuthResponse>(
-      "/api/v1/admin/auth/me",
-    );
+    const { data } = await http.get<AdminAuthResponse>("/api/v1/admin/auth/me");
     // /auth/me returns: { data: { user: { roles: [{ permissions: string[] }] } } }
     const user = normalizeAdminUser(extractUser(data));
     setAuthPermissions(user.permissions ?? []);
+
+    // Schedule proactive refresh for page reload scenarios
+    scheduleTokenRefresh();
+
     return user;
   } catch (error) {
     if (isAxiosError<ApiErrorResponse>(error)) {
       if (error.response?.status === 401) {
+        cancelTokenRefresh();
         setAuthPermissions(null);
         return null;
       }
@@ -152,6 +167,7 @@ export async function logoutAdmin() {
   try {
     await http.post("/api/v1/admin/auth/logout");
   } finally {
+    cancelTokenRefresh();
     tokenStorage.clear();
     setAuthPermissions(null);
   }

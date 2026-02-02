@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Events",
-    "description": "Admin actions, config updates, and releases."
+    title: "Events",
+    description: "Admin actions, config updates, and releases.",
   },
   {
-    "title": "Retention",
-    "description": "Export, purge, and retention controls."
+    title: "Retention",
+    description: "Export, purge, and retention controls.",
   },
   {
-    "title": "Notifications",
-    "description": "Who is alerted for critical changes."
-  }
+    title: "Notifications",
+    description: "Who is alerted for critical changes.",
+  },
 ];
 
 export default function AuditSystemLogsPage() {

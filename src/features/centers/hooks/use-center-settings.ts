@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   getCenterSettings,
   updateCenterSettings,
@@ -35,7 +40,9 @@ export function useUpdateCenterSettings() {
       payload: UpdateCenterSettingsPayload;
     }) => updateCenterSettings(centerId, payload),
     onSuccess: (_, { centerId }) => {
-      queryClient.invalidateQueries({ queryKey: ["center-settings", centerId] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-settings", centerId],
+      });
     },
   });
 }

@@ -50,12 +50,17 @@ export type CreateRolePayload = {
 export type UpdateRolePayload = Partial<CreateRolePayload>;
 
 export async function getRole(roleId: string | number): Promise<Role | null> {
-  const { data } = await http.get<RawRoleResponse>(`/api/v1/admin/roles/${roleId}`);
+  const { data } = await http.get<RawRoleResponse>(
+    `/api/v1/admin/roles/${roleId}`,
+  );
   return data?.data ?? null;
 }
 
 export async function createRole(payload: CreateRolePayload): Promise<Role> {
-  const { data } = await http.post<RawRoleResponse>("/api/v1/admin/roles", payload);
+  const { data } = await http.post<RawRoleResponse>(
+    "/api/v1/admin/roles",
+    payload,
+  );
   return data?.data ?? (data as unknown as Role);
 }
 

@@ -48,13 +48,16 @@ export async function listVideos(
   if (!params.centerId) {
     throw new Error("centerId is required to list videos");
   }
-  const { data } = await http.get<RawVideosResponse>(basePath(params.centerId), {
-    params: {
-      page: params.page,
-      per_page: params.per_page,
-      search: params.search || undefined,
+  const { data } = await http.get<RawVideosResponse>(
+    basePath(params.centerId),
+    {
+      params: {
+        page: params.page,
+        per_page: params.per_page,
+        search: params.search || undefined,
+      },
     },
-  });
+  );
 
   return {
     items: data?.data ?? [],

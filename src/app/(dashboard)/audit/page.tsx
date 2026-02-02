@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "System",
-    "description": "Config changes, deployments, and admin actions."
+    title: "System",
+    description: "Config changes, deployments, and admin actions.",
   },
   {
-    "title": "Playback",
-    "description": "Playback-specific logs and violations."
+    title: "Playback",
+    description: "Playback-specific logs and violations.",
   },
   {
-    "title": "Devices",
-    "description": "Device approvals, bindings, and revocations."
-  }
+    title: "Devices",
+    description: "Device approvals, bindings, and revocations.",
+  },
 ];
 
 export default function AuditPage() {

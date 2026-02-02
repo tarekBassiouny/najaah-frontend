@@ -17,7 +17,9 @@ export default function CategoriesPage() {
   const centerId = tenant.centerId;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null,
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const handleOpenCreate = () => {

@@ -59,14 +59,19 @@ export type UpdateAdminUserPayload = Partial<CreateAdminUserPayload> & {
 export async function getAdminUser(
   userId: string | number,
 ): Promise<AdminUser | null> {
-  const { data } = await http.get<RawAdminUserResponse>(`/api/v1/admin/users/${userId}`);
+  const { data } = await http.get<RawAdminUserResponse>(
+    `/api/v1/admin/users/${userId}`,
+  );
   return data?.data ?? null;
 }
 
 export async function createAdminUser(
   payload: CreateAdminUserPayload,
 ): Promise<AdminUser> {
-  const { data } = await http.post<RawAdminUserResponse>("/api/v1/admin/users", payload);
+  const { data } = await http.post<RawAdminUserResponse>(
+    "/api/v1/admin/users",
+    payload,
+  );
   return data?.data ?? (data as unknown as AdminUser);
 }
 

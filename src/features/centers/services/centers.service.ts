@@ -60,26 +60,23 @@ type RawCenterResponse = {
 export async function listCenters(
   params: ListCentersParams,
 ): Promise<PaginatedResponse<Center>> {
-  const { data } = await http.get<RawCentersResponse>(
-    "/api/v1/admin/centers",
-    {
-      params: {
-        page: params.page,
-        per_page: params.per_page,
-        search: params.search || undefined,
-        slug: params.slug || undefined,
-        type: params.type || undefined,
-        tier: params.tier || undefined,
-        is_featured:
-          typeof params.is_featured === "boolean"
-            ? params.is_featured
-            : undefined,
-        onboarding_status: params.onboarding_status || undefined,
-        created_from: params.created_from || undefined,
-        created_to: params.created_to || undefined,
-      },
+  const { data } = await http.get<RawCentersResponse>("/api/v1/admin/centers", {
+    params: {
+      page: params.page,
+      per_page: params.per_page,
+      search: params.search || undefined,
+      slug: params.slug || undefined,
+      type: params.type || undefined,
+      tier: params.tier || undefined,
+      is_featured:
+        typeof params.is_featured === "boolean"
+          ? params.is_featured
+          : undefined,
+      onboarding_status: params.onboarding_status || undefined,
+      created_from: params.created_from || undefined,
+      created_to: params.created_to || undefined,
     },
-  );
+  });
 
   return {
     items: data?.data ?? [],
@@ -101,8 +98,13 @@ export async function getCenter(
   return data?.data ?? null;
 }
 
-export async function createCenter(payload: CreateCenterPayload): Promise<Center> {
-  const { data } = await http.post<RawCenterResponse>("/api/v1/admin/centers", payload);
+export async function createCenter(
+  payload: CreateCenterPayload,
+): Promise<Center> {
+  const { data } = await http.post<RawCenterResponse>(
+    "/api/v1/admin/centers",
+    payload,
+  );
   return data?.data ?? (data as unknown as Center);
 }
 
@@ -121,7 +123,9 @@ export async function deleteCenter(centerId: string | number): Promise<void> {
   await http.delete(`/api/v1/admin/centers/${centerId}`);
 }
 
-export async function restoreCenter(centerId: string | number): Promise<Center> {
+export async function restoreCenter(
+  centerId: string | number,
+): Promise<Center> {
   const { data } = await http.post<RawCenterResponse>(
     `/api/v1/admin/centers/${centerId}/restore`,
   );

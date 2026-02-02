@@ -2,18 +2,16 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { apiBaseUrl, getApiLocale } from "./runtime-config";
 import { tokenStorage } from "./token-storage";
 import { getTenantApiKey } from "./tenant-store";
+import { refreshToken, cancelTokenRefresh } from "./token-refresh";
 
 type AuthRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
   skipAuth?: boolean;
 };
 
-type RefreshResponse = {
-  token: string;
-};
-
 function redirectToLogin() {
   if (typeof window !== "undefined") {
+    cancelTokenRefresh();
     window.location.href = "/login";
   }
 }
@@ -52,29 +50,29 @@ http.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (
-      response.status !== 401 ||
-      originalConfig._retry ||
-      originalConfig.skipAuth
-    ) {
+    // Only handle 401 errors
+    if (response.status !== 401) {
       return Promise.reject(error);
     }
 
+    // Don't retry if already retried or auth is skipped
+    if (originalConfig._retry || originalConfig.skipAuth) {
+      return Promise.reject(error);
+    }
+
+    // If refresh endpoint itself fails, redirect to login
     if (originalConfig.url?.includes("/api/v1/admin/auth/refresh")) {
       tokenStorage.clear();
       redirectToLogin();
       return Promise.reject(error);
     }
 
+    // Mark as retrying to prevent infinite loops
     originalConfig._retry = true;
 
     try {
-      const res = await http.post<RefreshResponse>(
-        "/api/v1/admin/auth/refresh",
-      );
-
-      const newToken = res.data.token;
-      tokenStorage.setTokens({ accessToken: newToken });
+      // Use the queue-based refresh (handles concurrent requests)
+      const newToken = await refreshToken();
 
       originalConfig.headers = originalConfig.headers ?? {};
       originalConfig.headers.Authorization = `Bearer ${newToken}`;

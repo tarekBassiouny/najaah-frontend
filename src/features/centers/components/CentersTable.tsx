@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useCenters, useDeleteCenter } from "@/features/centers/hooks/use-centers";
+import {
+  useCenters,
+  useDeleteCenter,
+} from "@/features/centers/hooks/use-centers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +25,13 @@ const DEFAULT_PER_PAGE = 10;
 
 type CenterStatus = "active" | "inactive" | "pending" | string;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   active: { variant: "success", label: "Active" },
   enabled: { variant: "success", label: "Enabled" },
   approved: { variant: "success", label: "Approved" },
@@ -37,7 +46,12 @@ const statusConfig: Record<string, { variant: "success" | "warning" | "secondary
 
 function getStatusConfig(status: CenterStatus) {
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
+  return (
+    statusConfig[normalized] || {
+      variant: "default" as const,
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+    }
+  );
 }
 
 export function CentersTable() {
@@ -130,7 +144,9 @@ export function CentersTable() {
                   <TableHead className="font-medium">Slug</TableHead>
                   <TableHead className="font-medium">Type</TableHead>
                   <TableHead className="font-medium">Status</TableHead>
-                  <TableHead className="text-right font-medium">Actions</TableHead>
+                  <TableHead className="text-right font-medium">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -154,7 +170,7 @@ export function CentersTable() {
                           <Skeleton className="h-5 w-20 rounded-full" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-8 w-16 ml-auto" />
+                          <Skeleton className="ml-auto h-8 w-16" />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -203,7 +219,9 @@ export function CentersTable() {
                       </TableCell>
                       <TableCell>
                         {center.status ? (
-                          <Badge variant={getStatusConfig(center.status).variant}>
+                          <Badge
+                            variant={getStatusConfig(center.status).variant}
+                          >
                             {getStatusConfig(center.status).label}
                           </Badge>
                         ) : (

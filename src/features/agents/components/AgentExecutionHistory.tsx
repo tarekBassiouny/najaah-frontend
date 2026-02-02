@@ -20,7 +20,10 @@ type AgentExecutionHistoryProps = {
   className?: string;
 };
 
-const statusStyles: Record<AgentExecutionStatus, { variant: "info" | "success" | "warning" | "error"; label: string }> = {
+const statusStyles: Record<
+  AgentExecutionStatus,
+  { variant: "info" | "success" | "warning" | "error"; label: string }
+> = {
   pending: { variant: "warning", label: "Pending" },
   running: { variant: "info", label: "Running" },
   completed: { variant: "success", label: "Completed" },
@@ -29,23 +32,63 @@ const statusStyles: Record<AgentExecutionStatus, { variant: "info" | "success" |
 
 const typeIcons: Record<AgentType, React.ReactNode> = {
   content_publishing: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
   enrollment: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+      />
     </svg>
   ),
   analytics: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+      />
     </svg>
   ),
   notification: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+      />
     </svg>
   ),
 };
@@ -70,13 +113,19 @@ function ExecutionItem({ execution }: { execution: AgentExecution }) {
 
   return (
     <div className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
-      <div className={cn(
-        "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
-        execution.status === "completed" && "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-        execution.status === "running" && "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-        execution.status === "pending" && "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
-        execution.status === "failed" && "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
-      )}>
+      <div
+        className={cn(
+          "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
+          execution.status === "completed" &&
+            "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+          execution.status === "running" &&
+            "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+          execution.status === "pending" &&
+            "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+          execution.status === "failed" &&
+            "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+        )}
+      >
         {icon}
       </div>
 

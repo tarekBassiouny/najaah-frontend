@@ -58,8 +58,7 @@ export function InstructorsTable() {
     [page, perPage, query],
   );
 
-  const { data, isLoading, isError, isFetching } =
-    useInstructors(params);
+  const { data, isLoading, isError, isFetching } = useInstructors(params);
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -129,67 +128,67 @@ export function InstructorsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoadingState
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-16" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-48" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : showEmptyState
-                ? (
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <div className="flex flex-col items-center gap-2 py-10 text-center">
-                        <Icons.Table className="h-8 w-8 text-dark-4" />
-                        <p className="text-sm font-medium text-dark dark:text-white">
-                          No instructors found
-                        </p>
-                        <p className="text-sm text-dark-5 dark:text-dark-4">
-                          There are no instructors matching the current criteria.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-                : items.map((instructor) => (
-                  <TableRow key={instructor.id}>
-                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                      {instructor.id}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate px-3 py-2 text-sm">
-                      {instructor.name ?? "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[240px] truncate px-3 py-2 text-sm">
-                      {instructor.email ?? "—"}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {instructor.status ? (
-                        <span className={getBadgeClass(instructor.status)}>
-                          {formatBadgeLabel(instructor.status)}
-                        </span>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-sm">
-                      {instructor.center_id ?? "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+            {isLoadingState ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-40" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-48" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : showEmptyState ? (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <div className="flex flex-col items-center gap-2 py-10 text-center">
+                    <Icons.Table className="h-8 w-8 text-dark-4" />
+                    <p className="text-sm font-medium text-dark dark:text-white">
+                      No instructors found
+                    </p>
+                    <p className="text-sm text-dark-5 dark:text-dark-4">
+                      There are no instructors matching the current criteria.
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((instructor) => (
+                <TableRow key={instructor.id}>
+                  <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
+                    {instructor.id}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate px-3 py-2 text-sm">
+                    {instructor.name ?? "—"}
+                  </TableCell>
+                  <TableCell className="max-w-[240px] truncate px-3 py-2 text-sm">
+                    {instructor.email ?? "—"}
+                  </TableCell>
+                  <TableCell className="px-3 py-2 text-sm">
+                    {instructor.status ? (
+                      <span className={getBadgeClass(instructor.status)}>
+                        {formatBadgeLabel(instructor.status)}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="px-3 py-2 text-sm">
+                    {instructor.center_id ?? "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

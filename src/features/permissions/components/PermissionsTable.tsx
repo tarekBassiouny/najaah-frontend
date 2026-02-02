@@ -54,55 +54,55 @@ export function PermissionsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoadingState
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-16" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-48" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : showEmptyState
-                ? (
-                  <TableRow>
-                    <TableCell colSpan={4}>
-                      <div className="flex flex-col items-center gap-2 py-10 text-center">
-                        <Icons.Table className="h-8 w-8 text-dark-4" />
-                        <p className="text-sm font-medium text-dark dark:text-white">
-                          No permissions found
-                        </p>
-                        <p className="text-sm text-dark-5 dark:text-dark-4">
-                          There are no permissions matching the current criteria.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-                : items.map((permission) => (
-                  <TableRow key={permission.id}>
-                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                      {permission.id}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate px-3 py-2 text-sm">
-                      {permission.name ?? "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[180px] truncate px-3 py-2 text-sm">
-                      {permission.slug ?? "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[320px] truncate px-3 py-2 text-sm">
-                      {permission.description ?? "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+            {isLoadingState ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-40" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-48" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : showEmptyState ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <div className="flex flex-col items-center gap-2 py-10 text-center">
+                    <Icons.Table className="h-8 w-8 text-dark-4" />
+                    <p className="text-sm font-medium text-dark dark:text-white">
+                      No permissions found
+                    </p>
+                    <p className="text-sm text-dark-5 dark:text-dark-4">
+                      There are no permissions matching the current criteria.
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((permission) => (
+                <TableRow key={permission.id}>
+                  <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
+                    {permission.id}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate px-3 py-2 text-sm">
+                    {permission.name ?? "—"}
+                  </TableCell>
+                  <TableCell className="max-w-[180px] truncate px-3 py-2 text-sm">
+                    {permission.slug ?? "—"}
+                  </TableCell>
+                  <TableCell className="max-w-[320px] truncate px-3 py-2 text-sm">
+                    {permission.description ?? "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

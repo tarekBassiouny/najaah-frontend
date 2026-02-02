@@ -4,7 +4,13 @@ import { use } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenterCourse } from "@/features/courses/hooks/use-courses";
@@ -16,7 +22,11 @@ type PageProps = {
 
 export default function CenterCourseDetailPage({ params }: PageProps) {
   const { centerId, courseId } = use(params);
-  const { data: course, isLoading, isError } = useCenterCourse(centerId, courseId);
+  const {
+    data: course,
+    isLoading,
+    isError,
+  } = useCenterCourse(centerId, courseId);
 
   if (isLoading) {
     return (
@@ -81,7 +91,8 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="mb-4 text-gray-500 dark:text-gray-400">
-              This course may have been deleted or you may not have permission to view it.
+              This course may have been deleted or you may not have permission
+              to view it.
             </p>
             <Link href={`/centers/${centerId}/courses`}>
               <Button>Back to Courses</Button>
@@ -92,11 +103,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     );
   }
 
-  const statusVariant = course.status === "published" || course.status === "active"
-    ? "success"
-    : course.status === "draft"
-    ? "secondary"
-    : "default";
+  const statusVariant =
+    course.status === "published" || course.status === "active"
+      ? "success"
+      : course.status === "draft"
+        ? "secondary"
+        : "default";
 
   return (
     <div className="space-y-6">
@@ -127,7 +139,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Course Details</CardTitle>
-              <CardDescription>Basic information about this course</CardDescription>
+              <CardDescription>
+                Basic information about this course
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid gap-4 sm:grid-cols-2">
@@ -179,7 +193,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
                   {course.description}
                 </p>
               </CardContent>
@@ -193,7 +207,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link href={`/centers/${centerId}/courses/${courseId}/sections`} className="block">
+              <Link
+                href={`/centers/${centerId}/courses/${courseId}/sections`}
+                className="block"
+              >
                 <Button variant="outline" className="w-full justify-start">
                   Manage Sections
                 </Button>

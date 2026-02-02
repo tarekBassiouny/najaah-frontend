@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   approveDeviceChangeRequest,
   createDeviceChangeRequestForStudent,
@@ -32,7 +37,8 @@ export function useApproveDeviceChangeRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) => approveDeviceChangeRequest(requestId),
+    mutationFn: (requestId: string | number) =>
+      approveDeviceChangeRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -43,7 +49,8 @@ export function useRejectDeviceChangeRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) => rejectDeviceChangeRequest(requestId),
+    mutationFn: (requestId: string | number) =>
+      rejectDeviceChangeRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -54,7 +61,8 @@ export function usePreApproveDeviceChangeRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) => preApproveDeviceChangeRequest(requestId),
+    mutationFn: (requestId: string | number) =>
+      preApproveDeviceChangeRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },

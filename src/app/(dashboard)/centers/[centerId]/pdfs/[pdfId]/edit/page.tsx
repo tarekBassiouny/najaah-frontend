@@ -78,15 +78,27 @@ export default function CenterPdfEditPage({ params }: PageProps) {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
-              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="fileSize">File Size</Label>
-              <Input id="fileSize" value={fileSize} onChange={(e) => setFileSize(e.target.value)} />
+              <Input
+                id="fileSize"
+                value={fileSize}
+                onChange={(e) => setFileSize(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Input id="status" value={status} onChange={(e) => setStatus(e.target.value)} />
+              <Input
+                id="status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              />
             </div>
             <Button type="submit" disabled={isPending}>
               {isPending ? "Saving..." : "Save"}

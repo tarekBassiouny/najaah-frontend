@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   attachSectionPdf,
   attachSectionVideo,
@@ -92,7 +97,9 @@ export function useCreateSection() {
       payload: SectionPayload;
     }) => createSection(centerId, courseId, payload),
     onSuccess: (_, { centerId, courseId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
     },
   });
 }
@@ -113,7 +120,9 @@ export function useUpdateSection() {
       payload: SectionPayload;
     }) => updateSection(centerId, courseId, sectionId, payload),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });
@@ -135,7 +144,9 @@ export function useDeleteSection() {
       sectionId: string | number;
     }) => deleteSection(centerId, courseId, sectionId),
     onSuccess: (_, { centerId, courseId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
     },
   });
 }
@@ -154,7 +165,9 @@ export function useRestoreSection() {
       sectionId: string | number;
     }) => restoreSection(centerId, courseId, sectionId),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });
@@ -176,7 +189,9 @@ export function useToggleSectionVisibility() {
       sectionId: string | number;
     }) => toggleSectionVisibility(centerId, courseId, sectionId),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });
@@ -198,7 +213,9 @@ export function useReorderSections() {
       payload: ReorderSectionsPayload;
     }) => reorderSections(centerId, courseId, payload),
     onSuccess: (_, { centerId, courseId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
     },
   });
 }
@@ -217,7 +234,9 @@ export function useCreateSectionWithStructure() {
       payload: SectionStructurePayload;
     }) => createSectionWithStructure(centerId, courseId, payload),
     onSuccess: (_, { centerId, courseId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
     },
   });
 }
@@ -238,7 +257,9 @@ export function useUpdateSectionWithStructure() {
       payload: SectionStructurePayload;
     }) => updateSectionWithStructure(centerId, courseId, sectionId, payload),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });
@@ -260,7 +281,9 @@ export function useDeleteSectionWithStructure() {
       sectionId: string | number;
     }) => deleteSectionWithStructure(centerId, courseId, sectionId),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });
@@ -404,7 +427,9 @@ export function usePublishSection() {
       sectionId: string | number;
     }) => publishSection(centerId, courseId, sectionId),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });
@@ -426,7 +451,9 @@ export function useUnpublishSection() {
       sectionId: string | number;
     }) => unpublishSection(centerId, courseId, sectionId),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["sections", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
       });

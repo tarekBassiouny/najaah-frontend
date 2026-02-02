@@ -82,7 +82,10 @@ const activityIcons: Record<Activity["type"], React.ReactNode> = {
   ),
 };
 
-const badgeVariants: Record<Activity["type"], "info" | "success" | "warning" | "secondary"> = {
+const badgeVariants: Record<
+  Activity["type"],
+  "info" | "success" | "warning" | "secondary"
+> = {
   enrollment: "success",
   course: "info",
   device: "warning",
@@ -125,7 +128,10 @@ const mockActivities: Activity[] = [
   },
 ];
 
-export function RecentActivity({ activities = mockActivities, isLoading }: RecentActivityProps) {
+export function RecentActivity({
+  activities = mockActivities,
+  isLoading,
+}: RecentActivityProps) {
   if (isLoading) {
     return (
       <Card>
@@ -183,7 +189,10 @@ export function RecentActivity({ activities = mockActivities, isLoading }: Recen
               </div>
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant={badgeVariants[activity.type]} className="text-xs">
+                  <Badge
+                    variant={badgeVariants[activity.type]}
+                    className="text-xs"
+                  >
                     {activity.action}
                   </Badge>
                 </div>

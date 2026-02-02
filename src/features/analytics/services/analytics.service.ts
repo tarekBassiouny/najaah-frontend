@@ -44,19 +44,21 @@ export async function getAnalyticsCoursesMedia(
 export async function getAnalyticsLearnersEnrollments(
   filters?: AnalyticsFilters,
 ): Promise<AnalyticsLearnersEnrollments> {
-  const { data } = await http.get<RawAnalyticsResponse<AnalyticsLearnersEnrollments>>(
-    "/api/v1/admin/analytics/learners-enrollments",
-    { params: withFilters(filters) },
-  );
+  const { data } = await http.get<
+    RawAnalyticsResponse<AnalyticsLearnersEnrollments>
+  >("/api/v1/admin/analytics/learners-enrollments", {
+    params: withFilters(filters),
+  });
   return data?.data ?? (data as unknown as AnalyticsLearnersEnrollments);
 }
 
 export async function getAnalyticsDevicesRequests(
   filters?: AnalyticsFilters,
 ): Promise<AnalyticsDevicesRequests> {
-  const { data } = await http.get<RawAnalyticsResponse<AnalyticsDevicesRequests>>(
-    "/api/v1/admin/analytics/devices-requests",
-    { params: withFilters(filters) },
-  );
+  const { data } = await http.get<
+    RawAnalyticsResponse<AnalyticsDevicesRequests>
+  >("/api/v1/admin/analytics/devices-requests", {
+    params: withFilters(filters),
+  });
   return data?.data ?? (data as unknown as AnalyticsDevicesRequests);
 }

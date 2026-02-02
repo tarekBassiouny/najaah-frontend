@@ -34,6 +34,13 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
 
     if (!hasToken) {
       router.replace("/login");
+      // Fallback for cases where Next.js router doesn't trigger navigation
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/login"
+      ) {
+        window.location.replace("/login");
+      }
     }
   }, [hasToken, isResolved, router]);
 

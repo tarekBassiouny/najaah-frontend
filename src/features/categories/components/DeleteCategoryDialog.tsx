@@ -76,9 +76,7 @@ export function DeleteCategoryDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Category</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone.
-          </DialogDescription>
+          <DialogDescription>This action cannot be undone.</DialogDescription>
         </DialogHeader>
 
         {errorMessage && (

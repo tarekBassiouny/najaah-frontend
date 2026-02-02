@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Branding",
-    "description": "Logos, theme presets, and primary contacts."
+    title: "Branding",
+    description: "Logos, theme presets, and primary contacts.",
   },
   {
-    "title": "Security",
-    "description": "MFA, session limits, and audit retention."
+    title: "Security",
+    description: "MFA, session limits, and audit retention.",
   },
   {
-    "title": "Notifications",
-    "description": "Email/webhook destinations and templates."
-  }
+    title: "Notifications",
+    description: "Email/webhook destinations and templates.",
+  },
 ];
 
 export default function SettingsPage() {

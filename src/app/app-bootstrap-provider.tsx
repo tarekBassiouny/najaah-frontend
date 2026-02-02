@@ -5,8 +5,27 @@ import { resolveCenter } from "@/services/resolve.service";
 import { defaultApiKey } from "@/lib/runtime-config";
 import { setTenantState } from "@/lib/tenant-store";
 
+function isIPAddress(hostname: string) {
+  // IPv4: digits and dots only, all parts are numbers
+  if (/^[\d.]+$/.test(hostname)) {
+    const parts = hostname.split(".");
+    return parts.length === 4 && parts.every((p) => /^\d{1,3}$/.test(p));
+  }
+  // IPv6: contains colons or is wrapped in brackets
+  if (hostname.includes(":") || hostname.startsWith("[")) {
+    return true;
+  }
+  return false;
+}
+
 function getCenterSlugFromHost(host: string) {
   const hostname = host.split(":")[0];
+
+  // IP addresses don't have subdomains
+  if (isIPAddress(hostname) || hostname === "localhost") {
+    return null;
+  }
+
   const parts = hostname.split(".");
   if (parts.length < 3) {
     return null;

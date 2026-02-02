@@ -19,7 +19,10 @@ export default function CenterCourseSectionsPage({ params }: PageProps) {
         { label: "Centers", href: "/centers" },
         { label: `Center ${centerId}`, href: `/centers/${centerId}` },
         { label: "Courses", href: `/centers/${centerId}/courses` },
-        { label: `Course ${courseId}`, href: `/centers/${centerId}/courses/${courseId}` },
+        {
+          label: `Course ${courseId}`,
+          href: `/centers/${centerId}/courses/${courseId}`,
+        },
         { label: "Sections" },
       ]}
     />

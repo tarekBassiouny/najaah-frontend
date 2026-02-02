@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   createRole,
   deleteRole,
@@ -26,7 +31,10 @@ export function useRoles(params: ListRolesParams, options?: UseRolesOptions) {
   });
 }
 
-type UseRoleOptions = Omit<UseQueryOptions<Role | null>, "queryKey" | "queryFn">;
+type UseRoleOptions = Omit<
+  UseQueryOptions<Role | null>,
+  "queryKey" | "queryFn"
+>;
 
 export function useRole(
   roleId: string | number | undefined,

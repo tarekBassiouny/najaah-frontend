@@ -1,5 +1,6 @@
 import * as Icons from "../icons";
 import type { Capability } from "@/lib/capabilities";
+import { iconFromTitle } from "./icon-map";
 
 type SidebarSubItem = {
   title: string;
@@ -10,7 +11,7 @@ type SidebarSubItem = {
 type SidebarItem = {
   title: string;
   url?: string;
-  icon?: typeof Icons[keyof typeof Icons];
+  icon?: (typeof Icons)[keyof typeof Icons];
   capability?: Capability;
   items: SidebarSubItem[];
 };
@@ -27,42 +28,42 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       {
         title: "Dashboard",
         capability: "view_dashboard",
-        icon: Icons.HomeIcon,
+        icon: iconFromTitle("Dashboard"),
         url: "/dashboard",
         items: [],
       },
       {
         title: "Analytics",
         capability: "view_dashboard",
-        icon: Icons.PieChart,
+        icon: iconFromTitle("Analytics"),
         url: "/analytics",
         items: [],
       },
       {
         title: "Categories",
         capability: "manage_courses",
-        icon: Icons.Alphabet,
+        icon: iconFromTitle("Categories"),
         url: "/categories",
         items: [],
       },
       {
         title: "Centers",
         capability: "manage_centers",
-        icon: Icons.Table,
+        icon: iconFromTitle("Centers"),
         url: "/centers",
         items: [],
       },
       {
         title: "Courses",
         capability: "manage_courses",
-        icon: Icons.Alphabet,
+        icon: iconFromTitle("Courses"),
         url: "/courses",
         items: [],
       },
       {
         title: "Enrollment & Controls",
         capability: "manage_students",
-        icon: Icons.Alphabet,
+        icon: iconFromTitle("Enrollment & Controls"),
         items: [
           {
             title: "Enrollments",
@@ -84,63 +85,63 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       {
         title: "Videos",
         capability: "manage_videos",
-        icon: Icons.FourCircle,
+        icon: iconFromTitle("Videos"),
         url: "/videos",
         items: [],
       },
       {
         title: "Instructors",
         capability: "manage_instructors",
-        icon: Icons.User,
+        icon: iconFromTitle("Instructors"),
         url: "/instructors",
         items: [],
       },
       {
         title: "PDFs",
         capability: "manage_pdfs",
-        icon: Icons.Table,
+        icon: iconFromTitle("PDFs"),
         url: "/pdfs",
         items: [],
       },
       {
         title: "Roles",
         capability: "manage_roles",
-        icon: Icons.User,
+        icon: iconFromTitle("Roles"),
         url: "/roles",
         items: [],
       },
       {
         title: "Permissions",
         capability: "view_permissions",
-        icon: Icons.Authentication,
+        icon: iconFromTitle("Permissions"),
         url: "/permissions",
         items: [],
       },
       {
         title: "Admins",
         capability: "manage_admin_users",
-        icon: Icons.User,
+        icon: iconFromTitle("Admins"),
         url: "/admin-users",
         items: [],
       },
       {
         title: "Students",
         capability: "manage_students",
-        icon: Icons.User,
+        icon: iconFromTitle("Students"),
         url: "/students",
         items: [],
       },
       {
         title: "Settings",
         capability: "view_dashboard",
-        icon: Icons.Authentication,
+        icon: iconFromTitle("Settings"),
         url: "/settings",
         items: [],
       },
       {
         title: "Audit Logs",
         capability: "view_audit_logs",
-        icon: Icons.Authentication,
+        icon: iconFromTitle("Audit Logs"),
         url: "/audit-logs",
         items: [],
       },

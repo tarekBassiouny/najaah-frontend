@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useCourses, useCenterCourses } from "@/features/courses/hooks/use-courses";
+import {
+  useCourses,
+  useCenterCourses,
+} from "@/features/courses/hooks/use-courses";
 import { useTenant } from "@/app/tenant-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,9 +25,25 @@ import type { Course } from "../services/courses.service";
 
 const DEFAULT_PER_PAGE = 10;
 
-type CourseStatus = "published" | "draft" | "archived" | "pending" | string | number | boolean | Record<string, unknown> | null | undefined;
+type CourseStatus =
+  | "published"
+  | "draft"
+  | "archived"
+  | "pending"
+  | string
+  | number
+  | boolean
+  | Record<string, unknown>
+  | null
+  | undefined;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   published: { variant: "success", label: "Published" },
   active: { variant: "success", label: "Active" },
   draft: { variant: "secondary", label: "Draft" },
@@ -37,7 +56,11 @@ function getStatusConfig(status: CourseStatus) {
   if (typeof status !== "string") {
     if (status && typeof status === "object") {
       const label = String(
-        status.label ?? status.name ?? status.status ?? status.value ?? "Unknown",
+        status.label ??
+          status.name ??
+          status.status ??
+          status.value ??
+          "Unknown",
       );
       return { variant: "default" as const, label };
     }
@@ -46,10 +69,18 @@ function getStatusConfig(status: CourseStatus) {
   }
 
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status };
+  return (
+    statusConfig[normalized] || { variant: "default" as const, label: status }
+  );
 }
 
-function CourseRow({ course, centerId }: { course: Course; centerId?: string | number }) {
+function CourseRow({
+  course,
+  centerId,
+}: {
+  course: Course;
+  centerId?: string | number;
+}) {
   const status = course.status != null ? getStatusConfig(course.status) : null;
   const viewHref = centerId
     ? `/centers/${centerId}/courses/${course.id}`
@@ -58,10 +89,7 @@ function CourseRow({ course, centerId }: { course: Course; centerId?: string | n
   return (
     <TableRow className="group">
       <TableCell className="font-medium text-gray-900 dark:text-white">
-        <Link
-          href={viewHref}
-          className="hover:text-primary hover:underline"
-        >
+        <Link href={viewHref} className="hover:text-primary hover:underline">
           {course.title ?? course.name ?? `Course #${course.id}`}
         </Link>
       </TableCell>
@@ -69,9 +97,7 @@ function CourseRow({ course, centerId }: { course: Course; centerId?: string | n
         {course.slug ?? "—"}
       </TableCell>
       <TableCell>
-        {status && (
-          <Badge variant={status.variant}>{status.label}</Badge>
-        )}
+        {status && <Badge variant={status.variant}>{status.label}</Badge>}
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -231,7 +257,9 @@ export function CoursesTable({ centerId: centerIdProp }: CoursesTableProps) {
                   <TableHead className="font-medium">Title</TableHead>
                   <TableHead className="font-medium">Slug</TableHead>
                   <TableHead className="font-medium">Status</TableHead>
-                  <TableHead className="text-right font-medium">Actions</TableHead>
+                  <TableHead className="text-right font-medium">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -248,7 +276,8 @@ export function CoursesTable({ centerId: centerIdProp }: CoursesTableProps) {
                             : "Get started by creating your first course"
                         }
                         action={
-                          !query && !centerId && (
+                          !query &&
+                          !centerId && (
                             <Link href="/courses/create">
                               <Button size="sm">Create Course</Button>
                             </Link>
@@ -260,7 +289,11 @@ export function CoursesTable({ centerId: centerIdProp }: CoursesTableProps) {
                   </TableRow>
                 ) : (
                   items.map((course) => (
-                    <CourseRow key={course.id} course={course} centerId={centerId} />
+                    <CourseRow
+                      key={course.id}
+                      course={course}
+                      centerId={centerId}
+                    />
                   ))
                 )}
               </TableBody>

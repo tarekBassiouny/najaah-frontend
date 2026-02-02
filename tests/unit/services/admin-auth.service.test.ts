@@ -20,6 +20,7 @@ vi.mock("@/lib/http", () => {
 
 vi.mock("@/lib/token-storage", () => ({
   tokenStorage: {
+    getAccessToken: vi.fn(() => null),
     setTokens: vi.fn(),
     clear: vi.fn(),
   },
@@ -35,6 +36,7 @@ const mockedHttp = http as unknown as {
 };
 
 const mockedTokenStorage = tokenStorage as unknown as {
+  getAccessToken: ReturnType<typeof vi.fn>;
   setTokens: ReturnType<typeof vi.fn>;
   clear: ReturnType<typeof vi.fn>;
 };

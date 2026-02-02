@@ -40,7 +40,6 @@ export function LoginForm() {
       router.push("/dashboard");
     },
     onError: (error) => {
-      console.log(error)
       setFormMessage(extractErrorMessage(error));
     },
   });

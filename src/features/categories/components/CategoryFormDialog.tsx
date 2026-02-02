@@ -23,6 +23,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   useCategories,
@@ -291,17 +298,22 @@ export function CategoryFormDialog({
                 <FormItem>
                   <FormLabel>Parent Category</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
                     >
-                      <option value="none">No Parent (Root)</option>
-                      {filteredParents.map((parent) => (
-                        <option key={parent.id} value={parent.id}>
-                          {getCategoryTitle(parent)}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="h-10 w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No Parent (Root)</SelectItem>
+                        {filteredParents.map((parent) => (
+                          <SelectItem key={parent.id} value={String(parent.id)}>
+                            {getCategoryTitle(parent)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

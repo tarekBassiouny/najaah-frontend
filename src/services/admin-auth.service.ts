@@ -1,6 +1,7 @@
 import { setAuthPermissions } from "@/lib/auth-state";
 import { http } from "@/lib/http";
 import { tokenStorage } from "@/lib/token-storage";
+import { scheduleTokenRefresh, cancelTokenRefresh } from "@/lib/token-refresh";
 import {
   type AdminAuthResponse,
   type AdminAuthTokens,
@@ -107,6 +108,10 @@ export async function loginAdmin(payload: AdminLoginPayload) {
   tokenStorage.setTokens({
     accessToken: tokens.access_token
   });
+
+  // Schedule proactive token refresh (2 min before expiry)
+  scheduleTokenRefresh();
+
   let user: AdminUser | null = null;
   try {
     user = normalizeAdminUser(extractUser(data));
@@ -124,10 +129,15 @@ export async function fetchAdminProfile(): Promise<AdminUser | null> {
     // /auth/me returns: { data: { user: { roles: [{ permissions: string[] }] } } }
     const user = normalizeAdminUser(extractUser(data));
     setAuthPermissions(user.permissions ?? []);
+
+    // Schedule proactive refresh for page reload scenarios
+    scheduleTokenRefresh();
+
     return user;
   } catch (error) {
     if (isAxiosError<ApiErrorResponse>(error)) {
       if (error.response?.status === 401) {
+        cancelTokenRefresh();
         setAuthPermissions(null);
         return null;
       }
@@ -152,6 +162,7 @@ export async function logoutAdmin() {
   try {
     await http.post("/api/v1/admin/auth/logout");
   } finally {
+    cancelTokenRefresh();
     tokenStorage.clear();
     setAuthPermissions(null);
   }

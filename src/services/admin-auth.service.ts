@@ -112,6 +112,11 @@ export async function loginAdmin(payload: AdminLoginPayload) {
     { skipAuth: true },
   );
   const tokens = extractTokens(data);
+
+  // Set remember me preference before storing token
+  // This determines if token goes to localStorage (persistent) or sessionStorage (session only)
+  tokenStorage.setRememberMe(payload.remember ?? false);
+
   tokenStorage.setTokens({
     accessToken: tokens.access_token,
   });

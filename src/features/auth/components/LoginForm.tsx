@@ -23,6 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -45,12 +46,17 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
   const onSubmit = (values: FormValues) => {
     setFormMessage(null);
-    loginMutation.mutate(values);
+    loginMutation.mutate({
+      email: values.email,
+      password: values.password,
+      remember: values.rememberMe,
+    });
   };
 
   return (
@@ -107,6 +113,30 @@ export function LoginForm() {
                   />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-2">
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-dark-3 dark:bg-dark-2"
+                  />
+                </FormControl>
+                <FormLabel
+                  htmlFor="rememberMe"
+                  className="!mt-0 cursor-pointer text-sm font-normal"
+                >
+                  Remember me for 30 days
+                </FormLabel>
               </FormItem>
             )}
           />

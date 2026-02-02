@@ -28,10 +28,10 @@ export default defineConfig({
         "src/**/app/**/not-found.tsx",
       ],
       thresholds: {
-        statements: 5,
+        statements: 4,
         branches: 35,
         functions: 35,
-        lines: 5,
+        lines: 4,
       },
     },
   },

@@ -37,9 +37,7 @@ function normalizeCoursesResponse(
   fallback: ListCoursesParams,
 ): CoursesResponse {
   const container =
-    raw && typeof raw === "object" && raw !== null
-      ? (raw as RawResponse)
-      : {};
+    raw && typeof raw === "object" && raw !== null ? (raw as RawResponse) : {};
   const dataNode = (container.data ?? container) as any;
   const items = Array.isArray(dataNode?.data)
     ? (dataNode.data as Course[])
@@ -53,17 +51,17 @@ function normalizeCoursesResponse(
     {};
 
   const page =
-    Number(meta.current_page ?? dataNode?.current_page ?? container.current_page) ||
-    fallback.page;
+    Number(
+      meta.current_page ?? dataNode?.current_page ?? container.current_page,
+    ) || fallback.page;
   const perPage =
     Number(meta.per_page ?? dataNode?.per_page ?? container.per_page) ||
     fallback.per_page;
   const total =
     Number(meta.total ?? dataNode?.total ?? container.total) || items.length;
   const lastPage =
-    Number(
-      meta.last_page ?? dataNode?.last_page ?? container.last_page ?? 1,
-    ) || 1;
+    Number(meta.last_page ?? dataNode?.last_page ?? container.last_page ?? 1) ||
+    1;
 
   return {
     items,
@@ -105,8 +103,13 @@ export type CreateCoursePayload = {
   [key: string]: unknown;
 };
 
-export async function createCourse(payload: CreateCoursePayload): Promise<Course> {
-  const { data } = await http.post<RawResponse>("/api/v1/admin/courses", payload);
+export async function createCourse(
+  payload: CreateCoursePayload,
+): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    "/api/v1/admin/courses",
+    payload,
+  );
   return (data?.data ?? data) as Course;
 }
 
@@ -114,8 +117,14 @@ export type UpdateCoursePayload = Partial<CreateCoursePayload> & {
   status?: string;
 };
 
-export async function updateCourse(id: string | number, payload: UpdateCoursePayload): Promise<Course> {
-  const { data } = await http.put<RawResponse>(`/api/v1/admin/courses/${id}`, payload);
+export async function updateCourse(
+  id: string | number,
+  payload: UpdateCoursePayload,
+): Promise<Course> {
+  const { data } = await http.put<RawResponse>(
+    `/api/v1/admin/courses/${id}`,
+    payload,
+  );
   return (data?.data ?? data) as Course;
 }
 
@@ -192,7 +201,9 @@ export async function cloneCourse(courseId: string | number): Promise<Course> {
   return (data?.data ?? data) as Course;
 }
 
-export async function publishCourse(courseId: string | number): Promise<Course> {
+export async function publishCourse(
+  courseId: string | number,
+): Promise<Course> {
   const { data } = await http.post<RawResponse>(
     `/api/v1/admin/courses/${courseId}/publish`,
   );

@@ -1,5 +1,8 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { listStudents, type ListStudentsParams } from "../services/students.service";
+import {
+  listStudents,
+  type ListStudentsParams,
+} from "../services/students.service";
 import type { PaginatedResponse } from "@/types/pagination";
 import type { Student } from "@/features/students/types/student";
 

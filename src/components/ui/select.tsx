@@ -113,7 +113,7 @@ const SelectItem = React.forwardRef<
       "text-gray-700 dark:text-gray-200",
       "hover:bg-gray-100 dark:hover:bg-gray-800",
       "focus:bg-primary/10 focus:text-primary dark:focus:bg-primary/20",
-      "data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary data-[state=checked]:font-medium",
+      "data-[state=checked]:bg-primary/10 data-[state=checked]:font-medium data-[state=checked]:text-primary",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}

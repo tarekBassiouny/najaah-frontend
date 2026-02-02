@@ -11,7 +11,7 @@ type SidebarSubItem = {
 type SidebarItem = {
   title: string;
   url?: string;
-  icon?: typeof Icons[keyof typeof Icons];
+  icon?: (typeof Icons)[keyof typeof Icons];
   capability?: Capability;
   items: SidebarSubItem[];
 };

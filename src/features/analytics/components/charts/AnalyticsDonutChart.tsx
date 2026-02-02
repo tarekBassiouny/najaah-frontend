@@ -89,7 +89,9 @@ export function AnalyticsDonutChart({
             <div className="text-xl font-semibold text-gray-900 dark:text-white">
               {total.toLocaleString()}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Total</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Total
+            </div>
           </div>
         </div>
       </div>
@@ -102,7 +104,9 @@ export function AnalyticsDonutChart({
               className="h-3 w-3 rounded-full"
               style={{ backgroundColor: seg.color }}
             />
-            <span className="text-gray-600 dark:text-gray-400">{seg.label}</span>
+            <span className="text-gray-600 dark:text-gray-400">
+              {seg.label}
+            </span>
             <span className="font-medium text-gray-900 dark:text-white">
               {seg.value.toLocaleString()} ({Math.round(seg.percent)}%)
             </span>

@@ -23,7 +23,11 @@ type FiltersGridProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode;
 };
 
-export function FiltersGrid({ className, children, ...props }: FiltersGridProps) {
+export function FiltersGrid({
+  className,
+  children,
+  ...props
+}: FiltersGridProps) {
   return (
     <div
       className={cn("grid gap-3 sm:grid-cols-2 lg:grid-cols-6", className)}
@@ -68,7 +72,10 @@ export function FiltersActions({
 }: FiltersActionsProps) {
   return (
     <div
-      className={cn("flex items-end justify-end gap-2 sm:col-span-2 lg:col-span-2", className)}
+      className={cn(
+        "flex items-end justify-end gap-2 sm:col-span-2 lg:col-span-2",
+        className,
+      )}
       {...props}
     >
       {children}

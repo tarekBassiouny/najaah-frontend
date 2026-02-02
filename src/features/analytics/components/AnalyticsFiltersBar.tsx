@@ -30,7 +30,12 @@ type AnalyticsFiltersBarProps = {
   isLoading?: boolean;
 };
 
-const TIMEZONE_OPTIONS = ["UTC", "Africa/Cairo", "Asia/Riyadh", "Europe/London"];
+const TIMEZONE_OPTIONS = [
+  "UTC",
+  "Africa/Cairo",
+  "Asia/Riyadh",
+  "Europe/London",
+];
 
 export function AnalyticsFiltersBar({
   isPlatformAdmin,
@@ -88,11 +93,7 @@ export function AnalyticsFiltersBar({
         </FilterField>
 
         <FiltersActions>
-          <Button
-            variant="outline"
-            onClick={onReset}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={onReset} disabled={isLoading}>
             Reset
           </Button>
           <Button onClick={onApply} disabled={isLoading}>

@@ -21,7 +21,9 @@ export function AnalyticsCoursesMediaPanel({
     return (
       <Alert variant="destructive">
         <AlertTitle>Courses & media analytics unavailable</AlertTitle>
-        <AlertDescription>Failed to load courses/media metrics.</AlertDescription>
+        <AlertDescription>
+          Failed to load courses/media metrics.
+        </AlertDescription>
       </Alert>
     );
   }
@@ -43,7 +45,13 @@ export function AnalyticsCoursesMediaPanel({
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart
-              categories={["Draft", "Uploading", "Ready", "Published", "Archived"]}
+              categories={[
+                "Draft",
+                "Uploading",
+                "Ready",
+                "Published",
+                "Archived",
+              ]}
               values={[
                 courseStatus.draft,
                 courseStatus.uploading,
@@ -61,7 +69,13 @@ export function AnalyticsCoursesMediaPanel({
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart
-              categories={["Vid Pending", "Vid Processing", "Vid Ready", "PDF Pending", "PDF Ready"]}
+              categories={[
+                "Vid Pending",
+                "Vid Processing",
+                "Vid Ready",
+                "PDF Pending",
+                "PDF Ready",
+              ]}
               values={[
                 videoStatus.pending + videoStatus.uploading,
                 videoStatus.processing,

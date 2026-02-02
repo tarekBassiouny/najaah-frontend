@@ -23,7 +23,8 @@ export function AnalyticsBarChart({
   height = 280,
 }: AnalyticsBarChartProps) {
   const safeCategories = useMemo(
-    () => categories.filter((item) => typeof item === "string" && item.length > 0),
+    () =>
+      categories.filter((item) => typeof item === "string" && item.length > 0),
     [categories],
   );
   const safeValues = useMemo(
@@ -58,7 +59,9 @@ export function AnalyticsBarChart({
           return (
             <div key={label} className="space-y-1.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">{label}</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  {label}
+                </span>
                 <span className="font-medium text-gray-900 dark:text-white">
                   {value.toLocaleString()}
                 </span>

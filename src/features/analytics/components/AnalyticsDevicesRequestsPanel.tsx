@@ -23,7 +23,9 @@ export function AnalyticsDevicesRequestsPanel({
     return (
       <Alert variant="destructive">
         <AlertTitle>Devices & requests analytics unavailable</AlertTitle>
-        <AlertDescription>Failed to load device/request metrics.</AlertDescription>
+        <AlertDescription>
+          Failed to load device/request metrics.
+        </AlertDescription>
       </Alert>
     );
   }

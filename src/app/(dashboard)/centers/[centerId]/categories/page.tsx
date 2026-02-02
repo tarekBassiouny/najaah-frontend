@@ -19,7 +19,9 @@ export default function CenterCategoriesPage({ params }: PageProps) {
   const { centerId } = use(params);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null,
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
 
   return (

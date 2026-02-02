@@ -54,7 +54,9 @@ function getTimeUntilRefresh(token: string): number | null {
  * Perform token refresh
  */
 async function doRefresh(): Promise<string> {
-  const response = await http.post<RefreshResponse>("/api/v1/admin/auth/refresh");
+  const response = await http.post<RefreshResponse>(
+    "/api/v1/admin/auth/refresh",
+  );
 
   if (!response.data?.token) {
     throw new Error("Invalid refresh response");
@@ -140,12 +142,22 @@ export function getTokenInfo(): {
 } {
   const token = tokenStorage.getAccessToken();
   if (!token) {
-    return { hasToken: false, expiresAt: null, expiresIn: null, isExpired: true };
+    return {
+      hasToken: false,
+      expiresAt: null,
+      expiresIn: null,
+      isExpired: true,
+    };
   }
 
   const expiryMs = getTokenExpiryMs(token);
   if (!expiryMs) {
-    return { hasToken: true, expiresAt: null, expiresIn: null, isExpired: false };
+    return {
+      hasToken: true,
+      expiresAt: null,
+      expiresIn: null,
+      isExpired: false,
+    };
   }
 
   const now = Date.now();

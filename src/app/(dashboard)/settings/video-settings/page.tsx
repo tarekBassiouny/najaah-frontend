@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Encoding",
-    "description": "Bitrate ladders and codec presets."
+    title: "Encoding",
+    description: "Bitrate ladders and codec presets.",
   },
   {
-    "title": "Captions",
-    "description": "Caption defaults and required languages."
+    title: "Captions",
+    description: "Caption defaults and required languages.",
   },
   {
-    "title": "DRM",
-    "description": "Key rotation and token lifetimes."
-  }
+    title: "DRM",
+    description: "Key rotation and token lifetimes.",
+  },
 ];
 
 export default function SettingsVideoSettingsPage() {

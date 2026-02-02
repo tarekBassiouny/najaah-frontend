@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useCreateRole, useDeleteRole, useRoles } from "@/features/roles/hooks/use-roles";
+import {
+  useCreateRole,
+  useDeleteRole,
+  useRoles,
+} from "@/features/roles/hooks/use-roles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -105,13 +109,19 @@ export function RolesTable() {
                 id="role-desc"
                 value={formData.description}
                 onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, description: event.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: event.target.value,
+                  }))
                 }
                 placeholder="Short description"
               />
             </div>
             <div className="flex items-end">
-              <Button type="submit" disabled={isCreating || !formData.name.trim()}>
+              <Button
+                type="submit"
+                disabled={isCreating || !formData.name.trim()}
+              >
                 {isCreating ? "Creating..." : "Create Role"}
               </Button>
             </div>
@@ -153,7 +163,9 @@ export function RolesTable() {
                     <TableHead className="font-medium">Slug</TableHead>
                     <TableHead className="font-medium">Description</TableHead>
                     <TableHead className="font-medium">Created At</TableHead>
-                    <TableHead className="text-right font-medium">Actions</TableHead>
+                    <TableHead className="text-right font-medium">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -177,7 +189,7 @@ export function RolesTable() {
                             <Skeleton className="h-4 w-28" />
                           </TableCell>
                           <TableCell>
-                            <Skeleton className="h-8 w-24 ml-auto" />
+                            <Skeleton className="ml-auto h-8 w-24" />
                           </TableCell>
                         </TableRow>
                       ))}

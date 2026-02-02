@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Pipelines",
-    "description": "Stages for encoding, transcription, and packaging."
+    title: "Pipelines",
+    description: "Stages for encoding, transcription, and packaging.",
   },
   {
-    "title": "Health",
-    "description": "Error rates and retry queues."
+    title: "Health",
+    description: "Error rates and retry queues.",
   },
   {
-    "title": "SLAs",
-    "description": "Processing time targets and alerts."
-  }
+    title: "SLAs",
+    description: "Processing time targets and alerts.",
+  },
 ];
 
 export default function VideosProcessingStatusPage() {

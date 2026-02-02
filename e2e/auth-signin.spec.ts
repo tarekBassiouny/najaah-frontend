@@ -24,7 +24,8 @@ test.describe("Authentication", () => {
 
     await page.route("**/api/v1/admin/auth/me", async (route) => {
       const authHeader = route.request().headers()["authorization"];
-      const isAuthenticated = typeof authHeader === "string" && authHeader.startsWith("Bearer ");
+      const isAuthenticated =
+        typeof authHeader === "string" && authHeader.startsWith("Bearer ");
 
       if (!isAuthenticated) {
         await route.fulfill({
@@ -65,7 +66,9 @@ test.describe("Authentication", () => {
 
   test("redirects to login when unauthenticated", async ({ page }) => {
     await page.goto("/login");
-    const tokenBefore = await page.evaluate(() => localStorage.getItem("access_token"));
+    const tokenBefore = await page.evaluate(() =>
+      localStorage.getItem("access_token"),
+    );
     expect(tokenBefore).toBeNull();
 
     await page.goto("/dashboard");

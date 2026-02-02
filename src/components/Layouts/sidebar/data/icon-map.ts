@@ -1,6 +1,6 @@
 import * as Icons from "../icons";
 
-type SidebarIcon = typeof Icons[keyof typeof Icons];
+type SidebarIcon = (typeof Icons)[keyof typeof Icons];
 
 const EXACT_ICON_MAP: Record<string, SidebarIcon> = {
   Dashboard: Icons.HomeIcon,

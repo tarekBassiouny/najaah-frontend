@@ -23,7 +23,13 @@ const DEFAULT_PER_PAGE = 10;
 
 type PdfStatus = "active" | "processing" | "failed" | string;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   active: { variant: "success", label: "Active" },
   enabled: { variant: "success", label: "Enabled" },
   approved: { variant: "success", label: "Approved" },
@@ -38,7 +44,12 @@ const statusConfig: Record<string, { variant: "success" | "warning" | "secondary
 
 function getStatusConfig(status: PdfStatus) {
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
+  return (
+    statusConfig[normalized] || {
+      variant: "default" as const,
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+    }
+  );
 }
 
 type PdfsTableProps = {
@@ -148,7 +159,9 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                   <TableHead className="font-medium">Title</TableHead>
                   <TableHead className="font-medium">Status</TableHead>
                   <TableHead className="font-medium">File Size</TableHead>
-                  <TableHead className="text-right font-medium">Actions</TableHead>
+                  <TableHead className="text-right font-medium">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -169,7 +182,7 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                           <Skeleton className="h-4 w-24" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-8 w-16 ml-auto" />
+                          <Skeleton className="ml-auto h-8 w-16" />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -216,7 +229,9 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                               View
                             </Button>
                           </Link>
-                          <Link href={`/centers/${centerId}/pdfs/${pdf.id}/edit`}>
+                          <Link
+                            href={`/centers/${centerId}/pdfs/${pdf.id}/edit`}
+                          >
                             <Button variant="ghost" size="sm">
                               Edit
                             </Button>

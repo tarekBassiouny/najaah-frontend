@@ -44,7 +44,8 @@ vi.mock("@/lib/capabilities", () => ({
 }));
 
 vi.mock("@/components/Layouts/sidebar/data", () => ({
-  getRouteCapabilities: (...args: unknown[]) => getRouteCapabilitiesMock(...args),
+  getRouteCapabilities: (...args: unknown[]) =>
+    getRouteCapabilitiesMock(...args),
 }));
 
 const renderGuard = () =>

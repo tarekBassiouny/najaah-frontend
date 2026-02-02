@@ -56,7 +56,9 @@ export function AnalyticsSectionCard({
         ) : isError ? (
           <Alert variant="destructive">
             <AlertTitle>Failed to load section</AlertTitle>
-            <AlertDescription>Please retry this analytics request.</AlertDescription>
+            <AlertDescription>
+              Please retry this analytics request.
+            </AlertDescription>
           </Alert>
         ) : entries.length ? (
           <div className="space-y-2">

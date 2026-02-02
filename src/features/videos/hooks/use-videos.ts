@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   createVideo,
   createVideoUploadSession,
@@ -18,7 +23,10 @@ type UseVideosOptions = Omit<
   "queryKey" | "queryFn"
 >;
 
-export function useVideos(params: ListVideosParams, options?: UseVideosOptions) {
+export function useVideos(
+  params: ListVideosParams,
+  options?: UseVideosOptions,
+) {
   return useQuery({
     queryKey: ["videos", params.centerId, params],
     queryFn: () => listVideos(params),

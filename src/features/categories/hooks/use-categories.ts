@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import type { PaginatedResponse } from "@/types/pagination";
 import type {
   Category,
@@ -30,7 +35,10 @@ type UseCategoriesOptions = Omit<
   "queryKey" | "queryFn"
 >;
 
-type UseCategoryOptions = Omit<UseQueryOptions<Category | null>, "queryKey" | "queryFn">;
+type UseCategoryOptions = Omit<
+  UseQueryOptions<Category | null>,
+  "queryKey" | "queryFn"
+>;
 
 export function useCategories(
   centerId: string | number | undefined,

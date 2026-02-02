@@ -54,7 +54,9 @@ export function CategoriesTable({
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<
-    typeof ALL_STATUS_VALUE | typeof STATUS_ACTIVE_VALUE | typeof STATUS_INACTIVE_VALUE
+    | typeof ALL_STATUS_VALUE
+    | typeof STATUS_ACTIVE_VALUE
+    | typeof STATUS_INACTIVE_VALUE
   >(ALL_STATUS_VALUE);
   const [parentId, setParentId] = useState<string>(ALL_PARENTS_VALUE);
 
@@ -80,7 +82,10 @@ export function CategoriesTable({
     [],
   );
 
-  const { data, isLoading, isError, isFetching } = useCategories(centerId, params);
+  const { data, isLoading, isError, isFetching } = useCategories(
+    centerId,
+    params,
+  );
   const { data: parentData } = useCategories(centerId, parentFilterParams, {
     staleTime: 1000 * 60,
   });
@@ -181,7 +186,7 @@ export function CategoriesTable({
           : "Create a category to start organizing your content"
       }
       onRetry={() => window.location.reload()}
-      toolbar={(
+      toolbar={
         <div className="flex flex-col gap-4 border-b border-gray-200 p-4 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full max-w-sm">
             <svg
@@ -254,7 +259,7 @@ export function CategoriesTable({
             </div>
           </div>
         </div>
-      )}
+      }
       pagination={{
         page,
         lastPage: maxPage,

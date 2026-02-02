@@ -40,7 +40,6 @@ export function Header() {
             className="hidden dark:block"
           />
         </Link>
-
       </div>
 
       <div className="flex min-w-0 flex-1 items-center justify-end gap-3">

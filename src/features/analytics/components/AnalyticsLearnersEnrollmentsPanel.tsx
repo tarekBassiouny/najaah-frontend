@@ -67,10 +67,16 @@ export function AnalyticsLearnersEnrollmentsPanel({
           <CardContent>
             {learners.by_center.length ? (
               <AnalyticsBarChart
-                categories={learners.by_center.slice(0, 8).map((row) =>
-                  row.center_id != null ? `Center ${row.center_id}` : "Unknown",
-                )}
-                values={learners.by_center.slice(0, 8).map((row) => row.students)}
+                categories={learners.by_center
+                  .slice(0, 8)
+                  .map((row) =>
+                    row.center_id != null
+                      ? `Center ${row.center_id}`
+                      : "Unknown",
+                  )}
+                values={learners.by_center
+                  .slice(0, 8)
+                  .map((row) => row.students)}
                 color="#f59e0b"
               />
             ) : (

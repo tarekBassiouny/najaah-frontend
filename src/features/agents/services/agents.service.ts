@@ -25,7 +25,9 @@ export async function listAgentExecutions(
   if (filters.page) params.set("page", String(filters.page));
   if (filters.perPage) params.set("per_page", String(filters.perPage));
 
-  const { data } = await http.get("/api/v1/admin/agents/executions", { params });
+  const { data } = await http.get("/api/v1/admin/agents/executions", {
+    params,
+  });
 
   return {
     data: data?.data ?? [],
@@ -38,7 +40,9 @@ export async function listAgentExecutions(
   };
 }
 
-export async function getAgentExecution(id: string | number): Promise<AgentExecution> {
+export async function getAgentExecution(
+  id: string | number,
+): Promise<AgentExecution> {
   const { data } = await http.get(`/api/v1/admin/agents/executions/${id}`);
   return data?.data;
 }
@@ -46,10 +50,13 @@ export async function getAgentExecution(id: string | number): Promise<AgentExecu
 export async function executeContentPublishing(
   payload: ExecuteAgentPayload,
 ): Promise<AgentExecution> {
-  const { data } = await http.post("/api/v1/admin/agents/content-publishing/execute", {
-    course_id: payload.targetId,
-    ...payload.context,
-  });
+  const { data } = await http.post(
+    "/api/v1/admin/agents/content-publishing/execute",
+    {
+      course_id: payload.targetId,
+      ...payload.context,
+    },
+  );
   return data?.data;
 }
 

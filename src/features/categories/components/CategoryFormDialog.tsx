@@ -298,10 +298,7 @@ export function CategoryFormDialog({
                 <FormItem>
                   <FormLabel>Parent Category</FormLabel>
                   <FormControl>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="h-10 w-full">
                         <SelectValue />
                       </SelectTrigger>

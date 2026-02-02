@@ -218,7 +218,9 @@ describe("token-refresh", () => {
     it("calls refreshToken when within buffer window", () => {
       vi.useRealTimers();
 
-      mockedTokenStorage.getAccessToken.mockReturnValue(createSoonToExpireJwt());
+      mockedTokenStorage.getAccessToken.mockReturnValue(
+        createSoonToExpireJwt(),
+      );
       mockedHttp.post.mockResolvedValueOnce({
         data: { token: "new-token" },
       });

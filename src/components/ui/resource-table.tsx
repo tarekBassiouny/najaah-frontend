@@ -127,7 +127,10 @@ export function ResourceTable<T>({
                   rows.map((row) => (
                     <TableRow key={rowKey(row)} className="group">
                       {columns.map((column) => (
-                        <TableCell key={column.id} className={column.cellClassName}>
+                        <TableCell
+                          key={column.id}
+                          className={column.cellClassName}
+                        >
                           {column.render(row)}
                         </TableCell>
                       ))}

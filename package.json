@@ -16,6 +16,7 @@
     "check:style": "eslint src tests e2e --ext .ts,.tsx,.js,.jsx",
     "check:quality": "npm run type-check && npm run test:unit",
     "ci:local": "npm run check:style && npm run check:quality && npm run test:coverage",
+    "ci:local:full": "npm run format:check && npm run ci:local",
     "test": "vitest run",
     "test:unit": "vitest run --config vitest.config.ts tests/unit",
     "test:integration": "vitest run --config vitest.integration.config.ts tests/integration",

@@ -36,6 +36,9 @@ const statusConfig: Record<string, { variant: "success" | "warning" | "secondary
 };
 
 function getStatusConfig(status: StudentStatus) {
+  if (!status || typeof status !== "string") {
+    return { variant: "default" as const, label: "Unknown" };
+  }
   const normalized = status.toLowerCase();
   return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
 }

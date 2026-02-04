@@ -24,9 +24,9 @@ export default function CenterStudentsPage({ params }: PageProps) {
           { label: "Students" },
         ]}
         actions={
-          <Link href={`/centers/${centerId}`}>
-            <Button variant="outline">Back to Center</Button>
-          </Link>
+          <Button variant="outline" asChild>
+            <Link href={`/centers/${centerId}`}>Back to Center</Link>
+          </Button>
         }
       />
       <StudentsTable centerId={centerId} />

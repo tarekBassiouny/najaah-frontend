@@ -25,6 +25,23 @@ type RouteCapabilityRule = {
   capabilities: Capability[];
 };
 
+const CENTER_SCOPED_OMIT_TITLES = new Set([
+  "Centers",
+  "Roles",
+  "Permissions",
+  "Audit Logs",
+]);
+
+const CENTER_SCOPED_URL_OVERRIDES: Record<string, (centerId: string) => string> =
+  {
+    "/dashboard": (centerId) => `/centers/${centerId}`,
+    "/categories": (centerId) => `/centers/${centerId}/categories`,
+    "/courses": (centerId) => `/centers/${centerId}/courses`,
+    "/videos": (centerId) => `/centers/${centerId}/videos`,
+    "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
+    "/students": (centerId) => `/centers/${centerId}/students`,
+  };
+
 const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   { pattern: "/settings", capabilities: ["view_dashboard"] },
   { pattern: "/settings/*", capabilities: ["view_dashboard"] },
@@ -42,6 +59,34 @@ const PLATFORM_ROUTE_EXTRAS: RouteCapabilityRule[] = [
 
 export function getSidebarSections(isPlatformAdmin: boolean): SidebarSection[] {
   return isPlatformAdmin ? PLATFORM_SIDEBAR : CENTER_SIDEBAR;
+}
+
+function getCenterScopedUrl(url: string, centerId: string) {
+  const normalized = normalizePath(url);
+  const override = CENTER_SCOPED_URL_OVERRIDES[normalized];
+  return override ? override(centerId) : url;
+}
+
+export function getCenterScopedSections(
+  sections: SidebarSection[],
+  centerId: string,
+): SidebarSection[] {
+  return sections
+    .map((section) => {
+      const items = section.items
+        .filter((item) => !CENTER_SCOPED_OMIT_TITLES.has(item.title))
+        .map((item) => ({
+          ...item,
+          url: item.url ? getCenterScopedUrl(item.url, centerId) : undefined,
+          items: item.items.map((subItem) => ({
+            ...subItem,
+            url: getCenterScopedUrl(subItem.url, centerId),
+          })),
+        }));
+
+      return items.length ? { ...section, items } : null;
+    })
+    .filter(Boolean) as SidebarSection[];
 }
 
 function normalizePath(pathname: string) {

@@ -1,3 +1,4 @@
+import type React from "react";
 import { type Capability } from "@/lib/capabilities";
 import { CENTER_SIDEBAR } from "./sidebar.center";
 import { PLATFORM_SIDEBAR } from "./sidebar.platform";
@@ -11,6 +12,7 @@ export type SidebarSubItem = {
 export type SidebarItem = {
   title: string;
   url?: string;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   capability?: Capability;
   items: SidebarSubItem[];
 };
@@ -32,7 +34,7 @@ const CENTER_SCOPED_OMIT_TITLES = new Set([
   "Audit Logs",
 ]);
 
-const CENTER_SCOPED_URL_OVERRIDES: Record<string, (centerId: string) => string> =
+const CENTER_SCOPED_URL_OVERRIDES: Record<string, (_centerId: string) => string> =
   {
     "/dashboard": (centerId) => `/centers/${centerId}`,
     "/categories": (centerId) => `/centers/${centerId}/categories`,

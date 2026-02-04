@@ -211,11 +211,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       </Badge>
                     )}
                   </div>
-                  {course.description && (
+                  {course.description ? (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {String(course.description)}
                     </p>
-                  )}
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Link href={`/centers/${centerId}/courses/${courseId}/edit`}>
@@ -232,7 +232,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   <span className="h-2 w-2 rounded-full bg-primary" />
                   <span>{center?.name ?? `Center ${centerId}`}</span>
                 </div>
-                {course.instructor && (
+                {course.instructor ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
@@ -242,13 +242,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                         : String(course.instructor)}
                     </span>
                   </div>
-                )}
-                {course.created_at && (
+                ) : null}
+                {course.created_at ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>Created: {String(course.created_at)}</span>
                   </div>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>

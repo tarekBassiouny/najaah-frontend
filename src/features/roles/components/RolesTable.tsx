@@ -60,9 +60,13 @@ export function RolesTable() {
 
     createRole(
       {
-        name: formData.name.trim(),
+        name_translations: {
+          en: formData.name.trim(),
+        },
         slug: formData.slug.trim() || undefined,
-        description: formData.description.trim() || undefined,
+        description_translations: formData.description.trim()
+          ? { en: formData.description.trim() }
+          : undefined,
       },
       {
         onSuccess: () => {

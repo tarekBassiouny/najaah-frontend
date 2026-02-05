@@ -261,3 +261,47 @@ export async function removeCoursePdf(
   );
   return data;
 }
+
+export type CourseInstructorPayload = {
+  instructor_id: string | number;
+  role?: string;
+  [key: string]: unknown;
+};
+
+export async function assignCourseInstructor(
+  courseId: string | number,
+  payload: CourseInstructorPayload,
+) {
+  const { data } = await http.post(
+    `/api/v1/admin/courses/${courseId}/instructors`,
+    payload,
+  );
+  return data;
+}
+
+export async function removeCourseInstructor(
+  courseId: string | number,
+  instructorId: string | number,
+) {
+  const { data } = await http.delete(
+    `/api/v1/admin/courses/${courseId}/instructors/${instructorId}`,
+  );
+  return data;
+}
+
+export type CloneCourseOptions = {
+  include_sections?: boolean;
+  include_videos?: boolean;
+  include_pdfs?: boolean;
+};
+
+export async function cloneCourseWithOptions(
+  courseId: string | number,
+  options?: CloneCourseOptions,
+): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/courses/${courseId}/clone`,
+    { options },
+  );
+  return (data?.data ?? data) as Course;
+}

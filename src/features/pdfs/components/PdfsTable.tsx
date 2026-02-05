@@ -220,7 +220,15 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                         )}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {pdf.file_size ?? "—"}
+                        {typeof pdf.file_size_kb === "number"
+                          ? `${pdf.file_size_kb} KB`
+                          : pdf.file_size_kb
+                            ? String(pdf.file_size_kb)
+                            : typeof pdf.file_size === "number"
+                              ? `${pdf.file_size} KB`
+                              : pdf.file_size
+                                ? String(pdf.file_size)
+                                : "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">

@@ -1,5 +1,5 @@
 import { http } from "@/lib/http";
-import type { Role } from "@/features/roles/types/role";
+import type { Role, RolePermission } from "@/features/roles/types/role";
 import type { PaginatedResponse } from "@/types/pagination";
 
 export type ListRolesParams = {
@@ -41,13 +41,23 @@ export async function listRoles(
 }
 
 export type CreateRolePayload = {
-  name: string;
+  name_translations: Record<string, string>;
   slug?: string;
-  description?: string;
+  description_translations?: Record<string, string>;
+  permission_ids?: (string | number)[];
   [key: string]: unknown;
 };
 
-export type UpdateRolePayload = Partial<CreateRolePayload>;
+export type UpdateRolePayload = {
+  name_translations?: Record<string, string>;
+  slug?: string;
+  description_translations?: Record<string, string>;
+  [key: string]: unknown;
+};
+
+export type UpdateRolePermissionsPayload = {
+  permission_ids: (string | number)[];
+};
 
 export async function getRole(roleId: string | number): Promise<Role | null> {
   const { data } = await http.get<RawRoleResponse>(
@@ -77,4 +87,28 @@ export async function updateRole(
 
 export async function deleteRole(roleId: string | number): Promise<void> {
   await http.delete(`/api/v1/admin/roles/${roleId}`);
+}
+
+type RawRolePermissionsResponse = {
+  data?: RolePermission[];
+};
+
+export async function getRolePermissions(
+  roleId: string | number,
+): Promise<RolePermission[]> {
+  const { data } = await http.get<RawRolePermissionsResponse>(
+    `/api/v1/admin/roles/${roleId}/permissions`,
+  );
+  return data?.data ?? [];
+}
+
+export async function updateRolePermissions(
+  roleId: string | number,
+  payload: UpdateRolePermissionsPayload,
+): Promise<RolePermission[]> {
+  const { data } = await http.put<RawRolePermissionsResponse>(
+    `/api/v1/admin/roles/${roleId}/permissions`,
+    payload,
+  );
+  return data?.data ?? [];
 }

@@ -23,6 +23,12 @@ export type AdminLoginPayload = {
   remember?: boolean;
 };
 
+export type AdminPasswordResetPayload = {
+  token: string;
+  email: string;
+  password: string;
+};
+
 export type AdminAuthResponse = {
   success: boolean;
   data?: {

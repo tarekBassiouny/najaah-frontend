@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { ChevronUp, ArrowLeftIcon, type PropsType } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
+import { getCenterScopedSections } from "./data";
+import { useCenter } from "@/features/centers/hooks/use-centers";
 
 type SidebarSubItem = {
   title: string;
@@ -39,20 +41,18 @@ function normalizePath(path: string) {
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
-function getBasePath(url?: string) {
-  if (!url) return "/";
-  const segments = url.split("/").filter(Boolean);
-  return segments.length ? `/${segments[0]}` : "/";
-}
-
 function isPathActive(pathname: string, url?: string) {
   if (!url) return false;
   const current = normalizePath(pathname);
   const target = normalizePath(url);
-  const base = getBasePath(url);
-  return (
-    current === target || current === base || current.startsWith(base + "/")
-  );
+  const segments = target.split("/").filter(Boolean);
+  const isCenterRoot = segments.length === 2 && segments[0] === "centers";
+
+  if (isCenterRoot) {
+    return current === target;
+  }
+
+  return current === target || current.startsWith(target + "/");
 }
 
 export function Sidebar({ sections }: SidebarProps) {
@@ -60,13 +60,28 @@ export function Sidebar({ sections }: SidebarProps) {
   const { isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const permissions = getAuthPermissions();
+  const centerId = useMemo(() => {
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments[0] !== "centers") return null;
+    const candidate = segments[1];
+    if (!candidate || candidate === "create" || candidate === "settings") {
+      return null;
+    }
+    return candidate;
+  }, [pathname]);
+  const { data: center } = useCenter(centerId ?? undefined);
+  const centerName = center?.name ?? (centerId ? `Center ${centerId}` : null);
+  const resolvedSections = useMemo(() => {
+    if (!centerId) return sections;
+    return getCenterScopedSections(sections, centerId);
+  }, [centerId, sections]);
 
   const filteredSections = useMemo(() => {
     if (!permissions) {
-      return sections;
+      return resolvedSections;
     }
 
-    return sections
+    return resolvedSections
       .map((section) => {
         const items = section.items
           .map((item) => {
@@ -92,7 +107,7 @@ export function Sidebar({ sections }: SidebarProps) {
         return items.length ? { ...section, items } : null;
       })
       .filter(Boolean) as SidebarSection[];
-  }, [permissions, sections]);
+  }, [permissions, resolvedSections]);
 
   const activeGroupTitles = useMemo(() => {
     return filteredSections
@@ -132,33 +147,77 @@ export function Sidebar({ sections }: SidebarProps) {
       >
         <div className="flex h-full flex-col py-10 pl-[25px] pr-[7px]">
           <div className="relative pr-4.5">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 px-0 py-2.5 min-[850px]:py-0"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Image
-                  src="/images/logo/logo-icon.svg"
-                  width={20}
-                  height={20}
-                  alt="LMS"
-                  className="brightness-0 invert"
-                />
-              </div>
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
-                LMS Admin
-              </span>
-            </Link>
+            {centerId ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Link
+                    href="/centers"
+                    className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  >
+                    <ArrowLeftIcon className="h-4 w-4" />
+                    Back to Centers
+                  </Link>
 
-            {isMobile && (
-              <button
-                type="button"
-                onClick={toggleSidebar}
-                className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
-                aria-label="Close Sidebar"
-              >
-                <ArrowLeftIcon className="ml-auto size-7" />
-              </button>
+                  {isMobile && (
+                    <button
+                      type="button"
+                      onClick={toggleSidebar}
+                      className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      aria-label="Close Sidebar"
+                    >
+                      <ArrowLeftIcon className="size-6" />
+                    </button>
+                  )}
+                </div>
+
+                <Link
+                  href={`/centers/${centerId}`}
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+                    {(centerName ?? "C").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                      Center
+                    </span>
+                    <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
+                      {centerName ?? "Center"}
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 px-0 py-2.5 min-[850px]:py-0"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                    <Image
+                      src="/images/logo/logo-icon.svg"
+                      width={20}
+                      height={20}
+                      alt="LMS"
+                      className="brightness-0 invert"
+                    />
+                  </div>
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    LMS Admin
+                  </span>
+                </Link>
+
+                {isMobile && (
+                  <button
+                    type="button"
+                    onClick={toggleSidebar}
+                    className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
+                    aria-label="Close Sidebar"
+                  >
+                    <ArrowLeftIcon className="ml-auto size-7" />
+                  </button>
+                )}
+              </>
             )}
           </div>
 

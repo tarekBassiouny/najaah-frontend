@@ -10,7 +10,7 @@ export type ListStudentsParams = {
   per_page?: number;
   search?: string;
   center_id?: number | string;
-  status?: string;
+  status?: string | number;
   course_id?: number | string;
 };
 
@@ -42,7 +42,7 @@ export async function listStudents(
         per_page: params.per_page,
         search: params.search || undefined,
         center_id: params.center_id ?? undefined,
-        status: params.status || undefined,
+        status: params.status ?? undefined,
         course_id: params.course_id ?? undefined,
       },
     },
@@ -69,10 +69,12 @@ export async function getStudent(
 
 export type CreateStudentPayload = {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
+  country_code?: string;
   password?: string;
-  center_id?: string | number;
+  center_id?: string | number | null;
+  status?: number;
   [key: string]: unknown;
 };
 
@@ -80,8 +82,10 @@ export type UpdateStudentPayload = {
   name?: string;
   email?: string;
   phone?: string;
+  country_code?: string;
   password?: string;
-  status?: string;
+  center_id?: string | number | null;
+  status?: string | number;
   [key: string]: unknown;
 };
 
@@ -111,8 +115,43 @@ export async function deleteStudent(studentId: string | number): Promise<void> {
 }
 
 export type UpdateStudentStatusPayload = {
-  status: string;
+  status: string | number;
   reason?: string;
+};
+
+export type BulkEnrollStudentsPayload = {
+  center_id: string | number;
+  course_id: string | number;
+  user_ids: Array<string | number>;
+};
+
+export type BulkEnrollStudentsResult = {
+  counts?: {
+    total?: number;
+    approved?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  approved?: unknown[];
+  skipped?: Array<string | number>;
+  failed?: Array<{ user_id?: string | number; reason?: string }>;
+};
+
+export type BulkStudentStatusPayload = {
+  status: string | number;
+  student_ids: Array<string | number>;
+};
+
+export type BulkStudentStatusResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  updated?: unknown[];
+  skipped?: Array<string | number>;
+  failed?: Array<{ student_id?: string | number; reason?: string }>;
 };
 
 export async function updateStudentStatus(
@@ -124,6 +163,23 @@ export async function updateStudentStatus(
     payload,
   );
   return data?.data ?? (data as unknown as Student);
+}
+
+export async function bulkEnrollStudents(
+  payload: BulkEnrollStudentsPayload,
+): Promise<BulkEnrollStudentsResult> {
+  const { data } = await http.post("/api/v1/admin/enrollments/bulk", payload);
+  return (data?.data ?? data) as BulkEnrollStudentsResult;
+}
+
+export async function bulkUpdateStudentStatus(
+  payload: BulkStudentStatusPayload,
+): Promise<BulkStudentStatusResult> {
+  const { data } = await http.post(
+    "/api/v1/admin/students/bulk-status",
+    payload,
+  );
+  return (data?.data ?? data) as BulkStudentStatusResult;
 }
 
 export async function resetStudentDevice(
@@ -157,7 +213,7 @@ export async function exportStudents(
   const response = await http.get("/api/v1/admin/students/export", {
     params: {
       center_id: params.center_id ?? undefined,
-      status: params.status || undefined,
+      status: params.status ?? undefined,
       search: params.search || undefined,
     },
     responseType: "blob",

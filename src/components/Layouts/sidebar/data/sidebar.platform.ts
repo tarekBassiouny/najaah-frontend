@@ -61,6 +61,12 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
+        title: "Agents",
+        icon: iconFromTitle("Agents"),
+        url: "/agents/executions",
+        items: [],
+      },
+      {
         title: "Enrollment & Controls",
         capability: "manage_students",
         icon: iconFromTitle("Enrollment & Controls"),
@@ -108,13 +114,6 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
         capability: "manage_roles",
         icon: iconFromTitle("Roles"),
         url: "/roles",
-        items: [],
-      },
-      {
-        title: "Permissions",
-        capability: "view_permissions",
-        icon: iconFromTitle("Permissions"),
-        url: "/permissions",
         items: [],
       },
       {

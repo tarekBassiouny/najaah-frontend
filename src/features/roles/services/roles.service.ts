@@ -5,6 +5,7 @@ import type { PaginatedResponse } from "@/types/pagination";
 export type ListRolesParams = {
   page?: number;
   per_page?: number;
+  search?: string;
 };
 
 type RawRolesResponse = {
@@ -27,6 +28,7 @@ export async function listRoles(
     params: {
       page: params.page,
       per_page: params.per_page,
+      search: params.search || undefined,
     },
   });
 

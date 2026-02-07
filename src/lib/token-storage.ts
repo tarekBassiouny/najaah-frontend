@@ -5,6 +5,14 @@ type Tokens = {
   accessToken: string;
 };
 
+type TokenBroadcastMessage =
+  | { type: "token"; token: string }
+  | { type: "logout" };
+
+type TokenStorageOptions = {
+  broadcast?: boolean;
+};
+
 function isBrowser() {
   return typeof window !== "undefined";
 }
@@ -20,6 +28,13 @@ function getStorage(): Storage | null {
   // Check if remember me was set (stored in localStorage to persist the preference)
   const rememberMe = window.localStorage.getItem(REMEMBER_ME_KEY) === "true";
   return rememberMe ? window.localStorage : window.sessionStorage;
+}
+
+function broadcast(message: TokenBroadcastMessage) {
+  if (!isBrowser() || typeof BroadcastChannel === "undefined") return;
+  const channel = new BroadcastChannel("auth");
+  channel.postMessage(message);
+  channel.close();
 }
 
 export const tokenStorage = {
@@ -57,21 +72,29 @@ export const tokenStorage = {
     );
   },
 
-  setTokens(tokens: Tokens) {
+  setTokens(tokens: Tokens, options?: TokenStorageOptions) {
     if (!isBrowser()) return;
 
     const storage = getStorage();
     if (storage) {
       storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
     }
+
+    if (options?.broadcast !== false) {
+      broadcast({ type: "token", token: tokens.accessToken });
+    }
   },
 
-  clear() {
+  clear(options?: TokenStorageOptions) {
     if (!isBrowser()) return;
 
     // Clear from both storages to ensure complete cleanup
     window.localStorage.removeItem(ACCESS_TOKEN_KEY);
     window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
     window.localStorage.removeItem(REMEMBER_ME_KEY);
+
+    if (options?.broadcast !== false) {
+      broadcast({ type: "logout" });
+    }
   },
 };

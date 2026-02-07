@@ -6,8 +6,7 @@ export type ListAuditLogsParams = {
   page?: number;
   per_page?: number;
   action?: string;
-  actor_id?: number | string;
-  actor_type?: string;
+  user_id?: number | string;
   entity_id?: number | string;
   entity_type?: string;
   center_id?: number | string;
@@ -38,8 +37,7 @@ export async function listAuditLogs(
         page: params.page,
         per_page: params.per_page,
         action: params.action || undefined,
-        actor_id: params.actor_id ?? undefined,
-        actor_type: params.actor_type || undefined,
+        user_id: params.user_id ?? undefined,
         entity_id: params.entity_id ?? undefined,
         entity_type: params.entity_type || undefined,
         center_id: params.center_id ?? undefined,

@@ -82,7 +82,7 @@ describe("token-refresh", () => {
       // Don't schedule next refresh to avoid recursive calls
       mockedTokenStorage.getAccessToken.mockReturnValue(null);
       mockedHttp.post.mockResolvedValueOnce({
-        data: { token: "new-access-token" },
+        data: { data: { token: "new-access-token" } },
       });
 
       const result = await refreshToken();
@@ -113,12 +113,14 @@ describe("token-refresh", () => {
     it("queues concurrent refresh requests (only one HTTP call)", async () => {
       mockedTokenStorage.getAccessToken.mockReturnValue(null);
 
-      let resolveRefresh: (_value: { data: { token: string } }) => void;
-      const refreshPromise = new Promise<{ data: { token: string } }>(
-        (resolve) => {
-          resolveRefresh = resolve;
-        },
-      );
+      let resolveRefresh: (_value: {
+        data: { data: { token: string } };
+      }) => void;
+      const refreshPromise = new Promise<{
+        data: { data: { token: string } };
+      }>((resolve) => {
+        resolveRefresh = resolve;
+      });
       mockedHttp.post.mockReturnValueOnce(refreshPromise);
 
       // Start two concurrent refresh calls
@@ -126,7 +128,7 @@ describe("token-refresh", () => {
       const promise2 = refreshToken();
 
       // Resolve the underlying request
-      resolveRefresh!({ data: { token: "queued-token" } });
+      resolveRefresh!({ data: { data: { token: "queued-token" } } });
 
       // Both promises should resolve with the same token
       const [result1, result2] = await Promise.all([promise1, promise2]);
@@ -140,8 +142,8 @@ describe("token-refresh", () => {
     it("allows new refresh after previous completes", async () => {
       mockedTokenStorage.getAccessToken.mockReturnValue(null);
       mockedHttp.post
-        .mockResolvedValueOnce({ data: { token: "first-token" } })
-        .mockResolvedValueOnce({ data: { token: "second-token" } });
+        .mockResolvedValueOnce({ data: { data: { token: "first-token" } } })
+        .mockResolvedValueOnce({ data: { data: { token: "second-token" } } });
 
       // First refresh
       const result1 = await refreshToken();
@@ -158,7 +160,7 @@ describe("token-refresh", () => {
       mockedTokenStorage.getAccessToken.mockReturnValue(null);
       mockedHttp.post
         .mockRejectedValueOnce(new Error("First failure"))
-        .mockResolvedValueOnce({ data: { token: "recovery-token" } });
+        .mockResolvedValueOnce({ data: { data: { token: "recovery-token" } } });
 
       // First refresh fails
       await expect(refreshToken()).rejects.toThrow("First failure");
@@ -203,7 +205,7 @@ describe("token-refresh", () => {
 
       mockedTokenStorage.getAccessToken.mockReturnValue(createExpiredJwt());
       mockedHttp.post.mockResolvedValueOnce({
-        data: { token: "new-token" },
+        data: { data: { token: "new-token" } },
       });
 
       scheduleTokenRefresh();
@@ -222,7 +224,7 @@ describe("token-refresh", () => {
         createSoonToExpireJwt(),
       );
       mockedHttp.post.mockResolvedValueOnce({
-        data: { token: "new-token" },
+        data: { data: { token: "new-token" } },
       });
 
       scheduleTokenRefresh();

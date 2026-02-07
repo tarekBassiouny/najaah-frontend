@@ -7,7 +7,7 @@ export type Role = {
   slug?: string | null;
   description?: string | null;
   description_translations?: TranslationsRecord | null;
-  permissions?: RolePermission[] | null;
+  permissions?: Array<RolePermission | string> | null;
   created_at?: string | null;
   updated_at?: string | null;
   [key: string]: unknown;

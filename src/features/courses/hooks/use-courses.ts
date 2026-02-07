@@ -21,14 +21,16 @@ import {
   publishCourse,
   removeCoursePdf,
   removeCourseVideo,
-  type Course,
   type CoursesResponse,
   type ListCoursesParams,
   type ListCenterCoursesParams,
-  type CreateCoursePayload,
   type CourseMediaAssignmentPayload,
-  type UpdateCoursePayload,
 } from "../services/courses.service";
+import type {
+  Course,
+  CreateCoursePayload,
+  UpdateCoursePayload,
+} from "../types/course";
 
 type UseCoursesOptions = Omit<
   UseQueryOptions<CoursesResponse>,

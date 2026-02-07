@@ -308,7 +308,7 @@ export function SearchableSelect<T = string>({
             </span>
           ) : selectedOption ? (
             <span className="flex items-center gap-2 truncate">
-              {selectedOption.icon && (
+              {!icon && selectedOption.icon && (
                 <span className="flex-shrink-0 text-gray-400 dark:text-gray-500">
                   {selectedOption.icon}
                 </span>

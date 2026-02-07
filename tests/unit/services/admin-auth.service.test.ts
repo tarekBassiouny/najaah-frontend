@@ -151,7 +151,9 @@ describe("refreshAdminSession", () => {
   });
 
   it("returns new token payload", async () => {
-    mockedHttp.post.mockResolvedValueOnce({ data: { token: "new-token" } });
+    mockedHttp.post.mockResolvedValueOnce({
+      data: { data: { token: "new-token" } },
+    });
 
     await expect(refreshAdminSession()).resolves.toEqual({
       access_token: "new-token",

@@ -2,16 +2,13 @@
 
 import { useState } from "react";
 import { isAxiosError } from "axios";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteCategory } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
 
@@ -72,46 +69,31 @@ export function DeleteCategoryDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (deleteMutation.isPending) return;
+        if (!nextOpen) setErrorMessage(null);
+        onOpenChange(nextOpen);
+      }}
+    >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete Category</DialogTitle>
-          <DialogDescription>This action cannot be undone.</DialogDescription>
+          <DialogTitle className="sr-only">Delete Category</DialogTitle>
         </DialogHeader>
-
-        {errorMessage && (
-          <Alert variant="destructive">
-            <AlertTitle>Could not delete category</AlertTitle>
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
-
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          Are you sure you want to delete{" "}
-          <span className="font-semibold text-gray-900 dark:text-white">
-            {category ? getCategoryTitle(category) : "this category"}
-          </span>
-          ?
-        </p>
-
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={deleteMutation.isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending || !category}
-            className="bg-red-600 text-white hover:bg-red-700"
-          >
-            {deleteMutation.isPending ? "Deleting..." : "Delete Category"}
-          </Button>
-        </DialogFooter>
+        <HardDeletePanel
+          title="Delete Category"
+          entityName={category ? getCategoryTitle(category) : null}
+          entityFallback="this category"
+          confirmButtonLabel="Delete Category"
+          pendingLabel="Deleting..."
+          errorTitle="Could not delete category"
+          errorMessage={errorMessage}
+          isPending={deleteMutation.isPending}
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleDelete}
+          resetKey={open ? (category?.id ?? "category") : null}
+        />
       </DialogContent>
     </Dialog>
   );

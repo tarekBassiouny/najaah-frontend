@@ -6,6 +6,7 @@ import {
   type AdminAuthResponse,
   type AdminAuthTokens,
   type AdminLoginPayload,
+  type AdminPasswordResetPayload,
   type AdminUser,
   type ApiErrorResponse,
 } from "@/types/auth";
@@ -159,12 +160,24 @@ export async function fetchAdminProfile(): Promise<AdminUser | null> {
 export async function refreshAdminSession() {
   const response = await http.post("/api/v1/admin/auth/refresh");
 
-  if (!response?.data?.token) {
+  const token =
+    (
+      response?.data as
+        | { data?: { token?: string }; token?: string }
+        | undefined
+    )?.data?.token ??
+    (
+      response?.data as
+        | { data?: { token?: string }; token?: string }
+        | undefined
+    )?.token;
+
+  if (!token) {
     throw new Error("Invalid refresh response: missing token");
   }
 
   return {
-    access_token: response.data.token,
+    access_token: token,
   };
 }
 
@@ -176,4 +189,13 @@ export async function logoutAdmin() {
     tokenStorage.clear();
     setAuthPermissions(null);
   }
+}
+
+export async function resetAdminPassword(payload: AdminPasswordResetPayload) {
+  const { data } = await http.post<ApiErrorResponse>(
+    "/api/v1/admin/auth/password/reset",
+    payload,
+    { skipAuth: true },
+  );
+  return data;
 }

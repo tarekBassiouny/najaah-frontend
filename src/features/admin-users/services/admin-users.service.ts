@@ -10,7 +10,8 @@ export type ListAdminUsersParams = {
   per_page?: number;
   search?: string;
   center_id?: string | number;
-  status?: string;
+  status?: string | number;
+  role_id?: string | number;
 };
 
 type RawAdminUsersResponse = {
@@ -37,7 +38,8 @@ export async function listAdminUsers(
         per_page: params.per_page,
         search: params.search || undefined,
         center_id: params.center_id ?? undefined,
-        status: params.status || undefined,
+        status: params.status ?? undefined,
+        role_id: params.role_id ?? undefined,
       },
     },
   );
@@ -58,7 +60,7 @@ export type CreateAdminUserPayload = {
   phone?: string;
   center_id?: string | number | null;
   password?: string;
-  role_ids?: (string | number)[];
+  status?: number;
   [key: string]: unknown;
 };
 
@@ -68,7 +70,7 @@ export type UpdateAdminUserPayload = {
   phone?: string;
   center_id?: string | number | null;
   password?: string;
-  status?: string;
+  status?: string | number;
   [key: string]: unknown;
 };
 

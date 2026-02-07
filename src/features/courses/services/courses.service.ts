@@ -1,13 +1,10 @@
 import { http } from "@/lib/http";
-
-export type Course = {
-  id: string | number;
-  title?: string;
-  name?: string;
-  slug?: string;
-  status?: string;
-  [key: string]: unknown;
-};
+import type {
+  Course,
+  CourseSummary,
+  CreateCoursePayload,
+  UpdateCoursePayload,
+} from "@/features/courses/types/course";
 
 export type ListCoursesParams = {
   page: number;
@@ -19,7 +16,7 @@ export type ListCoursesParams = {
 };
 
 export type CoursesResponse = {
-  items: Course[];
+  items: Array<Course | CourseSummary>;
   page: number;
   perPage: number;
   total: number;
@@ -40,9 +37,9 @@ function normalizeCoursesResponse(
     raw && typeof raw === "object" && raw !== null ? (raw as RawResponse) : {};
   const dataNode = (container.data ?? container) as any;
   const items = Array.isArray(dataNode?.data)
-    ? (dataNode.data as Course[])
+    ? (dataNode.data as Array<Course | CourseSummary>)
     : Array.isArray(dataNode)
-      ? (dataNode as Course[])
+      ? (dataNode as Array<Course | CourseSummary>)
       : [];
 
   const meta =
@@ -93,16 +90,6 @@ export async function getCourse(id: string | number): Promise<Course> {
   return course;
 }
 
-export type CreateCoursePayload = {
-  title: string;
-  slug?: string;
-  description?: string;
-  category_id?: string | number;
-  instructor_id?: string | number;
-  status?: string;
-  [key: string]: unknown;
-};
-
 export async function createCourse(
   payload: CreateCoursePayload,
 ): Promise<Course> {
@@ -112,10 +99,6 @@ export async function createCourse(
   );
   return (data?.data ?? data) as Course;
 }
-
-export type UpdateCoursePayload = Partial<CreateCoursePayload> & {
-  status?: string;
-};
 
 export async function updateCourse(
   id: string | number,

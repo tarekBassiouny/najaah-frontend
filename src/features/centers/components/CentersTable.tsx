@@ -2,10 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  useCenters,
-  useDeleteCenter,
-} from "@/features/centers/hooks/use-centers";
+import { useCenters } from "@/features/centers/hooks/use-centers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

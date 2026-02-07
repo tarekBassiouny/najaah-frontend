@@ -23,9 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider defaultTheme="light" attribute="class">
       <QueryClientProvider client={queryClient}>
         <TenantProvider>
-          <AppBootstrapProvider>
-            {children}
-          </AppBootstrapProvider>
+          <AppBootstrapProvider>{children}</AppBootstrapProvider>
         </TenantProvider>
       </QueryClientProvider>
     </ThemeProvider>

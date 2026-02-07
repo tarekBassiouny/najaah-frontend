@@ -56,30 +56,72 @@ const mockNotifications: NotificationItem[] = [
 
 const typeStyles: Record<NotificationType, string> = {
   info: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-  success: "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-  warning: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+  success:
+    "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
+  warning:
+    "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
   error: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
 };
 
 const typeIcons: Record<NotificationType, React.ReactNode> = {
   info: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
   success: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
   warning: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      />
     </svg>
   ),
   error: (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
 };
@@ -92,10 +134,7 @@ export function Notification() {
   const hasUnread = unreadCount > 0;
 
   return (
-    <Dropdown
-      isOpen={isOpen}
-      setIsOpen={setIsOpen}
-    >
+    <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
       <DropdownTrigger
         className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 outline-none transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
         aria-label={`View Notifications${hasUnread ? ` (${unreadCount} unread)` : ""}`}
@@ -145,18 +184,32 @@ export function Notification() {
                     !notification.read && "bg-blue-50/50 dark:bg-blue-900/10",
                   )}
                 >
-                  <div className={cn("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full", typeStyles[notification.type])}>
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full",
+                      typeStyles[notification.type],
+                    )}
+                  >
                     {typeIcons[notification.type]}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={cn("text-sm", !notification.read ? "font-medium text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300")}>
+                    <p
+                      className={cn(
+                        "text-sm",
+                        !notification.read
+                          ? "font-medium text-gray-900 dark:text-white"
+                          : "text-gray-700 dark:text-gray-300",
+                      )}
+                    >
                       {notification.title}
                     </p>
                     <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
                       {notification.message}
                     </p>
                     <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(notification.timestamp), {
+                        addSuffix: true,
+                      })}
                     </p>
                   </div>
                   {!notification.read && (

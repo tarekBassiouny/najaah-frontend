@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateCenter } from "@/features/centers/hooks/use-centers";
@@ -76,7 +82,9 @@ export default function CentersCreatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Center Details</CardTitle>
-                <CardDescription>Basic information for the new center.</CardDescription>
+                <CardDescription>
+                  Basic information for the new center.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -136,7 +144,9 @@ export default function CentersCreatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Primary Admin</CardTitle>
-                <CardDescription>Initial admin account for this center.</CardDescription>
+                <CardDescription>
+                  Initial admin account for this center.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -173,7 +183,12 @@ export default function CentersCreatePage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isPending || !formData.name || !formData.adminName || !formData.adminEmail}
+                  disabled={
+                    isPending ||
+                    !formData.name ||
+                    !formData.adminName ||
+                    !formData.adminEmail
+                  }
                 >
                   {isPending ? "Creating..." : "Create Center"}
                 </Button>
@@ -187,7 +202,8 @@ export default function CentersCreatePage() {
               <Card className="border-red-200 dark:border-red-900">
                 <CardContent className="py-4">
                   <p className="text-sm text-red-600 dark:text-red-400">
-                    {(error as Error)?.message || "Failed to create center. Please try again."}
+                    {(error as Error)?.message ||
+                      "Failed to create center. Please try again."}
                   </p>
                 </CardContent>
               </Card>

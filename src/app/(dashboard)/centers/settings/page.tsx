@@ -3,15 +3,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useTenant } from "@/app/tenant-provider";
-import { useCenterSettings, useUpdateCenterSettings } from "@/features/centers/hooks/use-center-settings";
+import {
+  useCenterSettings,
+  useUpdateCenterSettings,
+} from "@/features/centers/hooks/use-center-settings";
 import { useUploadCenterLogo } from "@/features/centers/hooks/use-centers";
 import type { CenterSetting } from "@/features/centers/types/center";
 
-const getSettingValue = (settings: CenterSetting[] | undefined, key: string) => {
+const getSettingValue = (
+  settings: CenterSetting[] | undefined,
+  key: string,
+) => {
   if (!settings) return undefined;
   const entry = settings.find((item) => item.key === key);
   return entry?.value ?? entry?.settings ?? undefined;
@@ -21,7 +33,8 @@ export default function CentersSettingsPage() {
   const tenant = useTenant();
   const centerId = tenant.centerId;
   const { data, isLoading, isError } = useCenterSettings(centerId ?? undefined);
-  const { mutate: updateSettings, isPending: isSaving } = useUpdateCenterSettings();
+  const { mutate: updateSettings, isPending: isSaving } =
+    useUpdateCenterSettings();
   const { mutate: uploadLogo, isPending: isUploading } = useUploadCenterLogo();
 
   const [deviceLimit, setDeviceLimit] = useState("");
@@ -38,14 +51,21 @@ export default function CentersSettingsPage() {
     if (!settingsArray.length) return;
 
     const deviceLimitValue = getSettingValue(settingsArray, "device_limit");
-    const approvalValue = getSettingValue(settingsArray, "require_device_approval");
-    const attendanceValue = getSettingValue(settingsArray, "attendance_required");
+    const approvalValue = getSettingValue(
+      settingsArray,
+      "require_device_approval",
+    );
+    const attendanceValue = getSettingValue(
+      settingsArray,
+      "attendance_required",
+    );
     const supportEmailValue = getSettingValue(settingsArray, "support_email");
     const timezoneValue = getSettingValue(settingsArray, "timezone");
 
     if (deviceLimitValue != null) setDeviceLimit(String(deviceLimitValue));
     if (approvalValue != null) setRequireDeviceApproval(Boolean(approvalValue));
-    if (attendanceValue != null) setAttendanceRequired(Boolean(attendanceValue));
+    if (attendanceValue != null)
+      setAttendanceRequired(Boolean(attendanceValue));
     if (supportEmailValue != null) setSupportEmail(String(supportEmailValue));
     if (timezoneValue != null) setTimezone(String(timezoneValue));
   }, [settingsArray]);
@@ -89,7 +109,10 @@ export default function CentersSettingsPage() {
 
   const handleUpload = () => {
     if (!logoFile) return;
-    uploadLogo({ id: centerId, payload: { file: logoFile, filename: logoFile.name } });
+    uploadLogo({
+      id: centerId,
+      payload: { file: logoFile, filename: logoFile.name },
+    });
   };
 
   return (
@@ -100,7 +123,7 @@ export default function CentersSettingsPage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Policy Settings</CardTitle>
@@ -134,7 +157,9 @@ export default function CentersSettingsPage() {
                   <input
                     type="checkbox"
                     checked={requireDeviceApproval}
-                    onChange={(event) => setRequireDeviceApproval(event.target.checked)}
+                    onChange={(event) =>
+                      setRequireDeviceApproval(event.target.checked)
+                    }
                   />
                   Require device approval
                 </label>
@@ -142,7 +167,9 @@ export default function CentersSettingsPage() {
                   <input
                     type="checkbox"
                     checked={attendanceRequired}
-                    onChange={(event) => setAttendanceRequired(event.target.checked)}
+                    onChange={(event) =>
+                      setAttendanceRequired(event.target.checked)
+                    }
                   />
                   Attendance required
                 </label>
@@ -160,7 +187,9 @@ export default function CentersSettingsPage() {
               </div>
 
               {formError && (
-                <p className="text-sm text-red-600 dark:text-red-400">{formError}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {formError}
+                </p>
               )}
 
               <Button onClick={handleSave} disabled={isSaving || isLoading}>
@@ -195,7 +224,10 @@ export default function CentersSettingsPage() {
                   }}
                 />
               </div>
-              <Button onClick={handleUpload} disabled={!logoFile || isUploading}>
+              <Button
+                onClick={handleUpload}
+                disabled={!logoFile || isUploading}
+              >
                 {isUploading ? "Uploading..." : "Upload Logo"}
               </Button>
             </CardContent>

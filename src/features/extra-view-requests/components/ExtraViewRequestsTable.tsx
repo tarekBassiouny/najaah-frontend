@@ -48,8 +48,10 @@ function getBadgeClass(value: string) {
 }
 
 export function ExtraViewRequestsTable() {
-  const { mutate: approveRequest, isPending: isApproving } = useApproveExtraViewRequest();
-  const { mutate: rejectRequest, isPending: isRejecting } = useRejectExtraViewRequest();
+  const { mutate: approveRequest, isPending: isApproving } =
+    useApproveExtraViewRequest();
+  const { mutate: rejectRequest, isPending: isRejecting } =
+    useRejectExtraViewRequest();
   const [page, setPage] = useState(1);
   const [perPage] = useState(DEFAULT_PER_PAGE);
 
@@ -61,8 +63,7 @@ export function ExtraViewRequestsTable() {
     [page, perPage],
   );
 
-  const { data, isLoading, isError, isFetching } =
-    useExtraViewRequests(params);
+  const { data, isLoading, isError, isFetching } = useExtraViewRequests(params);
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -117,94 +118,96 @@ export function ExtraViewRequestsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoadingState
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-16" />
+            {isLoadingState ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-28" />
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : showEmptyState ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <div className="flex flex-col items-center gap-2 py-10 text-center">
+                    <Icons.Table className="h-8 w-8 text-dark-4" />
+                    <p className="text-sm font-medium text-dark dark:text-white">
+                      No extra view requests found
+                    </p>
+                    <p className="text-sm text-dark-5 dark:text-dark-4">
+                      There are no requests matching the current criteria.
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((request) => {
+                const status = String(
+                  request.status ?? "pending",
+                ).toLowerCase();
+                const isFinal = ["approved", "rejected"].includes(status);
+                return (
+                  <TableRow key={request.id}>
+                    <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
+                      {request.id}
                     </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-20" />
+                    <TableCell className="px-3 py-2 text-sm">
+                      {request.status ? (
+                        <span className={getBadgeClass(request.status)}>
+                          {formatBadgeLabel(request.status)}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-24" />
+                    <TableCell className="px-3 py-2 text-sm">
+                      {request.user_id ?? "—"}
                     </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-24" />
+                    <TableCell className="px-3 py-2 text-sm">
+                      {request.center_id ?? "—"}
                     </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-28" />
+                    <TableCell className="px-3 py-2 text-sm">
+                      {formatDateTime(request.created_at)}
                     </TableCell>
-                    <TableCell className="px-3 py-2">
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : showEmptyState
-                ? (
-                  <TableRow>
-                    <TableCell colSpan={6}>
-                      <div className="flex flex-col items-center gap-2 py-10 text-center">
-                        <Icons.Table className="h-8 w-8 text-dark-4" />
-                        <p className="text-sm font-medium text-dark dark:text-white">
-                          No extra view requests found
-                        </p>
-                        <p className="text-sm text-dark-5 dark:text-dark-4">
-                          There are no requests matching the current criteria.
-                        </p>
+                    <TableCell className="px-3 py-2 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => approveRequest(request.id)}
+                          disabled={isBusy || isFinal}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => rejectRequest(request.id)}
+                          disabled={isBusy || isFinal}
+                        >
+                          Reject
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                )
-                : items.map((request) => {
-                  const status = String(request.status ?? "pending").toLowerCase();
-                  const isFinal = ["approved", "rejected"].includes(status);
-                  return (
-                    <TableRow key={request.id}>
-                      <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                        {request.id}
-                      </TableCell>
-                      <TableCell className="px-3 py-2 text-sm">
-                        {request.status ? (
-                          <span className={getBadgeClass(request.status)}>
-                            {formatBadgeLabel(request.status)}
-                          </span>
-                        ) : (
-                          "—"
-                        )}
-                      </TableCell>
-                      <TableCell className="px-3 py-2 text-sm">
-                        {request.user_id ?? "—"}
-                      </TableCell>
-                      <TableCell className="px-3 py-2 text-sm">
-                        {request.center_id ?? "—"}
-                      </TableCell>
-                      <TableCell className="px-3 py-2 text-sm">
-                        {formatDateTime(request.created_at)}
-                      </TableCell>
-                      <TableCell className="px-3 py-2 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => approveRequest(request.id)}
-                            disabled={isBusy || isFinal}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => rejectRequest(request.id)}
-                            disabled={isBusy || isFinal}
-                          >
-                            Reject
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>

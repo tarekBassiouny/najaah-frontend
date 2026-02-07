@@ -80,10 +80,7 @@ export async function createPdf(
   centerId: string | number,
   payload: CreatePdfPayload,
 ): Promise<Pdf> {
-  const { data } = await http.post<RawPdfResponse>(
-    basePath(centerId),
-    payload,
-  );
+  const { data } = await http.post<RawPdfResponse>(basePath(centerId), payload);
   return data?.data ?? (data as unknown as Pdf);
 }
 

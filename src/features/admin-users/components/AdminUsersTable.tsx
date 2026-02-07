@@ -35,7 +35,13 @@ const DEFAULT_PER_PAGE = 10;
 
 type AdminUserStatus = "active" | "inactive" | "pending" | string;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   active: { variant: "success", label: "Active" },
   enabled: { variant: "success", label: "Enabled" },
   approved: { variant: "success", label: "Approved" },
@@ -50,12 +56,19 @@ const statusConfig: Record<string, { variant: "success" | "warning" | "secondary
 
 function getStatusConfig(status: AdminUserStatus) {
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
+  return (
+    statusConfig[normalized] || {
+      variant: "default" as const,
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+    }
+  );
 }
 
 export function AdminUsersTable() {
-  const { mutate: createAdminUser, isPending: isCreating } = useCreateAdminUser();
-  const { mutate: deleteAdminUser, isPending: isDeleting } = useDeleteAdminUser();
+  const { mutate: createAdminUser, isPending: isCreating } =
+    useCreateAdminUser();
+  const { mutate: deleteAdminUser, isPending: isDeleting } =
+    useDeleteAdminUser();
   const { mutate: syncRoles, isPending: isSyncing } = useSyncAdminUserRoles();
   const [page, setPage] = useState(1);
   const [perPage] = useState(DEFAULT_PER_PAGE);
@@ -65,7 +78,9 @@ export function AdminUsersTable() {
     centerId: "",
   });
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [roleDialogUserId, setRoleDialogUserId] = useState<string | number | null>(null);
+  const [roleDialogUserId, setRoleDialogUserId] = useState<
+    string | number | null
+  >(null);
   const [roleIdsInput, setRoleIdsInput] = useState("");
   const [roleDialogError, setRoleDialogError] = useState<string | null>(null);
 
@@ -77,8 +92,7 @@ export function AdminUsersTable() {
     [page, perPage],
   );
 
-  const { data, isLoading, isError, isFetching } =
-    useAdminUsers(params);
+  const { data, isLoading, isError, isFetching } = useAdminUsers(params);
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -175,7 +189,10 @@ export function AdminUsersTable() {
                 type="email"
                 value={formData.email}
                 onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, email: event.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    email: event.target.value,
+                  }))
                 }
                 placeholder="admin@example.com"
                 required
@@ -187,13 +204,19 @@ export function AdminUsersTable() {
                 id="admin-center"
                 value={formData.centerId}
                 onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, centerId: event.target.value }))
+                  setFormData((prev) => ({
+                    ...prev,
+                    centerId: event.target.value,
+                  }))
                 }
                 placeholder="Optional"
               />
             </div>
             <div className="flex items-end">
-              <Button type="submit" disabled={isCreating || !formData.name || !formData.email}>
+              <Button
+                type="submit"
+                disabled={isCreating || !formData.name || !formData.email}
+              >
                 {isCreating ? "Creating..." : "Create User"}
               </Button>
             </div>
@@ -235,7 +258,9 @@ export function AdminUsersTable() {
                     <TableHead className="font-medium">Email</TableHead>
                     <TableHead className="font-medium">Status</TableHead>
                     <TableHead className="font-medium">Center</TableHead>
-                    <TableHead className="text-right font-medium">Actions</TableHead>
+                    <TableHead className="text-right font-medium">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -259,7 +284,7 @@ export function AdminUsersTable() {
                             <Skeleton className="h-4 w-24" />
                           </TableCell>
                           <TableCell>
-                            <Skeleton className="h-8 w-24 ml-auto" />
+                            <Skeleton className="ml-auto h-8 w-24" />
                           </TableCell>
                         </TableRow>
                       ))}
@@ -288,7 +313,9 @@ export function AdminUsersTable() {
                         </TableCell>
                         <TableCell>
                           {user.status ? (
-                            <Badge variant={getStatusConfig(user.status).variant}>
+                            <Badge
+                              variant={getStatusConfig(user.status).variant}
+                            >
                               {getStatusConfig(user.status).label}
                             </Badge>
                           ) : (
@@ -357,11 +384,16 @@ export function AdminUsersTable() {
           )}
         </CardContent>
       </Card>
-      <Dialog open={roleDialogOpen} onOpenChange={(open) => (!open ? closeRoleDialog() : null)}>
+      <Dialog
+        open={roleDialogOpen}
+        onOpenChange={(open) => (!open ? closeRoleDialog() : null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Sync Roles</DialogTitle>
-            <DialogDescription>Enter role IDs separated by commas.</DialogDescription>
+            <DialogDescription>
+              Enter role IDs separated by commas.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="role-ids">Role IDs</Label>
@@ -378,7 +410,11 @@ export function AdminUsersTable() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeRoleDialog} disabled={isBusy}>
+            <Button
+              variant="outline"
+              onClick={closeRoleDialog}
+              disabled={isBusy}
+            >
               Cancel
             </Button>
             <Button onClick={handleRoleSync} disabled={isBusy}>

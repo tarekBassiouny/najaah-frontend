@@ -1,6 +1,16 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { Enrollment, ListEnrollmentsParams, CreateEnrollmentPayload, UpdateEnrollmentPayload } from "@/features/enrollments/types/enrollment";
+import type {
+  Enrollment,
+  ListEnrollmentsParams,
+  CreateEnrollmentPayload,
+  UpdateEnrollmentPayload,
+} from "@/features/enrollments/types/enrollment";
 import {
   createEnrollment,
   deleteEnrollment,
@@ -14,7 +24,10 @@ type UseEnrollmentsOptions = Omit<
   "queryKey" | "queryFn"
 >;
 
-type UseEnrollmentOptions = Omit<UseQueryOptions<Enrollment | null>, "queryKey" | "queryFn">;
+type UseEnrollmentOptions = Omit<
+  UseQueryOptions<Enrollment | null>,
+  "queryKey" | "queryFn"
+>;
 
 export function useEnrollments(
   params: ListEnrollmentsParams,
@@ -73,7 +86,8 @@ export function useDeleteEnrollment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (enrollmentId: string | number) => deleteEnrollment(enrollmentId),
+    mutationFn: (enrollmentId: string | number) =>
+      deleteEnrollment(enrollmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
     },

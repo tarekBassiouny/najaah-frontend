@@ -10,7 +10,9 @@ vi.mock("@/services/admin-auth.service", () => ({
 }));
 
 const mockedLogin = loginAdmin as unknown as ReturnType<typeof vi.fn>;
-const mockedFetchProfile = fetchAdminProfile as unknown as ReturnType<typeof vi.fn>;
+const mockedFetchProfile = fetchAdminProfile as unknown as ReturnType<
+  typeof vi.fn
+>;
 
 const wrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient();
@@ -29,10 +31,9 @@ describe("useAdminLogin", () => {
     mockedFetchProfile.mockResolvedValueOnce(user);
     const onSuccess = vi.fn();
 
-    const { result } = renderHook(
-      () => useAdminLogin({ onSuccess }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useAdminLogin({ onSuccess }), {
+      wrapper,
+    });
 
     await act(async () => {
       await result.current.mutateAsync({
@@ -61,10 +62,9 @@ describe("useAdminLogin", () => {
     mockedLogin.mockRejectedValueOnce(error);
     const onError = vi.fn();
 
-    const { result } = renderHook(
-      () => useAdminLogin({ onError }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useAdminLogin({ onError }), {
+      wrapper,
+    });
 
     await act(async () => {
       await expect(

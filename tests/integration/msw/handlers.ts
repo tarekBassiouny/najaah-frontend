@@ -6,7 +6,10 @@ const centersRoute = "/api/v1/admin/centers";
 
 export const handlers = [
   http.post(loginRoute, async ({ request }) => {
-    const body = (await request.json()) as { email?: string; password?: string };
+    const body = (await request.json()) as {
+      email?: string;
+      password?: string;
+    };
 
     if (body.password !== "admin123") {
       return HttpResponse.json(
@@ -18,7 +21,11 @@ export const handlers = [
     return HttpResponse.json({
       success: true,
       data: {
-        user: { id: 1, name: "Admin", email: body.email ?? "admin@example.com" },
+        user: {
+          id: 1,
+          name: "Admin",
+          email: body.email ?? "admin@example.com",
+        },
         token: "mock-token",
       },
     });

@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Authentication",
-    "description": "MFA policies and login restrictions."
+    title: "Authentication",
+    description: "MFA policies and login restrictions.",
   },
   {
-    "title": "Privacy",
-    "description": "Data retention and export settings."
+    title: "Privacy",
+    description: "Data retention and export settings.",
   },
   {
-    "title": "Engagement",
-    "description": "Reminder cadence and communication rules."
-  }
+    title: "Engagement",
+    description: "Reminder cadence and communication rules.",
+  },
 ];
 
 export default function SettingsStudentSettingsPage() {

@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   assignCoursePdf,
   assignCourseVideo,
@@ -54,10 +59,7 @@ export function useCenterCourses(
   });
 }
 
-type UseCourseOptions = Omit<
-  UseQueryOptions<Course>,
-  "queryKey" | "queryFn"
->;
+type UseCourseOptions = Omit<UseQueryOptions<Course>, "queryKey" | "queryFn">;
 
 export function useCourse(
   id: string | number | undefined,
@@ -116,8 +118,13 @@ export function useUpdateCourse() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string | number; payload: UpdateCoursePayload }) =>
-      updateCourse(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string | number;
+      payload: UpdateCoursePayload;
+    }) => updateCourse(id, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
@@ -140,7 +147,9 @@ export function useUpdateCenterCourse() {
     }) => updateCenterCourse(centerId, courseId, payload),
     onSuccess: (_, { centerId, courseId }) => {
       queryClient.invalidateQueries({ queryKey: ["center-courses"] });
-      queryClient.invalidateQueries({ queryKey: ["center-course", centerId, courseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
     },
   });
 }

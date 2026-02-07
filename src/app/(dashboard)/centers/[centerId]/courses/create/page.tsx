@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
@@ -17,7 +23,12 @@ type PageProps = {
 export default function CenterCoursesCreatePage({ params }: PageProps) {
   const { centerId } = use(params);
   const router = useRouter();
-  const { mutate: createCourse, isPending, isError, error } = useCreateCenterCourse();
+  const {
+    mutate: createCourse,
+    isPending,
+    isError,
+    error,
+  } = useCreateCenterCourse();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -41,13 +52,15 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
         onSuccess: (course) => {
           router.push(`/centers/${centerId}/courses/${course.id}`);
         },
-      }
+      },
     );
   };
 
-  const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-  };
+  const handleChange =
+    (field: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
   const generateSlug = () => {
     const slug = formData.title
@@ -137,7 +150,11 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button type="submit" className="w-full" disabled={isPending || !formData.title}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isPending || !formData.title}
+                >
                   {isPending ? "Creating..." : "Create Course"}
                 </Button>
               </CardContent>
@@ -147,7 +164,8 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
               <Card className="border-red-200 dark:border-red-900">
                 <CardContent className="py-4">
                   <p className="text-sm text-red-600 dark:text-red-400">
-                    {(error as Error)?.message || "Failed to create course. Please try again."}
+                    {(error as Error)?.message ||
+                      "Failed to create course. Please try again."}
                   </p>
                 </CardContent>
               </Card>

@@ -78,6 +78,8 @@ export async function updateEnrollment(
   return data?.data ?? (data as unknown as Enrollment);
 }
 
-export async function deleteEnrollment(enrollmentId: string | number): Promise<void> {
+export async function deleteEnrollment(
+  enrollmentId: string | number,
+): Promise<void> {
   await http.delete(`/api/v1/admin/enrollments/${enrollmentId}`);
 }

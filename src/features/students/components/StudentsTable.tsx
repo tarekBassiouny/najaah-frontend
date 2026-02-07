@@ -22,7 +22,13 @@ const DEFAULT_PER_PAGE = 10;
 
 type StudentStatus = "active" | "inactive" | "pending" | string;
 
-const statusConfig: Record<string, { variant: "success" | "warning" | "secondary" | "error" | "default"; label: string }> = {
+const statusConfig: Record<
+  string,
+  {
+    variant: "success" | "warning" | "secondary" | "error" | "default";
+    label: string;
+  }
+> = {
   active: { variant: "success", label: "Active" },
   enabled: { variant: "success", label: "Enabled" },
   approved: { variant: "success", label: "Approved" },
@@ -40,18 +46,29 @@ function getStatusConfig(status: StudentStatus) {
     return { variant: "default" as const, label: "Unknown" };
   }
   const normalized = status.toLowerCase();
-  return statusConfig[normalized] || { variant: "default" as const, label: status.charAt(0).toUpperCase() + status.slice(1) };
+  return (
+    statusConfig[normalized] || {
+      variant: "default" as const,
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+    }
+  );
 }
 
 type StudentsTableProps = {
   centerId?: string | number;
+  initialPage?: number;
+  initialPerPage?: number;
 };
 
-export function StudentsTable({ centerId: centerIdProp }: StudentsTableProps) {
+export function StudentsTable({
+  centerId: centerIdProp,
+  initialPage = 1,
+  initialPerPage = DEFAULT_PER_PAGE,
+}: StudentsTableProps) {
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
-  const [page, setPage] = useState(1);
-  const [perPage] = useState(DEFAULT_PER_PAGE);
+  const [page, setPage] = useState(initialPage);
+  const [perPage] = useState(initialPerPage);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
 
@@ -65,8 +82,7 @@ export function StudentsTable({ centerId: centerIdProp }: StudentsTableProps) {
     [page, perPage, query, centerId],
   );
 
-  const { data, isLoading, isError, isFetching } =
-    useStudents(params);
+  const { data, isLoading, isError, isFetching } = useStudents(params);
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -193,7 +209,9 @@ export function StudentsTable({ centerId: centerIdProp }: StudentsTableProps) {
                       </TableCell>
                       <TableCell>
                         {student.status ? (
-                          <Badge variant={getStatusConfig(student.status).variant}>
+                          <Badge
+                            variant={getStatusConfig(student.status).variant}
+                          >
                             {getStatusConfig(student.status).label}
                           </Badge>
                         ) : (

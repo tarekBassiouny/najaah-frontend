@@ -5,11 +5,24 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +45,11 @@ import {
 
 const DEFAULT_PER_PAGE = 10;
 
-type MediaAction = "attach-video" | "detach-video" | "attach-pdf" | "detach-pdf";
+type MediaAction =
+  | "attach-video"
+  | "detach-video"
+  | "attach-pdf"
+  | "detach-pdf";
 
 type Feedback = {
   type: "success" | "error";
@@ -46,27 +63,39 @@ type SectionManagerProps = {
   breadcrumbs?: Array<{ label: string; href?: string }>;
 };
 
-export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: SectionManagerProps) {
+export function SectionManager({
+  centerId,
+  courseId,
+  backHref,
+  breadcrumbs,
+}: SectionManagerProps) {
   const router = useRouter();
 
-  const { data, isLoading, isError } = useSections(
-    centerId,
-    courseId,
-    { page: 1, per_page: DEFAULT_PER_PAGE },
-  );
+  const { data, isLoading, isError } = useSections(centerId, courseId, {
+    page: 1,
+    per_page: DEFAULT_PER_PAGE,
+  });
 
   const { mutate: createSection, isPending: isCreating } = useCreateSection();
   const { mutate: deleteSection, isPending: isDeleting } = useDeleteSection();
-  const { mutate: publishSection, isPending: isPublishing } = usePublishSection();
-  const { mutate: unpublishSection, isPending: isUnpublishing } = useUnpublishSection();
-  const { mutate: attachVideo, isPending: isAttachingVideo } = useAttachSectionVideo();
-  const { mutate: detachVideo, isPending: isDetachingVideo } = useDetachSectionVideo();
-  const { mutate: attachPdf, isPending: isAttachingPdf } = useAttachSectionPdf();
-  const { mutate: detachPdf, isPending: isDetachingPdf } = useDetachSectionPdf();
+  const { mutate: publishSection, isPending: isPublishing } =
+    usePublishSection();
+  const { mutate: unpublishSection, isPending: isUnpublishing } =
+    useUnpublishSection();
+  const { mutate: attachVideo, isPending: isAttachingVideo } =
+    useAttachSectionVideo();
+  const { mutate: detachVideo, isPending: isDetachingVideo } =
+    useDetachSectionVideo();
+  const { mutate: attachPdf, isPending: isAttachingPdf } =
+    useAttachSectionPdf();
+  const { mutate: detachPdf, isPending: isDetachingPdf } =
+    useDetachSectionPdf();
 
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [mediaAction, setMediaAction] = useState<MediaAction | null>(null);
-  const [mediaSectionId, setMediaSectionId] = useState<string | number | null>(null);
+  const [mediaSectionId, setMediaSectionId] = useState<string | number | null>(
+    null,
+  );
   const [mediaValue, setMediaValue] = useState("");
   const [mediaError, setMediaError] = useState<string | null>(null);
 
@@ -210,11 +239,13 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Sections</CardTitle>
-              <CardDescription>Manage section status and content.</CardDescription>
+              <CardDescription>
+                Manage section status and content.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {feedback && (
@@ -257,13 +288,18 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                     <TableBody>
                       {(data?.items ?? []).map((section) => {
                         const status = String(section.status ?? "draft");
-                        const isPublished = status.toLowerCase() === "published";
+                        const isPublished =
+                          status.toLowerCase() === "published";
                         return (
                           <TableRow key={section.id}>
                             <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                              {section.title ?? section.name ?? `Section #${section.id}`}
+                              {section.title ??
+                                section.name ??
+                                `Section #${section.id}`}
                             </TableCell>
-                            <TableCell className="px-3 py-2 text-sm">{status}</TableCell>
+                            <TableCell className="px-3 py-2 text-sm">
+                              {status}
+                            </TableCell>
                             <TableCell className="px-3 py-2 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <Button
@@ -271,9 +307,17 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                                   size="sm"
                                   onClick={() => {
                                     if (isPublished) {
-                                      unpublishSection({ centerId, courseId, sectionId: section.id });
+                                      unpublishSection({
+                                        centerId,
+                                        courseId,
+                                        sectionId: section.id,
+                                      });
                                     } else {
-                                      publishSection({ centerId, courseId, sectionId: section.id });
+                                      publishSection({
+                                        centerId,
+                                        courseId,
+                                        sectionId: section.id,
+                                      });
                                     }
                                   }}
                                   disabled={isBusy}
@@ -283,7 +327,9 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => openMediaDialog("attach-video", section.id)}
+                                  onClick={() =>
+                                    openMediaDialog("attach-video", section.id)
+                                  }
                                   disabled={isBusy}
                                 >
                                   Attach Video
@@ -291,7 +337,9 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => openMediaDialog("detach-video", section.id)}
+                                  onClick={() =>
+                                    openMediaDialog("detach-video", section.id)
+                                  }
                                   disabled={isBusy}
                                 >
                                   Detach Video
@@ -299,7 +347,9 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => openMediaDialog("attach-pdf", section.id)}
+                                  onClick={() =>
+                                    openMediaDialog("attach-pdf", section.id)
+                                  }
                                   disabled={isBusy}
                                 >
                                   Attach PDF
@@ -307,7 +357,9 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => openMediaDialog("detach-pdf", section.id)}
+                                  onClick={() =>
+                                    openMediaDialog("detach-pdf", section.id)
+                                  }
                                   disabled={isBusy}
                                 >
                                   Detach PDF
@@ -316,8 +368,14 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
-                                    if (window.confirm("Delete this section?")) {
-                                      deleteSection({ centerId, courseId, sectionId: section.id });
+                                    if (
+                                      window.confirm("Delete this section?")
+                                    ) {
+                                      deleteSection({
+                                        centerId,
+                                        courseId,
+                                        sectionId: section.id,
+                                      });
                                     }
                                   }}
                                   disabled={isBusy}
@@ -347,7 +405,12 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
               <form className="space-y-4" onSubmit={handleCreate}>
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
-                  <Input id="title" name="title" placeholder="e.g., Getting Started" required />
+                  <Input
+                    id="title"
+                    name="title"
+                    placeholder="e.g., Getting Started"
+                    required
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={isCreating}>
                   {isCreating ? "Creating..." : "Create Section"}
@@ -375,7 +438,10 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
         </div>
       </div>
 
-      <Dialog open={!!mediaAction} onOpenChange={(open) => (!open ? closeMediaDialog() : null)}>
+      <Dialog
+        open={!!mediaAction}
+        onOpenChange={(open) => (!open ? closeMediaDialog() : null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -399,11 +465,17 @@ export function SectionManager({ centerId, courseId, backHref, breadcrumbs }: Se
               placeholder="e.g., 123"
             />
             {mediaError && (
-              <p className="text-sm text-red-600 dark:text-red-400">{mediaError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {mediaError}
+              </p>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeMediaDialog} disabled={isBusy}>
+            <Button
+              variant="outline"
+              onClick={closeMediaDialog}
+              disabled={isBusy}
+            >
               Cancel
             </Button>
             <Button onClick={handleMediaSubmit} disabled={isBusy}>

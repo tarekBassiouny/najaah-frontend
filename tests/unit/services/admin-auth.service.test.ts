@@ -20,7 +20,9 @@ vi.mock("@/lib/http", () => {
 
 vi.mock("@/lib/token-storage", () => ({
   tokenStorage: {
+    getAccessToken: vi.fn(() => null),
     setTokens: vi.fn(),
+    setRememberMe: vi.fn(),
     clear: vi.fn(),
   },
 }));
@@ -35,7 +37,9 @@ const mockedHttp = http as unknown as {
 };
 
 const mockedTokenStorage = tokenStorage as unknown as {
+  getAccessToken: ReturnType<typeof vi.fn>;
   setTokens: ReturnType<typeof vi.fn>;
+  setRememberMe: ReturnType<typeof vi.fn>;
   clear: ReturnType<typeof vi.fn>;
 };
 
@@ -70,9 +74,27 @@ describe("loginAdmin", () => {
       ...user,
       permissions: [],
     });
+    expect(mockedTokenStorage.setRememberMe).toHaveBeenCalledWith(false);
     expect(mockedTokenStorage.setTokens).toHaveBeenCalledWith({
       accessToken: "token-123",
     });
+  });
+
+  it("sets rememberMe to true when remember flag is passed", async () => {
+    mockedHttp.post.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: { user, token: "token-123" },
+      },
+    });
+
+    await loginAdmin({
+      email: "admin@example.com",
+      password: "admin123",
+      remember: true,
+    });
+
+    expect(mockedTokenStorage.setRememberMe).toHaveBeenCalledWith(true);
   });
 
   it("throws on login error", async () => {

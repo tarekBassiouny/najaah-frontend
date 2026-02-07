@@ -222,86 +222,89 @@ export function Sidebar({ sections }: SidebarProps) {
           </div>
 
           <nav className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
-          {filteredSections.map((section) => (
-            <div key={section.label} className="mb-6">
-              <h3 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
-                {section.label}
-              </h3>
+            {filteredSections.map((section) => (
+              <div key={section.label} className="mb-6">
+                <h3 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
+                  {section.label}
+                </h3>
 
-              <ul className="space-y-2">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const hasChildren = item.items.length > 0;
-                  const isActive = hasChildren
-                    ? item.items.some((subItem) =>
-                        isPathActive(pathname, subItem.url),
-                      )
-                    : isPathActive(pathname, item.url);
-                  const isExpanded =
-                    expandedItems.includes(item.title) || isActive;
+                <ul className="space-y-2">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const hasChildren = item.items.length > 0;
+                    const isActive = hasChildren
+                      ? item.items.some((subItem) =>
+                          isPathActive(pathname, subItem.url),
+                        )
+                      : isPathActive(pathname, item.url);
+                    const isExpanded =
+                      expandedItems.includes(item.title) || isActive;
 
-                  if (hasChildren) {
+                    if (hasChildren) {
+                      return (
+                        <li key={item.title}>
+                          <MenuItem
+                            as="button"
+                            isActive={isExpanded}
+                            onClick={() =>
+                              setExpandedItems((prev) =>
+                                prev.includes(item.title)
+                                  ? prev.filter((key) => key !== item.title)
+                                  : [...prev, item.title],
+                              )
+                            }
+                          >
+                            <span className="flex items-center gap-3">
+                              {Icon ? <Icon className="h-5 w-5" /> : null}
+                              <span>{item.title}</span>
+                            </span>
+                            <ChevronUp
+                              className={cn(
+                                "ml-auto h-4 w-4 transition-transform duration-200",
+                                isExpanded ? "rotate-180" : "rotate-0",
+                              )}
+                            />
+                          </MenuItem>
+
+                          {isExpanded ? (
+                            <ul className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2">
+                              {item.items.map((subItem) => (
+                                <li key={subItem.title}>
+                                  <MenuItem
+                                    as="link"
+                                    href={subItem.url}
+                                    isActive={isPathActive(
+                                      pathname,
+                                      subItem.url,
+                                    )}
+                                  >
+                                    {subItem.title}
+                                  </MenuItem>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </li>
+                      );
+                    }
+
                     return (
                       <li key={item.title}>
                         <MenuItem
-                          as="button"
-                          isActive={isExpanded}
-                          onClick={() =>
-                            setExpandedItems((prev) =>
-                              prev.includes(item.title)
-                                ? prev.filter((key) => key !== item.title)
-                                : [...prev, item.title],
-                            )
-                          }
+                          as="link"
+                          href={item.url || "/dashboard"}
+                          isActive={isActive}
+                          className="flex items-center gap-3"
                         >
-                          <span className="flex items-center gap-3">
-                            {Icon ? <Icon className="h-5 w-5" /> : null}
-                            <span>{item.title}</span>
-                          </span>
-                          <ChevronUp
-                            className={cn(
-                              "ml-auto h-4 w-4 transition-transform duration-200",
-                              isExpanded ? "rotate-180" : "rotate-0",
-                            )}
-                          />
+                          {Icon ? <Icon className="h-5 w-5" /> : null}
+                          <span>{item.title}</span>
                         </MenuItem>
-
-                        {isExpanded ? (
-                          <ul className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2">
-                            {item.items.map((subItem) => (
-                              <li key={subItem.title}>
-                                <MenuItem
-                                  as="link"
-                                  href={subItem.url}
-                                  isActive={isPathActive(pathname, subItem.url)}
-                                >
-                                  {subItem.title}
-                                </MenuItem>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
                       </li>
                     );
-                  }
-
-                  return (
-                    <li key={item.title}>
-                      <MenuItem
-                        as="link"
-                        href={item.url || "/dashboard"}
-                        isActive={isActive}
-                        className="flex items-center gap-3"
-                      >
-                        {Icon ? <Icon className="h-5 w-5" /> : null}
-                        <span>{item.title}</span>
-                      </MenuItem>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+                  })}
+                </ul>
+              </div>
+            ))}
           </nav>
         </div>
       </aside>

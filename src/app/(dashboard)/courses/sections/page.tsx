@@ -2,17 +2,17 @@ import { PlaceholderPage } from "@/components/ui/placeholder-page";
 
 const items = [
   {
-    "title": "Roster",
-    "description": "Placeholder for section name, instructor, and capacity."
+    title: "Roster",
+    description: "Placeholder for section name, instructor, and capacity.",
   },
   {
-    "title": "Schedule",
-    "description": "Meeting patterns and time zones."
+    title: "Schedule",
+    description: "Meeting patterns and time zones.",
   },
   {
-    "title": "Status",
-    "description": "Enrollment windows and section health."
-  }
+    title: "Status",
+    description: "Enrollment windows and section health.",
+  },
 ];
 
 export default function CoursesSectionsPage() {

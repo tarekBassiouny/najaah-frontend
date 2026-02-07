@@ -35,8 +35,10 @@ function normalizeSectionsResponse(
 
   const page = Number(meta.current_page ?? dataNode?.current_page ?? 1) || 1;
   const perPage =
-    Number(meta.per_page ?? dataNode?.per_page ?? fallback.per_page ?? 10) || 10;
-  const total = Number(meta.total ?? dataNode?.total ?? items.length) || items.length;
+    Number(meta.per_page ?? dataNode?.per_page ?? fallback.per_page ?? 10) ||
+    10;
+  const total =
+    Number(meta.total ?? dataNode?.total ?? items.length) || items.length;
   const lastPage = Number(meta.last_page ?? dataNode?.last_page ?? 1) || 1;
 
   return {

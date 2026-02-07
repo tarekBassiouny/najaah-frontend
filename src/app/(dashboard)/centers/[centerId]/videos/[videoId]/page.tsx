@@ -75,13 +75,26 @@ export default function CenterVideoDetailPage({ params }: PageProps) {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {isError || !video ? (
-            <p className="text-red-600 dark:text-red-400">Failed to load video.</p>
+            <p className="text-red-600 dark:text-red-400">
+              Failed to load video.
+            </p>
           ) : (
             <>
-              <p><span className="font-medium">ID:</span> {String(video.id)}</p>
-              <p><span className="font-medium">Status:</span> {video.status ?? "—"}</p>
-              <p><span className="font-medium">Duration:</span> {String(video.duration ?? "—")}</p>
-              <p><span className="font-medium">Created:</span> {String(video.created_at ?? "—")}</p>
+              <p>
+                <span className="font-medium">ID:</span> {String(video.id)}
+              </p>
+              <p>
+                <span className="font-medium">Status:</span>{" "}
+                {video.status ?? "—"}
+              </p>
+              <p>
+                <span className="font-medium">Duration:</span>{" "}
+                {String(video.duration ?? "—")}
+              </p>
+              <p>
+                <span className="font-medium">Created:</span>{" "}
+                {String(video.created_at ?? "—")}
+              </p>
             </>
           )}
         </CardContent>

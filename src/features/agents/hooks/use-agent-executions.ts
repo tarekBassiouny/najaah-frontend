@@ -5,7 +5,10 @@ import {
   executeContentPublishing,
   executeBulkEnrollment,
 } from "../services/agents.service";
-import type { AgentExecutionFilters, ExecuteAgentPayload } from "../types/agent";
+import type {
+  AgentExecutionFilters,
+  ExecuteAgentPayload,
+} from "../types/agent";
 
 export function useAgentExecutions(filters: AgentExecutionFilters = {}) {
   return useQuery({
@@ -15,7 +18,10 @@ export function useAgentExecutions(filters: AgentExecutionFilters = {}) {
   });
 }
 
-export function useAgentExecution(id: string | number | undefined, options?: { enabled?: boolean; refetchInterval?: number }) {
+export function useAgentExecution(
+  id: string | number | undefined,
+  options?: { enabled?: boolean; refetchInterval?: number },
+) {
   return useQuery({
     queryKey: ["agent-execution", id],
     queryFn: () => getAgentExecution(id!),
@@ -40,8 +46,9 @@ export function useExecuteBulkEnrollment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: ExecuteAgentPayload & { studentIds: (string | number)[] }) =>
-      executeBulkEnrollment(payload),
+    mutationFn: (
+      payload: ExecuteAgentPayload & { studentIds: (string | number)[] },
+    ) => executeBulkEnrollment(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agent-executions"] });
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });

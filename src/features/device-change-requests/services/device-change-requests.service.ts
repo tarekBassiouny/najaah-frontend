@@ -49,34 +49,55 @@ export async function listDeviceChangeRequests(
   };
 }
 
+export type ApproveDeviceChangeRequestPayload = {
+  new_device_id?: string;
+  new_model?: string;
+  new_os_version?: string;
+};
+
 export async function approveDeviceChangeRequest(
   requestId: string | number,
+  payload?: ApproveDeviceChangeRequestPayload,
 ): Promise<DeviceChangeRequest> {
   const { data } = await http.post(
     `/api/v1/admin/device-change-requests/${requestId}/approve`,
+    payload,
   );
   return data?.data ?? (data as unknown as DeviceChangeRequest);
 }
+
+export type RejectDeviceChangeRequestPayload = {
+  decision_reason: string;
+};
 
 export async function rejectDeviceChangeRequest(
   requestId: string | number,
+  payload: RejectDeviceChangeRequestPayload,
 ): Promise<DeviceChangeRequest> {
   const { data } = await http.post(
     `/api/v1/admin/device-change-requests/${requestId}/reject`,
+    payload,
   );
   return data?.data ?? (data as unknown as DeviceChangeRequest);
 }
 
+export type PreApproveDeviceChangeRequestPayload = {
+  decision_reason?: string;
+};
+
 export async function preApproveDeviceChangeRequest(
   requestId: string | number,
+  payload?: PreApproveDeviceChangeRequestPayload,
 ): Promise<DeviceChangeRequest> {
   const { data } = await http.post(
     `/api/v1/admin/device-change-requests/${requestId}/pre-approve`,
+    payload,
   );
   return data?.data ?? (data as unknown as DeviceChangeRequest);
 }
 
 export type CreateDeviceChangeRequestPayload = {
+  reason: string;
   device_uuid?: string;
   device_name?: string;
   device_os?: string;

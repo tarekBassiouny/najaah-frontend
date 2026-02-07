@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { AppBootstrapProvider } from "./app-bootstrap-provider";
 import { TenantProvider } from "./tenant-provider";
+import { ModalProvider } from "@/components/ui/modal-store";
+import { ModalHost } from "@/components/ui/modal-host";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,7 +25,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider defaultTheme="light" attribute="class">
       <QueryClientProvider client={queryClient}>
         <TenantProvider>
-          <AppBootstrapProvider>{children}</AppBootstrapProvider>
+          <AppBootstrapProvider>
+            <ModalProvider>
+              {children}
+              <ModalHost />
+            </ModalProvider>
+          </AppBootstrapProvider>
         </TenantProvider>
       </QueryClientProvider>
     </ThemeProvider>

@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAdminLogin } from "@/features/auth/hooks/use-admin-login";
 import { isAxiosError } from "axios";
 import { type ApiErrorResponse } from "@/types/auth";
@@ -30,6 +30,7 @@ type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const loginMutation = useAdminLogin({
     onSuccess: () => {
@@ -49,6 +50,13 @@ export function LoginForm() {
       rememberMe: false,
     },
   });
+
+  const reason = searchParams.get("reason");
+
+  useEffect(() => {
+    if (reason !== "session_expired") return;
+    setFormMessage("Your session expired. Please sign in again.");
+  }, [reason]);
 
   const onSubmit = (values: FormValues) => {
     setFormMessage(null);
@@ -71,8 +79,15 @@ export function LoginForm() {
       </div>
 
       {formMessage && (
-        <Alert variant="destructive" className="mt-6">
-          <AlertTitle>Unable to sign in</AlertTitle>
+        <Alert
+          variant={reason === "session_expired" ? "default" : "destructive"}
+          className="mt-6"
+        >
+          <AlertTitle>
+            {reason === "session_expired"
+              ? "Session expired"
+              : "Unable to sign in"}
+          </AlertTitle>
           <AlertDescription>{formMessage}</AlertDescription>
         </Alert>
       )}

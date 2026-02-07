@@ -2,6 +2,8 @@ import { getAuthPermissions } from "@/lib/auth-state";
 
 export type Capability =
   | "view_dashboard"
+  | "view_agents"
+  | "execute_agents"
   | "manage_centers"
   | "manage_courses"
   | "manage_videos"
@@ -18,6 +20,8 @@ export type Capability =
 
 const capabilityPermissions: Record<Capability, string[]> = {
   view_dashboard: [],
+  view_agents: ["agent.view"],
+  execute_agents: ["agent.execute"],
   manage_centers: ["center.manage"],
   manage_courses: ["course.manage"],
   manage_videos: ["video.manage"],

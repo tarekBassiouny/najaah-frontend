@@ -41,11 +41,7 @@ export function SidebarProvider({
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (isMobile) {
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
+    setIsOpen(!isMobile);
   }, [isMobile]);
 
   const toggleSidebar = useCallback(() => {

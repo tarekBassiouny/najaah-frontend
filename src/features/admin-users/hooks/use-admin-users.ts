@@ -102,7 +102,7 @@ export function useSyncAdminUserRoles() {
     }: {
       userId: string | number;
       roleIds: Array<string | number>;
-    }) => syncAdminUserRoles(userId, roleIds),
+    }) => syncAdminUserRoles(userId, { role_ids: roleIds }),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });

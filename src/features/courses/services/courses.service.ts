@@ -42,6 +42,12 @@ export type Course = {
   [key: string]: unknown;
 };
 
+import type {
+  CourseSummary,
+  CreateCoursePayload,
+  UpdateCoursePayload,
+} from "@/features/courses/types/course";
+
 export type ListCoursesParams = {
   page: number;
   per_page: number;
@@ -52,7 +58,7 @@ export type ListCoursesParams = {
 };
 
 export type CoursesResponse = {
-  items: Course[];
+  items: Array<Course | CourseSummary>;
   page: number;
   perPage: number;
   total: number;
@@ -73,9 +79,9 @@ function normalizeCoursesResponse(
     raw && typeof raw === "object" && raw !== null ? (raw as RawResponse) : {};
   const dataNode = (container.data ?? container) as any;
   const items = Array.isArray(dataNode?.data)
-    ? (dataNode.data as Course[])
+    ? (dataNode.data as Array<Course | CourseSummary>)
     : Array.isArray(dataNode)
-      ? (dataNode as Course[])
+      ? (dataNode as Array<Course | CourseSummary>)
       : [];
 
   const meta =
@@ -126,16 +132,6 @@ export async function getCourse(id: string | number): Promise<Course> {
   return course;
 }
 
-export type CreateCoursePayload = {
-  title: string;
-  slug?: string;
-  description?: string;
-  category_id?: string | number;
-  instructor_id?: string | number;
-  status?: string;
-  [key: string]: unknown;
-};
-
 export async function createCourse(
   payload: CreateCoursePayload,
 ): Promise<Course> {
@@ -145,10 +141,6 @@ export async function createCourse(
   );
   return (data?.data ?? data) as Course;
 }
-
-export type UpdateCoursePayload = Partial<CreateCoursePayload> & {
-  status?: string;
-};
 
 export async function updateCourse(
   id: string | number,
@@ -299,4 +291,48 @@ export async function removeCoursePdf(
     `/api/v1/admin/centers/${centerId}/courses/${courseId}/pdfs/${pdfId}`,
   );
   return data;
+}
+
+export type CourseInstructorPayload = {
+  instructor_id: string | number;
+  role?: string;
+  [key: string]: unknown;
+};
+
+export async function assignCourseInstructor(
+  courseId: string | number,
+  payload: CourseInstructorPayload,
+) {
+  const { data } = await http.post(
+    `/api/v1/admin/courses/${courseId}/instructors`,
+    payload,
+  );
+  return data;
+}
+
+export async function removeCourseInstructor(
+  courseId: string | number,
+  instructorId: string | number,
+) {
+  const { data } = await http.delete(
+    `/api/v1/admin/courses/${courseId}/instructors/${instructorId}`,
+  );
+  return data;
+}
+
+export type CloneCourseOptions = {
+  include_sections?: boolean;
+  include_videos?: boolean;
+  include_pdfs?: boolean;
+};
+
+export async function cloneCourseWithOptions(
+  courseId: string | number,
+  options?: CloneCourseOptions,
+): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/courses/${courseId}/clone`,
+    { options },
+  );
+  return (data?.data ?? data) as Course;
 }

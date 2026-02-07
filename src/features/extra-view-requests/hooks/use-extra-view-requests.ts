@@ -8,7 +8,9 @@ import {
   approveExtraViewRequest,
   listExtraViewRequests,
   rejectExtraViewRequest,
+  type ApproveExtraViewRequestPayload,
   type ListExtraViewRequestsParams,
+  type RejectExtraViewRequestPayload,
 } from "../services/extra-view-requests.service";
 import type { PaginatedResponse } from "@/types/pagination";
 import type { ExtraViewRequest } from "@/features/extra-view-requests/types/extra-view-request";
@@ -34,8 +36,13 @@ export function useApproveExtraViewRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) =>
-      approveExtraViewRequest(requestId),
+    mutationFn: ({
+      requestId,
+      payload,
+    }: {
+      requestId: string | number;
+      payload: ApproveExtraViewRequestPayload;
+    }) => approveExtraViewRequest(requestId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
     },
@@ -46,8 +53,13 @@ export function useRejectExtraViewRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) =>
-      rejectExtraViewRequest(requestId),
+    mutationFn: ({
+      requestId,
+      payload,
+    }: {
+      requestId: string | number;
+      payload: RejectExtraViewRequestPayload;
+    }) => rejectExtraViewRequest(requestId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
     },

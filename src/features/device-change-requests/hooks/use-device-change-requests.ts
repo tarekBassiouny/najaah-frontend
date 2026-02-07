@@ -10,8 +10,11 @@ import {
   listDeviceChangeRequests,
   preApproveDeviceChangeRequest,
   rejectDeviceChangeRequest,
+  type ApproveDeviceChangeRequestPayload,
   type CreateDeviceChangeRequestPayload,
   type ListDeviceChangeRequestsParams,
+  type PreApproveDeviceChangeRequestPayload,
+  type RejectDeviceChangeRequestPayload,
 } from "../services/device-change-requests.service";
 import type { PaginatedResponse } from "@/types/pagination";
 import type { DeviceChangeRequest } from "@/features/device-change-requests/types/device-change-request";
@@ -37,8 +40,13 @@ export function useApproveDeviceChangeRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) =>
-      approveDeviceChangeRequest(requestId),
+    mutationFn: ({
+      requestId,
+      payload,
+    }: {
+      requestId: string | number;
+      payload?: ApproveDeviceChangeRequestPayload;
+    }) => approveDeviceChangeRequest(requestId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -49,8 +57,13 @@ export function useRejectDeviceChangeRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) =>
-      rejectDeviceChangeRequest(requestId),
+    mutationFn: ({
+      requestId,
+      payload,
+    }: {
+      requestId: string | number;
+      payload: RejectDeviceChangeRequestPayload;
+    }) => rejectDeviceChangeRequest(requestId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -61,8 +74,13 @@ export function usePreApproveDeviceChangeRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: string | number) =>
-      preApproveDeviceChangeRequest(requestId),
+    mutationFn: ({
+      requestId,
+      payload,
+    }: {
+      requestId: string | number;
+      payload?: PreApproveDeviceChangeRequestPayload;
+    }) => preApproveDeviceChangeRequest(requestId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },

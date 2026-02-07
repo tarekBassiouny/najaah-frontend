@@ -1,92 +1,33 @@
 # Admin Models/Entities Checklist
 
-Last verified: 2026-02-01
-Use this to update models/types/services/hooks/components against backend admin resources.
+Last verified: 2026-02-05  
+Source of truth:
+- `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/api/ADMIN_ENDPOINT_RESOURCE_MAP.md`
+- `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/api/ADMIN_RESOURCES.md`
 
-## Auth
-- [ ] Add password reset service for `/auth/password/reset`.
-- [ ] Confirm `AdminAuthResponse` typings cover `/auth/me` payload with roles/permissions.
+Use this checklist for remaining work after the latest endpoint/resource sync.
 
-## Centers
-- [ ] Add Center create/update/delete services.
-- [ ] Add center restore action.
-- [ ] Add onboarding retry action.
-- [ ] Add branding logo upload action.
-- [ ] Review `Center` type for branding/onboarding fields.
+## P0: Missing backend endpoints in frontend
+- [x] Add `GET /api/v1/admin/agents/available` in `src/features/agents/services/agents.service.ts`.
+- [x] Add `POST /api/v1/admin/agents/execute` in `src/features/agents/services/agents.service.ts`.
+- [x] Add `POST /api/v1/admin/auth/password/reset` in `src/services/admin-auth.service.ts`.
 
-## Center Settings
-- [ ] Add `CenterSettings` type.
-- [ ] Add services/hooks for GET + PATCH `/centers/{center}/settings`.
+## P1: Model alignment gaps
+- [x] Create dedicated course model module (`src/features/courses/types/course.ts`).
+- [x] Map `CourseResource`, `CourseSummaryResource`, `CourseSettingResource`, `CourseVideoResource`, `CoursePdfResource` to strict types (replace broad inline `Course`).
+- [ ] Add shared summary model types for backend summary resources (`CategorySummaryResource`, `CenterSummaryResource`, `CourseSummaryResource`, `InstructorSummaryResource`, `PdfSummaryResource`, `UserSummaryResource`, `VideoSummaryResource`).
+- [ ] Tighten broad `[key: string]: unknown` models where backend docs now provide stable fields (centers, enrollments, device/extra-view requests, sections).
 
-## Categories (Center-scoped)
-- [ ] Add `Category` type and filters.
-- [ ] Add services/hooks for `/centers/{center}/categories` CRUD.
-
-## Courses
-- [ ] Add center-scoped course CRUD services.
-- [ ] Add course clone action.
-- [ ] Add course publish action.
-- [ ] Add course media assignment services (videos/pdfs).
-- [ ] Expand `Course` type to reflect backend fields.
-
-## Sections
-- [ ] Add `Section` type (plus section media/structure types).
-- [ ] Add services/hooks for section CRUD, reorder, restore, visibility.
-- [ ] Add services/hooks for structure endpoints (create/update/delete with videos/pdfs).
-- [ ] Add services/hooks for section videos/pdfs attach/detach.
-- [ ] Add services/hooks for section publish/unpublish.
-
-## Videos
-- [ ] Update services to use `/centers/{center}/videos` endpoints.
-- [ ] Add show/create/update/delete endpoints.
-- [ ] Add `VideoUploadSession` type + upload session service.
-
-## PDFs
-- [ ] Update services to use `/centers/{center}/pdfs` endpoints.
-- [ ] Add show/create/update/delete endpoints.
-- [ ] Add `PdfUploadSession` type + upload session/finalize services.
-
-## Instructors
-- [ ] Verify instructors CRUD coverage (list/show/create/update/delete).
-- [ ] Add course instructor assignment endpoints.
-
-## Enrollments
-- [ ] Add `Enrollment` type + filters.
-- [ ] Add services/hooks for list/show/create/update/delete.
-
-## Students
-- [ ] Add student create/update/delete services.
-- [ ] Confirm `Student` type includes admin-managed fields.
-
-## Device Change Requests
-- [ ] Add approve/reject/pre-approve actions.
-- [ ] Add create-for-student action.
-
-## Extra View Requests
-- [ ] Add approve/reject actions.
-
-## Audit Logs
-- [ ] Confirm `AuditLog` type matches backend payloads.
-
-## Analytics
-- [ ] Add analytics types for overview, courses-media, learners-enrollments, devices-requests.
-- [ ] Add services/hooks for analytics endpoints.
-
-## Agents
-- [ ] Add `/agents/available` endpoint + types.
-- [ ] Add `/agents/execute` generic endpoint + types.
-
-## Roles
-- [ ] Add role create/update/delete services.
-- [ ] Confirm role type includes permissions summary fields.
-
-## Permissions
-- [ ] Confirm permission types reflect backend permissions list.
-
-## Admin Users
-- [ ] Add admin user create/update/delete services.
-- [ ] Add admin user role sync service.
-- [ ] Confirm admin user type includes role/center assignment fields.
-
-## Settings Preview
-- [ ] Add settings preview endpoint service + type.
+## P1: Contract reconciliation (frontend-only endpoints not in backend endpoint map)
+- [ ] Confirm backend contract for student endpoints currently used by frontend:
+  - `GET /api/v1/admin/students/{student}`
+  - `PUT /api/v1/admin/students/{student}/status`
+  - `POST /api/v1/admin/students/{student}/reset-device`
+  - `POST /api/v1/admin/students/import`
+  - `GET /api/v1/admin/students/export`
+- [ ] Confirm backend contract for admin-user read endpoints currently used by frontend:
+  - `GET /api/v1/admin/users/{user}`
+  - `GET /api/v1/admin/users/{user}/roles`
+- [ ] Confirm backend contract for `GET /api/v1/admin/roles/{role}/permissions` (frontend currently calls it; endpoint map lists `PUT` only).
+- [ ] Confirm backend contract for `GET /api/v1/admin/audit-logs/{logId}` (frontend currently calls it; endpoint map lists list endpoint only).
+- [ ] Confirm instructor update strategy: keep multipart `_method=PUT` (`POST /instructors/{id}`) or move to documented `PUT/PATCH`.

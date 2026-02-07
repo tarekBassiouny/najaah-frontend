@@ -16,7 +16,7 @@ import {
   useExecuteContentPublishing,
   useAgentExecution,
 } from "@/features/agents";
-import type { Course } from "../services/courses.service";
+import type { Course } from "../types/course";
 
 type CoursePublishActionProps = {
   course: Course;
@@ -25,6 +25,8 @@ type CoursePublishActionProps = {
 export function CoursePublishAction({ course }: CoursePublishActionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [executionId, setExecutionId] = useState<string | number | null>(null);
+  const centerId =
+    course.center?.id ?? (course as { center_id?: string | number }).center_id;
 
   const { mutate: executePublish, isPending: isStarting } =
     useExecuteContentPublishing();
@@ -48,8 +50,9 @@ export function CoursePublishAction({ course }: CoursePublishActionProps) {
   };
 
   const handleConfirmPublish = () => {
+    if (!centerId) return;
     executePublish(
-      { targetId: course.id },
+      { targetId: course.id, centerId },
       {
         onSuccess: (data) => {
           setExecutionId(data.id);

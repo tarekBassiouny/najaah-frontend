@@ -2,11 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listAgentExecutions,
   getAgentExecution,
+  listAvailableAgents,
+  executeAgent,
   executeContentPublishing,
   executeBulkEnrollment,
 } from "../services/agents.service";
 import type {
   AgentExecutionFilters,
+  ExecuteGenericAgentPayload,
   ExecuteAgentPayload,
 } from "../types/agent";
 
@@ -52,6 +55,25 @@ export function useExecuteBulkEnrollment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agent-executions"] });
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+    },
+  });
+}
+
+export function useAvailableAgents() {
+  return useQuery({
+    queryKey: ["available-agents"],
+    queryFn: listAvailableAgents,
+    staleTime: 60_000,
+  });
+}
+
+export function useExecuteAgent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: ExecuteGenericAgentPayload) => executeAgent(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agent-executions"] });
     },
   });
 }

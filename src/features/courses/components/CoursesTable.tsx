@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Course } from "../services/courses.service";
+import type { Course } from "../types/course";
 
 const DEFAULT_PER_PAGE = 10;
 

@@ -17,7 +17,7 @@ export function PageHeader({
   ...props
 }: PageHeaderProps) {
   return (
-    <div className={cn("mb-6 space-y-4", className)} {...props}>
+    <div className={cn("space-y-4", className)} {...props}>
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
           {breadcrumbs.map((crumb, index) => (

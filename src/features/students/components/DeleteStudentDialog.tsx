@@ -1,0 +1,89 @@
+"use client";
+
+import { useState } from "react";
+import { isAxiosError } from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
+import { useDeleteStudent } from "@/features/students/hooks/use-students";
+import type { Student } from "@/features/students/types/student";
+import { useModal } from "@/components/ui/modal-store";
+
+type DeleteStudentDialogProps = {
+  open: boolean;
+  onOpenChange: (_isOpen: boolean) => void;
+  student?: Student | null;
+  onSuccess?: (_value: string) => void;
+};
+
+function getErrorMessage(error: unknown) {
+  if (isAxiosError(error)) {
+    const data = error.response?.data as { message?: string } | undefined;
+    if (data?.message) return data.message;
+  }
+
+  return "Unable to delete student. Please try again.";
+}
+
+export function DeleteStudentDialog({
+  open,
+  onOpenChange,
+  student,
+  onSuccess,
+}: DeleteStudentDialogProps) {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const deleteMutation = useDeleteStudent();
+  const { showToast } = useModal();
+
+  const handleDelete = () => {
+    if (!student) return;
+    setErrorMessage(null);
+
+    deleteMutation.mutate(student.id, {
+      onSuccess: () => {
+        onOpenChange(false);
+        onSuccess?.("Student deleted successfully.");
+        showToast("Student deleted successfully.", "success");
+      },
+      onError: (error) => {
+        setErrorMessage(getErrorMessage(error));
+      },
+    });
+  };
+
+  const studentName = student?.name ? String(student.name) : null;
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (deleteMutation.isPending) return;
+        if (!nextOpen) setErrorMessage(null);
+        onOpenChange(nextOpen);
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="sr-only">Delete Student</DialogTitle>
+        </DialogHeader>
+        <HardDeletePanel
+          title="Delete Student"
+          entityName={studentName}
+          entityFallback="this student"
+          confirmButtonLabel="Delete Student"
+          pendingLabel="Deleting..."
+          errorTitle="Could not delete student"
+          errorMessage={errorMessage}
+          isPending={deleteMutation.isPending}
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleDelete}
+          resetKey={open ? (student?.id ?? "student") : null}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}

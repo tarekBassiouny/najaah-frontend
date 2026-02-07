@@ -13,6 +13,7 @@ import {
   listPdfs,
   updatePdf,
   type CreatePdfPayload,
+  type CreatePdfUploadSessionPayload,
   type ListPdfsParams,
   type UpdatePdfPayload,
 } from "../services/pdfs.service";
@@ -110,8 +111,8 @@ export function useCreatePdfUploadSession() {
       payload,
     }: {
       centerId: string | number;
-      payload?: Record<string, unknown>;
-    }) => createPdfUploadSession(centerId, payload ?? {}),
+      payload: CreatePdfUploadSessionPayload;
+    }) => createPdfUploadSession(centerId, payload),
   });
 }
 

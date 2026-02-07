@@ -2,7 +2,10 @@ import { tokenStorage } from "./token-storage";
 import { http } from "./http";
 
 type RefreshResponse = {
-  token: string;
+  token?: string;
+  data?: {
+    token?: string;
+  };
 };
 
 // Refresh 2 minutes before expiry
@@ -59,11 +62,13 @@ async function doRefresh(): Promise<string> {
     "/api/v1/admin/auth/refresh",
   );
 
-  if (!response.data?.token) {
+  const token = response.data?.data?.token ?? response.data?.token;
+
+  if (!token) {
     throw new Error("Invalid refresh response");
   }
 
-  return response.data.token;
+  return token;
 }
 
 /**

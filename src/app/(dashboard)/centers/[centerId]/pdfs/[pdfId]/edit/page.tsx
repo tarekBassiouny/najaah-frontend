@@ -33,13 +33,19 @@ export default function CenterPdfEditPage({ params }: PageProps) {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    const parsedFileSize = Number(fileSize);
+    const fileSizeKb =
+      fileSize.trim() === "" || Number.isNaN(parsedFileSize)
+        ? undefined
+        : parsedFileSize;
+
     updatePdf(
       {
         centerId,
         pdfId,
         payload: {
-          title: title || undefined,
-          file_size: fileSize || undefined,
+          title_translations: title.trim() ? { en: title.trim() } : undefined,
+          file_size_kb: fileSizeKb,
           status: status || undefined,
         },
       },

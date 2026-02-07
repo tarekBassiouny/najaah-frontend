@@ -34,11 +34,6 @@ const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
 ];
 
 const PLATFORM_ROUTE_EXTRAS: RouteCapabilityRule[] = [
-  {
-    pattern: "/roles/*/permissions",
-    capabilities: ["assign_role_permissions"],
-  },
-  { pattern: "/permissions", capabilities: ["view_permissions"] },
   { pattern: "/audit", capabilities: ["view_audit_logs"] },
   { pattern: "/audit/*", capabilities: ["view_audit_logs"] },
 ];

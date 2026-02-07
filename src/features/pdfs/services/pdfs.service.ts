@@ -10,14 +10,20 @@ export type ListPdfsParams = {
 };
 
 export type CreatePdfPayload = {
-  title?: string;
-  description?: string;
-  url?: string;
-  file_size?: number | string;
+  title_translations: Record<string, string>;
+  description_translations?: Record<string, string>;
+  upload_session_id?: string | number;
+  source_id?: string;
+  source_url?: string;
+  file_extension?: string;
+  file_size_kb?: number;
   [key: string]: unknown;
 };
 
-export type UpdatePdfPayload = Partial<CreatePdfPayload> & {
+export type UpdatePdfPayload = {
+  title_translations?: Record<string, string>;
+  description_translations?: Record<string, string>;
+  file_size_kb?: number;
   status?: string;
 };
 
@@ -103,9 +109,14 @@ export async function deletePdf(
   await http.delete(`${basePath(centerId)}/${pdfId}`);
 }
 
+export type CreatePdfUploadSessionPayload = {
+  original_filename: string;
+  file_size_kb?: number;
+};
+
 export async function createPdfUploadSession(
   centerId: string | number,
-  payload: Record<string, unknown> = {},
+  payload: CreatePdfUploadSessionPayload,
 ): Promise<PdfUploadSession> {
   const { data } = await http.post<RawUploadSessionResponse>(
     `${basePath(centerId)}/upload-sessions`,
@@ -114,12 +125,21 @@ export async function createPdfUploadSession(
   return data?.data ?? (data as unknown as PdfUploadSession);
 }
 
+export type FinalizePdfUploadSessionPayload = {
+  pdf_id?: string | number;
+  title_translations?: Record<string, string>;
+  description_translations?: Record<string, string>;
+  error_message?: string;
+};
+
 export async function finalizePdfUploadSession(
   centerId: string | number,
   uploadSessionId: string | number,
+  payload?: FinalizePdfUploadSessionPayload,
 ): Promise<PdfUploadSession> {
   const { data } = await http.post<RawUploadSessionResponse>(
     `${basePath(centerId)}/upload-sessions/${uploadSessionId}/finalize`,
+    payload,
   );
   return data?.data ?? (data as unknown as PdfUploadSession);
 }

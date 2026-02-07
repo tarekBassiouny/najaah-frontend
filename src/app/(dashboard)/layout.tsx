@@ -21,16 +21,18 @@ export default function DashboardLayout({ children }: Props) {
   return (
     <AuthProvider>
       <SidebarProvider>
-        <div className="relative flex min-h-screen">
+        <div className="relative flex h-screen overflow-hidden">
           <Sidebar sections={sidebarConfig} />
 
-          <div className="w-full bg-gray-2 dark:bg-[#020d1a]">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-gray-2 dark:bg-[#020d1a]">
             <Header />
 
-            <main className="isolate mx-auto w-full max-w-screen-2xl overflow-hidden p-4 md:p-6 2xl:p-10">
-              <AdminRouteGuard fallback={<PageLoading />}>
-                {children}
-              </AdminRouteGuard>
+            <main className="isolate flex-1 overflow-y-auto overflow-x-hidden">
+              <div className="mx-auto w-full max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+                <AdminRouteGuard fallback={<PageLoading />}>
+                  {children}
+                </AdminRouteGuard>
+              </div>
             </main>
           </div>
         </div>

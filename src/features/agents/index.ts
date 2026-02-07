@@ -9,3 +9,6 @@ export * from "./hooks/use-agent-executions";
 
 // Components
 export { AgentExecutionHistory } from "./components/AgentExecutionHistory";
+export { AgentExecutionsTable } from "./components/AgentExecutionsTable";
+export { AgentExecutionDetails } from "./components/AgentExecutionDetails";
+export { ExecuteAgentDialog } from "./components/ExecuteAgentDialog";

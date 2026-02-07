@@ -1,48 +1,7 @@
 import { http } from "@/lib/http";
 
-export type Course = {
-  id: string | number;
-  title?: string;
-  name?: string;
-  slug?: string;
-  description?: string;
-  difficulty?: number;
-  language?: string;
-  status?: string;
-  center?: {
-    name?: string;
-    type?: string;
-    tier?: string;
-    settings?: {
-      device_limit?: number;
-      view_limit?: number;
-      pdf_download?: boolean;
-      [key: string]: unknown;
-    };
-    [key: string]: unknown;
-  };
-  sections?: Array<{
-    id?: string | number;
-    title?: string;
-    name?: string;
-    description?: string;
-    videos?: Array<{
-      id?: string | number;
-      title?: string;
-      duration?: number | string | null;
-      [key: string]: unknown;
-    }>;
-    pdfs?: Array<{
-      id?: string | number;
-      title?: string;
-      [key: string]: unknown;
-    }>;
-    [key: string]: unknown;
-  }>;
-  [key: string]: unknown;
-};
-
 import type {
+  Course,
   CourseSummary,
   CreateCoursePayload,
   UpdateCoursePayload,
@@ -189,7 +148,9 @@ export async function getCenterCourse(
   const payload = data as Record<string, unknown> | undefined;
   const course =
     (payload?.course as Course | undefined) ??
-    ((payload?.data as Record<string, unknown> | undefined)?.course as Course | undefined) ??
+    ((payload?.data as Record<string, unknown> | undefined)?.course as
+      | Course
+      | undefined) ??
     (payload?.data as Course | undefined) ??
     (payload as Course);
   return course;

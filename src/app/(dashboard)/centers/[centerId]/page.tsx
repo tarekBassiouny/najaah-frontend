@@ -268,9 +268,7 @@ export default function CenterDetailPage({ params }: PageProps) {
       <PageHeader
         title={center?.name ?? `Center ${centerId}`}
         description={
-          center?.slug
-            ? `/${center.slug}`
-            : "Center overview and management"
+          center?.slug ? `/${center.slug}` : "Center overview and management"
         }
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
@@ -361,7 +359,9 @@ export default function CenterDetailPage({ params }: PageProps) {
                       <Icon className={`h-5 w-5 ${section.color}`} />
                     </div>
                     <div className="min-w-0">
-                      <CardTitle className="text-base">{section.title}</CardTitle>
+                      <CardTitle className="text-base">
+                        {section.title}
+                      </CardTitle>
                       <CardDescription className="mt-1 line-clamp-2 text-xs">
                         {section.description}
                       </CardDescription>

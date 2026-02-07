@@ -34,15 +34,17 @@ const CENTER_SCOPED_OMIT_TITLES = new Set([
   "Audit Logs",
 ]);
 
-const CENTER_SCOPED_URL_OVERRIDES: Record<string, (_centerId: string) => string> =
-  {
-    "/dashboard": (centerId) => `/centers/${centerId}`,
-    "/categories": (centerId) => `/centers/${centerId}/categories`,
-    "/courses": (centerId) => `/centers/${centerId}/courses`,
-    "/videos": (centerId) => `/centers/${centerId}/videos`,
-    "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
-    "/students": (centerId) => `/centers/${centerId}/students`,
-  };
+const CENTER_SCOPED_URL_OVERRIDES: Record<
+  string,
+  (_centerId: string) => string
+> = {
+  "/dashboard": (centerId) => `/centers/${centerId}`,
+  "/categories": (centerId) => `/centers/${centerId}/categories`,
+  "/courses": (centerId) => `/centers/${centerId}/courses`,
+  "/videos": (centerId) => `/centers/${centerId}/videos`,
+  "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
+  "/students": (centerId) => `/centers/${centerId}/students`,
+};
 
 const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   { pattern: "/settings", capabilities: ["view_dashboard"] },

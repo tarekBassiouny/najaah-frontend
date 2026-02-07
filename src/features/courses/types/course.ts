@@ -78,7 +78,7 @@ export type Course = {
   title_translations?: TranslationsRecord | null;
   description?: string | null;
   description_translations?: TranslationsRecord | null;
-  difficulty?: string | null;
+  difficulty?: string | number | null;
   language?: string | null;
   thumbnail?: string | null;
   price?: number | string | null;

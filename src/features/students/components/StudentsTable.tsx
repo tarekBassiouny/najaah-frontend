@@ -68,6 +68,8 @@ const StatusIcon = () => (
 
 type StudentsTableProps = {
   centerId?: string | number;
+  initialPage?: number;
+  initialPerPage?: number;
   onEdit?: (_student: Student) => void;
   onDelete?: (_student: Student) => void;
   onViewDetails?: (_student: Student) => void;
@@ -77,6 +79,8 @@ type StudentsTableProps = {
 
 export function StudentsTable({
   centerId: centerIdProp,
+  initialPage,
+  initialPerPage,
   onEdit,
   onDelete,
   onViewDetails,
@@ -85,8 +89,10 @@ export function StudentsTable({
 }: StudentsTableProps) {
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
+  const [page, setPage] = useState(initialPage ?? 1);
+  const [perPage, setPerPage] = useState<number>(
+    initialPerPage ?? DEFAULT_PER_PAGE,
+  );
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);

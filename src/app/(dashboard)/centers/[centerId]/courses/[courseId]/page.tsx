@@ -46,9 +46,13 @@ type CourseVideoItem = {
 const getSectionsBySortOrder = (sections: CourseSection[] = []) =>
   [...sections].sort((a, b) => {
     const aOrder =
-      typeof a.sort_order === "number" ? a.sort_order : Number.POSITIVE_INFINITY;
+      typeof a.sort_order === "number"
+        ? a.sort_order
+        : Number.POSITIVE_INFINITY;
     const bOrder =
-      typeof b.sort_order === "number" ? b.sort_order : Number.POSITIVE_INFINITY;
+      typeof b.sort_order === "number"
+        ? b.sort_order
+        : Number.POSITIVE_INFINITY;
     return aOrder - bOrder;
   });
 
@@ -59,7 +63,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   const [activePanel, setActivePanel] = useState<"overview" | "students">(
     "overview",
   );
-  const { data: course, isLoading, isError } = useCenterCourse(centerId, courseId);
+  const {
+    data: course,
+    isLoading,
+    isError,
+  } = useCenterCourse(centerId, courseId);
   const { mutate: reorderSections, isPending: isReordering } = useMutation({
     mutationFn: (orderedIds: Array<string | number>) =>
       http.put(
@@ -77,10 +85,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   });
   const [orderedSections, setOrderedSections] = useState<CourseSection[]>([]);
   const [draggingId, setDraggingId] = useState<string | number | null>(null);
-  const [dragStartOrder, setDragStartOrder] = useState<Array<string | number>>([]);
-  const [expandedSections, setExpandedSections] = useState<Array<string | number>>(
+  const [dragStartOrder, setDragStartOrder] = useState<Array<string | number>>(
     [],
   );
+  const [expandedSections, setExpandedSections] = useState<
+    Array<string | number>
+  >([]);
   const [uploadTarget, setUploadTarget] = useState<{
     type: "video" | "pdf";
     sectionId: CourseSection["id"];
@@ -179,14 +189,20 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   };
 
   const handleDragOver = (targetId: string | number | null) => {
-    if (!canReorder || draggingId == null || targetId == null || draggingId === targetId) {
+    if (
+      !canReorder ||
+      draggingId == null ||
+      targetId == null ||
+      draggingId === targetId
+    ) {
       return;
     }
 
     setOrderedSections((prev) => {
       const fromIndex = prev.findIndex((section) => section.id === draggingId);
       const toIndex = prev.findIndex((section) => section.id === targetId);
-      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return prev;
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex)
+        return prev;
 
       const next = [...prev];
       const [moved] = next.splice(fromIndex, 1);
@@ -216,14 +232,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       return;
     }
 
-    reorderSections(
-      nextOrderedIds,
-      {
-        onError: () => {
-          setOrderedSections(getSectionsBySortOrder(course?.sections ?? orderedSections));
-        },
+    reorderSections(nextOrderedIds, {
+      onError: () => {
+        setOrderedSections(
+          getSectionsBySortOrder(course?.sections ?? orderedSections),
+        );
       },
-    );
+    });
     setDragStartOrder([]);
   };
 
@@ -236,7 +251,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     if (typeof section[countKey] === "number") {
       return section[countKey] as number;
     }
-    return Array.isArray(section[key]) ? section[key]?.length ?? 0 : 0;
+    return Array.isArray(section[key]) ? (section[key]?.length ?? 0) : 0;
   };
 
   const formatDuration = (video?: CourseVideoItem | null) => {
@@ -267,7 +282,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     );
   };
 
-  const shouldIgnoreToggle = (event: React.MouseEvent | React.KeyboardEvent) => {
+  const shouldIgnoreToggle = (
+    event: React.MouseEvent | React.KeyboardEvent,
+  ) => {
     const target = event.target as HTMLElement | null;
     return Boolean(target?.closest("[data-no-toggle]"));
   };
@@ -347,7 +364,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       {course.title ?? course.name ?? `Course #${course.id}`}
                     </h1>
                     {course.status && (
-                      <Badge variant={statusVariant} className="text-[11px] uppercase">
+                      <Badge
+                        variant={statusVariant}
+                        className="text-[11px] uppercase"
+                      >
                         {course.status}
                       </Badge>
                     )}
@@ -379,7 +399,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     <span>
                       Instructor:{" "}
                       {typeof course.instructor === "object"
-                        ? String((course.instructor as Record<string, unknown>).name ?? "")
+                        ? String(
+                            (course.instructor as Record<string, unknown>)
+                              .name ?? "",
+                          )
                         : String(course.instructor)}
                     </span>
                   </div>
@@ -403,10 +426,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       Course Content
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Drag sections to reorder. Upload videos or PDFs inside each section.
+                      Drag sections to reorder. Upload videos or PDFs inside
+                      each section.
                     </p>
                   </div>
-                  <Link href={`/centers/${centerId}/courses/${courseId}/sections`}>
+                  <Link
+                    href={`/centers/${centerId}/courses/${courseId}/sections`}
+                  >
                     <Button size="sm" className="gap-2">
                       <span className="text-lg leading-none">+</span>
                       Add Section
@@ -421,180 +447,199 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     </div>
                   ) : (
                     orderedSections.map((section, index) => {
-                    const videoCount = getSectionCount(section, "videos");
-                    const pdfCount = getSectionCount(section, "pdfs");
-                    const sectionKey = getSectionKey(section, index);
-                    const isExpanded = expandedSections.includes(sectionKey);
-                    return (
-                      <div
-                        key={sectionKey}
-                        className={`flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm transition-[transform,opacity,box-shadow,border-color,background-color] duration-200 ease-out hover:border-gray-300 dark:border-gray-700 dark:bg-gray-dark dark:hover:border-gray-600 ${
-                          section.id === draggingId
-                            ? "border-primary/40 opacity-0 ring-2 ring-primary/20"
-                            : ""
-                        }`}
-                        draggable={!isReordering && canReorder}
-                        onDragStart={() => handleDragStart(section.id ?? null)}
-                        onDragEnd={handleDragEnd}
-                        onDragOver={(event) => {
-                          event.preventDefault();
-                          handleDragOver(section.id ?? null);
-                        }}
-                        onDrop={handleDrop}
-                        onClick={(event) => {
-                          if (shouldIgnoreToggle(event)) return;
-                          toggleSectionExpanded(sectionKey);
-                        }}
-                        onKeyDown={(event) => {
-                          if (shouldIgnoreToggle(event)) return;
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            toggleSectionExpanded(sectionKey);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={isExpanded}
-                      >
+                      const videoCount = getSectionCount(section, "videos");
+                      const pdfCount = getSectionCount(section, "pdfs");
+                      const sectionKey = getSectionKey(section, index);
+                      const isExpanded = expandedSections.includes(sectionKey);
+                      return (
                         <div
-                          className={`flex cursor-grab items-center gap-2 text-gray-400 dark:text-gray-500 ${
-                            !canReorder ? "opacity-40" : ""
+                          key={sectionKey}
+                          className={`flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm transition-[transform,opacity,box-shadow,border-color,background-color] duration-200 ease-out hover:border-gray-300 dark:border-gray-700 dark:bg-gray-dark dark:hover:border-gray-600 ${
+                            section.id === draggingId
+                              ? "border-primary/40 opacity-0 ring-2 ring-primary/20"
+                              : ""
                           }`}
-                          data-no-toggle
+                          draggable={!isReordering && canReorder}
+                          onDragStart={() =>
+                            handleDragStart(section.id ?? null)
+                          }
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(event) => {
+                            event.preventDefault();
+                            handleDragOver(section.id ?? null);
+                          }}
+                          onDrop={handleDrop}
+                          onClick={(event) => {
+                            if (shouldIgnoreToggle(event)) return;
+                            toggleSectionExpanded(sectionKey);
+                          }}
+                          onKeyDown={(event) => {
+                            if (shouldIgnoreToggle(event)) return;
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              toggleSectionExpanded(sectionKey);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isExpanded}
                         >
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <circle cx="4" cy="4" r="1.3" />
-                            <circle cx="4" cy="8" r="1.3" />
-                            <circle cx="4" cy="12" r="1.3" />
-                            <circle cx="10" cy="4" r="1.3" />
-                            <circle cx="10" cy="8" r="1.3" />
-                            <circle cx="10" cy="12" r="1.3" />
-                          </svg>
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"}`}
-                            aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              clipRule="evenodd"
-                              d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {section.title ?? section.name ?? "Untitled Section"}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {videoCount} {videoCount === 1 ? "video" : "videos"} •{" "}
-                            {pdfCount} PDFs
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => {
-                              setUploadTarget({ type: "video", sectionId: section.id });
-                              setUploadFile(null);
-                            }}
-                            disabled={isReordering}
+                          <div
+                            className={`flex cursor-grab items-center gap-2 text-gray-400 dark:text-gray-500 ${
+                              !canReorder ? "opacity-40" : ""
+                            }`}
                             data-no-toggle
                           >
-                            <span className="text-lg leading-none">+</span>
-                            Video
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => {
-                              setUploadTarget({ type: "pdf", sectionId: section.id });
-                              setUploadFile(null);
-                            }}
-                            disabled={isReordering}
-                            data-no-toggle
-                          >
-                            <span className="text-lg leading-none">+</span>
-                            PDF
-                          </Button>
-                        </div>
-
-                        {isExpanded ? (
-                          <div className="w-full border-t border-gray-200 bg-white pt-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-dark dark:text-gray-300">
-                            <div className="space-y-3">
-                              {(section.videos ?? []).length === 0 &&
-                              (section.pdfs ?? []).length === 0 ? (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  No content yet.
-                                </p>
-                              ) : (
-                                <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-dark">
-                                  <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                                    {(section.videos ?? []).map((video, vidx) => (
-                                      <li
-                                        key={`${sectionKey}-video-${vidx}`}
-                                        className="flex items-center gap-3 px-3 py-3 text-sm"
-                                      >
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                                          <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                          >
-                                            <path d="M8.25 6.75a.75.75 0 00-1.5 0v10.5a.75.75 0 001.5 0v-4.19l8.25 4.69a.75.75 0 001.125-.655V7.405a.75.75 0 00-1.125-.655L8.25 11.44V6.75z" />
-                                          </svg>
-                                        </span>
-                                        <div className="flex-1">
-                                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                            {video.title ?? "Untitled video"}
-                                          </p>
-                                        </div>
-                                        <span className="text-xs text-gray-400">
-                                          {formatDuration(video)}
-                                        </span>
-                                      </li>
-                                    ))}
-                                    {(section.pdfs ?? []).map((pdf, pidx) => (
-                                      <li
-                                        key={`${sectionKey}-pdf-${pidx}`}
-                                        className="flex items-center gap-3 px-3 py-3 text-sm"
-                                      >
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                          <svg
-                                            width="14"
-                                            height="14"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                          >
-                                            <path
-                                              fillRule="evenodd"
-                                              clipRule="evenodd"
-                                              d="M7.5 2.75c-.966 0-1.75.784-1.75 1.75v15c0 .966.784 1.75 1.75 1.75h9a1.75 1.75 0 001.75-1.75V8.664a1.75 1.75 0 00-.513-1.237l-3.164-3.164A1.75 1.75 0 0013.336 3.75H7.5zm5.25 1.5v3.5c0 .414.336.75.75.75h3.5v-.087a.25.25 0 00-.073-.177L13.763 4.323A.25.25 0 0013.586 4.25h-.086z"
-                                            />
-                                          </svg>
-                                        </span>
-                                        <div className="flex-1">
-                                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                            {pdf.title ?? "Untitled PDF"}
-                                          </p>
-                                        </div>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="currentColor"
+                            >
+                              <circle cx="4" cy="4" r="1.3" />
+                              <circle cx="4" cy="8" r="1.3" />
+                              <circle cx="4" cy="12" r="1.3" />
+                              <circle cx="10" cy="4" r="1.3" />
+                              <circle cx="10" cy="8" r="1.3" />
+                              <circle cx="10" cy="12" r="1.3" />
+                            </svg>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"}`}
+                              aria-hidden="true"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                clipRule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                              />
+                            </svg>
                           </div>
-                        ) : null}
-                      </div>
-                    );
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {section.title ??
+                                section.name ??
+                                "Untitled Section"}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {videoCount}{" "}
+                              {videoCount === 1 ? "video" : "videos"} •{" "}
+                              {pdfCount} PDFs
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => {
+                                setUploadTarget({
+                                  type: "video",
+                                  sectionId: section.id,
+                                });
+                                setUploadFile(null);
+                              }}
+                              disabled={isReordering}
+                              data-no-toggle
+                            >
+                              <span className="text-lg leading-none">+</span>
+                              Video
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => {
+                                setUploadTarget({
+                                  type: "pdf",
+                                  sectionId: section.id,
+                                });
+                                setUploadFile(null);
+                              }}
+                              disabled={isReordering}
+                              data-no-toggle
+                            >
+                              <span className="text-lg leading-none">+</span>
+                              PDF
+                            </Button>
+                          </div>
+
+                          {isExpanded ? (
+                            <div className="w-full border-t border-gray-200 bg-white pt-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-dark dark:text-gray-300">
+                              <div className="space-y-3">
+                                {(section.videos ?? []).length === 0 &&
+                                (section.pdfs ?? []).length === 0 ? (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    No content yet.
+                                  </p>
+                                ) : (
+                                  <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-dark">
+                                    <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                                      {(section.videos ?? []).map(
+                                        (video, vidx) => (
+                                          <li
+                                            key={`${sectionKey}-video-${vidx}`}
+                                            className="flex items-center gap-3 px-3 py-3 text-sm"
+                                          >
+                                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                              <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 24 24"
+                                                fill="currentColor"
+                                              >
+                                                <path d="M8.25 6.75a.75.75 0 00-1.5 0v10.5a.75.75 0 001.5 0v-4.19l8.25 4.69a.75.75 0 001.125-.655V7.405a.75.75 0 00-1.125-.655L8.25 11.44V6.75z" />
+                                              </svg>
+                                            </span>
+                                            <div className="flex-1">
+                                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                {video.title ??
+                                                  "Untitled video"}
+                                              </p>
+                                            </div>
+                                            <span className="text-xs text-gray-400">
+                                              {formatDuration(video)}
+                                            </span>
+                                          </li>
+                                        ),
+                                      )}
+                                      {(section.pdfs ?? []).map((pdf, pidx) => (
+                                        <li
+                                          key={`${sectionKey}-pdf-${pidx}`}
+                                          className="flex items-center gap-3 px-3 py-3 text-sm"
+                                        >
+                                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                            <svg
+                                              width="14"
+                                              height="14"
+                                              viewBox="0 0 24 24"
+                                              fill="currentColor"
+                                            >
+                                              <path
+                                                fillRule="evenodd"
+                                                clipRule="evenodd"
+                                                d="M7.5 2.75c-.966 0-1.75.784-1.75 1.75v15c0 .966.784 1.75 1.75 1.75h9a1.75 1.75 0 001.75-1.75V8.664a1.75 1.75 0 00-.513-1.237l-3.164-3.164A1.75 1.75 0 0013.336 3.75H7.5zm5.25 1.5v3.5c0 .414.336.75.75.75h3.5v-.087a.25.25 0 00-.073-.177L13.763 4.323A.25.25 0 0013.586 4.25h-.086z"
+                                              />
+                                            </svg>
+                                          </span>
+                                          <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                              {pdf.title ?? "Untitled PDF"}
+                                            </p>
+                                          </div>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
                     })
                   )}
                 </div>
@@ -632,12 +677,15 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="upload-file">
-              Select {uploadTarget?.type === "video" ? "a video file" : "a PDF file"}
+              Select{" "}
+              {uploadTarget?.type === "video" ? "a video file" : "a PDF file"}
             </Label>
             <Input
               id="upload-file"
               type="file"
-              accept={uploadTarget?.type === "video" ? "video/*" : "application/pdf"}
+              accept={
+                uploadTarget?.type === "video" ? "video/*" : "application/pdf"
+              }
               onChange={(event) => {
                 setUploadFile(event.target.files?.[0] ?? null);
               }}

@@ -1,8 +1,38 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTenant } from "@/app/tenant-provider";
+import { useAdminUsers } from "@/features/admin-users/hooks/use-admin-users";
+import { listCourses } from "@/features/courses/services/courses.service";
 import { useAuditLogs } from "@/features/audit-logs/hooks/use-audit-logs";
+import type { AuditLog } from "@/features/audit-logs/types/audit-log";
+import { CenterPicker } from "@/features/centers/components/CenterPicker";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListingCard } from "@/components/ui/listing-card";
+import { ListingFilters } from "@/components/ui/listing-filters";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FilterField } from "@/components/ui/filters-bar";
+import {
+  SearchableSelect,
+  type SearchableSelectOption,
+} from "@/components/ui/searchable-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -12,21 +42,223 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import * as Icons from "@/components/Layouts/sidebar/icons";
 import { formatDateTime } from "@/lib/format-date-time";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
+const ALL_ACTIONS_VALUE = "__all_actions__";
+const ALL_USERS_VALUE = "__all_users__";
+const ALL_COURSES_VALUE = "__all_courses__";
+const COURSE_ENTITY_TYPE = "App\\Models\\Course";
+
+const ACTION_OPTIONS = [
+  { value: ALL_ACTIONS_VALUE, label: "All actions" },
+  { value: "create", label: "Create" },
+  { value: "update", label: "Update" },
+  { value: "delete", label: "Delete" },
+  { value: "login", label: "Login" },
+  { value: "logout", label: "Logout" },
+];
+
+const TODAY_RANGE = "today";
+const LAST_7_DAYS_RANGE = "last7";
+const LAST_30_DAYS_RANGE = "last30";
+
+function formatActionLabel(action?: string | null) {
+  if (!action) return "Unknown";
+  return action
+    .replace(/[_.-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatEntityType(type?: string | null) {
+  if (!type) return "Unknown";
+  const shortType = type.includes("\\")
+    ? type.split("\\").at(-1) || type
+    : type;
+
+  return shortType
+    .replace(/[_.-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getActionVariant(action?: string | null) {
+  const normalized = (action ?? "").toLowerCase();
+
+  if (normalized.includes("create") || normalized.includes("add")) {
+    return "success" as const;
+  }
+
+  if (normalized.includes("update") || normalized.includes("edit")) {
+    return "warning" as const;
+  }
+
+  if (normalized.includes("delete") || normalized.includes("remove")) {
+    return "error" as const;
+  }
+
+  if (normalized.includes("login") || normalized.includes("logout")) {
+    return "info" as const;
+  }
+
+  return "secondary" as const;
+}
+
+function formatMetadataPreview(metadata: unknown) {
+  if (!metadata) return "-";
+  if (typeof metadata === "string") return metadata || "-";
+
+  if (typeof metadata === "object") {
+    const objectValue = metadata as Record<string, unknown>;
+    if (Object.keys(objectValue).length === 0) return "-";
+
+    const serialized = JSON.stringify(objectValue);
+    if (!serialized) return "-";
+
+    return serialized.length > 140
+      ? `${serialized.slice(0, 140)}...`
+      : serialized;
+  }
+
+  return String(metadata);
+}
+
+function formatMetadataFull(metadata: unknown) {
+  if (!metadata) return "-";
+  if (typeof metadata === "string") return metadata;
+
+  try {
+    return JSON.stringify(metadata, null, 2);
+  } catch {
+    return String(metadata);
+  }
+}
+
+function buildEventSummary(log: AuditLog) {
+  const actor = log.user?.name || `User #${log.user_id ?? "Unknown"}`;
+  const entityType = formatEntityType(log.entity_type);
+  const entityPart = log.entity_label
+    ? `${entityType} "${String(log.entity_label)}"`
+    : `${entityType} #${log.entity_id ?? "?"}`;
+
+  return `${actor} ${formatActionLabel(log.action).toLowerCase()} ${entityPart}`;
+}
 
 export function AuditLogsTable() {
+  const { centerSlug, centerId } = useTenant();
+  const isPlatformAdmin = !centerSlug;
+
   const [page, setPage] = useState(1);
-  const [perPage] = useState(DEFAULT_PER_PAGE);
+  const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
+  const [action, setAction] = useState(ALL_ACTIONS_VALUE);
+  const [selectedUser, setSelectedUser] = useState<string | null>(
+    ALL_USERS_VALUE,
+  );
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(
+    ALL_COURSES_VALUE,
+  );
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [datePreset, setDatePreset] = useState<string>("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+
+  useEffect(() => {
+    setPage(1);
+  }, [
+    action,
+    selectedUser,
+    selectedCourse,
+    centerId,
+    dateFrom,
+    dateTo,
+    perPage,
+  ]);
+
+  const usersParams = useMemo(
+    () => ({
+      page: 1,
+      per_page: 100,
+      center_id: centerId ?? undefined,
+    }),
+    [centerId],
+  );
+
+  const { data: usersData } = useAdminUsers(usersParams);
+
+  const { data: coursesData } = useQuery({
+    queryKey: ["audit-filter-courses", centerId ?? "all"],
+    queryFn: () =>
+      listCourses({
+        page: 1,
+        per_page: 100,
+        center_id: centerId ?? undefined,
+      }),
+  });
+
+  const userOptions = useMemo<SearchableSelectOption<string>[]>(() => {
+    const defaults: SearchableSelectOption<string>[] = [
+      { value: ALL_USERS_VALUE, label: "All users" },
+    ];
+
+    const users =
+      usersData?.items.map((user) => ({
+        value: String(user.id),
+        label: user.name || `User ${user.id}`,
+        description: user.email || undefined,
+      })) ?? [];
+
+    return [...defaults, ...users];
+  }, [usersData]);
+
+  const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
+    const defaults: SearchableSelectOption<string>[] = [
+      { value: ALL_COURSES_VALUE, label: "All courses" },
+    ];
+
+    const courses =
+      coursesData?.items.map((course) => ({
+        value: String(course.id),
+        label: course.title || `Course ${course.id}`,
+      })) ?? [];
+
+    return [...defaults, ...courses];
+  }, [coursesData]);
 
   const params = useMemo(
     () => ({
       page,
       per_page: perPage,
+      action: action === ALL_ACTIONS_VALUE ? undefined : action,
+      user_id:
+        selectedUser && selectedUser !== ALL_USERS_VALUE
+          ? selectedUser
+          : undefined,
+      center_id: centerId ?? undefined,
+      entity_type:
+        selectedCourse && selectedCourse !== ALL_COURSES_VALUE
+          ? COURSE_ENTITY_TYPE
+          : undefined,
+      entity_id:
+        selectedCourse && selectedCourse !== ALL_COURSES_VALUE
+          ? selectedCourse
+          : undefined,
+      date_from: dateFrom || undefined,
+      date_to: dateTo || undefined,
     }),
-    [page, perPage],
+    [
+      action,
+      centerId,
+      dateFrom,
+      dateTo,
+      page,
+      perPage,
+      selectedCourse,
+      selectedUser,
+    ],
   );
 
   const { data, isLoading, isError, isFetching } = useAuditLogs(params);
@@ -35,141 +267,378 @@ export function AuditLogsTable() {
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
-  const nextDisabled = page * perPage >= total;
   const isLoadingState = isLoading || isFetching;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
 
+  const resetFilters = () => {
+    setAction(ALL_ACTIONS_VALUE);
+    setSelectedUser(ALL_USERS_VALUE);
+    setSelectedCourse(ALL_COURSES_VALUE);
+    setDateFrom("");
+    setDateTo("");
+    setDatePreset("");
+  };
+
+  const applyDatePreset = (preset: string) => {
+    const end = new Date();
+    const start = new Date();
+
+    if (preset === TODAY_RANGE) {
+      // Keep start as today
+    } else if (preset === LAST_7_DAYS_RANGE) {
+      start.setDate(start.getDate() - 6);
+    } else if (preset === LAST_30_DAYS_RANGE) {
+      start.setDate(start.getDate() - 29);
+    } else {
+      return;
+    }
+
+    const toIsoDate = (value: Date) => value.toISOString().slice(0, 10);
+    setDateFrom(toIsoDate(start));
+    setDateTo(toIsoDate(end));
+    setDatePreset(preset);
+  };
+
+  const clearDatePreset = () => setDatePreset("");
+
+  const hasActiveFilters =
+    action !== ALL_ACTIONS_VALUE ||
+    selectedUser !== ALL_USERS_VALUE ||
+    selectedCourse !== ALL_COURSES_VALUE ||
+    Boolean(dateFrom) ||
+    Boolean(dateTo) ||
+    Boolean(centerId);
+  const activeFilterCount =
+    (action !== ALL_ACTIONS_VALUE ? 1 : 0) +
+    (selectedUser !== ALL_USERS_VALUE ? 1 : 0) +
+    (selectedCourse !== ALL_COURSES_VALUE ? 1 : 0) +
+    (dateFrom ? 1 : 0) +
+    (dateTo ? 1 : 0) +
+    (centerId ? 1 : 0);
+
+  const openDetails = (log: AuditLog) => {
+    setSelectedLog(log);
+    setDetailsOpen(true);
+  };
+
   return (
-    <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-dark dark:text-white">
-            Audit Logs
-          </h1>
-          <p className="text-sm text-dark-5 dark:text-dark-4">
-            Read-only audit trail for admin activity.
-          </p>
-        </div>
-      </div>
+    <>
+      <ListingCard>
+        <ListingFilters
+          activeCount={activeFilterCount}
+          isFetching={isFetching}
+          isLoading={isLoading}
+          hasActiveFilters={hasActiveFilters}
+          clearLabel="Reset"
+          clearDisabled={isFetching}
+          onClear={resetFilters}
+          summary={
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant={datePreset === TODAY_RANGE ? "default" : "outline"}
+                className="h-8 px-3 text-xs"
+                onClick={() => applyDatePreset(TODAY_RANGE)}
+              >
+                Today
+              </Button>
+              <Button
+                variant={
+                  datePreset === LAST_7_DAYS_RANGE ? "default" : "outline"
+                }
+                className="h-8 px-3 text-xs"
+                onClick={() => applyDatePreset(LAST_7_DAYS_RANGE)}
+              >
+                Last 7 days
+              </Button>
+              <Button
+                variant={
+                  datePreset === LAST_30_DAYS_RANGE ? "default" : "outline"
+                }
+                className="h-8 px-3 text-xs"
+                onClick={() => applyDatePreset(LAST_30_DAYS_RANGE)}
+              >
+                Last 30 days
+              </Button>
+              <span className="text-xs text-dark-5 dark:text-dark-4">
+                {total} results
+              </span>
+            </div>
+          }
+          gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-6"
+        >
+          {isPlatformAdmin ? (
+            <FilterField label="Center" className="lg:col-span-2">
+              <CenterPicker
+                className="w-full min-w-0"
+                selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+              />
+            </FilterField>
+          ) : null}
 
-      {isError ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-800 dark:text-dark-4">
-          Failed to load data. Please try again later.
-        </div>
-      ) : null}
+          <FilterField label="Course" className="lg:col-span-2">
+            <SearchableSelect
+              value={selectedCourse}
+              onValueChange={setSelectedCourse}
+              options={courseOptions}
+              placeholder="All courses"
+              searchPlaceholder="Search courses..."
+              emptyMessage="No courses found"
+              showSearch={courseOptions.length > 8}
+              triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+            />
+          </FilterField>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                ID
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Action
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Actor
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Center
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Description
-              </TableHead>
-              <TableHead className="h-11 px-3 text-xs font-semibold uppercase tracking-wide text-dark-5 dark:text-dark-4">
-                Created At
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoadingState ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell className="px-3 py-2">
-                    <Skeleton className="h-4 w-16" />
-                  </TableCell>
-                  <TableCell className="px-3 py-2">
-                    <Skeleton className="h-4 w-28" />
-                  </TableCell>
-                  <TableCell className="px-3 py-2">
-                    <Skeleton className="h-4 w-20" />
-                  </TableCell>
-                  <TableCell className="px-3 py-2">
-                    <Skeleton className="h-4 w-24" />
-                  </TableCell>
-                  <TableCell className="px-3 py-2">
-                    <Skeleton className="h-4 w-48" />
-                  </TableCell>
-                  <TableCell className="px-3 py-2">
-                    <Skeleton className="h-4 w-28" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : showEmptyState ? (
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <div className="flex flex-col items-center gap-2 py-10 text-center">
-                    <Icons.Table className="h-8 w-8 text-dark-4" />
-                    <p className="text-sm font-medium text-dark dark:text-white">
-                      No audit logs found
-                    </p>
-                    <p className="text-sm text-dark-5 dark:text-dark-4">
-                      There are no audit logs matching the current criteria.
-                    </p>
-                  </div>
-                </TableCell>
+          <FilterField label="User" className="lg:col-span-2">
+            <SearchableSelect
+              value={selectedUser}
+              onValueChange={setSelectedUser}
+              options={userOptions}
+              placeholder="All users"
+              searchPlaceholder="Search users..."
+              emptyMessage="No users found"
+              showSearch={userOptions.length > 8}
+              triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+            />
+          </FilterField>
+
+          <FilterField label="Action" className="lg:col-span-2">
+            <Select value={action} onValueChange={setAction}>
+              <SelectTrigger className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                <SelectValue placeholder="Action" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACTION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterField>
+
+          <FilterField label="From" className="lg:col-span-2">
+            <input
+              type="date"
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+              value={dateFrom}
+              onChange={(event) => {
+                setDateFrom(event.target.value);
+                clearDatePreset();
+              }}
+            />
+          </FilterField>
+
+          <FilterField label="To" className="lg:col-span-2">
+            <input
+              type="date"
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+              min={dateFrom || undefined}
+              value={dateTo}
+              onChange={(event) => {
+                setDateTo(event.target.value);
+                clearDatePreset();
+              }}
+            />
+          </FilterField>
+        </ListingFilters>
+
+        {hasActiveFilters ? (
+          <div className="border-b border-gray-200 px-4 pb-4 pt-3 dark:border-gray-700">
+            <div className="flex flex-wrap items-center gap-2">
+              {action !== ALL_ACTIONS_VALUE ? (
+                <Badge variant="secondary" className="gap-1">
+                  Action: {formatActionLabel(action)}
+                </Badge>
+              ) : null}
+              {selectedUser !== ALL_USERS_VALUE ? (
+                <Badge variant="secondary" className="gap-1">
+                  User:{" "}
+                  {userOptions.find((option) => option.value === selectedUser)
+                    ?.label ?? selectedUser}
+                </Badge>
+              ) : null}
+              {selectedCourse !== ALL_COURSES_VALUE ? (
+                <Badge variant="secondary" className="gap-1">
+                  Course:{" "}
+                  {courseOptions.find(
+                    (option) => option.value === selectedCourse,
+                  )?.label ?? selectedCourse}
+                </Badge>
+              ) : null}
+              {dateFrom ? (
+                <Badge variant="secondary" className="gap-1">
+                  From: {dateFrom}
+                </Badge>
+              ) : null}
+              {dateTo ? (
+                <Badge variant="secondary" className="gap-1">
+                  To: {dateTo}
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {isError ? (
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-800 dark:text-dark-4">
+            Failed to load data. Please try again later.
+          </div>
+        ) : null}
+
+        <div
+          className={cn(
+            "w-full max-w-full overflow-x-auto transition-opacity",
+            isFetching && !isLoading ? "opacity-60" : "opacity-100",
+          )}
+        >
+          <Table className="min-w-[1000px]">
+            <TableHeader>
+              <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
+                <TableHead className="whitespace-nowrap font-medium">
+                  Action
+                </TableHead>
+                <TableHead className="font-medium">Event</TableHead>
+                <TableHead className="font-medium">Metadata</TableHead>
+                <TableHead className="font-medium">Created At</TableHead>
               </TableRow>
-            ) : (
-              items.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="px-3 py-2 text-sm font-medium text-dark dark:text-white">
-                    {log.id}
-                  </TableCell>
-                  <TableCell className="max-w-[180px] truncate px-3 py-2 text-sm">
-                    {log.action ?? "—"}
-                  </TableCell>
-                  <TableCell className="px-3 py-2 text-sm">
-                    {log.actor_id ?? "—"}
-                  </TableCell>
-                  <TableCell className="px-3 py-2 text-sm">
-                    {log.center_id ?? "—"}
-                  </TableCell>
-                  <TableCell className="max-w-[320px] truncate px-3 py-2 text-sm">
-                    {log.description ?? "—"}
-                  </TableCell>
-                  <TableCell className="px-3 py-2 text-sm">
-                    {formatDateTime(log.created_at)}
+            </TableHeader>
+
+            <TableBody>
+              {isLoadingState ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index} className="animate-pulse">
+                    <TableCell>
+                      <Skeleton className="h-5 w-24 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-64" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-52" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-28" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : showEmptyState ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-48">
+                    <EmptyState
+                      title="No audit logs found"
+                      description="There are no audit logs matching the current criteria."
+                      className="border-0 bg-transparent"
+                    />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                items.map((log) => (
+                  <TableRow
+                    key={log.id}
+                    className="transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
+                  >
+                    <TableCell>
+                      <Badge variant={getActionVariant(log.action)}>
+                        {formatActionLabel(log.action)}
+                      </Badge>
+                    </TableCell>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="text-sm text-dark-5 dark:text-dark-4">
-          Page {meta?.page ?? page} of {maxPage}
+                    <TableCell className="max-w-[460px]">
+                      <p className="truncate font-medium text-gray-900 dark:text-white">
+                        {buildEventSummary(log)}
+                      </p>
+                      <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                        User #{log.user_id ?? "-"} | Center #
+                        {log.center_id ?? "-"} |{" "}
+                        {formatEntityType(log.entity_type)} #
+                        {log.entity_id ?? "-"}
+                      </p>
+                    </TableCell>
+
+                    <TableCell className="max-w-[340px]">
+                      <code className="block truncate font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {formatMetadataPreview(log.metadata)}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-1 h-7 px-2 text-xs"
+                        onClick={() => openDetails(log)}
+                      >
+                        View details
+                      </Button>
+                    </TableCell>
+
+                    <TableCell className="whitespace-nowrap">
+                      {formatDateTime(log.created_at)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            disabled={page <= 1 || isFetching}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setPage((prev) => Math.min(prev + 1, maxPage))}
-            disabled={nextDisabled || isFetching}
-          >
-            Next
-          </Button>
+        <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
+          <PaginationControls
+            page={meta?.page ?? page}
+            lastPage={maxPage}
+            isFetching={isFetching}
+            onPageChange={setPage}
+            perPage={perPage}
+            onPerPageChange={(value) => {
+              setPerPage(value);
+              setPage(1);
+            }}
+            labelClassName="text-dark-5 dark:text-dark-4"
+          />
         </div>
-      </div>
-    </div>
+      </ListingCard>
+
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Audit Log #{selectedLog?.id ?? "-"}</DialogTitle>
+            <DialogDescription>
+              Full event details and metadata payload.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-gray-950 sm:grid-cols-2">
+            <p className="truncate">
+              <span className="font-semibold">Action:</span>{" "}
+              {formatActionLabel(selectedLog?.action)}
+            </p>
+            <p className="truncate">
+              <span className="font-semibold">User:</span>{" "}
+              {selectedLog?.user?.name ?? "-"} (#{selectedLog?.user_id ?? "-"})
+            </p>
+            <p className="truncate">
+              <span className="font-semibold">Center:</span> #
+              {selectedLog?.center_id ?? "-"}
+            </p>
+            <p className="truncate">
+              <span className="font-semibold">Entity:</span>{" "}
+              {formatEntityType(selectedLog?.entity_type)} #
+              {selectedLog?.entity_id ?? "-"}
+            </p>
+            <p className="truncate sm:col-span-2">
+              <span className="font-semibold">Label:</span>{" "}
+              {selectedLog?.entity_label ?? "-"}
+            </p>
+            <p className="truncate sm:col-span-2">
+              <span className="font-semibold">Created:</span>{" "}
+              {formatDateTime(selectedLog?.created_at)}
+            </p>
+          </div>
+
+          <div className="overflow-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-950">
+            <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-5 text-dark dark:text-white">
+              {formatMetadataFull(selectedLog?.metadata)}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

@@ -12,6 +12,7 @@ import {
   listVideos,
   updateVideo,
   type CreateVideoPayload,
+  type CreateVideoUploadSessionPayload,
   type ListVideosParams,
   type UpdateVideoPayload,
 } from "../services/videos.service";
@@ -112,7 +113,7 @@ export function useCreateVideoUploadSession() {
       payload,
     }: {
       centerId: string | number;
-      payload?: Record<string, unknown>;
-    }) => createVideoUploadSession(centerId, payload ?? {}),
+      payload: CreateVideoUploadSessionPayload;
+    }) => createVideoUploadSession(centerId, payload),
   });
 }

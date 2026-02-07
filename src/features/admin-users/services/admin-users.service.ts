@@ -1,10 +1,17 @@
 import { http } from "@/lib/http";
-import type { AdminUser } from "@/features/admin-users/types/admin-user";
+import type {
+  AdminUser,
+  AdminUserRole,
+} from "@/features/admin-users/types/admin-user";
 import type { PaginatedResponse } from "@/types/pagination";
 
 export type ListAdminUsersParams = {
   page?: number;
   per_page?: number;
+  search?: string;
+  center_id?: string | number;
+  status?: string | number;
+  role_id?: string | number;
 };
 
 type RawAdminUsersResponse = {
@@ -29,6 +36,10 @@ export async function listAdminUsers(
       params: {
         page: params.page,
         per_page: params.per_page,
+        search: params.search || undefined,
+        center_id: params.center_id ?? undefined,
+        status: params.status ?? undefined,
+        role_id: params.role_id ?? undefined,
       },
     },
   );
@@ -49,11 +60,22 @@ export type CreateAdminUserPayload = {
   phone?: string;
   center_id?: string | number | null;
   password?: string;
+  status?: number;
   [key: string]: unknown;
 };
 
-export type UpdateAdminUserPayload = Partial<CreateAdminUserPayload> & {
-  status?: string;
+export type UpdateAdminUserPayload = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  center_id?: string | number | null;
+  password?: string;
+  status?: string | number;
+  [key: string]: unknown;
+};
+
+export type SyncAdminUserRolesPayload = {
+  role_ids: (string | number)[];
 };
 
 export async function getAdminUser(
@@ -90,12 +112,26 @@ export async function deleteAdminUser(userId: string | number): Promise<void> {
   await http.delete(`/api/v1/admin/users/${userId}`);
 }
 
+type RawAdminUserRolesResponse = {
+  data?: AdminUserRole[];
+};
+
+export async function getAdminUserRoles(
+  userId: string | number,
+): Promise<AdminUserRole[]> {
+  const { data } = await http.get<RawAdminUserRolesResponse>(
+    `/api/v1/admin/users/${userId}/roles`,
+  );
+  return data?.data ?? [];
+}
+
 export async function syncAdminUserRoles(
   userId: string | number,
-  roleIds: Array<string | number>,
-) {
-  const { data } = await http.put(`/api/v1/admin/users/${userId}/roles`, {
-    role_ids: roleIds,
-  });
-  return data;
+  payload: SyncAdminUserRolesPayload,
+): Promise<AdminUserRole[]> {
+  const { data } = await http.put<RawAdminUserRolesResponse>(
+    `/api/v1/admin/users/${userId}/roles`,
+    payload,
+  );
+  return data?.data ?? [];
 }

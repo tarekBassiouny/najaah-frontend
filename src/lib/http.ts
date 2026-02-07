@@ -9,10 +9,15 @@ type AuthRequestConfig = InternalAxiosRequestConfig & {
   skipAuth?: boolean;
 };
 
-function redirectToLogin() {
+function redirectToLogin(reason?: "session_expired") {
   if (typeof window !== "undefined") {
     cancelTokenRefresh();
-    window.location.href = "/login";
+    const params = new URLSearchParams();
+    if (reason) {
+      params.set("reason", reason);
+    }
+    const query = params.toString();
+    window.location.href = query ? `/login?${query}` : "/login";
   }
 }
 
@@ -63,7 +68,7 @@ http.interceptors.response.use(
     // If refresh endpoint itself fails, redirect to login
     if (originalConfig.url?.includes("/api/v1/admin/auth/refresh")) {
       tokenStorage.clear();
-      redirectToLogin();
+      redirectToLogin("session_expired");
       return Promise.reject(error);
     }
 
@@ -79,7 +84,7 @@ http.interceptors.response.use(
       return http(originalConfig);
     } catch (refreshError) {
       tokenStorage.clear();
-      redirectToLogin();
+      redirectToLogin("session_expired");
       return Promise.reject(refreshError);
     }
   },

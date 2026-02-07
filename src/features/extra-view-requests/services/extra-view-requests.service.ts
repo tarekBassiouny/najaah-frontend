@@ -49,20 +49,33 @@ export async function listExtraViewRequests(
   };
 }
 
+export type ApproveExtraViewRequestPayload = {
+  granted_views: number;
+  decision_reason?: string;
+};
+
 export async function approveExtraViewRequest(
   requestId: string | number,
+  payload: ApproveExtraViewRequestPayload,
 ): Promise<ExtraViewRequest> {
   const { data } = await http.post(
     `/api/v1/admin/extra-view-requests/${requestId}/approve`,
+    payload,
   );
   return data?.data ?? (data as unknown as ExtraViewRequest);
 }
 
+export type RejectExtraViewRequestPayload = {
+  decision_reason: string;
+};
+
 export async function rejectExtraViewRequest(
   requestId: string | number,
+  payload: RejectExtraViewRequestPayload,
 ): Promise<ExtraViewRequest> {
   const { data } = await http.post(
     `/api/v1/admin/extra-view-requests/${requestId}/reject`,
+    payload,
   );
   return data?.data ?? (data as unknown as ExtraViewRequest);
 }

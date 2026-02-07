@@ -10,8 +10,9 @@ export type ListVideosParams = {
 };
 
 export type CreateVideoPayload = {
-  title?: string;
-  description?: string;
+  title_translations: Record<string, string>;
+  description_translations?: Record<string, string>;
+  tags?: string[];
   url?: string;
   duration?: number | string;
   [key: string]: unknown;
@@ -109,9 +110,14 @@ export async function deleteVideo(
   await http.delete(`${basePath(centerId)}/${videoId}`);
 }
 
+export type CreateVideoUploadSessionPayload = {
+  video_id: string | number;
+  original_filename: string;
+};
+
 export async function createVideoUploadSession(
   centerId: string | number,
-  payload: Record<string, unknown> = {},
+  payload: CreateVideoUploadSessionPayload,
 ): Promise<VideoUploadSession> {
   const { data } = await http.post<RawUploadSessionResponse>(
     `${basePath(centerId)}/upload-sessions`,

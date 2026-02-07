@@ -193,7 +193,9 @@ export function DeviceChangeRequestsTable() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => preApproveRequest(request.id)}
+                          onClick={() =>
+                            preApproveRequest({ requestId: request.id })
+                          }
                           disabled={isBusy || isFinal}
                         >
                           Pre-Approve
@@ -201,7 +203,9 @@ export function DeviceChangeRequestsTable() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => approveRequest(request.id)}
+                          onClick={() =>
+                            approveRequest({ requestId: request.id })
+                          }
                           disabled={isBusy || isFinal}
                         >
                           Approve
@@ -209,7 +213,14 @@ export function DeviceChangeRequestsTable() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => rejectRequest(request.id)}
+                          onClick={() =>
+                            rejectRequest({
+                              requestId: request.id,
+                              payload: {
+                                decision_reason: "Rejected by admin",
+                              },
+                            })
+                          }
                           disabled={isBusy || isFinal}
                         >
                           Reject

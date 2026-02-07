@@ -7,12 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import {
-  type AgentExecution,
-  type AgentExecutionStatus,
-  type AgentType,
-  AGENT_TYPE_LABELS,
-} from "../types/agent";
+import { type AgentExecution, AGENT_TYPE_LABELS } from "../types/agent";
 
 type AgentExecutionHistoryProps = {
   limit?: number;
@@ -21,8 +16,11 @@ type AgentExecutionHistoryProps = {
 };
 
 const statusStyles: Record<
-  AgentExecutionStatus,
-  { variant: "info" | "success" | "warning" | "error"; label: string }
+  string,
+  {
+    variant: "info" | "success" | "warning" | "error" | "secondary";
+    label: string;
+  }
 > = {
   pending: { variant: "warning", label: "Pending" },
   running: { variant: "info", label: "Running" },
@@ -30,7 +28,7 @@ const statusStyles: Record<
   failed: { variant: "error", label: "Failed" },
 };
 
-const typeIcons: Record<AgentType, React.ReactNode> = {
+const typeIcons: Record<string, React.ReactNode> = {
   content_publishing: (
     <svg
       className="h-4 w-4"
@@ -108,8 +106,13 @@ function formatTimeAgo(dateString: string): string {
 }
 
 function ExecutionItem({ execution }: { execution: AgentExecution }) {
-  const status = statusStyles[execution.status];
-  const icon = typeIcons[execution.agentType];
+  const status = statusStyles[execution.status] ?? {
+    variant: "secondary",
+    label: execution.status,
+  };
+  const icon = typeIcons[execution.agentType] ?? typeIcons.content_publishing;
+  const typeLabel =
+    AGENT_TYPE_LABELS[execution.agentType] ?? execution.agentType;
 
   return (
     <div className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
@@ -132,7 +135,7 @@ function ExecutionItem({ execution }: { execution: AgentExecution }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-gray-900 dark:text-white">
-            {AGENT_TYPE_LABELS[execution.agentType]}
+            {typeLabel}
           </p>
           <Badge variant={status.variant} className="text-xs">
             {status.label}

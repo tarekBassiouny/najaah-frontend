@@ -189,7 +189,14 @@ export function ExtraViewRequestsTable() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => approveRequest(request.id)}
+                          onClick={() =>
+                            approveRequest({
+                              requestId: request.id,
+                              payload: {
+                                granted_views: 1,
+                              },
+                            })
+                          }
                           disabled={isBusy || isFinal}
                         >
                           Approve
@@ -197,7 +204,14 @@ export function ExtraViewRequestsTable() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => rejectRequest(request.id)}
+                          onClick={() =>
+                            rejectRequest({
+                              requestId: request.id,
+                              payload: {
+                                decision_reason: "Rejected by admin",
+                              },
+                            })
+                          }
                           disabled={isBusy || isFinal}
                         >
                           Reject

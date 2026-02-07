@@ -1,4 +1,5 @@
 import { http } from "@/lib/http";
+
 import type {
   Course,
   CourseSummary,
@@ -144,7 +145,15 @@ export async function getCenterCourse(
   const { data } = await http.get<RawResponse>(
     `/api/v1/admin/centers/${centerId}/courses/${courseId}`,
   );
-  return (data?.data ?? data) as Course;
+  const payload = data as Record<string, unknown> | undefined;
+  const course =
+    (payload?.course as Course | undefined) ??
+    ((payload?.data as Record<string, unknown> | undefined)?.course as
+      | Course
+      | undefined) ??
+    (payload?.data as Course | undefined) ??
+    (payload as Course);
+  return course;
 }
 
 export async function createCenterCourse(

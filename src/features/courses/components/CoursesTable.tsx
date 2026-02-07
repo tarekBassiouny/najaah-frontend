@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Course } from "../types/course";
+import type { Course, CourseSummary } from "../types/course";
 
 const DEFAULT_PER_PAGE = 10;
 
@@ -78,7 +78,7 @@ function CourseRow({
   course,
   centerId,
 }: {
-  course: Course;
+  course: Course | CourseSummary;
   centerId?: string | number;
 }) {
   const status = course.status != null ? getStatusConfig(course.status) : null;

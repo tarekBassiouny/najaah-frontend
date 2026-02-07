@@ -2,10 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  useCenters,
-  useDeleteCenter,
-} from "@/features/centers/hooks/use-centers";
+import { useCenters } from "@/features/centers/hooks/use-centers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,7 +52,6 @@ function getStatusConfig(status: CenterStatus) {
 }
 
 export function CentersTable() {
-  const { mutate: deleteCenter, isPending: isDeleting } = useDeleteCenter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -203,7 +199,12 @@ export function CentersTable() {
                         {center.id}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {center.name ?? "—"}
+                        <Link
+                          href={`/centers/${center.id}`}
+                          className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
+                        >
+                          {center.name ?? "—"}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {center.slug ?? "—"}
@@ -235,18 +236,6 @@ export function CentersTable() {
                               Manage
                             </Button>
                           </Link>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (window.confirm("Delete this center?")) {
-                                deleteCenter(center.id);
-                              }
-                            }}
-                            disabled={isDeleting}
-                          >
-                            Delete
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

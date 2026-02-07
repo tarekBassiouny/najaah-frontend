@@ -30,7 +30,7 @@ import type {
   Course,
   CreateCoursePayload,
   UpdateCoursePayload,
-} from "../types/course";
+} from "@/features/courses/types/course";
 
 type UseCoursesOptions = Omit<
   UseQueryOptions<CoursesResponse>,

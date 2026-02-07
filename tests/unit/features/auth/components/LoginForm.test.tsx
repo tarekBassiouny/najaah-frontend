@@ -55,6 +55,7 @@ describe("LoginForm", () => {
     expect(mutateMock).toHaveBeenCalledWith({
       email: "admin@example.com",
       password: "password123",
+      remember: false,
     });
   });
 });

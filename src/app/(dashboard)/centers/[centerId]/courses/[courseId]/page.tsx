@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, use } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,10 +17,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { http } from "@/lib/http";
-import { useCenterCourse } from "@/features/courses/hooks/use-courses";
+import {
+  useCenterCourse,
+  useUpdateCenterCourse,
+} from "@/features/courses/hooks/use-courses";
 import { CoursePublishAction } from "@/features/courses/components/CoursePublishAction";
 import { StudentsTable } from "@/features/students/components/StudentsTable";
+import { useCategories } from "@/features/categories/hooks/use-categories";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -59,15 +70,25 @@ const getSectionsBySortOrder = (sections: CourseSection[] = []) =>
 export default function CenterCourseDetailPage({ params }: PageProps) {
   const { centerId, courseId } = use(params);
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [activePanel, setActivePanel] = useState<"overview" | "students">(
-    "overview",
-  );
+  const [activePanel, setActivePanel] = useState<
+    "overview" | "students" | "settings"
+  >("overview");
   const {
     data: course,
     isLoading,
     isError,
   } = useCenterCourse(centerId, courseId);
+  const {
+    mutate: updateCourse,
+    isPending: isSavingSettings,
+    isError: isSettingsError,
+    error: settingsError,
+  } = useUpdateCenterCourse();
+  const { data: categoriesResponse, isLoading: isCategoriesLoading } =
+    useCategories(centerId, { page: 1, per_page: 100 });
   const { mutate: reorderSections, isPending: isReordering } = useMutation({
     mutationFn: (orderedIds: Array<string | number>) =>
       http.put(
@@ -96,11 +117,43 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     sectionId: CourseSection["id"];
   } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [settingsForm, setSettingsForm] = useState({
+    title: "",
+    slug: "",
+    description: "",
+    status: "",
+    category_id: "none",
+  });
 
   useEffect(() => {
     if (!course) return;
     setOrderedSections(getSectionsBySortOrder(course.sections ?? []));
+    setSettingsForm({
+      title: String(course.title ?? course.name ?? ""),
+      slug: String(course.slug ?? ""),
+      description: String(course.description ?? ""),
+      status: String(course.status ?? ""),
+      category_id: String(
+        (course.category_id as string | number | null | undefined) ??
+          (typeof course.category === "object" &&
+          course.category &&
+          "id" in course.category
+            ? String(
+                (course.category as { id?: string | number }).id ?? "none",
+              )
+            : "none"),
+      ),
+    });
   }, [course]);
+
+  useEffect(() => {
+    const panel = searchParams.get("panel");
+    if (panel === "students" || panel === "settings") {
+      setActivePanel(panel);
+      return;
+    }
+    setActivePanel("overview");
+  }, [searchParams]);
 
   const navItems = useMemo(
     () => [
@@ -117,11 +170,48 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       {
         id: "settings",
         label: "Settings",
-        href: `/centers/${centerId}/courses/${courseId}/edit`,
+        href: null,
       },
     ],
     [centerId, courseId],
   );
+
+  const setPanel = (panel: "overview" | "students" | "settings") => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (panel === "overview") {
+      nextParams.delete("panel");
+    } else {
+      nextParams.set("panel", panel);
+    }
+    const query = nextParams.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
+
+  const handleSettingsSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    updateCourse({
+      centerId,
+      courseId,
+      payload: {
+        title: settingsForm.title || undefined,
+        slug: settingsForm.slug || undefined,
+        description: settingsForm.description || undefined,
+        status: settingsForm.status || undefined,
+        category_id:
+          settingsForm.category_id !== "none"
+            ? settingsForm.category_id
+            : undefined,
+      },
+    });
+  };
+
+  const handleSettingsChange =
+    (field: "title" | "slug" | "description" | "status" | "category_id") =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setSettingsForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   if (isLoading) {
     return (
@@ -307,7 +397,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     ? activePanel === "overview"
                     : item.id === "students"
                       ? activePanel === "students"
-                      : pathname === item.href;
+                      : activePanel === "settings";
                 const itemClass = `block w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-primary/10 text-primary"
@@ -319,7 +409,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     <button
                       key={item.label}
                       type="button"
-                      onClick={() => setActivePanel("students")}
+                      onClick={() => setPanel("students")}
                       className={itemClass}
                     >
                       {item.label}
@@ -332,7 +422,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     <button
                       key={item.label}
                       type="button"
-                      onClick={() => setActivePanel("overview")}
+                      onClick={() => setPanel("overview")}
                       className={itemClass}
                     >
                       {item.label}
@@ -341,13 +431,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                 }
 
                 return (
-                  <Link
+                  <button
                     key={item.label}
-                    href={item.href!}
+                    type="button"
+                    onClick={() => setPanel("settings")}
                     className={itemClass}
                   >
                     {item.label}
-                  </Link>
+                  </button>
                 );
               })}
             </nav>
@@ -379,11 +470,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/centers/${centerId}/courses/${courseId}/edit`}>
-                    <Button variant="outline" size="sm">
-                      Settings
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPanel("settings")}
+                  >
+                    Settings
+                  </Button>
                   <CoursePublishAction course={course} />
                 </div>
               </div>
@@ -645,17 +738,163 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                 </div>
               </CardContent>
             </Card>
-          ) : (
+          ) : activePanel === "students" ? (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
                 Enrolled Students
               </p>
               <StudentsTable
                 centerId={centerId}
+                courseId={courseId}
                 initialPage={1}
                 initialPerPage={15}
+                buildProfileHref={(student) =>
+                  `/centers/${centerId}/students/${student.id}?from=course&courseId=${courseId}`
+                }
               />
             </div>
+          ) : (
+            <form onSubmit={handleSettingsSubmit} className="space-y-4">
+              <Card>
+                <CardContent className="space-y-4 py-5">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Course Settings
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Update course metadata without leaving this page.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-title">Title</Label>
+                      <Input
+                        id="settings-title"
+                        value={settingsForm.title}
+                        onChange={handleSettingsChange("title")}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-slug">Slug</Label>
+                      <Input
+                        id="settings-slug"
+                        value={settingsForm.slug}
+                        onChange={handleSettingsChange("slug")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-status">Status</Label>
+                      <Input
+                        id="settings-status"
+                        value={settingsForm.status}
+                        onChange={handleSettingsChange("status")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-category">Category</Label>
+                      <Select
+                        value={settingsForm.category_id}
+                        onValueChange={(value) =>
+                          setSettingsForm((prev) => ({
+                            ...prev,
+                            category_id: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger
+                          id="settings-category"
+                          className="h-10 w-full"
+                          disabled={isCategoriesLoading}
+                        >
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No category</SelectItem>
+                          {(categoriesResponse?.items ?? []).map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={String(category.id)}
+                            >
+                              {category.title_translations?.en ||
+                                category.title ||
+                                category.name ||
+                                `Category #${category.id}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-description">Description</Label>
+                    <textarea
+                      id="settings-description"
+                      value={settingsForm.description}
+                      onChange={handleSettingsChange("description")}
+                      rows={4}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="submit"
+                      disabled={isSavingSettings || !settingsForm.title}
+                    >
+                      {isSavingSettings ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        if (!course) return;
+                        setSettingsForm({
+                          title: String(course.title ?? course.name ?? ""),
+                          slug: String(course.slug ?? ""),
+                          description: String(course.description ?? ""),
+                          status: String(course.status ?? ""),
+                          category_id: String(
+                            (course.category_id as
+                              | string
+                              | number
+                              | null
+                              | undefined) ??
+                              (typeof course.category === "object" &&
+                              course.category &&
+                              "id" in course.category
+                                ? String(
+                                    (course.category as {
+                                      id?: string | number;
+                                    }).id ?? "none",
+                                  )
+                                : "none"),
+                          ),
+                        });
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {isSettingsError ? (
+                <Card className="border-red-200 dark:border-red-900">
+                  <CardContent className="py-4">
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {(settingsError as Error)?.message ||
+                        "Failed to update course. Please try again."}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </form>
           )}
         </div>
       </div>

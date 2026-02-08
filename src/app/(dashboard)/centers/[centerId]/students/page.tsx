@@ -68,6 +68,10 @@ export default function CenterStudentsPage({ params }: PageProps) {
 
       <StudentsTable
         centerId={centerId}
+        showCenterFilter={false}
+        buildProfileHref={(student) =>
+          `/centers/${centerId}/students/${student.id}?from=center`
+        }
         onEdit={(student) => {
           setFeedback(null);
           setEditingStudent(student);

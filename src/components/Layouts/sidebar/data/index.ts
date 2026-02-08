@@ -29,6 +29,7 @@ type RouteCapabilityRule = {
 
 const CENTER_SCOPED_OMIT_TITLES = new Set([
   "Centers",
+  "Agents",
   "Roles",
   "Permissions",
   "Audit Logs",

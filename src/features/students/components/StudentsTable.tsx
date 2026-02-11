@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { Student } from "@/features/students/types/student";
 import { useStudents } from "@/features/students/hooks/use-students";
 import { useTenant } from "@/app/tenant-provider";
@@ -68,8 +69,11 @@ const StatusIcon = () => (
 
 type StudentsTableProps = {
   centerId?: string | number;
+  courseId?: string | number;
+  showCenterFilter?: boolean;
   initialPage?: number;
   initialPerPage?: number;
+  buildProfileHref?: (_student: Student) => string | null;
   onEdit?: (_student: Student) => void;
   onDelete?: (_student: Student) => void;
   onViewDetails?: (_student: Student) => void;
@@ -79,8 +83,11 @@ type StudentsTableProps = {
 
 export function StudentsTable({
   centerId: centerIdProp,
+  courseId,
+  showCenterFilter = true,
   initialPage,
   initialPerPage,
+  buildProfileHref,
   onEdit,
   onDelete,
   onViewDetails,
@@ -107,9 +114,10 @@ export function StudentsTable({
       per_page: perPage,
       search: query || undefined,
       center_id: centerId,
+      course_id: courseId,
       status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
     }),
-    [page, perPage, query, centerId, statusFilter],
+    [page, perPage, query, centerId, courseId, statusFilter],
   );
 
   const { data, isLoading, isError, isFetching } = useStudents(params);
@@ -156,11 +164,15 @@ export function StudentsTable({
 
   useEffect(() => {
     setPage(1);
-  }, [centerId]);
+  }, [centerId, courseId]);
 
   useEffect(() => {
     setSelectedStudents({});
-  }, [centerId, page, perPage, query, statusFilter]);
+  }, [centerId, courseId, page, perPage, query, statusFilter]);
+
+  const hasActions = Boolean(
+    onEdit || onDelete || onViewDetails || buildProfileHref,
+  );
 
   const toggleStudentSelection = (student: Student) => {
     const studentId = String(student.id);
@@ -213,7 +225,11 @@ export function StudentsTable({
             {total} {total === 1 ? "student" : "students"}
           </>
         }
-        gridClassName="grid-cols-1 md:grid-cols-3"
+        gridClassName={
+          showCenterFilter
+            ? "grid-cols-1 md:grid-cols-3"
+            : "grid-cols-1 md:grid-cols-2"
+        }
       >
         <div className="relative">
           <svg
@@ -267,11 +283,13 @@ export function StudentsTable({
           </button>
         </div>
 
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={false}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-        />
+        {showCenterFilter ? (
+          <CenterPicker
+            className="w-full min-w-0"
+            hideWhenCenterScoped={false}
+            selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+          />
+        ) : null}
 
         <Select
           value={statusFilter}
@@ -338,7 +356,7 @@ export function StudentsTable({
                 <TableHead className="font-medium">Activity</TableHead>
                 <TableHead className="font-medium">Last Activity</TableHead>
                 <TableHead className="font-medium">Device</TableHead>
-                {(onEdit || onDelete || onViewDetails) && (
+                {hasActions && (
                   <TableHead className="w-10 text-right font-medium">
                     Actions
                   </TableHead>
@@ -374,7 +392,7 @@ export function StudentsTable({
                       <TableCell>
                         <Skeleton className="h-5 w-24 rounded-full" />
                       </TableCell>
-                      {(onEdit || onDelete || onViewDetails) && (
+                      {hasActions && (
                         <TableCell>
                           <Skeleton className="ml-auto h-4 w-16" />
                         </TableCell>
@@ -384,10 +402,7 @@ export function StudentsTable({
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={onEdit || onDelete || onViewDetails ? 9 : 8}
-                    className="h-48"
-                  >
+                  <TableCell colSpan={hasActions ? 9 : 8} className="h-48">
                     <EmptyState
                       title={query ? "No students found" : "No students yet"}
                       description={
@@ -415,6 +430,7 @@ export function StudentsTable({
                     ? formatDateTime(analytics.last_activity_at)
                     : "—";
                   const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                  const profileHref = buildProfileHref?.(student) ?? null;
 
                   return (
                     <TableRow
@@ -442,9 +458,18 @@ export function StudentsTable({
                             )}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-medium text-gray-900 dark:text-white">
-                              {student.name ?? "—"}
-                            </span>
+                            {profileHref ? (
+                              <Link
+                                href={profileHref}
+                                className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
+                              >
+                                {student.name ?? "—"}
+                              </Link>
+                            ) : (
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                {student.name ?? "—"}
+                              </span>
+                            )}
                             <span className="text-sm text-gray-500 dark:text-gray-400">
                               {student.email ?? "—"}
                             </span>
@@ -486,7 +511,7 @@ export function StudentsTable({
                           </span>
                         )}
                       </TableCell>
-                      {(onEdit || onDelete || onViewDetails) && (
+                      {hasActions && (
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end">
                             <Dropdown
@@ -505,6 +530,17 @@ export function StudentsTable({
                                   shouldOpenUp && "bottom-full mb-2 mt-0",
                                 )}
                               >
+                                {profileHref ? (
+                                  <Link
+                                    href={profileHref}
+                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                    }}
+                                  >
+                                    View profile
+                                  </Link>
+                                ) : null}
                                 {onViewDetails && (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"

@@ -54,6 +54,13 @@ export const CENTER_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
+        title: "Surveys",
+        capability: "manage_courses",
+        icon: iconFromTitle("Surveys"),
+        url: "/surveys",
+        items: [],
+      },
+      {
         title: "Agents",
         icon: iconFromTitle("Agents"),
         url: "/agents/executions",

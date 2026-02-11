@@ -10,11 +10,10 @@ import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | NextAdmin - Next.js Dashboard Kit",
-    default: "NextAdmin - Next.js Dashboard Kit",
+    template: "%s | Najaah.me",
+    default: "Najaah.me",
   },
-  description:
-    "Next.js admin dashboard toolkit with 200+ templates, UI components, and integrations for fast dashboard development.",
+  description: "Najaah.me learning platform and admin portal.",
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {

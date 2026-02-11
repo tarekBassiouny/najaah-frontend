@@ -8,7 +8,7 @@ export default defineConfig({
     setupFiles: ["./tests/setup/unit.tsx", "./tests/setup/integration.ts"],
     include: ["tests/integration/**/*.{test,spec}.{ts,tsx}"],
     env: {
-      BACKEND_API_URL: "http://xyz-lms.test",
+      BACKEND_API_URL: "http://najaah.local",
     },
     testTimeout: 10000,
     coverage: {

@@ -12,6 +12,7 @@ import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
 import { getCenterScopedSections } from "./data";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useTenant } from "@/app/tenant-provider";
 
 type SidebarSubItem = {
   title: string;
@@ -59,6 +60,11 @@ export function Sidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
   const { isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const {
+    centerSlug: tenantCenterSlug,
+    centerName: tenantCenterName,
+    branding,
+  } = useTenant();
   const permissions = getAuthPermissions();
   const centerId = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
@@ -71,6 +77,10 @@ export function Sidebar({ sections }: SidebarProps) {
   }, [pathname]);
   const { data: center } = useCenter(centerId ?? undefined);
   const centerName = center?.name ?? (centerId ? `Center ${centerId}` : null);
+  const isTenantSubdomainCenter = Boolean(tenantCenterSlug);
+  const subdomainCenterName = tenantCenterName || tenantCenterSlug || "Center";
+  const subdomainCenterLogo =
+    typeof branding?.logoUrl === "string" ? branding.logoUrl : null;
   const resolvedSections = useMemo(() => {
     if (!centerId) return sections;
     return getCenterScopedSections(sections, centerId);
@@ -187,6 +197,47 @@ export function Sidebar({ sections }: SidebarProps) {
                   </div>
                 </Link>
               </div>
+            ) : isTenantSubdomainCenter ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+                    {subdomainCenterLogo ? (
+                      <div
+                        className="h-full w-full bg-cover bg-center bg-no-repeat"
+                        style={{
+                          backgroundImage: `url(${subdomainCenterLogo})`,
+                        }}
+                        role="img"
+                        aria-label={`${subdomainCenterName} logo`}
+                      />
+                    ) : (
+                      subdomainCenterName.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                      Center
+                    </span>
+                    <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
+                      {subdomainCenterName}
+                    </span>
+                  </div>
+                </Link>
+
+                {isMobile && (
+                  <button
+                    type="button"
+                    onClick={toggleSidebar}
+                    className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
+                    aria-label="Close Sidebar"
+                  >
+                    <ArrowLeftIcon className="ml-auto size-7" />
+                  </button>
+                )}
+              </>
             ) : (
               <>
                 <Link
@@ -198,12 +249,12 @@ export function Sidebar({ sections }: SidebarProps) {
                       src="/images/logo/logo-icon.svg"
                       width={20}
                       height={20}
-                      alt="LMS"
+                      alt="Najaah"
                       className="brightness-0 invert"
                     />
                   </div>
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
-                    LMS Admin
+                    Najaah Admin
                   </span>
                 </Link>
 

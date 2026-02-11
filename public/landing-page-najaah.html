@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Najaah — Smart Learning, Limitless Growth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B4D3E;
+            --primary-light: #2A7A5F;
+            --primary-dark: #0F2E25;
+            --accent: #F0A500;
+            --accent-light: #FFD166;
+            --bg: #FAFAF7;
+            --bg-cream: #F5F0E8;
+            --text: #1A1A1A;
+            --text-secondary: #5A5A5A;
+            --white: #FFFFFF;
+            --glass: rgba(255, 255, 255, 0.7);
+            --shadow-sm: 0 2px 8px rgba(27, 77, 62, 0.08);
+            --shadow-md: 0 8px 30px rgba(27, 77, 62, 0.12);
+            --shadow-lg: 0 20px 60px rgba(27, 77, 62, 0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --radius-lg: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ========== NOISE TEXTURE ========== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ========== NAV ========== */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 16px 40px;
+            transition: all 0.4s ease;
+        }
+
+        nav.scrolled {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(27, 77, 62, 0.08);
+            padding: 12px 40px;
+        }
+
+        .nav-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(240, 165, 0, 0.3), transparent);
+            animation: logoSpin 8s linear infinite;
+        }
+
+        @keyframes logoSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
+            border-radius: 1px;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+        .nav-links a:hover::after { width: 100%; }
+
+        .nav-cta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid rgba(27, 77, 62, 0.2);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: rgba(27, 77, 62, 0.05);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(27, 77, 62, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(27, 77, 62, 0.35);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: var(--primary-dark);
+            box-shadow: 0 4px 15px rgba(240, 165, 0, 0.3);
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(240, 165, 0, 0.35);
+        }
+
+        .btn-lg {
+            padding: 16px 36px;
+            font-size: 16px;
+        }
+
+        /* ========== HERO ========== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 120px 40px 80px;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        .hero-bg .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+
+        .blob-1 {
+            width: 600px; height: 600px;
+            background: var(--primary);
+            top: -200px; right: -100px;
+            animation: blobFloat 12s ease-in-out infinite;
+        }
+
+        .blob-2 {
+            width: 400px; height: 400px;
+            background: var(--accent);
+            bottom: -100px; left: -50px;
+            animation: blobFloat 10s ease-in-out infinite reverse;
+        }
+
+        .blob-3 {
+            width: 300px; height: 300px;
+            background: var(--primary-light);
+            top: 40%; left: 50%;
+            animation: blobFloat 14s ease-in-out infinite;
+        }
+
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        .hero-grid-pattern {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(27, 77, 62, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(27, 77, 62, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 1;
+        }
+
+        .hero-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(27, 77, 62, 0.08);
+            border: 1px solid rgba(27, 77, 62, 0.12);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .hero-badge .dot {
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .hero h1 {
+            font-size: clamp(42px, 5vw, 68px);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -2px;
+            color: var(--primary-dark);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease 0.15s forwards;
+            opacity: 0;
+        }
+
+        .hero h1 .highlight {
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            width: 100%;
+            height: 14px;
+            background: var(--accent);
+            opacity: 0.3;
+            border-radius: 4px;
+            z-index: -1;
+            animation: highlightExpand 1s ease 0.8s forwards;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+
+        @keyframes highlightExpand {
+            to { transform: scaleX(1); }
+        }
+
+        .hero-desc {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 500px;
+            margin-bottom: 36px;
+            animation: fadeInUp 0.8s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 48px;
+            animation: fadeInUp 0.8s ease 0.45s forwards;
+            opacity: 0;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            animation: fadeInUp 0.8s ease 0.6s forwards;
+            opacity: 0;
+        }
+
+        .hero-stat {
+            text-align: left;
+        }
+
+        .hero-stat .number {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -1px;
+        }
+
+        .hero-stat .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* HERO VISUAL */
+        .hero-visual {
+            position: relative;
+            animation: fadeInUp 0.8s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        .hero-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(27, 77, 62, 0.06);
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .card-user-info .name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .card-user-info .role {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .progress-badge {
+            background: rgba(27, 77, 62, 0.08);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .course-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .course-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            transition: all 0.3s;
+        }
+
+        .course-item:hover {
+            background: rgba(27, 77, 62, 0.04);
+            transform: translateX(4px);
+        }
+
+        .course-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .course-icon.math { background: #EDE9FE; }
+        .course-icon.science { background: #DCFCE7; }
+        .course-icon.lang { background: #FEF3C7; }
+        .course-icon.art { background: #FCE7F3; }
+
+        .course-info {
+            flex: 1;
+        }
+
+        .course-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .course-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .course-progress {
+            width: 48px; height: 48px;
+            position: relative;
+        }
+
+        .course-progress svg {
+            transform: rotate(-90deg);
+        }
+
+        .course-progress .progress-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* FLOATING ELEMENTS */
+        .float-card {
+            position: absolute;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 16px 20px;
+            border: 1px solid rgba(27, 77, 62, 0.06);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .float-card-1 {
+            top: -20px; right: -30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation-delay: 0s;
+        }
+
+        .float-card-2 {
+            bottom: 30px; left: -40px;
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .ai-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .ai-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .quiz-score {
+            text-align: center;
+        }
+
+        .quiz-score .score-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .quiz-score .score-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== FEATURES ========== */
+        .section {
+            padding: 100px 40px;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 64px;
+        }
+
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(27, 77, 62, 0.06);
+            border: 1px solid rgba(27, 77, 62, 0.1);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+            line-height: 1.15;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .features-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 36px;
+            border: 1px solid rgba(27, 77, 62, 0.06);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(27, 77, 62, 0.02), rgba(240, 165, 0, 0.02));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(27, 77, 62, 0.12);
+        }
+
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .feature-icon.green { background: rgba(27, 77, 62, 0.08); }
+        .feature-icon.gold { background: rgba(240, 165, 0, 0.12); }
+        .feature-icon.teal { background: rgba(42, 122, 95, 0.1); }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ========== HOW IT WORKS ========== */
+        .how-it-works {
+            background: var(--primary-dark);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .how-it-works::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(240, 165, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(42, 122, 95, 0.15) 0%, transparent 50%);
+        }
+
+        .how-it-works .section-tag {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--accent-light);
+        }
+
+        .how-it-works .section-title { color: var(--white); }
+        .how-it-works .section-desc { color: rgba(255, 255, 255, 0.6); }
+
+        .steps-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(240, 165, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .step-number::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: calc(100% + 8px);
+            width: calc(100% + 24px);
+            height: 2px;
+            background: linear-gradient(90deg, rgba(240, 165, 0, 0.4), transparent);
+        }
+
+        .step:last-child .step-number::after { display: none; }
+
+        .step h4 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .step p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.6;
+        }
+
+        /* ========== AI SECTION ========== */
+        .ai-section {
+            background: var(--bg-cream);
+        }
+
+        .ai-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .ai-visual {
+            position: relative;
+        }
+
+        .ai-mockup {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(27, 77, 62, 0.06);
+        }
+
+        .ai-mockup-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .ai-mockup-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+
+        .ai-mockup-dot.red { background: #FF6B6B; }
+        .ai-mockup-dot.yellow { background: #FFD93D; }
+        .ai-mockup-dot.green { background: #6BCB77; }
+
+        .ai-chat {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ai-msg {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .ai-msg.user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: var(--white);
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-msg.bot {
+            align-self: flex-start;
+            background: var(--bg);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+
+        .ai-msg .typing {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        .ai-msg .typing span {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing 1.4s infinite;
+        }
+
+        .ai-msg .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-msg .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-4px); }
+        }
+
+        .ai-content h3 {
+            font-size: clamp(28px, 3vw, 40px);
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+            line-height: 1.15;
+        }
+
+        .ai-content p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .ai-features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .ai-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .ai-feature-check {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            background: rgba(27, 77, 62, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ========== DRM SECTION ========== */
+        .drm-section {
+            background: var(--white);
+        }
+
+        .drm-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .shield-visual {
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        .shield {
+            width: 220px; height: 260px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 30px 80px rgba(27, 77, 62, 0.3);
+        }
+
+        .shield::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: inherit;
+        }
+
+        .shield-icon {
+            font-size: 64px;
+            color: var(--accent);
+            position: relative;
+            z-index: 1;
+        }
+
+        .shield-ring {
+            position: absolute;
+            border: 2px solid rgba(27, 77, 62, 0.1);
+            border-radius: 50%;
+            animation: ringPulse 3s ease-in-out infinite;
+        }
+
+        .ring-1 { width: 300px; height: 300px; animation-delay: 0s; }
+        .ring-2 { width: 380px; height: 380px; animation-delay: 1s; }
+        .ring-3 { width: 460px; height: 460px; animation-delay: 2s; }
+
+        @keyframes ringPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.1; transform: scale(1.05); }
+        }
+
+        .drm-content h3 {
+            font-size: clamp(28px, 3vw, 40px);
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+            line-height: 1.15;
+        }
+
+        .drm-content p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .drm-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .drm-feat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+
+        .drm-feat-icon {
+            font-size: 18px;
+        }
+
+        /* ========== CONTACT ========== */
+        .contact-section {
+            background: var(--bg);
+        }
+
+        .contact-grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-top: 8px;
+        }
+
+        .contact-info-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid rgba(27, 77, 62, 0.06);
+            transition: all 0.3s;
+        }
+
+        .contact-info-card:hover {
+            transform: translateX(6px);
+            box-shadow: var(--shadow-sm);
+            border-color: rgba(27, 77, 62, 0.12);
+        }
+
+        .contact-info-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            background: rgba(27, 77, 62, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .contact-info-card h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 2px;
+        }
+
+        .contact-info-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .contact-form-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(27, 77, 62, 0.06);
+        }
+
+        .contact-form-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid rgba(27, 77, 62, 0.12);
+            background: var(--bg);
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            transition: all 0.3s;
+            outline: none;
+            resize: vertical;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(90, 90, 90, 0.5);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(27, 77, 62, 0.08);
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235A5A5A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        /* ========== TESTIMONIALS ========== */
+        .testimonials {
+            background: var(--bg-cream);
+        }
+
+        .testimonials-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .testimonial-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            border: 1px solid rgba(27, 77, 62, 0.06);
+            transition: all 0.3s;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .testimonial-stars {
+            color: var(--accent);
+            font-size: 16px;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+
+        .testimonial-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text);
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .testimonial-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .testimonial-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .testimonial-role {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ========== CTA ========== */
+        .cta-section {
+            padding: 100px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        }
+
+        .cta-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 30% 50%, rgba(240, 165, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(42, 122, 95, 0.2) 0%, transparent 50%);
+        }
+
+        .cta-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta-inner h2 {
+            font-size: clamp(36px, 4vw, 52px);
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+            line-height: 1.15;
+        }
+
+        .cta-inner p {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 36px;
+            line-height: 1.7;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        /* ========== FOOTER ========== */
+        footer {
+            background: var(--primary-dark);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 60px 40px 30px;
+        }
+
+        .footer-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand .logo-text {
+            color: var(--white);
+        }
+
+        .footer-brand p {
+            font-size: 14px;
+            line-height: 1.7;
+            margin-top: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .footer-col h4 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--white);
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-col a {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            transition: color 0.3s;
+        }
+
+        .footer-col a:hover { color: var(--accent); }
+
+        .footer-bottom {
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ========== MOBILE NAV ========== */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 32px;
+            height: 24px;
+            position: relative;
+            z-index: 1001;
+        }
+
+        .mobile-toggle span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 2px;
+            position: absolute;
+            left: 0;
+            transition: all 0.3s;
+        }
+
+        .mobile-toggle span:nth-child(1) { top: 0; }
+        .mobile-toggle span:nth-child(2) { top: 11px; }
+        .mobile-toggle span:nth-child(3) { top: 22px; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+            .hero-visual { max-width: 500px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .steps-container { grid-template-columns: repeat(2, 1fr); }
+            .step-number::after { display: none; }
+            .ai-grid, .drm-grid { grid-template-columns: 1fr; gap: 40px; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+            .price-card.featured { transform: none; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .testimonials-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-cta { display: none; }
+            .mobile-toggle { display: block; }
+            .hero { padding: 100px 20px 60px; }
+            .section { padding: 60px 20px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .cta-actions { flex-direction: column; align-items: center; }
+            .hero-stats { gap: 24px; }
+            .drm-features { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .hero-actions { flex-direction: column; align-items: flex-start; }
+            .float-card { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav id="navbar">
+        <div class="nav-inner">
+            <a href="#" class="logo">
+                <div class="logo-icon">N</div>
+                <span class="logo-text">Najaah</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How it Works</a></li>
+                <li><a href="#ai">AI Tools</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="#" class="btn btn-outline">Sign In</a>
+                <a href="#" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
+            <div class="hero-grid-pattern"></div>
+        </div>
+        <div class="hero-inner">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    AI-Powered Learning Platform
+                </div>
+                <h1>The Smarter Way to <span class="highlight">Teach & Learn</span></h1>
+                <p class="hero-desc">
+                    A complete white-label educational platform with AI-generated quizzes, DRM-protected video content, and multi-tenancy support — built for modern educational centers.
+                </p>
+                <div class="hero-actions">
+                    <a href="#" class="btn btn-primary btn-lg">Get Started Free →</a>
+                    <a href="#" class="btn btn-outline btn-lg">Watch Demo</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="number">50+</div>
+                        <div class="label">Educational Centers</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="number">12K+</div>
+                        <div class="label">Active Students</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="number">99.9%</div>
+                        <div class="label">Uptime</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-card">
+                    <div class="card-header">
+                        <div class="card-header-left">
+                            <div class="avatar">SA</div>
+                            <div class="card-user-info">
+                                <div class="name">Sarah Ahmed</div>
+                                <div class="role">Grade 11 — Science Track</div>
+                            </div>
+                        </div>
+                        <span class="progress-badge">78% Complete</span>
+                    </div>
+                    <div class="course-list">
+                        <div class="course-item">
+                            <div class="course-icon math">📐</div>
+                            <div class="course-info">
+                                <div class="course-name">Advanced Mathematics</div>
+                                <div class="course-meta">24 Lessons • 6 Quizzes</div>
+                            </div>
+                            <div class="course-progress">
+                                <svg width="48" height="48" viewBox="0 0 48 48">
+                                    <circle cx="24" cy="24" r="20" fill="none" stroke="#eee" stroke-width="4"/>
+                                    <circle cx="24" cy="24" r="20" fill="none" stroke="#1B4D3E" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="31.4" stroke-linecap="round"/>
+                                </svg>
+                                <span class="progress-text">85%</span>
+                            </div>
+                        </div>
+                        <div class="course-item">
+                            <div class="course-icon science">🧪</div>
+                            <div class="course-info">
+                                <div class="course-name">Physics — Mechanics</div>
+                                <div class="course-meta">18 Lessons • 4 Quizzes</div>
+                            </div>
+                            <div class="course-progress">
+                                <svg width="48" height="48" viewBox="0 0 48 48">
+                                    <circle cx="24" cy="24" r="20" fill="none" stroke="#eee" stroke-width="4"/>
+                                    <circle cx="24" cy="24" r="20" fill="none" stroke="#2A7A5F" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="50.24" stroke-linecap="round"/>
+                                </svg>
+                                <span class="progress-text">60%</span>
+                            </div>
+                        </div>
+                        <div class="course-item">
+                            <div class="course-icon lang">📝</div>
+                            <div class="course-info">
+                                <div class="course-name">Arabic Literature</div>
+                                <div class="course-meta">20 Lessons • 5 Quizzes</div>
+                            </div>
+                            <div class="course-progress">
+                                <svg width="48" height="48" viewBox="0 0 48 48">
+                                    <circle cx="24" cy="24" r="20" fill="none" stroke="#eee" stroke-width="4"/>
+                                    <circle cx="24" cy="24" r="20" fill="none" stroke="#F0A500" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="12.56" stroke-linecap="round"/>
+                                </svg>
+                                <span class="progress-text">90%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Cards -->
+                <div class="float-card float-card-1">
+                    <div class="ai-badge">
+                        <div class="ai-icon">🤖</div>
+                        <div>
+                            <div style="font-size:12px; font-weight:700;">AI Quiz Generated</div>
+                            <div style="font-size:11px; color: var(--text-secondary);">15 questions ready</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="float-card float-card-2">
+                    <div class="quiz-score">
+                        <div class="score-num">96%</div>
+                        <div class="score-label">Last Quiz Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+        <div class="section-header scroll-animate">
+            <div class="section-tag">✦ Features</div>
+            <h2 class="section-title">Everything Your Center Needs</h2>
+            <p class="section-desc">A complete toolkit to manage courses, engage students, and grow your educational business.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card scroll-animate">
+                <div class="feature-icon green">🎥</div>
+                <h3>DRM Video Protection</h3>
+                <p>Enterprise-grade DRM with screen recording detection. Your content stays protected from piracy with Widevine & FairPlay encryption.</p>
+            </div>
+            <div class="feature-card scroll-animate">
+                <div class="feature-icon gold">🧠</div>
+                <h3>AI Quiz Generator</h3>
+                <p>Automatically generate quizzes from past exams and educational content using advanced AI. Save hours of manual work.</p>
+            </div>
+            <div class="feature-card scroll-animate">
+                <div class="feature-icon teal">🏢</div>
+                <h3>Multi-Tenancy</h3>
+                <p>White-label architecture lets each educational center have their own branded experience, all from one powerful platform.</p>
+            </div>
+            <div class="feature-card scroll-animate">
+                <div class="feature-icon gold">📊</div>
+                <h3>Advanced Analytics</h3>
+                <p>Track student progress, course completion rates, quiz performance, and engagement metrics in real-time dashboards.</p>
+            </div>
+            <div class="feature-card scroll-animate">
+                <div class="feature-icon green">📱</div>
+                <h3>Mobile-First Design</h3>
+                <p>Native-quality mobile experience built with Flutter. Students can learn anywhere, anytime on any device.</p>
+            </div>
+            <div class="feature-card scroll-animate">
+                <div class="feature-icon teal">🔔</div>
+                <h3>Smart Notifications</h3>
+                <p>Automated reminders, progress updates, and deadline alerts keep students engaged and on track with their learning.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section how-it-works" id="how-it-works">
+        <div class="section-header scroll-animate">
+            <div class="section-tag">✦ How It Works</div>
+            <h2 class="section-title">Launch in Minutes, Not Months</h2>
+            <p class="section-desc">Get your educational platform up and running with just four simple steps.</p>
+        </div>
+        <div class="steps-container">
+            <div class="step scroll-animate">
+                <div class="step-number">1</div>
+                <h4>Create Your Center</h4>
+                <p>Sign up, customize your branding, colors, and logo to match your identity.</p>
+            </div>
+            <div class="step scroll-animate">
+                <div class="step-number">2</div>
+                <h4>Upload Content</h4>
+                <p>Add your video courses, materials, and exams. DRM protection is applied automatically.</p>
+            </div>
+            <div class="step scroll-animate">
+                <div class="step-number">3</div>
+                <h4>Generate Quizzes</h4>
+                <p>Let AI analyze your content and auto-generate comprehensive quizzes and assessments.</p>
+            </div>
+            <div class="step scroll-animate">
+                <div class="step-number">4</div>
+                <h4>Invite Students</h4>
+                <p>Share your platform link. Students join, enroll in courses, and start learning immediately.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI SECTION -->
+    <section class="section ai-section" id="ai">
+        <div class="ai-grid">
+            <div class="ai-visual scroll-animate">
+                <div class="ai-mockup">
+                    <div class="ai-mockup-header">
+                        <span class="ai-mockup-dot red"></span>
+                        <span class="ai-mockup-dot yellow"></span>
+                        <span class="ai-mockup-dot green"></span>
+                    </div>
+                    <div class="ai-chat">
+                        <div class="ai-msg user">Generate a quiz from Chapter 5: Newton's Laws of Motion</div>
+                        <div class="ai-msg bot">
+                            ✅ Analyzed 24 pages of content<br><br>
+                            Generated <strong>15 questions</strong>:<br>
+                            • 5 Multiple Choice<br>
+                            • 5 True/False<br>
+                            • 3 Problem Solving<br>
+                            • 2 Short Answer<br><br>
+                            Difficulty: Mixed (Easy → Hard)<br>
+                            Estimated time: 25 minutes
+                        </div>
+                        <div class="ai-msg user">Add 3 more questions about friction</div>
+                        <div class="ai-msg bot">
+                            <div class="typing">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-content scroll-animate">
+                <div class="section-tag">✦ AI-Powered</div>
+                <h3>Quizzes That Write Themselves</h3>
+                <p>Our AI analyzes your educational content, past exams, and learning objectives to automatically generate high-quality assessments tailored to your curriculum.</p>
+                <div class="ai-features-list">
+                    <div class="ai-feature-item">
+                        <div class="ai-feature-check">✓</div>
+                        Auto-generate from uploaded content & past exams
+                    </div>
+                    <div class="ai-feature-item">
+                        <div class="ai-feature-check">✓</div>
+                        Multiple question types with adjustable difficulty
+                    </div>
+                    <div class="ai-feature-item">
+                        <div class="ai-feature-check">✓</div>
+                        Instant grading with detailed explanations
+                    </div>
+                    <div class="ai-feature-item">
+                        <div class="ai-feature-check">✓</div>
+                        Performance analytics per student & question
+                    </div>
+                </div>
+                <a href="#" class="btn btn-primary">Try AI Quiz Generator →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- DRM SECTION -->
+    <section class="section drm-section" id="security">
+        <div class="drm-grid">
+            <div class="drm-content scroll-animate">
+                <div class="section-tag">✦ Security</div>
+                <h3>Your Content, Fully Protected</h3>
+                <p>Enterprise-grade DRM powered by Bunny Stream ensures your video courses are protected against piracy, screen recording, and unauthorized sharing.</p>
+                <div class="drm-features">
+                    <div class="drm-feat">
+                        <span class="drm-feat-icon">🔐</span>
+                        Widevine L1 DRM
+                    </div>
+                    <div class="drm-feat">
+                        <span class="drm-feat-icon">🍎</span>
+                        FairPlay Streaming
+                    </div>
+                    <div class="drm-feat">
+                        <span class="drm-feat-icon">🖥️</span>
+                        Screen Record Detection
+                    </div>
+                    <div class="drm-feat">
+                        <span class="drm-feat-icon">📵</span>
+                        Anti-Mirroring
+                    </div>
+                    <div class="drm-feat">
+                        <span class="drm-feat-icon">🔑</span>
+                        Token Authentication
+                    </div>
+                    <div class="drm-feat">
+                        <span class="drm-feat-icon">📍</span>
+                        Geo-Restrictions
+                    </div>
+                </div>
+            </div>
+            <div class="shield-visual scroll-animate">
+                <div class="shield-ring ring-1"></div>
+                <div class="shield-ring ring-2"></div>
+                <div class="shield-ring ring-3"></div>
+                <div class="shield">
+                    <span class="shield-icon">🛡️</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section contact-section" id="contact">
+        <div class="section-header scroll-animate">
+            <div class="section-tag">✦ Contact Us</div>
+            <h2 class="section-title">Let's Build Something Great Together</h2>
+            <p class="section-desc">Ready to transform your educational center? Get in touch and we'll craft the perfect plan for you.</p>
+        </div>
+        <div class="contact-grid">
+            <div class="contact-info scroll-animate">
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">💬</div>
+                    <div>
+                        <h4>Chat With Us</h4>
+                        <p>We typically respond within a few hours</p>
+                    </div>
+                </div>
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">📧</div>
+                    <div>
+                        <h4>hello@najaah.io</h4>
+                        <p>Drop us an email anytime</p>
+                    </div>
+                </div>
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">📞</div>
+                    <div>
+                        <h4>+20 123 456 7890</h4>
+                        <p>Sun–Thu, 9 AM – 6 PM (Cairo Time)</p>
+                    </div>
+                </div>
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">📍</div>
+                    <div>
+                        <h4>Alexandria, Egypt</h4>
+                        <p>Serving educational centers worldwide</p>
+                    </div>
+                </div>
+            </div>
+            <div class="contact-form-wrapper scroll-animate">
+                <div class="contact-form-card">
+                    <h3>Send Us a Message</h3>
+                    <p class="form-subtitle">Tell us about your center and we'll get back to you with a tailored solution.</p>
+                    <div class="contact-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" placeholder="Your name">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" placeholder="you@example.com">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Center Name</label>
+                                <input type="text" placeholder="Your educational center">
+                            </div>
+                            <div class="form-group">
+                                <label>Number of Students</label>
+                                <select>
+                                    <option value="" disabled selected>Select range</option>
+                                    <option>Less than 100</option>
+                                    <option>100 – 500</option>
+                                    <option>500 – 1,000</option>
+                                    <option>1,000 – 5,000</option>
+                                    <option>5,000+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group full">
+                            <label>Message</label>
+                            <textarea rows="4" placeholder="Tell us about your needs..."></textarea>
+                        </div>
+                        <button class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">Send Message →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section testimonials">
+        <div class="section-header scroll-animate">
+            <div class="section-tag">✦ Testimonials</div>
+            <h2 class="section-title">Loved by Educators</h2>
+            <p class="section-desc">Hear from educational centers already transforming how they teach.</p>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card scroll-animate">
+                <div class="testimonial-stars">★★★★★</div>
+                <p class="testimonial-text">"The AI quiz generator alone saved us 20+ hours per week. Our teachers can now focus on teaching instead of creating assessments."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">AK</div>
+                    <div>
+                        <div class="testimonial-name">Ahmed Khalil</div>
+                        <div class="testimonial-role">Director, Al-Noor Academy</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card scroll-animate">
+                <div class="testimonial-stars">★★★★★</div>
+                <p class="testimonial-text">"Finally, a platform that takes video protection seriously. We've had zero piracy issues since switching. The DRM is rock solid."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">FM</div>
+                    <div>
+                        <div class="testimonial-name">Fatima Mansour</div>
+                        <div class="testimonial-role">CEO, LearnFirst Education</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card scroll-animate">
+                <div class="testimonial-stars">★★★★★</div>
+                <p class="testimonial-text">"The white-label feature is incredible. Our students don't even know it's a third-party platform. It feels completely ours."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">OS</div>
+                    <div>
+                        <div class="testimonial-name">Omar Saeed</div>
+                        <div class="testimonial-role">Founder, TechEd Institute</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="cta-bg"></div>
+        <div class="cta-inner scroll-animate">
+            <h2>Ready to Transform Your Educational Center?</h2>
+            <p>Join hundreds of educational centers already using our platform to deliver better learning experiences.</p>
+            <div class="cta-actions">
+                <a href="#" class="btn btn-accent btn-lg">Start Your Free Trial →</a>
+                <a href="#" class="btn btn-lg" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">Schedule a Demo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon">N</div>
+                        <span class="logo-text">Najaah</span>
+                    </div>
+                    <p>The smart learning platform built for modern educational centers. Powered by AI, protected by DRM.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="#">AI Tools</a></li>
+                        <li><a href="#">Security</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 Najaah. All rights reserved.</span>
+                <span>
+                    <a href="#" style="color: inherit; text-decoration: none; margin-right: 16px;">Privacy Policy</a>
+                    <a href="#" style="color: inherit; text-decoration: none;">Terms of Service</a>
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+        });
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('visible'), i * 100);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.scroll-animate').forEach(el => observer.observe(el));
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

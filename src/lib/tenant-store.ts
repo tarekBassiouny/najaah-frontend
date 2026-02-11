@@ -1,8 +1,8 @@
 import { defaultApiKey } from "./runtime-config";
 
 export type Branding = {
-  logoUrl?: string;
-  primaryColor?: string;
+  logoUrl?: string | null;
+  primaryColor?: string | null;
   [key: string]: unknown;
 };
 

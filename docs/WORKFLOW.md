@@ -6,7 +6,7 @@ This repository follows a plan-first workflow.
 - Read relevant docs (especially `docs/STYLE_GUIDE.md`).
 - Identify affected areas (routes, features, services, layout).
 - Confirm any template or business constraints.
-- Validate API endpoints against the backend repo at `/Users/tarekbassiouny/projects/xyz-lms/backend` when needed.
+- Validate API endpoints against the backend repo at `/Users/tarekbassiouny/projects/najaah/backend` when needed.
 
 ## 2) Plan (Required)
 - Provide a short, step-by-step plan.

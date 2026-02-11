@@ -1,7 +1,7 @@
 # Admin API Resources (Backend Inventory)
 
 Last verified: 2026-02-01
-Source of truth: `xyz-lms/backend/routes/api/v1/admin/*.php` and `xyz-lms/backend/bootstrap/app.php`.
+Source of truth: `najaah/backend/routes/api/v1/admin/*.php` and `najaah/backend/bootstrap/app.php`.
 
 ## Global Notes
 - Base prefix: `/api/v1/admin`.

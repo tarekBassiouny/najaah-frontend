@@ -29,14 +29,14 @@ export function Header() {
             src="/images/logo/logo-icon.svg"
             width={32}
             height={32}
-            alt="LMS"
+            alt="Najaah"
             className="dark:hidden"
           />
           <Image
             src={darkLogo}
             width={32}
             height={32}
-            alt="LMS"
+            alt="Najaah"
             className="hidden dark:block"
           />
         </Link>

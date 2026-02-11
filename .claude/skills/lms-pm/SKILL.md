@@ -16,7 +16,7 @@ Product management knowledge base for the LMS Admin Panel. This skill provides C
 ## Domain Overview
 
 ### Business Context
-**XYZ LMS** is a multi-tenant Learning Management System that connects:
+**Najaah LMS** is a multi-tenant Learning Management System that connects:
 - **Centers** (education providers) - Offer courses and manage students
 - **Students** - Consume video-based courses on mobile apps
 - **Admins** - Manage content, enrollments, and platform operations
@@ -28,14 +28,14 @@ Product management knowledge base for the LMS Admin Panel. This skill provides C
 - Full access to all features
 - Can create/manage center accounts
 - Views platform-wide analytics
-- Access: `admin.xyz-lms.com`
+- Access: `admin.najaah.me`
 
 #### Center Admin
 - Manages a SINGLE center
 - Creates courses, videos, PDFs
 - Manages student enrollments
 - Views center-specific analytics
-- Access: `centername.xyz-lms.com`
+- Access: `centername.najaah.me`
 
 #### Content Manager
 - Limited center access
@@ -443,6 +443,6 @@ Features scoped to single center:
 ---
 
 ## Related Documentation
-- Backend Domain Rules: `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/codex/CODEX_DOMAIN_RULES.md`
-- Backend Features: `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/features/`
+- Backend Domain Rules: `/Users/tarekbassiouny/projects/najaah/backend/docs/codex/CODEX_DOMAIN_RULES.md`
+- Backend Features: `/Users/tarekbassiouny/projects/najaah/backend/docs/features/`
 - API Documentation: Backend Scribe docs

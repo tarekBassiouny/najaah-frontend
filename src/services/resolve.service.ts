@@ -2,12 +2,15 @@ import axios from "axios";
 import { apiBaseUrl, defaultApiKey, getApiLocale } from "@/lib/runtime-config";
 
 type ResolveCenterResponse = {
+  id?: string | number;
+  slug?: string;
+  name?: string;
   api_key?: string;
   center_id?: string | number;
   center_slug?: string;
   branding?: {
-    logo_url?: string;
-    primary_color?: string;
+    logo_url?: string | null;
+    primary_color?: string | null;
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -17,9 +20,10 @@ type ResolveCenterResult = {
   apiKey?: string;
   centerId?: string | number | null;
   centerSlug?: string | null;
+  centerName?: string | null;
   branding?: {
-    logoUrl?: string;
-    primaryColor?: string;
+    logoUrl?: string | null;
+    primaryColor?: string | null;
     [key: string]: unknown;
   } | null;
 };
@@ -54,8 +58,9 @@ export async function resolveCenter(
 
   return {
     apiKey: payload.api_key,
-    centerId: payload.center_id ?? null,
-    centerSlug: payload.center_slug ?? null,
+    centerId: payload.center_id ?? payload.id ?? null,
+    centerSlug: payload.center_slug ?? payload.slug ?? null,
+    centerName: payload.name ?? null,
     branding,
   };
 }

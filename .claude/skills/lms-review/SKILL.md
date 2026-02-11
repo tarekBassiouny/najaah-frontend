@@ -567,4 +567,4 @@ improved code
 ## Related Documentation
 - Frontend Patterns: `/.claude/skills/lms-frontend/SKILL.md`
 - QA Standards: `/.claude/skills/lms-qa/SKILL.md`
-- Backend Patterns: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms/SKILL.md`
+- Backend Patterns: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah/SKILL.md`

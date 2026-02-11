@@ -2,7 +2,7 @@
 
 **Status:** Updated (post unit-test fix)
 **Audit Date:** 2026-02-02
-**Scope:** `/Users/tarekbassiouny/projects/lms-admin-panel`
+**Scope:** `/Users/tarekbassiouny/projects/najaah-frontend`
 **Executor:** Codex
 
 ---

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TenantIdentityBadge } from "@/components/ui/tenant-identity-badge";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -69,6 +70,8 @@ export function LoginForm() {
 
   return (
     <div className="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-lg dark:border-dark-3 dark:bg-gray-900">
+      <TenantIdentityBadge className="mb-6" />
+
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold text-dark dark:text-white">
           Admin Login

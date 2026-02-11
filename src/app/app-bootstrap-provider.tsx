@@ -1,43 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { resolveCenter } from "@/services/resolve.service";
 import { defaultApiKey } from "@/lib/runtime-config";
 import { setTenantState } from "@/lib/tenant-store";
-
-function isIPAddress(hostname: string) {
-  // IPv4: digits and dots only, all parts are numbers
-  if (/^[\d.]+$/.test(hostname)) {
-    const parts = hostname.split(".");
-    return parts.length === 4 && parts.every((p) => /^\d{1,3}$/.test(p));
-  }
-  // IPv6: contains colons or is wrapped in brackets
-  if (hostname.includes(":") || hostname.startsWith("[")) {
-    return true;
-  }
-  return false;
-}
-
-function getCenterSlugFromHost(host: string) {
-  const hostname = host.split(":")[0];
-
-  // IP addresses don't have subdomains
-  if (isIPAddress(hostname) || hostname === "localhost") {
-    return null;
-  }
-
-  const parts = hostname.split(".");
-  if (parts.length < 3) {
-    return null;
-  }
-
-  const subdomain = parts[0];
-  if (subdomain === "admin") {
-    return null;
-  }
-
-  return subdomain;
-}
+import { getCenterSlugFromHost } from "@/lib/host-routing";
 
 export function AppBootstrapProvider({
   children,
@@ -45,31 +12,41 @@ export function AppBootstrapProvider({
   children: React.ReactNode;
 }) {
   const didRun = useRef(false);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
 
   useEffect(() => {
     if (didRun.current) return;
     didRun.current = true;
 
-    const slug = getCenterSlugFromHost(window.location.host);
+    const bootstrap = async () => {
+      const slug = getCenterSlugFromHost(window.location.host);
 
-    if (!slug) {
-      setTenantState({
-        apiKey: defaultApiKey,
-        centerSlug: null,
-        centerId: null,
-        branding: null,
-        isResolved: true,
-      });
-      return;
-    }
+      if (!slug) {
+        document.documentElement.style.removeProperty("--brand-primary");
+        setTenantState({
+          apiKey: defaultApiKey,
+          centerSlug: null,
+          centerId: null,
+          centerName: null,
+          branding: null,
+          isResolved: true,
+        });
+        setIsBootstrapping(false);
+        return;
+      }
 
-    resolveCenter(slug)
-      .then((resolved) => {
+      setTenantState({ isResolved: false });
+
+      try {
+        const resolved = await resolveCenter(slug);
+
         if (!resolved) {
+          document.documentElement.style.removeProperty("--brand-primary");
           setTenantState({
             apiKey: defaultApiKey,
             centerSlug: null,
             centerId: null,
+            centerName: null,
             branding: null,
             isResolved: true,
           });
@@ -81,27 +58,46 @@ export function AppBootstrapProvider({
             "--brand-primary",
             resolved.branding.primaryColor,
           );
+        } else {
+          document.documentElement.style.removeProperty("--brand-primary");
         }
 
         setTenantState({
           apiKey: resolved.apiKey || defaultApiKey,
           centerSlug: resolved.centerSlug || slug,
           centerId: resolved.centerId ?? null,
+          centerName: resolved.centerName ?? null,
           branding: resolved.branding ?? null,
           isResolved: true,
         });
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Failed to resolve center branding", error);
+        document.documentElement.style.removeProperty("--brand-primary");
         setTenantState({
           apiKey: defaultApiKey,
           centerSlug: null,
           centerId: null,
+          centerName: null,
           branding: null,
           isResolved: true,
         });
-      });
+      } finally {
+        setIsBootstrapping(false);
+      }
+    };
+
+    void bootstrap();
   }, []);
+
+  if (isBootstrapping) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-2 px-4 dark:bg-[#020d1a]">
+        <p className="text-sm text-dark-6 dark:text-dark-5">
+          Loading center settings...
+        </p>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

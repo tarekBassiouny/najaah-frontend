@@ -506,13 +506,13 @@ Defer When:
 - Product Manager: `/.claude/skills/lms-pm/SKILL.md`
 - Code Reviewer: `/.claude/skills/lms-review/SKILL.md`
 
-### Backend Skills (xyz-lms/backend repo)
-- Master Skill: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms/SKILL.md`
-- Architecture: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms-architecture/SKILL.md`
-- Features: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms-features/SKILL.md`
-- API: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms-api/SKILL.md`
-- Quality: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms-quality/SKILL.md`
-- Orchestrator: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/xyz-lms-orchestrator/SKILL.md`
+### Backend Skills (najaah/backend repo)
+- Master Skill: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah/SKILL.md`
+- Architecture: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah-architecture/SKILL.md`
+- Features: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah-features/SKILL.md`
+- API: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah-api/SKILL.md`
+- Quality: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah-quality/SKILL.md`
+- Orchestrator: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah-orchestrator/SKILL.md`
 
 ---
 

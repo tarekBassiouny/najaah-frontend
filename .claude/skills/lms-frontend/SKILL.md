@@ -15,7 +15,7 @@ Comprehensive knowledge base for implementing frontend features in the LMS Admin
 
 ## Project Overview
 
-**LMS Admin Panel** is a multi-tenant admin interface for the XYZ Learning Management System.
+**LMS Admin Panel** is a multi-tenant admin interface for the Najaah Learning Management System.
 
 ### Core Characteristics
 - **Multi-tenant SaaS**: Platform admin vs Center admin based on subdomain
@@ -561,6 +561,6 @@ npm run test:integration  # Run integration tests only
 ---
 
 ## Related Documentation
-- Backend API: `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/`
-- Backend Skills: `/Users/tarekbassiouny/projects/xyz-lms/backend/.claude/skills/`
+- Backend API: `/Users/tarekbassiouny/projects/najaah/backend/docs/`
+- Backend Skills: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/`
 - Component Library: shadcn/ui documentation

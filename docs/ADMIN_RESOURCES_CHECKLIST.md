@@ -2,8 +2,8 @@
 
 Last verified: 2026-02-05  
 Source of truth:
-- `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/api/ADMIN_ENDPOINT_RESOURCE_MAP.md`
-- `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/api/ADMIN_RESOURCES.md`
+- `/Users/tarekbassiouny/projects/najaah/backend/docs/api/ADMIN_ENDPOINT_RESOURCE_MAP.md`
+- `/Users/tarekbassiouny/projects/najaah/backend/docs/api/ADMIN_RESOURCES.md`
 
 Use this checklist for remaining work after the latest endpoint/resource sync.
 

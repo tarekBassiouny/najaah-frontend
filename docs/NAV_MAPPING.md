@@ -2,7 +2,7 @@
 
 This document maps the backend Postman collection folders (admin) to the LMS Admin Panel sidebar navigation. It is a reference only; no UI implementation is implied.
 
-Source: `/Users/tarekbassiouny/projects/xyz-lms/backend/postman/xyz-lms.postman.json`
+Source: `/Users/tarekbassiouny/projects/najaah/backend/postman/najaah.postman.json`
 
 ## Mapping
 - Admin – Auth (JWT) → Auth flow only (no sidebar entry)

@@ -2,8 +2,8 @@
 
 Last verified: 2026-02-05  
 Backend sources:
-- `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/api/ADMIN_ENDPOINT_RESOURCE_MAP.md`
-- `/Users/tarekbassiouny/projects/xyz-lms/backend/docs/api/ADMIN_RESOURCES.md`
+- `/Users/tarekbassiouny/projects/najaah/backend/docs/api/ADMIN_ENDPOINT_RESOURCE_MAP.md`
+- `/Users/tarekbassiouny/projects/najaah/backend/docs/api/ADMIN_RESOURCES.md`
 
 ## Step 1 - Backend inventory (source of truth)
 

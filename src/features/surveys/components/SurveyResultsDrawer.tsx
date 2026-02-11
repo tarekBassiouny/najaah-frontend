@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { useMemo } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { StatsCard } from '@/components/ui/stats-card';
-import { useSurveyAnalytics } from '@/features/surveys/hooks/use-surveys';
-import { normalizeSurveyAnalytics } from '@/features/surveys/services/surveys.service';
-import { AnalyticsBarChart } from '@/features/analytics/components/charts/AnalyticsBarChart';
-import { AnalyticsDonutChart } from '@/features/analytics/components/charts/AnalyticsDonutChart';
-import type { Survey } from '@/features/surveys/types/survey';
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatsCard } from "@/components/ui/stats-card";
+import { useSurveyAnalytics } from "@/features/surveys/hooks/use-surveys";
+import { normalizeSurveyAnalytics } from "@/features/surveys/services/surveys.service";
+import { AnalyticsBarChart } from "@/features/analytics/components/charts/AnalyticsBarChart";
+import { AnalyticsDonutChart } from "@/features/analytics/components/charts/AnalyticsDonutChart";
+import type { Survey } from "@/features/surveys/types/survey";
 
 type SurveyResultsDrawerProps = {
   open: boolean;
@@ -24,7 +24,7 @@ type SurveyResultsDrawerProps = {
 };
 
 function getSurveyTitle(survey?: Survey | null) {
-  if (!survey) return 'Survey Results';
+  if (!survey) return "Survey Results";
   if (survey.title_translations?.en) return survey.title_translations.en;
   if (survey.title_translations?.ar) return survey.title_translations.ar;
   if (survey.title) return String(survey.title);
@@ -32,14 +32,14 @@ function getSurveyTitle(survey?: Survey | null) {
 }
 
 function isRatingQuestion(typeLabel: string) {
-  return typeLabel.toLowerCase().includes('rating');
+  return typeLabel.toLowerCase().includes("rating");
 }
 
 function formatPrimitive(value: unknown) {
-  if (value == null) return '—';
-  if (typeof value === 'number') return value.toLocaleString();
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-  if (typeof value === 'string') return value;
+  if (value == null) return "—";
+  if (typeof value === "number") return value.toLocaleString();
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "string") return value;
   return JSON.stringify(value);
 }
 
@@ -56,11 +56,10 @@ function renderGenericData(data: unknown) {
     return (
       <div className="space-y-2">
         {previewItems.map((item, index) => {
-          if (item && typeof item === 'object') {
-            const entries = Object.entries(item as Record<string, unknown>).slice(
-              0,
-              5,
-            );
+          if (item && typeof item === "object") {
+            const entries = Object.entries(
+              item as Record<string, unknown>,
+            ).slice(0, 5);
 
             return (
               <div
@@ -97,7 +96,7 @@ function renderGenericData(data: unknown) {
     );
   }
 
-  if (data && typeof data === 'object') {
+  if (data && typeof data === "object") {
     const entries = Object.entries(data as Record<string, unknown>);
 
     if (entries.length === 0) {
@@ -124,7 +123,9 @@ function renderGenericData(data: unknown) {
   }
 
   return (
-    <p className="text-sm text-gray-500 dark:text-gray-400">{formatPrimitive(data)}</p>
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      {formatPrimitive(data)}
+    </p>
   );
 }
 
@@ -135,15 +136,12 @@ export function SurveyResultsDrawer({
 }: SurveyResultsDrawerProps) {
   const surveyId = survey?.id;
 
-  const {
-    data,
-    isLoading,
-    isError,
-    isFetching,
-    refetch,
-  } = useSurveyAnalytics(surveyId, {
-    enabled: open && Boolean(surveyId),
-  });
+  const { data, isLoading, isError, isFetching, refetch } = useSurveyAnalytics(
+    surveyId,
+    {
+      enabled: open && Boolean(surveyId),
+    },
+  );
 
   const viewModel = useMemo(
     () => (data ? normalizeSurveyAnalytics(data) : null),
@@ -159,7 +157,8 @@ export function SurveyResultsDrawer({
               {getSurveyTitle(survey)}
             </DialogTitle>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Survey analytics and response breakdown for survey #{surveyId ?? '—'}.
+              Survey analytics and response breakdown for survey #
+              {surveyId ?? "—"}.
             </p>
           </DialogHeader>
 
@@ -219,8 +218,12 @@ export function SurveyResultsDrawer({
                     </div>
                   ) : (
                     viewModel.questions.map((question) => {
-                      const labels = question.options.map((option) => option.label);
-                      const values = question.options.map((option) => option.count);
+                      const labels = question.options.map(
+                        (option) => option.label,
+                      );
+                      const values = question.options.map(
+                        (option) => option.count,
+                      );
                       const showDonut =
                         question.options.length > 0 &&
                         question.options.length <= 5 &&
@@ -237,14 +240,20 @@ export function SurveyResultsDrawer({
                                 {question.title}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {question.typeLabel} • {question.totalResponses.toLocaleString()} responses
+                                {question.typeLabel} •{" "}
+                                {question.totalResponses.toLocaleString()}{" "}
+                                responses
                               </p>
                             </div>
                           </div>
 
                           {question.options.length > 0 ? (
                             showDonut ? (
-                              <AnalyticsDonutChart labels={labels} values={values} height={260} />
+                              <AnalyticsDonutChart
+                                labels={labels}
+                                values={values}
+                                height={260}
+                              />
                             ) : (
                               <AnalyticsBarChart
                                 categories={labels}
@@ -260,14 +269,16 @@ export function SurveyResultsDrawer({
                                 Text Responses
                               </p>
                               <div className="space-y-2">
-                                {question.textResponses.slice(0, 10).map((response, index) => (
-                                  <div
-                                    key={`${question.id}-text-${index}`}
-                                    className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-300"
-                                  >
-                                    {response}
-                                  </div>
-                                ))}
+                                {question.textResponses
+                                  .slice(0, 10)
+                                  .map((response, index) => (
+                                    <div
+                                      key={`${question.id}-text-${index}`}
+                                      className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-300"
+                                    >
+                                      {response}
+                                    </div>
+                                  ))}
                               </div>
                             </div>
                           ) : null}

@@ -1,11 +1,11 @@
-import type { TranslationsRecord } from '@/types/translations';
+import type { TranslationsRecord } from "@/types/translations";
 
 export type SurveyScopeType = 1 | 2;
 
 export type SurveyQuestionType = 1 | 2 | 3 | 4 | 5;
 
 export type SurveyAssignment = {
-  type?: 'all' | 'course' | string;
+  type?: "all" | "course" | string;
   id?: string | number | null;
   [key: string]: unknown;
 };
@@ -100,10 +100,10 @@ export type CreateSurveyPayload = {
   center_id: number | null;
   assignments: Array<
     | {
-        type: 'all';
+        type: "all";
       }
     | {
-        type: 'course';
+        type: "course";
         id: string | number;
       }
   >;

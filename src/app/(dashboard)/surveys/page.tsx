@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/ui/page-header';
-import { CenterPicker } from '@/features/centers/components/CenterPicker';
-import { DeleteSurveyDialog } from '@/features/surveys/components/DeleteSurveyDialog';
-import { SurveyFormDialog } from '@/features/surveys/components/SurveyFormDialog';
-import { SurveyResultsDrawer } from '@/features/surveys/components/SurveyResultsDrawer';
-import { SurveysTable } from '@/features/surveys/components/SurveysTable';
-import type { Survey } from '@/features/surveys/types/survey';
+import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { CenterPicker } from "@/features/centers/components/CenterPicker";
+import { DeleteSurveyDialog } from "@/features/surveys/components/DeleteSurveyDialog";
+import { SurveyFormDialog } from "@/features/surveys/components/SurveyFormDialog";
+import { SurveyResultsDrawer } from "@/features/surveys/components/SurveyResultsDrawer";
+import { SurveysTable } from "@/features/surveys/components/SurveysTable";
+import type { Survey } from "@/features/surveys/types/survey";
 
 export default function SurveysPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);

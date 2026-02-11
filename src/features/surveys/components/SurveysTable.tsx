@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useTenant } from '@/app/tenant-provider';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useEffect, useMemo, useState } from "react";
+import { useTenant } from "@/app/tenant-provider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dropdown,
   DropdownContent,
   DropdownTrigger,
-} from '@/components/ui/dropdown';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Input } from '@/components/ui/input';
-import { ListingCard } from '@/components/ui/listing-card';
-import { ListingFilters } from '@/components/ui/listing-filters';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/dropdown";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import { ListingCard } from "@/components/ui/listing-card";
+import { ListingFilters } from "@/components/ui/listing-filters";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -22,10 +22,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { useSurveys } from '@/features/surveys/hooks/use-surveys';
-import type { Survey } from '@/features/surveys/types/survey';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/table";
+import { useSurveys } from "@/features/surveys/hooks/use-surveys";
+import type { Survey } from "@/features/surveys/types/survey";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 15;
 
@@ -53,32 +53,34 @@ function getScopeBadge(survey: Survey) {
 function getCenterLabel(survey: Survey) {
   if (survey.center?.name) return survey.center.name;
   if (survey.center_id != null) return `Center #${survey.center_id}`;
-  return 'System';
+  return "System";
 }
 
 function getAssignmentLabel(survey: Survey) {
-  const assignments = Array.isArray(survey.assignments) ? survey.assignments : [];
+  const assignments = Array.isArray(survey.assignments)
+    ? survey.assignments
+    : [];
   const firstAssignment = assignments[0];
 
-  if (firstAssignment?.type === 'all') {
-    return 'All Students';
+  if (firstAssignment?.type === "all") {
+    return "All Students";
   }
 
-  if (firstAssignment?.type === 'course' && firstAssignment.id != null) {
+  if (firstAssignment?.type === "course" && firstAssignment.id != null) {
     return `Course #${firstAssignment.id}`;
   }
 
-  if (survey.show_to_all_students) return 'All Students';
+  if (survey.show_to_all_students) return "All Students";
 
-  if (survey.assignment?.type === 'all') {
-    return 'All Students';
+  if (survey.assignment?.type === "all") {
+    return "All Students";
   }
 
-  if (survey.assignment?.type === 'course' && survey.assignment.id != null) {
+  if (survey.assignment?.type === "course" && survey.assignment.id != null) {
     return `Course #${survey.assignment.id}`;
   }
 
-  return '—';
+  return "—";
 }
 
 function getQuestionsCount(survey: Survey) {
@@ -87,12 +89,16 @@ function getQuestionsCount(survey: Survey) {
 }
 
 function getDateRange(survey: Survey) {
-  const start = survey.start_at || '—';
-  const end = survey.end_at || '—';
+  const start = survey.start_at || "—";
+  const end = survey.end_at || "—";
   return `${start} → ${end}`;
 }
 
-export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }: SurveysTableProps) {
+export function SurveysTable({
+  centerId: centerIdProp,
+  onDelete,
+  onViewResults,
+}: SurveysTableProps) {
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
   const normalizedCenterId = useMemo(() => {
@@ -102,8 +108,8 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
   }, [centerId]);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
 
   const params = useMemo(
@@ -145,13 +151,13 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
         isLoading={isLoading}
         hasActiveFilters={Boolean(search.trim())}
         onClear={() => {
-          setSearch('');
-          setQuery('');
+          setSearch("");
+          setQuery("");
           setPage(1);
         }}
         summary={
           <>
-            {total} {total === 1 ? 'survey' : 'surveys'}
+            {total} {total === 1 ? "survey" : "surveys"}
           </>
         }
         gridClassName="grid-cols-1"
@@ -179,15 +185,15 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
           <button
             type="button"
             onClick={() => {
-              setSearch('');
+              setSearch("");
               setPage(1);
-              if (query) setQuery('');
+              if (query) setQuery("");
             }}
             className={cn(
-              'absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300',
+              "absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300",
               search.trim().length > 0
-                ? 'opacity-100'
-                : 'pointer-events-none opacity-0',
+                ? "opacity-100"
+                : "pointer-events-none opacity-0",
             )}
             aria-label="Clear search"
             tabIndex={search.trim().length > 0 ? 0 : -1}
@@ -228,8 +234,8 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
       ) : (
         <div
           className={cn(
-            'overflow-x-auto transition-opacity',
-            isFetching && !isLoading ? 'opacity-60' : 'opacity-100',
+            "overflow-x-auto transition-opacity",
+            isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
           <Table className="min-w-[1080px]">
@@ -286,11 +292,11 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
                 <TableRow>
                   <TableCell colSpan={hasActions ? 8 : 7} className="h-48">
                     <EmptyState
-                      title={query ? 'No surveys found' : 'No surveys yet'}
+                      title={query ? "No surveys found" : "No surveys yet"}
                       description={
                         query
-                          ? 'Try adjusting your search terms'
-                          : 'Create your first survey to start collecting responses.'
+                          ? "Try adjusting your search terms"
+                          : "Create your first survey to start collecting responses."
                       }
                       className="border-0 bg-transparent"
                     />
@@ -313,8 +319,10 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
                         {getCenterLabel(survey)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={survey.is_active ? 'success' : 'default'}>
-                          {survey.is_active ? 'Active' : 'Inactive'}
+                        <Badge
+                          variant={survey.is_active ? "success" : "default"}
+                        >
+                          {survey.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
@@ -342,8 +350,8 @@ export function SurveysTable({ centerId: centerIdProp, onDelete, onViewResults }
                               <DropdownContent
                                 align="end"
                                 className={cn(
-                                  'w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200',
-                                  shouldOpenUp && 'bottom-full mb-2 mt-0',
+                                  "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
+                                  shouldOpenUp && "bottom-full mb-2 mt-0",
                                 )}
                               >
                                 {onViewResults ? (

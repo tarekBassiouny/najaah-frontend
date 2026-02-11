@@ -38,7 +38,10 @@ function resolveStatusVariant(status: string) {
   return "default";
 }
 
-export default function StudentProfilePage({ params, searchParams }: PageProps) {
+export default function StudentProfilePage({
+  params,
+  searchParams,
+}: PageProps) {
   const { centerId, studentId } = use(params);
   const { from, courseId } = use(searchParams);
   const [profile, setProfile] = useState<MockStudentProfile | null>(null);
@@ -232,7 +235,9 @@ export default function StudentProfilePage({ params, searchParams }: PageProps) 
             <TableBody>
               {profile.deviceChangeLog.map((log) => (
                 <TableRow key={log.id}>
-                  <TableCell className="font-medium">{log.deviceName}</TableCell>
+                  <TableCell className="font-medium">
+                    {log.deviceName}
+                  </TableCell>
                   <TableCell>{log.deviceId}</TableCell>
                   <TableCell>{log.changedAt}</TableCell>
                   <TableCell>{log.reason}</TableCell>
@@ -249,19 +254,19 @@ export default function StudentProfilePage({ params, searchParams }: PageProps) 
           <div className="mt-3 flex flex-wrap gap-2">
             {(["all", "active", "completed", "paused"] as const).map(
               (category) => (
-              <Button
-                key={category}
-                type="button"
-                variant={
-                  selectedCourseCategory === category ? "default" : "outline"
-                }
-                size="sm"
-                onClick={() => setSelectedCourseCategory(category)}
-              >
-                {category === "all"
-                  ? "All"
-                  : category.charAt(0).toUpperCase() + category.slice(1)}
-              </Button>
+                <Button
+                  key={category}
+                  type="button"
+                  variant={
+                    selectedCourseCategory === category ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setSelectedCourseCategory(category)}
+                >
+                  {category === "all"
+                    ? "All"
+                    : category.charAt(0).toUpperCase() + category.slice(1)}
+                </Button>
               ),
             )}
           </div>
@@ -280,17 +285,23 @@ export default function StudentProfilePage({ params, searchParams }: PageProps) 
             <TableBody>
               {filteredCourses.map((course) => {
                 const isExpanded = expandedCourseIds.includes(course.id);
-                const videoQuery = (videoSearchByCourse[course.id] ?? "").trim();
+                const videoQuery = (
+                  videoSearchByCourse[course.id] ?? ""
+                ).trim();
                 // Keep video search purely local over the already-loaded list.
                 const visibleVideos = videoQuery
                   ? course.videos.filter((video) =>
-                      video.name.toLowerCase().includes(videoQuery.toLowerCase()),
+                      video.name
+                        .toLowerCase()
+                        .includes(videoQuery.toLowerCase()),
                     )
                   : course.videos;
                 return (
                   <Fragment key={course.id}>
                     <TableRow id={`course-row-${course.id}`}>
-                      <TableCell className="font-medium">{course.title}</TableCell>
+                      <TableCell className="font-medium">
+                        {course.title}
+                      </TableCell>
                       <TableCell className="capitalize">
                         <Badge
                           variant={
@@ -313,7 +324,9 @@ export default function StudentProfilePage({ params, searchParams }: PageProps) 
                           <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
                             <div
                               className="h-2 rounded-full bg-primary transition-all"
-                              style={{ width: `${Math.min(100, Math.max(0, course.progress))}%` }}
+                              style={{
+                                width: `${Math.min(100, Math.max(0, course.progress))}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -339,7 +352,10 @@ export default function StudentProfilePage({ params, searchParams }: PageProps) 
                     </TableRow>
                     {isExpanded ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="bg-gray-50 dark:bg-gray-900/30">
+                        <TableCell
+                          colSpan={5}
+                          className="bg-gray-50 dark:bg-gray-900/30"
+                        >
                           <div className="mb-3 max-w-sm">
                             <Input
                               value={videoSearchByCourse[course.id] ?? ""}
@@ -383,14 +399,17 @@ export default function StudentProfilePage({ params, searchParams }: PageProps) 
                                     <span>
                                       {video.watchCount}/{video.watchLimit}
                                     </span>
-                                    {grantedDeltas[`${course.id}:${video.id}`] ? (
+                                    {grantedDeltas[
+                                      `${course.id}:${video.id}`
+                                    ] ? (
                                       <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                                         +
                                         {
                                           grantedDeltas[
                                             `${course.id}:${video.id}`
                                           ]
-                                        } views
+                                        }{" "}
+                                        views
                                       </span>
                                     ) : null}
                                   </TableCell>

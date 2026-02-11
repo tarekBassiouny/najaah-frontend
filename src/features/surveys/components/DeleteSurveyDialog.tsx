@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { isAxiosError } from 'axios';
+import { useState } from "react";
+import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { HardDeletePanel } from '@/components/ui/hard-delete-panel';
-import { useDeleteSurvey } from '@/features/surveys/hooks/use-surveys';
-import type { Survey } from '@/features/surveys/types/survey';
-import { useModal } from '@/components/ui/modal-store';
+} from "@/components/ui/dialog";
+import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
+import { useDeleteSurvey } from "@/features/surveys/hooks/use-surveys";
+import type { Survey } from "@/features/surveys/types/survey";
+import { useModal } from "@/components/ui/modal-store";
 
 type DeleteSurveyDialogProps = {
   open: boolean;
@@ -26,7 +26,7 @@ function getErrorMessage(error: unknown) {
     if (data?.message) return data.message;
   }
 
-  return 'Unable to delete survey. Please try again.';
+  return "Unable to delete survey. Please try again.";
 }
 
 function getSurveyTitle(survey?: Survey | null) {
@@ -54,8 +54,8 @@ export function DeleteSurveyDialog({
     deleteMutation.mutate(survey.id, {
       onSuccess: () => {
         onOpenChange(false);
-        onSuccess?.('Survey deleted successfully.');
-        showToast('Survey deleted successfully.', 'success');
+        onSuccess?.("Survey deleted successfully.");
+        showToast("Survey deleted successfully.", "success");
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error));
@@ -88,7 +88,7 @@ export function DeleteSurveyDialog({
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}
           onConfirm={handleDelete}
-          resetKey={open ? (survey?.id ?? 'survey') : null}
+          resetKey={open ? (survey?.id ?? "survey") : null}
         />
       </DialogContent>
     </Dialog>

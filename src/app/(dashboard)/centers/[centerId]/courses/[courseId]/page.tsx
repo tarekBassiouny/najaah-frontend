@@ -138,9 +138,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
           (typeof course.category === "object" &&
           course.category &&
           "id" in course.category
-            ? String(
-                (course.category as { id?: string | number }).id ?? "none",
-              )
+            ? String((course.category as { id?: string | number }).id ?? "none")
             : "none"),
       ),
     });
@@ -869,9 +867,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                               course.category &&
                               "id" in course.category
                                 ? String(
-                                    (course.category as {
-                                      id?: string | number;
-                                    }).id ?? "none",
+                                    (
+                                      course.category as {
+                                        id?: string | number;
+                                      }
+                                    ).id ?? "none",
                                   )
                                 : "none"),
                           ),

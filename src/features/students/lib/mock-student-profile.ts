@@ -54,8 +54,18 @@ const COURSE_TEMPLATES = [
     progress: 100,
     enrolledAt: "2025-12-03 14:20",
     videos: [
-      { id: "video-4", name: "Type System Deep Dive", watchCount: 3, watchLimit: 3 },
-      { id: "video-5", name: "Generics and Utility Types", watchCount: 2, watchLimit: 3 },
+      {
+        id: "video-4",
+        name: "Type System Deep Dive",
+        watchCount: 3,
+        watchLimit: 3,
+      },
+      {
+        id: "video-5",
+        name: "Generics and Utility Types",
+        watchCount: 2,
+        watchLimit: 3,
+      },
     ],
   },
   {
@@ -65,8 +75,18 @@ const COURSE_TEMPLATES = [
     progress: 28,
     enrolledAt: "2026-02-01 09:10",
     videos: [
-      { id: "video-6", name: "Routing Strategies", watchCount: 1, watchLimit: 4 },
-      { id: "video-7", name: "Data Fetching Layers", watchCount: 0, watchLimit: 4 },
+      {
+        id: "video-6",
+        name: "Routing Strategies",
+        watchCount: 1,
+        watchLimit: 4,
+      },
+      {
+        id: "video-7",
+        name: "Data Fetching Layers",
+        watchCount: 0,
+        watchLimit: 4,
+      },
     ],
   },
   {
@@ -76,9 +96,24 @@ const COURSE_TEMPLATES = [
     progress: 44,
     enrolledAt: "2026-01-09 16:30",
     videos: [
-      { id: "video-8", name: "RESTful Endpoints", watchCount: 1, watchLimit: 4 },
-      { id: "video-9", name: "Validation & Error Handling", watchCount: 1, watchLimit: 4 },
-      { id: "video-10", name: "Pagination Patterns", watchCount: 0, watchLimit: 4 },
+      {
+        id: "video-8",
+        name: "RESTful Endpoints",
+        watchCount: 1,
+        watchLimit: 4,
+      },
+      {
+        id: "video-9",
+        name: "Validation & Error Handling",
+        watchCount: 1,
+        watchLimit: 4,
+      },
+      {
+        id: "video-10",
+        name: "Pagination Patterns",
+        watchCount: 0,
+        watchLimit: 4,
+      },
     ],
   },
   {
@@ -89,8 +124,18 @@ const COURSE_TEMPLATES = [
     enrolledAt: "2025-10-27 12:15",
     videos: [
       { id: "video-11", name: "SELECT Mastery", watchCount: 3, watchLimit: 3 },
-      { id: "video-12", name: "JOINs in Real Scenarios", watchCount: 3, watchLimit: 3 },
-      { id: "video-13", name: "CTEs and Window Functions", watchCount: 2, watchLimit: 3 },
+      {
+        id: "video-12",
+        name: "JOINs in Real Scenarios",
+        watchCount: 3,
+        watchLimit: 3,
+      },
+      {
+        id: "video-13",
+        name: "CTEs and Window Functions",
+        watchCount: 2,
+        watchLimit: 3,
+      },
     ],
   },
   {
@@ -100,9 +145,24 @@ const COURSE_TEMPLATES = [
     progress: 73,
     enrolledAt: "2026-01-29 11:05",
     videos: [
-      { id: "video-14", name: "Information Density", watchCount: 2, watchLimit: 5 },
-      { id: "video-15", name: "Table Interactions", watchCount: 2, watchLimit: 5 },
-      { id: "video-16", name: "Action Hierarchy", watchCount: 1, watchLimit: 5 },
+      {
+        id: "video-14",
+        name: "Information Density",
+        watchCount: 2,
+        watchLimit: 5,
+      },
+      {
+        id: "video-15",
+        name: "Table Interactions",
+        watchCount: 2,
+        watchLimit: 5,
+      },
+      {
+        id: "video-16",
+        name: "Action Hierarchy",
+        watchCount: 1,
+        watchLimit: 5,
+      },
     ],
   },
   {
@@ -112,8 +172,18 @@ const COURSE_TEMPLATES = [
     progress: 36,
     enrolledAt: "2026-02-02 18:40",
     videos: [
-      { id: "video-17", name: "Component Unit Tests", watchCount: 1, watchLimit: 4 },
-      { id: "video-18", name: "Querying by Role", watchCount: 0, watchLimit: 4 },
+      {
+        id: "video-17",
+        name: "Component Unit Tests",
+        watchCount: 1,
+        watchLimit: 4,
+      },
+      {
+        id: "video-18",
+        name: "Querying by Role",
+        watchCount: 0,
+        watchLimit: 4,
+      },
     ],
   },
   {
@@ -124,8 +194,18 @@ const COURSE_TEMPLATES = [
     enrolledAt: "2026-02-06 09:55",
     videos: [
       { id: "video-19", name: "Bundle Analysis", watchCount: 0, watchLimit: 4 },
-      { id: "video-20", name: "Memoization Tradeoffs", watchCount: 0, watchLimit: 4 },
-      { id: "video-21", name: "Rendering Budgets", watchCount: 0, watchLimit: 4 },
+      {
+        id: "video-20",
+        name: "Memoization Tradeoffs",
+        watchCount: 0,
+        watchLimit: 4,
+      },
+      {
+        id: "video-21",
+        name: "Rendering Budgets",
+        watchCount: 0,
+        watchLimit: 4,
+      },
     ],
   },
 ];
@@ -152,7 +232,9 @@ export function getMockStudentProfile(
   centerId: string,
 ): MockStudentProfile {
   const numericId = Number(studentId);
-  const suffix = Number.isNaN(numericId) ? studentId.slice(-3) : String(numericId);
+  const suffix = Number.isNaN(numericId)
+    ? studentId.slice(-3)
+    : String(numericId);
 
   return {
     id: studentId,

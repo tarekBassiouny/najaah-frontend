@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { use, useState } from 'react';
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/ui/page-header';
-import { DeleteSurveyDialog } from '@/features/surveys/components/DeleteSurveyDialog';
-import { SurveyFormDialog } from '@/features/surveys/components/SurveyFormDialog';
-import { SurveyResultsDrawer } from '@/features/surveys/components/SurveyResultsDrawer';
-import { SurveysTable } from '@/features/surveys/components/SurveysTable';
-import type { Survey } from '@/features/surveys/types/survey';
+import { use, useState } from "react";
+import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { DeleteSurveyDialog } from "@/features/surveys/components/DeleteSurveyDialog";
+import { SurveyFormDialog } from "@/features/surveys/components/SurveyFormDialog";
+import { SurveyResultsDrawer } from "@/features/surveys/components/SurveyResultsDrawer";
+import { SurveysTable } from "@/features/surveys/components/SurveysTable";
+import type { Survey } from "@/features/surveys/types/survey";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -33,9 +33,9 @@ export default function CenterSurveysPage({ params }: PageProps) {
         title="Center Surveys"
         description="Manage surveys for this center"
         breadcrumbs={[
-          { label: 'Centers', href: '/centers' },
+          { label: "Centers", href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: 'Surveys' },
+          { label: "Surveys" },
         ]}
         actions={
           <>

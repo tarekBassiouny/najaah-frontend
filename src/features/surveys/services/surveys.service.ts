@@ -1,4 +1,4 @@
-import { http } from '@/lib/http';
+import { http } from "@/lib/http";
 import type {
   CreateSurveyPayload,
   ListSurveysParams,
@@ -11,7 +11,7 @@ import type {
   SurveyAnalyticsViewModel,
   SurveyQuestion,
   SurveysResponse,
-} from '@/features/surveys/types/survey';
+} from "@/features/surveys/types/survey";
 
 type RawResponse = {
   data?: unknown;
@@ -21,7 +21,7 @@ type RawResponse = {
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as Record<string, unknown>;
 }
 
@@ -91,14 +91,16 @@ function normalizeSurveysResponse(
     {};
 
   const page =
-    Number(meta.current_page ?? meta.page ?? unwrapped.current_page ?? root.page) ||
-    fallback.page;
+    Number(
+      meta.current_page ?? meta.page ?? unwrapped.current_page ?? root.page,
+    ) || fallback.page;
 
   const perPage =
     Number(meta.per_page ?? unwrapped.per_page ?? root.per_page) ||
     fallback.per_page;
 
-  const total = Number(meta.total ?? unwrapped.total ?? root.total) || items.length;
+  const total =
+    Number(meta.total ?? unwrapped.total ?? root.total) || items.length;
 
   const lastPage =
     Number(meta.last_page ?? unwrapped.last_page ?? root.last_page) ||
@@ -119,8 +121,8 @@ function normalizeSurvey(raw: unknown): Survey {
 }
 
 function toNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim()) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
   }
@@ -129,8 +131,8 @@ function toNumber(value: unknown): number | null {
 
 function prettifyKey(key: string) {
   return key
-    .replace(/_/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
@@ -157,37 +159,49 @@ function getTranslationText(value: unknown): string | null {
   if (!translations) return null;
 
   const english = translations.en;
-  if (typeof english === 'string' && english.trim()) return english.trim();
+  if (typeof english === "string" && english.trim()) return english.trim();
 
   const arabic = translations.ar;
-  if (typeof arabic === 'string' && arabic.trim()) return arabic.trim();
+  if (typeof arabic === "string" && arabic.trim()) return arabic.trim();
 
   const first = Object.values(translations).find(
-    (item) => typeof item === 'string' && item.trim(),
+    (item) => typeof item === "string" && item.trim(),
   );
 
-  return typeof first === 'string' ? first.trim() : null;
+  return typeof first === "string" ? first.trim() : null;
 }
 
 function getQuestionTypeLabel(type: unknown): string {
-  const normalized = String(type ?? '').trim().toLowerCase();
+  const normalized = String(type ?? "")
+    .trim()
+    .toLowerCase();
 
-  if (normalized === '1' || normalized === 'single_choice') return 'Single Choice';
-  if (normalized === '2' || normalized === 'multiple_choice') return 'Multiple Choice';
-  if (normalized === '3' || normalized === 'rating') return 'Rating';
-  if (normalized === '4' || normalized === 'text') return 'Text';
-  if (normalized === '5' || normalized === 'yes_no') return 'Yes / No';
+  if (normalized === "1" || normalized === "single_choice")
+    return "Single Choice";
+  if (normalized === "2" || normalized === "multiple_choice")
+    return "Multiple Choice";
+  if (normalized === "3" || normalized === "rating") return "Rating";
+  if (normalized === "4" || normalized === "text") return "Text";
+  if (normalized === "5" || normalized === "yes_no") return "Yes / No";
 
-  return normalized ? prettifyKey(normalized) : 'Question';
+  return normalized ? prettifyKey(normalized) : "Question";
 }
 
 function getOptionLabel(value: Record<string, unknown>, index: number) {
   return (
     getTranslationText(value.option_translations) ??
-    (typeof value.label === 'string' && value.label.trim() ? value.label.trim() : null) ??
-    (typeof value.option === 'string' && value.option.trim() ? value.option.trim() : null) ??
-    (typeof value.text === 'string' && value.text.trim() ? value.text.trim() : null) ??
-    (typeof value.title === 'string' && value.title.trim() ? value.title.trim() : null) ??
+    (typeof value.label === "string" && value.label.trim()
+      ? value.label.trim()
+      : null) ??
+    (typeof value.option === "string" && value.option.trim()
+      ? value.option.trim()
+      : null) ??
+    (typeof value.text === "string" && value.text.trim()
+      ? value.text.trim()
+      : null) ??
+    (typeof value.title === "string" && value.title.trim()
+      ? value.title.trim()
+      : null) ??
     `Option ${index + 1}`
   );
 }
@@ -203,7 +217,9 @@ function getOptionCount(value: Record<string, unknown>) {
   );
 }
 
-function extractOptions(question: Record<string, unknown>): SurveyAnalyticsOption[] {
+function extractOptions(
+  question: Record<string, unknown>,
+): SurveyAnalyticsOption[] {
   const optionArray =
     firstArray<unknown>([
       question.options,
@@ -216,7 +232,7 @@ function extractOptions(question: Record<string, unknown>): SurveyAnalyticsOptio
     .map((item, index) => {
       const record = asRecord(item);
       if (!record) {
-        if (typeof item === 'string' && item.trim()) {
+        if (typeof item === "string" && item.trim()) {
           return { label: item.trim(), count: 0 };
         }
         return null;
@@ -242,16 +258,16 @@ function extractTextResponses(question: Record<string, unknown>): string[] {
 
   return textSources
     .map((item) => {
-      if (typeof item === 'string') return item.trim();
+      if (typeof item === "string") return item.trim();
       const record = asRecord(item);
-      if (!record) return '';
+      if (!record) return "";
       const candidate =
-        (typeof record.text === 'string' && record.text) ||
-        (typeof record.answer === 'string' && record.answer) ||
-        (typeof record.response === 'string' && record.response) ||
-        (typeof record.value === 'string' && record.value) ||
-        (typeof record.content === 'string' && record.content) ||
-        '';
+        (typeof record.text === "string" && record.text) ||
+        (typeof record.answer === "string" && record.answer) ||
+        (typeof record.response === "string" && record.response) ||
+        (typeof record.value === "string" && record.value) ||
+        (typeof record.content === "string" && record.content) ||
+        "";
       return candidate.trim();
     })
     .filter(Boolean);
@@ -261,20 +277,22 @@ function extractQuestionTitle(question: SurveyQuestion, index: number) {
   const translated = getTranslationText(question.question_translations);
   if (translated) return translated;
 
-  if (typeof question.question === 'string' && question.question.trim()) {
+  if (typeof question.question === "string" && question.question.trim()) {
     return question.question.trim();
   }
-  if (typeof question.title === 'string' && question.title.trim()) {
+  if (typeof question.title === "string" && question.title.trim()) {
     return question.title.trim();
   }
-  if (typeof question.text === 'string' && question.text.trim()) {
+  if (typeof question.text === "string" && question.text.trim()) {
     return question.text.trim();
   }
 
   return `Question ${index + 1}`;
 }
 
-function extractQuestions(root: Record<string, unknown>): SurveyAnalyticsQuestionView[] {
+function extractQuestions(
+  root: Record<string, unknown>,
+): SurveyAnalyticsQuestionView[] {
   const candidates = [
     root.questions,
     root.question_analytics,
@@ -285,9 +303,13 @@ function extractQuestions(root: Record<string, unknown>): SurveyAnalyticsQuestio
   const questionArray = firstArray<SurveyQuestion>(candidates) ?? [];
 
   return questionArray.map((question, index) => {
-    const questionRecord = (asRecord(question) ?? {}) as Record<string, unknown>;
+    const questionRecord = (asRecord(question) ?? {}) as Record<
+      string,
+      unknown
+    >;
     const options = extractOptions(questionRecord);
-    const textResponses = options.length > 0 ? [] : extractTextResponses(questionRecord);
+    const textResponses =
+      options.length > 0 ? [] : extractTextResponses(questionRecord);
 
     const explicitTotal =
       toNumber(questionRecord.total_responses) ??
@@ -330,11 +352,11 @@ export function normalizeSurveyAnalytics(
   const root = asRecord(raw) ?? {};
 
   const questionMetricsSkipKeys = new Set([
-    'questions',
-    'question_analytics',
-    'breakdown',
-    'analytics',
-    'meta',
+    "questions",
+    "question_analytics",
+    "breakdown",
+    "analytics",
+    "meta",
   ]);
 
   const summaryNodes = [
@@ -356,7 +378,7 @@ export function normalizeSurveyAnalytics(
 
   const extraSections: SurveyAnalyticsSection[] = Object.entries(root).reduce(
     (sections, [key, value]) => {
-      if (key === 'questions' || key === 'question_analytics') {
+      if (key === "questions" || key === "question_analytics") {
         return sections;
       }
 
@@ -385,8 +407,10 @@ export function normalizeSurveyAnalytics(
   };
 }
 
-export async function listSurveys(params: ListSurveysParams): Promise<SurveysResponse> {
-  const { data } = await http.get<RawResponse>('/api/v1/admin/surveys', {
+export async function listSurveys(
+  params: ListSurveysParams,
+): Promise<SurveysResponse> {
+  const { data } = await http.get<RawResponse>("/api/v1/admin/surveys", {
     params: {
       page: params.page,
       per_page: params.per_page,
@@ -398,8 +422,13 @@ export async function listSurveys(params: ListSurveysParams): Promise<SurveysRes
   return normalizeSurveysResponse(data, params);
 }
 
-export async function createSurvey(payload: CreateSurveyPayload): Promise<Survey> {
-  const { data } = await http.post<RawResponse>('/api/v1/admin/surveys', payload);
+export async function createSurvey(
+  payload: CreateSurveyPayload,
+): Promise<Survey> {
+  const { data } = await http.post<RawResponse>(
+    "/api/v1/admin/surveys",
+    payload,
+  );
   return normalizeSurvey(data);
 }
 

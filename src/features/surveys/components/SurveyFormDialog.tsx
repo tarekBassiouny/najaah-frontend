@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,29 +12,29 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useCreateSurvey } from '@/features/surveys/hooks/use-surveys';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateSurvey } from "@/features/surveys/hooks/use-surveys";
 import type {
   CreateSurveyPayload,
   SurveyQuestionType,
-} from '@/features/surveys/types/survey';
-import { listCourses } from '@/features/courses/services/courses.service';
+} from "@/features/surveys/types/survey";
+import { listCourses } from "@/features/courses/services/courses.service";
 
 const QUESTION_TYPES: Array<{ value: SurveyQuestionType; label: string }> = [
-  { value: 1, label: 'Single Choice' },
-  { value: 2, label: 'Multiple Choice' },
-  { value: 3, label: 'Rating' },
-  { value: 4, label: 'Text' },
-  { value: 5, label: 'Yes / No' },
+  { value: 1, label: "Single Choice" },
+  { value: 2, label: "Multiple Choice" },
+  { value: 3, label: "Rating" },
+  { value: 4, label: "Text" },
+  { value: 5, label: "Yes / No" },
 ];
 
 type QuestionDraft = {
@@ -52,7 +52,7 @@ type SurveyFormDialogProps = {
 };
 
 const defaultQuestion = (): QuestionDraft => ({
-  question: '',
+  question: "",
   type: 3,
   isRequired: true,
   options: [],
@@ -66,8 +66,8 @@ function getCourseLabel(course: Record<string, unknown>) {
   return (
     titleTranslations?.en ||
     titleTranslations?.ar ||
-    (typeof course.title === 'string' ? course.title : null) ||
-    (typeof course.name === 'string' ? course.name : null) ||
+    (typeof course.title === "string" ? course.title : null) ||
+    (typeof course.name === "string" ? course.name : null) ||
     `Course #${course.id}`
   );
 }
@@ -78,11 +78,11 @@ function getErrorMessage(error: unknown) {
       | { message?: string; errors?: Record<string, string[]> }
       | undefined;
 
-    if (typeof data?.message === 'string' && data.message.trim()) {
+    if (typeof data?.message === "string" && data.message.trim()) {
       return data.message;
     }
 
-    if (data?.errors && typeof data.errors === 'object') {
+    if (data?.errors && typeof data.errors === "object") {
       const firstEntry = Object.values(data.errors)[0];
       if (Array.isArray(firstEntry) && firstEntry.length > 0) {
         return firstEntry[0];
@@ -90,7 +90,7 @@ function getErrorMessage(error: unknown) {
     }
   }
 
-  return 'Unable to create survey. Please try again.';
+  return "Unable to create survey. Please try again.";
 }
 
 export function SurveyFormDialog({
@@ -101,17 +101,19 @@ export function SurveyFormDialog({
 }: SurveyFormDialogProps) {
   const createMutation = useCreateSurvey();
   const [formError, setFormError] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [isMandatory, setIsMandatory] = useState(true);
   const [allowMultipleSubmissions, setAllowMultipleSubmissions] =
     useState(true);
-  const [startAt, setStartAt] = useState('');
-  const [endAt, setEndAt] = useState('');
-  const [assignmentType, setAssignmentType] = useState<'all' | 'course'>('all');
-  const [assignmentCourseId, setAssignmentCourseId] = useState('none');
-  const [questions, setQuestions] = useState<QuestionDraft[]>([defaultQuestion()]);
+  const [startAt, setStartAt] = useState("");
+  const [endAt, setEndAt] = useState("");
+  const [assignmentType, setAssignmentType] = useState<"all" | "course">("all");
+  const [assignmentCourseId, setAssignmentCourseId] = useState("none");
+  const [questions, setQuestions] = useState<QuestionDraft[]>([
+    defaultQuestion(),
+  ]);
 
   const normalizedCenterId = useMemo(() => {
     if (centerId == null) return null;
@@ -122,7 +124,7 @@ export function SurveyFormDialog({
   const scopeType = normalizedCenterId != null ? 2 : 1;
 
   const { data: coursesData, isLoading: isCoursesLoading } = useQuery({
-    queryKey: ['survey-assignment-courses', normalizedCenterId ?? 'system'],
+    queryKey: ["survey-assignment-courses", normalizedCenterId ?? "system"],
     queryFn: () =>
       listCourses({
         page: 1,
@@ -136,7 +138,7 @@ export function SurveyFormDialog({
   const courseOptions = useMemo(
     () =>
       (coursesData?.items ?? [])
-        .filter((course) => course && typeof course === 'object')
+        .filter((course) => course && typeof course === "object")
         .map((course) => {
           const typedCourse = course as Record<string, unknown>;
           return {
@@ -151,15 +153,15 @@ export function SurveyFormDialog({
     if (!open) return;
 
     setFormError(null);
-    setTitle('');
-    setDescription('');
+    setTitle("");
+    setDescription("");
     setIsActive(false);
     setIsMandatory(true);
     setAllowMultipleSubmissions(true);
-    setStartAt('');
-    setEndAt('');
-    setAssignmentType('all');
-    setAssignmentCourseId('none');
+    setStartAt("");
+    setEndAt("");
+    setAssignmentType("all");
+    setAssignmentCourseId("none");
     setQuestions([defaultQuestion()]);
   }, [open]);
 
@@ -167,24 +169,26 @@ export function SurveyFormDialog({
     index: number,
     updater: (_question: QuestionDraft) => QuestionDraft,
   ) => {
-    setQuestions((prev) => prev.map((item, i) => (i === index ? updater(item) : item)));
+    setQuestions((prev) =>
+      prev.map((item, i) => (i === index ? updater(item) : item)),
+    );
   };
 
   const submit = () => {
     setFormError(null);
 
     if (!title.trim()) {
-      setFormError('Survey title is required.');
+      setFormError("Survey title is required.");
       return;
     }
 
     if (!startAt || !endAt) {
-      setFormError('Start date and end date are required.');
+      setFormError("Start date and end date are required.");
       return;
     }
 
     if (questions.length === 0) {
-      setFormError('At least one question is required.');
+      setFormError("At least one question is required.");
       return;
     }
 
@@ -223,8 +227,8 @@ export function SurveyFormDialog({
       };
     });
 
-    if (assignmentType === 'course' && assignmentCourseId === 'none') {
-      setFormError('Please select a course for assignment.');
+    if (assignmentType === "course" && assignmentCourseId === "none") {
+      setFormError("Please select a course for assignment.");
       return;
     }
 
@@ -232,14 +236,14 @@ export function SurveyFormDialog({
       scope_type: scopeType,
       center_id: normalizedCenterId,
       assignments:
-        assignmentType === 'course' && assignmentCourseId !== 'none'
+        assignmentType === "course" && assignmentCourseId !== "none"
           ? [
               {
-                type: 'course',
+                type: "course",
                 id: assignmentCourseId,
               },
             ]
-          : [{ type: 'all' }],
+          : [{ type: "all" }],
       title_translations: {
         en: title.trim(),
         ar: title.trim(),
@@ -262,7 +266,7 @@ export function SurveyFormDialog({
     createMutation.mutate(payload, {
       onSuccess: () => {
         onOpenChange(false);
-        onSuccess?.('Survey created successfully.');
+        onSuccess?.("Survey created successfully.");
       },
       onError: (error) => {
         setFormError(getErrorMessage(error));
@@ -277,7 +281,7 @@ export function SurveyFormDialog({
       <DialogContent className="max-h-[95vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Create {scopeType === 2 ? 'Center' : 'System'} Survey
+            Create {scopeType === 2 ? "Center" : "System"} Survey
           </DialogTitle>
           <DialogDescription>
             Build a survey with scoped assignment rules and configurable
@@ -346,7 +350,7 @@ export function SurveyFormDialog({
             <Select
               value={assignmentType}
               onValueChange={(value) => {
-                if (value === 'all' || value === 'course') {
+                if (value === "all" || value === "course") {
                   setAssignmentType(value);
                 }
               }}
@@ -361,7 +365,7 @@ export function SurveyFormDialog({
             </Select>
           </div>
 
-          {assignmentType === 'course' ? (
+          {assignmentType === "course" ? (
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Course
@@ -374,7 +378,9 @@ export function SurveyFormDialog({
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue
                     placeholder={
-                      isCoursesLoading ? 'Loading courses...' : 'Select a course'
+                      isCoursesLoading
+                        ? "Loading courses..."
+                        : "Select a course"
                     }
                   />
                 </SelectTrigger>
@@ -437,7 +443,9 @@ export function SurveyFormDialog({
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => setQuestions((prev) => [...prev, defaultQuestion()])}
+              onClick={() =>
+                setQuestions((prev) => [...prev, defaultQuestion()])
+              }
             >
               Add Question
             </Button>
@@ -504,7 +512,7 @@ export function SurveyFormDialog({
                             nextType === 1 || nextType === 2
                               ? prev.options.length > 0
                                 ? prev.options
-                                : ['']
+                                : [""]
                               : [],
                         }));
                       }}
@@ -514,7 +522,10 @@ export function SurveyFormDialog({
                       </SelectTrigger>
                       <SelectContent>
                         {QUESTION_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={String(type.value)}>
+                          <SelectItem
+                            key={type.value}
+                            value={String(type.value)}
+                          >
                             {type.label}
                           </SelectItem>
                         ))}
@@ -552,7 +563,7 @@ export function SurveyFormDialog({
                         onClick={() =>
                           updateQuestion(questionIndex, (prev) => ({
                             ...prev,
-                            options: [...prev.options, ''],
+                            options: [...prev.options, ""],
                           }))
                         }
                       >
@@ -561,14 +572,19 @@ export function SurveyFormDialog({
                     </div>
 
                     {question.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="flex items-center gap-2">
+                      <div
+                        key={optionIndex}
+                        className="flex items-center gap-2"
+                      >
                         <Input
                           value={option}
                           onChange={(event) =>
                             updateQuestion(questionIndex, (prev) => ({
                               ...prev,
                               options: prev.options.map((item, index) =>
-                                index === optionIndex ? event.target.value : item,
+                                index === optionIndex
+                                  ? event.target.value
+                                  : item,
                               ),
                             }))
                           }
@@ -621,7 +637,7 @@ export function SurveyFormDialog({
               }
             }}
           >
-            {isPending ? 'Creating...' : 'Create Survey'}
+            {isPending ? "Creating..." : "Create Survey"}
           </Button>
         </DialogFooter>
       </DialogContent>

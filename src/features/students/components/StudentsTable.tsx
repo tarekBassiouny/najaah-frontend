@@ -226,7 +226,9 @@ export function StudentsTable({
           </>
         }
         gridClassName={
-          showCenterFilter ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"
+          showCenterFilter
+            ? "grid-cols-1 md:grid-cols-3"
+            : "grid-cols-1 md:grid-cols-2"
         }
       >
         <div className="relative">
@@ -400,10 +402,7 @@ export function StudentsTable({
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={hasActions ? 9 : 8}
-                    className="h-48"
-                  >
+                  <TableCell colSpan={hasActions ? 9 : 8} className="h-48">
                     <EmptyState
                       title={query ? "No students found" : "No students yet"}
                       description={

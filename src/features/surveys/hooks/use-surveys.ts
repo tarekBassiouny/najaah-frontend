@@ -3,24 +3,24 @@ import {
   useQuery,
   useQueryClient,
   type UseQueryOptions,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import {
   createSurvey,
   deleteSurvey,
   getSurveyAnalytics,
   listSurveys,
-} from '@/features/surveys/services/surveys.service';
+} from "@/features/surveys/services/surveys.service";
 import type {
   CreateSurveyPayload,
   ListSurveysParams,
   Survey,
   SurveyAnalyticsRaw,
   SurveysResponse,
-} from '@/features/surveys/types/survey';
+} from "@/features/surveys/types/survey";
 
 type UseSurveysOptions = Omit<
   UseQueryOptions<SurveysResponse>,
-  'queryKey' | 'queryFn'
+  "queryKey" | "queryFn"
 >;
 
 export function useSurveys(
@@ -28,7 +28,7 @@ export function useSurveys(
   options?: UseSurveysOptions,
 ) {
   return useQuery({
-    queryKey: ['surveys', params],
+    queryKey: ["surveys", params],
     queryFn: () => listSurveys(params),
     placeholderData: (previous) => previous,
     ...options,
@@ -41,7 +41,7 @@ export function useCreateSurvey() {
   return useMutation({
     mutationFn: (payload: CreateSurveyPayload) => createSurvey(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ["surveys"] });
     },
   });
 }
@@ -52,14 +52,14 @@ export function useDeleteSurvey() {
   return useMutation({
     mutationFn: (surveyId: string | number) => deleteSurvey(surveyId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ["surveys"] });
     },
   });
 }
 
 type UseSurveyAnalyticsOptions = Omit<
   UseQueryOptions<SurveyAnalyticsRaw>,
-  'queryKey' | 'queryFn'
+  "queryKey" | "queryFn"
 >;
 
 export function useSurveyAnalytics(
@@ -67,7 +67,7 @@ export function useSurveyAnalytics(
   options?: UseSurveyAnalyticsOptions,
 ) {
   return useQuery({
-    queryKey: ['survey-analytics', surveyId],
+    queryKey: ["survey-analytics", surveyId],
     queryFn: () => getSurveyAnalytics(surveyId!),
     enabled: Boolean(surveyId),
     ...options,

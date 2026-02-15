@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import {
@@ -124,7 +124,6 @@ export function BulkEnrollStudentsDialog({
   allowCenterChange = false,
   onSuccess,
 }: BulkEnrollStudentsDialogProps) {
-  const descriptionId = useId();
   const queryClient = useQueryClient();
   const { centerSlug, centerId: tenantCenterId } = useTenant();
   const isPlatformAdmin = !centerSlug;
@@ -386,11 +385,10 @@ export function BulkEnrollStudentsDialog({
     >
       <DialogContent
         className="w-[calc(100vw-1.5rem)] max-w-2xl p-4 sm:p-6"
-        aria-describedby={descriptionId}
       >
         <DialogHeader>
           <DialogTitle>Enroll Students</DialogTitle>
-          <DialogDescription id={descriptionId}>
+          <DialogDescription>
             Choose {showCenterPicker ? "a center and " : ""}a course to enroll{" "}
             {students.length} selected students.
           </DialogDescription>

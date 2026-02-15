@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,6 @@ export function BulkUpdateStudentStatusDialog({
   students,
   onSuccess,
 }: BulkUpdateStudentStatusDialogProps) {
-  const descriptionId = useId();
   const [status, setStatus] = useState<string>("1");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<{
@@ -90,10 +89,10 @@ export function BulkUpdateStudentStatusDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent className="max-w-xl" aria-describedby={descriptionId}>
+      <DialogContent className="max-w-xl">
         <DialogHeader className="space-y-2">
           <DialogTitle>Bulk Change Status</DialogTitle>
-          <DialogDescription id={descriptionId}>
+          <DialogDescription>
             Update status for {students.length} selected students.
           </DialogDescription>
         </DialogHeader>

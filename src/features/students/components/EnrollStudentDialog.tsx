@@ -119,7 +119,6 @@ export function EnrollStudentDialog({
   allowCenterChange = false,
   onSuccess,
 }: EnrollStudentDialogProps) {
-  const descriptionId = "enroll-student-dialog-description";
   const { centerSlug, centerId: tenantCenterId } = useTenant();
   const enrollMutation = useCreateCenterEnrollment();
   const isPlatformAdmin = !centerSlug;
@@ -287,13 +286,10 @@ export function EnrollStudentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="w-[calc(100vw-1.5rem)] max-w-2xl p-4 sm:p-6"
-        aria-describedby={descriptionId}
-      >
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Enroll Student</DialogTitle>
-          <DialogDescription id={descriptionId}>
+          <DialogDescription>
             Choose {showCenterPicker ? "a center and " : ""}a course to enroll{" "}
             {student?.name ?? "this student"}.
           </DialogDescription>

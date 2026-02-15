@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { isAxiosError } from "axios";
 import {
   Dialog,
@@ -35,7 +35,6 @@ export function DeleteStudentDialog({
   student,
   onSuccess,
 }: DeleteStudentDialogProps) {
-  const descriptionId = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteStudent();
 
@@ -65,10 +64,10 @@ export function DeleteStudentDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent aria-describedby={descriptionId}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Student</DialogTitle>
-          <DialogDescription id={descriptionId} className="sr-only">
+          <DialogDescription className="sr-only">
             Permanently delete the selected student.
           </DialogDescription>
         </DialogHeader>

@@ -82,7 +82,9 @@ export function useUpdateSurvey() {
     }) => updateSurvey(surveyId, payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["surveys"] });
-      queryClient.invalidateQueries({ queryKey: ["survey", variables.surveyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["survey", variables.surveyId],
+      });
     },
   });
 }
@@ -100,7 +102,9 @@ export function useAssignSurvey() {
     }) => assignSurvey(surveyId, payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["surveys"] });
-      queryClient.invalidateQueries({ queryKey: ["survey", variables.surveyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["survey", variables.surveyId],
+      });
       queryClient.invalidateQueries({
         queryKey: ["survey-analytics", variables.surveyId],
       });
@@ -116,7 +120,9 @@ export function useCloseSurvey() {
     onSuccess: (_data, surveyId) => {
       queryClient.invalidateQueries({ queryKey: ["surveys"] });
       queryClient.invalidateQueries({ queryKey: ["survey", surveyId] });
-      queryClient.invalidateQueries({ queryKey: ["survey-analytics", surveyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["survey-analytics", surveyId],
+      });
     },
   });
 }

@@ -184,7 +184,15 @@ export function StudentsTable({
 
   useEffect(() => {
     setSelectedStudents({});
-  }, [centerId, courseId, page, perPage, query, statusFilter, centerTypeFilter]);
+  }, [
+    centerId,
+    courseId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    centerTypeFilter,
+  ]);
 
   const hasActions = Boolean(
     onEdit || onDelete || onViewDetails || onEnrollCourse || buildProfileHref,

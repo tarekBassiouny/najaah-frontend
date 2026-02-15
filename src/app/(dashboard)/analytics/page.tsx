@@ -34,10 +34,10 @@ function getDefaultDateRange() {
 export default function AnalyticsPage() {
   const tenant = useTenant();
   const isPlatformAdmin = !tenant.centerSlug;
-  const defaultRange = getDefaultDateRange();
+  const [sessionDefaultRange] = useState(() => getDefaultDateRange());
 
-  const [from, setFrom] = useState(defaultRange.from);
-  const [to, setTo] = useState(defaultRange.to);
+  const [from, setFrom] = useState(sessionDefaultRange.from);
+  const [to, setTo] = useState(sessionDefaultRange.to);
   const [timezone, setTimezone] = useState("UTC");
 
   const filters = useMemo(
@@ -62,9 +62,8 @@ export default function AnalyticsPage() {
     devicesQuery.isFetching;
 
   const resetFilters = () => {
-    const nextRange = getDefaultDateRange();
-    setFrom(nextRange.from);
-    setTo(nextRange.to);
+    setFrom(sessionDefaultRange.from);
+    setTo(sessionDefaultRange.to);
     setTimezone("UTC");
     if (isPlatformAdmin) {
       setTenantState({ centerId: null, centerName: null });
@@ -80,6 +79,8 @@ export default function AnalyticsPage() {
 
       <AnalyticsFiltersBar
         isPlatformAdmin={isPlatformAdmin}
+        defaultFrom={sessionDefaultRange.from}
+        defaultTo={sessionDefaultRange.to}
         from={from}
         to={to}
         timezone={timezone}

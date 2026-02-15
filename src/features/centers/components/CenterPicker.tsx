@@ -52,7 +52,11 @@ type CenterPickerProps = {
   value?: string | number | null;
   onValueChange?: (
     _centerId: string | number | null,
-    _center: { id: string | number; name?: string | null; slug?: string | null } | null,
+    _center: {
+      id: string | number;
+      name?: string | null;
+      slug?: string | null;
+    } | null,
   ) => void;
 };
 
@@ -75,7 +79,10 @@ export function CenterPicker({
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const cachedCentersRef = useRef<
-    Map<string, { id: string | number; name?: string | null; slug?: string | null }>
+    Map<
+      string,
+      { id: string | number; name?: string | null; slug?: string | null }
+    >
   >(new Map());
 
   useEffect(() => {
@@ -165,7 +172,9 @@ export function CenterPicker({
       selectedCenterIdString &&
       !centerOptions.some((option) => option.value === selectedCenterIdString)
     ) {
-      const selectedCenter = cachedCentersRef.current.get(selectedCenterIdString);
+      const selectedCenter = cachedCentersRef.current.get(
+        selectedCenterIdString,
+      );
       centerOptions.unshift({
         value: selectedCenterIdString,
         label:
@@ -215,7 +224,7 @@ export function CenterPicker({
       centerId: selected?.id ?? selectedId,
       centerName:
         selected?.name ??
-        (String(centerId ?? "") === selectedId ? centerName ?? null : null),
+        (String(centerId ?? "") === selectedId ? (centerName ?? null) : null),
     });
   };
 

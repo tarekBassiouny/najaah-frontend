@@ -31,7 +31,8 @@ export function SystemSettingsPreviewDialog({
         <DialogHeader>
           <DialogTitle>Settings Preview</DialogTitle>
           <DialogDescription>
-            Read-only merged preview from <code>/api/v1/admin/settings/preview</code>.
+            Read-only merged preview from{" "}
+            <code>/api/v1/admin/settings/preview</code>.
           </DialogDescription>
         </DialogHeader>
 
@@ -63,7 +64,11 @@ export function SystemSettingsPreviewDialog({
         )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             Close
           </Button>
         </DialogFooter>

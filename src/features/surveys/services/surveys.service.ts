@@ -510,7 +510,9 @@ export async function createSurvey(
 }
 
 export async function getSurvey(surveyId: string | number): Promise<Survey> {
-  const { data } = await http.get<RawResponse>(`/api/v1/admin/surveys/${surveyId}`);
+  const { data } = await http.get<RawResponse>(
+    `/api/v1/admin/surveys/${surveyId}`,
+  );
   return normalizeSurvey(data);
 }
 

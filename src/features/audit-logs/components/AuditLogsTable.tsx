@@ -172,7 +172,10 @@ export function AuditLogsTable() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const cachedUsersRef = useRef<
-    Map<string, { id: string | number; name?: string | null; email?: string | null }>
+    Map<
+      string,
+      { id: string | number; name?: string | null; email?: string | null }
+    >
   >(new Map());
   const cachedCoursesRef = useRef<
     Map<string, { id: string | number; title?: string | null }>
@@ -196,7 +199,15 @@ export function AuditLogsTable() {
 
   useEffect(() => {
     setPage(1);
-  }, [action, selectedUser, selectedCourse, centerId, dateFrom, dateTo, perPage]);
+  }, [
+    action,
+    selectedUser,
+    selectedCourse,
+    centerId,
+    dateFrom,
+    dateTo,
+    perPage,
+  ]);
 
   useEffect(() => {
     setSelectedCourse(ALL_COURSES_VALUE);
@@ -503,7 +514,9 @@ export function AuditLogsTable() {
               placeholder={centerId ? "All courses" : "Select center first"}
               searchPlaceholder="Search courses..."
               emptyMessage={
-                centerId ? "No courses found" : "Select a center to load courses"
+                centerId
+                  ? "No courses found"
+                  : "Select a center to load courses"
               }
               isLoading={coursesQuery.isLoading}
               filterOptions={false}

@@ -474,7 +474,8 @@ export function SurveyFormDialog({
     queryFn: ({ pageParam }) =>
       listSurveyTargetStudents({
         scope_type: scopeType,
-        center_id: scopeType === 2 ? normalizedCenterId ?? undefined : undefined,
+        center_id:
+          scopeType === 2 ? (normalizedCenterId ?? undefined) : undefined,
         page: pageParam,
         per_page: PICKER_PAGE_SIZE,
       }),
@@ -519,13 +520,7 @@ export function SurveyFormDialog({
     if (assignmentType !== "user") return;
     if (scopeType === 2 && normalizedCenterId == null) return;
     void refetchStudents();
-  }, [
-    open,
-    assignmentType,
-    scopeType,
-    normalizedCenterId,
-    refetchStudents,
-  ]);
+  }, [open, assignmentType, scopeType, normalizedCenterId, refetchStudents]);
 
   const {
     data: videosData,
@@ -842,7 +837,9 @@ export function SurveyFormDialog({
             <Select
               value={assignmentType}
               onValueChange={(value) => {
-                if (!assignmentTypeOptions.includes(value as SurveyAssignmentType)) {
+                if (
+                  !assignmentTypeOptions.includes(value as SurveyAssignmentType)
+                ) {
                   return;
                 }
 
@@ -896,8 +893,12 @@ export function SurveyFormDialog({
                 Unbranded Center
               </label>
               <SearchableSelect
-                value={assignmentCenterId === "none" ? null : assignmentCenterId}
-                onValueChange={(value) => setAssignmentCenterId(value ?? "none")}
+                value={
+                  assignmentCenterId === "none" ? null : assignmentCenterId
+                }
+                onValueChange={(value) =>
+                  setAssignmentCenterId(value ?? "none")
+                }
                 options={unbrandedCenterOptions}
                 placeholder="Select an unbranded center"
                 searchPlaceholder="Search centers..."
@@ -956,8 +957,12 @@ export function SurveyFormDialog({
                   Course
                 </label>
                 <SearchableSelect
-                  value={assignmentCourseId === "none" ? null : assignmentCourseId}
-                  onValueChange={(value) => setAssignmentCourseId(value ?? "none")}
+                  value={
+                    assignmentCourseId === "none" ? null : assignmentCourseId
+                  }
+                  onValueChange={(value) =>
+                    setAssignmentCourseId(value ?? "none")
+                  }
                   options={courseOptions}
                   placeholder={
                     selectedCourseCenterId == null
@@ -1221,7 +1226,10 @@ export function SurveyFormDialog({
                     </div>
 
                     {question.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="flex items-center gap-2">
+                      <div
+                        key={optionIndex}
+                        className="flex items-center gap-2"
+                      >
                         <Input
                           value={option}
                           onChange={(event) =>

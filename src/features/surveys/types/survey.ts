@@ -6,7 +6,12 @@ export type SurveyType = 1 | 2 | 3;
 
 export type SurveyQuestionType = 1 | 2 | 3 | 4 | 5;
 
-export type SurveyAssignmentType = "all" | "center" | "course" | "video" | "user";
+export type SurveyAssignmentType =
+  | "all"
+  | "center"
+  | "course"
+  | "video"
+  | "user";
 
 export type SurveyAssignment = {
   type?: SurveyAssignmentType | string;

@@ -134,7 +134,10 @@ const badgeVariants: Record<
   other: "secondary",
 };
 
-export function RecentActivity({ activities = [], isLoading }: RecentActivityProps) {
+export function RecentActivity({
+  activities = [],
+  isLoading,
+}: RecentActivityProps) {
   if (isLoading) {
     return (
       <Card>

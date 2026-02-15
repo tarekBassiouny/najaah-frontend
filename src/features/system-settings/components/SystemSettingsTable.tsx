@@ -104,8 +104,10 @@ function formatFullDate(dateString?: string | null): string {
 const VALUE_TYPE_STYLES: Record<ValueType, string> = {
   string: "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400",
   number: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400",
-  boolean: "bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400",
-  object: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400",
+  boolean:
+    "bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400",
+  object:
+    "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400",
   array: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-400",
   null: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
 };
@@ -373,7 +375,10 @@ export function SystemSettingsTable({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-0.5" title={fullUpdatedAt || undefined}>
+                        <div
+                          className="space-y-0.5"
+                          title={fullUpdatedAt || undefined}
+                        >
                           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {relativeUpdatedAt}
                           </p>

@@ -92,13 +92,15 @@ function formatValueForInput(value: unknown) {
   }
 }
 
-function parseSettingValue(input: string): {
-  ok: true;
-  value: Record<string, unknown> | null;
-} | {
-  ok: false;
-  message: string;
-} {
+function parseSettingValue(input: string):
+  | {
+      ok: true;
+      value: Record<string, unknown> | null;
+    }
+  | {
+      ok: false;
+      message: string;
+    } {
   if (!input || input === "null") {
     return { ok: true, value: null };
   }
@@ -307,7 +309,10 @@ export function SystemSettingFormDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending || !form.formState.isValid}>
+              <Button
+                type="submit"
+                disabled={isPending || !form.formState.isValid}
+              >
                 {isPending
                   ? "Saving..."
                   : isEditMode

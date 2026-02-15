@@ -383,9 +383,7 @@ export function BulkEnrollStudentsDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent
-        className="w-[calc(100vw-1.5rem)] max-w-2xl p-4 sm:p-6"
-      >
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Enroll Students</DialogTitle>
           <DialogDescription>

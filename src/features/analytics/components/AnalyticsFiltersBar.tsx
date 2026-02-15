@@ -17,6 +17,8 @@ import { CenterPicker } from "@/features/centers/components/CenterPicker";
 
 type AnalyticsFiltersBarProps = {
   isPlatformAdmin: boolean;
+  defaultFrom: string;
+  defaultTo: string;
   from: string;
   to: string;
   timezone: string;
@@ -57,6 +59,8 @@ function getPresetRange(daysBack: number) {
 
 export function AnalyticsFiltersBar({
   isPlatformAdmin,
+  defaultFrom,
+  defaultTo,
   from,
   to,
   timezone,
@@ -68,19 +72,18 @@ export function AnalyticsFiltersBar({
 }: AnalyticsFiltersBarProps) {
   const { centerId } = useTenant();
   const [datePreset, setDatePreset] = useState<string>("");
-  const defaultRange = getPresetRange(29);
   const hasSelectedCenterFilter = isPlatformAdmin && Boolean(centerId);
   const hasInvalidRange = Boolean(from && to && from > to);
   const hasActiveFilters =
     hasSelectedCenterFilter ||
     timezone !== "UTC" ||
-    from !== defaultRange.from ||
-    to !== defaultRange.to;
+    from !== defaultFrom ||
+    to !== defaultTo;
   const activeFilterCount =
     (hasSelectedCenterFilter ? 1 : 0) +
     (timezone !== "UTC" ? 1 : 0) +
-    (from !== defaultRange.from ? 1 : 0) +
-    (to !== defaultRange.to ? 1 : 0);
+    (from !== defaultFrom ? 1 : 0) +
+    (to !== defaultTo ? 1 : 0);
 
   const applyDatePreset = (daysBack: number, presetKey: string) => {
     const range = getPresetRange(daysBack);

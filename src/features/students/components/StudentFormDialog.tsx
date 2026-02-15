@@ -366,8 +366,8 @@ export function StudentFormDialog({
                     <Input placeholder="1225291841" {...field} />
                   </FormControl>
                   <p className="text-xs text-gray-400">
-                    Base number only (10 digits). Do not include country code
-                    or a leading 0.
+                    Base number only (10 digits). Do not include country code or
+                    a leading 0.
                   </p>
                   <FormMessage />
                 </FormItem>

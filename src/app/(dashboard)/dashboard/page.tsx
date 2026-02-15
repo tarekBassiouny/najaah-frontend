@@ -16,13 +16,7 @@ export default function DashboardPage() {
   const isPlatformAdmin = !centerSlug;
   const hasCenterScope = centerId != null && String(centerId).trim().length > 0;
 
-  const {
-    data,
-    isLoading,
-    isError,
-    isFetching,
-    refetch,
-  } = useDashboard({
+  const { data, isLoading, isError, isFetching, refetch } = useDashboard({
     is_platform_admin: isPlatformAdmin,
     center_id: hasCenterScope ? centerId : undefined,
   });
@@ -40,8 +34,7 @@ export default function DashboardPage() {
       stats?.pending_approvals.enrollment_requests ?? 0,
     pendingDeviceChangeRequests:
       stats?.pending_approvals.device_change_requests ?? 0,
-    pendingExtraViewRequests:
-      stats?.pending_approvals.extra_view_requests ?? 0,
+    pendingExtraViewRequests: stats?.pending_approvals.extra_view_requests ?? 0,
   };
 
   return (
@@ -91,7 +84,10 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <QuickActions />
-        <RecentActivity activities={data?.recent_activity ?? []} isLoading={isLoading} />
+        <RecentActivity
+          activities={data?.recent_activity ?? []}
+          isLoading={isLoading}
+        />
       </div>
 
       <Card>

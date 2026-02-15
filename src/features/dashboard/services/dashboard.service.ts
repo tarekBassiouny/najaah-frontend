@@ -59,8 +59,7 @@ function normalizeRecentActivity(raw: unknown): DashboardActivity[] {
         action: toStringOrNull(node.action) ?? "unknown",
         description: toStringOrNull(node.description) ?? "No description",
         actor: normalizeActor(node.actor),
-        days_ago:
-          node.days_ago == null ? null : toNumber(node.days_ago, 0),
+        days_ago: node.days_ago == null ? null : toNumber(node.days_ago, 0),
         created_at: toStringOrNull(node.created_at),
       };
     })

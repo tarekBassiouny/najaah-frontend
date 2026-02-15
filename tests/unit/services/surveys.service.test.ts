@@ -97,7 +97,9 @@ describe("surveys.service", () => {
     mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 10 } } });
 
     await expect(getSurvey(10)).resolves.toEqual({ id: 10 });
-    await expect(updateSurvey(10, { title_translations: { en: "A", ar: "A" } })).resolves.toEqual({ id: 10 });
+    await expect(
+      updateSurvey(10, { title_translations: { en: "A", ar: "A" } }),
+    ).resolves.toEqual({ id: 10 });
     await expect(
       assignSurvey(10, { assignments: [{ type: "course", id: 5 }] }),
     ).resolves.toEqual({ id: 10 });

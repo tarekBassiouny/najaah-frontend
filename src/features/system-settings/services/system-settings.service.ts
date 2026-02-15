@@ -80,7 +80,9 @@ function normalizePreviewResponse(
     raw && typeof raw === "object" && raw !== null ? (raw as RawResponse) : {};
 
   const payload =
-    container.data && typeof container.data === "object" && !Array.isArray(container.data)
+    container.data &&
+    typeof container.data === "object" &&
+    !Array.isArray(container.data)
       ? (container.data as Record<string, unknown>)
       : container;
 
@@ -150,6 +152,8 @@ export async function deleteSystemSetting(id: string | number): Promise<void> {
 }
 
 export async function getSystemSettingsPreview(): Promise<SystemSettingsPreviewResponse> {
-  const { data } = await http.get<RawResponse>("/api/v1/admin/settings/preview");
+  const { data } = await http.get<RawResponse>(
+    "/api/v1/admin/settings/preview",
+  );
   return normalizePreviewResponse(data);
 }

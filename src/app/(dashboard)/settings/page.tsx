@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useTenant } from "@/app/tenant-provider";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { useModal } from "@/components/ui/modal-store";
@@ -18,8 +24,12 @@ export default function SettingsPage() {
   const isPlatformAdmin = !centerSlug;
   const [formOpen, setFormOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [editingSetting, setEditingSetting] = useState<SystemSetting | null>(null);
-  const [deletingSetting, setDeletingSetting] = useState<SystemSetting | null>(null);
+  const [editingSetting, setEditingSetting] = useState<SystemSetting | null>(
+    null,
+  );
+  const [deletingSetting, setDeletingSetting] = useState<SystemSetting | null>(
+    null,
+  );
 
   if (!isPlatformAdmin) {
     return (
@@ -37,7 +47,8 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              For center-specific configuration, use the Center Settings section.
+              For center-specific configuration, use the Center Settings
+              section.
             </p>
           </CardContent>
         </Card>
@@ -52,7 +63,11 @@ export default function SettingsPage() {
         description="Manage global system settings for all centers."
         actions={
           <>
-            <Button type="button" variant="outline" onClick={() => setPreviewOpen(true)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPreviewOpen(true)}
+            >
               Preview
             </Button>
             <Button

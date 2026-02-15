@@ -232,25 +232,27 @@ export function SystemSettingsTable({
             </TableHeader>
             <TableBody>
               {isLoadingState ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={`loading-${index}`} className="animate-pulse">
-                    <TableCell>
-                      <Skeleton className="h-4 w-48" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-64" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-5 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-28" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="ml-auto h-4 w-6" />
-                    </TableCell>
-                  </TableRow>
-                ))
+                <>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index} className="animate-pulse">
+                      <TableCell>
+                        <Skeleton className="h-4 w-48" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-64" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-28" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-16" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
               ) : showEmptyState ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-48">

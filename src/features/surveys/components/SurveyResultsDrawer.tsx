@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -156,10 +157,10 @@ export function SurveyResultsDrawer({
             <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
               {getSurveyTitle(survey)}
             </DialogTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <DialogDescription>
               Survey analytics and response breakdown for survey #
               {surveyId ?? "—"}.
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -913,12 +914,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
             <DialogTitle>
               Upload {uploadTarget?.type === "video" ? "Video" : "PDF"}
             </DialogTitle>
+            <DialogDescription>
+              Select{" "}
+              {uploadTarget?.type === "video" ? "a video file" : "a PDF file"}{" "}
+              to upload.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="upload-file">
-              Select{" "}
-              {uploadTarget?.type === "video" ? "a video file" : "a PDF file"}
-            </Label>
+            <Label htmlFor="upload-file">Choose file</Label>
             <Input
               id="upload-file"
               type="file"

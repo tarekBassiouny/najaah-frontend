@@ -85,13 +85,8 @@ function normalizeAdminUser(
     roles_with_permissions?: RolesWithPermissionsPayload[] | null;
   },
 ) {
-  const {
-    roles: _roles,
-    roles_with_permissions: _rolesWithPermissions,
-    ...rest
-  } = user;
   return {
-    ...rest,
+    ...user,
     permissions: normalizePermissions(user),
   };
 }

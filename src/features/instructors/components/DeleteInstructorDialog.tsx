@@ -66,7 +66,7 @@ export function DeleteInstructorDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Instructor</DialogTitle>
         </DialogHeader>

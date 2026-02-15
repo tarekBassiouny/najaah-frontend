@@ -4,7 +4,6 @@ import { use, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StudentsTable } from "@/features/students/components/StudentsTable";
 import { StudentFormDialog } from "@/features/students/components/StudentFormDialog";
 import { DeleteStudentDialog } from "@/features/students/components/DeleteStudentDialog";
@@ -30,7 +29,6 @@ export default function CenterStudentsPage({ params }: PageProps) {
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [bulkEnrollStudents, setBulkEnrollStudents] = useState<Student[]>([]);
   const [bulkStatusStudents, setBulkStatusStudents] = useState<Student[]>([]);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -59,13 +57,6 @@ export default function CenterStudentsPage({ params }: PageProps) {
         }
       />
 
-      {feedback && (
-        <Alert variant="success">
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{feedback}</AlertDescription>
-        </Alert>
-      )}
-
       <StudentsTable
         centerId={centerId}
         showCenterFilter={false}
@@ -73,15 +64,16 @@ export default function CenterStudentsPage({ params }: PageProps) {
           `/centers/${centerId}/students/${student.id}?from=center`
         }
         onEdit={(student) => {
-          setFeedback(null);
           setEditingStudent(student);
           setIsFormOpen(true);
         }}
         onDelete={(student) => {
-          setFeedback(null);
           setDeletingStudent(student);
         }}
         onViewDetails={(student) => setViewingStudent(student)}
+        onEnrollCourse={(student) => {
+          setEnrollStudent(student);
+        }}
         onBulkEnrollCourse={(students) => setBulkEnrollStudents(students)}
         onBulkChangeStatus={(students) => setBulkStatusStudents(students)}
       />
@@ -94,7 +86,6 @@ export default function CenterStudentsPage({ params }: PageProps) {
         }}
         centerId={centerId}
         student={editingStudent}
-        onSuccess={(message) => setFeedback(message)}
         onCreated={(student) => {
           setCreatedStudent(student);
         }}
@@ -106,7 +97,6 @@ export default function CenterStudentsPage({ params }: PageProps) {
           if (!open) setDeletingStudent(null);
         }}
         student={deletingStudent}
-        onSuccess={(message) => setFeedback(message)}
       />
 
       <StudentEnrollmentPromptDialog
@@ -148,7 +138,6 @@ export default function CenterStudentsPage({ params }: PageProps) {
         }}
         students={bulkEnrollStudents}
         centerId={centerId}
-        onSuccess={(message) => setFeedback(message)}
       />
 
       <BulkUpdateStudentStatusDialog
@@ -157,7 +146,6 @@ export default function CenterStudentsPage({ params }: PageProps) {
           if (!open) setBulkStatusStudents([]);
         }}
         students={bulkStatusStudents}
-        onSuccess={(message) => setFeedback(message)}
       />
     </div>
   );

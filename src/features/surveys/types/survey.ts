@@ -2,11 +2,17 @@ import type { TranslationsRecord } from "@/types/translations";
 
 export type SurveyScopeType = 1 | 2;
 
+export type SurveyType = 1 | 2 | 3;
+
 export type SurveyQuestionType = 1 | 2 | 3 | 4 | 5;
 
+export type SurveyAssignmentType = "all" | "center" | "course" | "video" | "user";
+
 export type SurveyAssignment = {
-  type?: "all" | "course" | string;
+  type?: SurveyAssignmentType | string;
   id?: string | number | null;
+  assignable_id?: string | number | null;
+  assignable_name?: string | null;
   [key: string]: unknown;
 };
 
@@ -83,6 +89,42 @@ export type SurveysResponse = {
   lastPage: number;
 };
 
+export type SurveyTargetStudent = {
+  id: string | number;
+  name?: string | null;
+  username?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  center_id?: number | null;
+  center?: {
+    id?: string | number;
+    name?: string | null;
+    slug?: string | null;
+    [key: string]: unknown;
+  } | null;
+  status?: string | number | null;
+  status_key?: string | null;
+  status_label?: string | null;
+  [key: string]: unknown;
+};
+
+export type ListSurveyTargetStudentsParams = {
+  scope_type: SurveyScopeType;
+  center_id?: number;
+  status?: string | number;
+  search?: string;
+  page: number;
+  per_page: number;
+};
+
+export type SurveyTargetStudentsResponse = {
+  items: SurveyTargetStudent[];
+  page: number;
+  perPage: number;
+  total: number;
+  lastPage: number;
+};
+
 export type SurveyQuestionOptionPayload = {
   option_translations: TranslationsRecord;
   order_index: number;
@@ -103,19 +145,30 @@ export type CreateSurveyPayload = {
         type: "all";
       }
     | {
-        type: "course";
-        id: string | number;
+        type: Exclude<SurveyAssignmentType, "all">;
+        id: number;
       }
   >;
   title_translations: TranslationsRecord;
   description_translations?: TranslationsRecord;
-  type: 1;
+  type: SurveyType;
   is_active: boolean;
   is_mandatory: boolean;
   allow_multiple_submissions: boolean;
-  start_at: string;
-  end_at: string;
+  start_at?: string;
+  end_at?: string;
   questions: SurveyQuestionPayload[];
+};
+
+export type UpdateSurveyPayload = Partial<
+  Omit<CreateSurveyPayload, "scope_type" | "center_id" | "assignments">
+> & {
+  center_id?: number | null;
+  questions?: SurveyQuestionPayload[];
+};
+
+export type AssignSurveyPayload = {
+  assignments: CreateSurveyPayload["assignments"];
 };
 
 export type SurveyAnalyticsRaw = Record<string, unknown>;

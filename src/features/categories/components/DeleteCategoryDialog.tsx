@@ -77,7 +77,7 @@ export function DeleteCategoryDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Category</DialogTitle>
         </DialogHeader>

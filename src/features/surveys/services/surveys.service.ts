@@ -1,6 +1,8 @@
 import { http } from "@/lib/http";
 import type {
+  AssignSurveyPayload,
   CreateSurveyPayload,
+  ListSurveyTargetStudentsParams,
   ListSurveysParams,
   Survey,
   SurveyAnalyticsMetric,
@@ -9,8 +11,11 @@ import type {
   SurveyAnalyticsRaw,
   SurveyAnalyticsSection,
   SurveyAnalyticsViewModel,
+  SurveyTargetStudent,
+  SurveyTargetStudentsResponse,
   SurveyQuestion,
   SurveysResponse,
+  UpdateSurveyPayload,
 } from "@/features/surveys/types/survey";
 
 type RawResponse = {
@@ -72,6 +77,58 @@ function normalizeSurveysResponse(
 
   const items =
     firstArray<Survey>([
+      unwrapped.data,
+      unwrapped.items,
+      asRecord(unwrapped.data)?.items,
+      asRecord(unwrapped.data)?.data,
+      root.data,
+      asRecord(root.data)?.data,
+      asRecord(root.data)?.items,
+      asRecord(root.payload)?.data,
+      asRecord(root.payload)?.items,
+    ]) ?? [];
+
+  const meta =
+    asRecord(unwrapped.meta) ??
+    asRecord(asRecord(unwrapped.data)?.meta) ??
+    asRecord(root.meta) ??
+    asRecord(asRecord(root.data)?.meta) ??
+    {};
+
+  const page =
+    Number(
+      meta.current_page ?? meta.page ?? unwrapped.current_page ?? root.page,
+    ) || fallback.page;
+
+  const perPage =
+    Number(meta.per_page ?? unwrapped.per_page ?? root.per_page) ||
+    fallback.per_page;
+
+  const total =
+    Number(meta.total ?? unwrapped.total ?? root.total) || items.length;
+
+  const lastPage =
+    Number(meta.last_page ?? unwrapped.last_page ?? root.last_page) ||
+    Math.max(1, Math.ceil(total / Math.max(perPage, 1)));
+
+  return {
+    items,
+    page,
+    perPage,
+    total,
+    lastPage,
+  };
+}
+
+function normalizeSurveyTargetStudentsResponse(
+  raw: RawResponse | undefined,
+  fallback: ListSurveyTargetStudentsParams,
+): SurveyTargetStudentsResponse {
+  const root = asRecord(raw) ?? {};
+  const unwrapped = unwrapObjectPayload(root);
+
+  const items =
+    firstArray<SurveyTargetStudent>([
       unwrapped.data,
       unwrapped.items,
       asRecord(unwrapped.data)?.items,
@@ -422,12 +479,66 @@ export async function listSurveys(
   return normalizeSurveysResponse(data, params);
 }
 
+export async function listSurveyTargetStudents(
+  params: ListSurveyTargetStudentsParams,
+): Promise<SurveyTargetStudentsResponse> {
+  const { data } = await http.get<RawResponse>(
+    "/api/v1/admin/surveys/target-students",
+    {
+      params: {
+        scope_type: params.scope_type,
+        center_id: params.center_id ?? undefined,
+        status: params.status ?? undefined,
+        search: params.search || undefined,
+        page: params.page,
+        per_page: params.per_page,
+      },
+    },
+  );
+
+  return normalizeSurveyTargetStudentsResponse(data, params);
+}
+
 export async function createSurvey(
   payload: CreateSurveyPayload,
 ): Promise<Survey> {
   const { data } = await http.post<RawResponse>(
     "/api/v1/admin/surveys",
     payload,
+  );
+  return normalizeSurvey(data);
+}
+
+export async function getSurvey(surveyId: string | number): Promise<Survey> {
+  const { data } = await http.get<RawResponse>(`/api/v1/admin/surveys/${surveyId}`);
+  return normalizeSurvey(data);
+}
+
+export async function updateSurvey(
+  surveyId: string | number,
+  payload: UpdateSurveyPayload,
+): Promise<Survey> {
+  const { data } = await http.put<RawResponse>(
+    `/api/v1/admin/surveys/${surveyId}`,
+    payload,
+  );
+  return normalizeSurvey(data);
+}
+
+export async function assignSurvey(
+  surveyId: string | number,
+  payload: AssignSurveyPayload,
+): Promise<Survey> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/surveys/${surveyId}/assign`,
+    payload,
+  );
+  return normalizeSurvey(data);
+}
+
+export async function closeSurvey(surveyId: string | number): Promise<Survey> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/surveys/${surveyId}/close`,
   );
   return normalizeSurvey(data);
 }

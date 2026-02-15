@@ -76,7 +76,16 @@ describe("courses.service", () => {
 
     expect(mockedHttp.get).toHaveBeenCalledWith(
       "/api/v1/admin/centers/9/courses",
-      expect.any(Object),
+      {
+        params: {
+          page: 1,
+          per_page: 10,
+          search: undefined,
+          center_id: 9,
+          category_id: undefined,
+          primary_instructor_id: undefined,
+        },
+      },
     );
   });
 

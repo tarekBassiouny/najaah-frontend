@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -316,6 +317,9 @@ export function RolesTable() {
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden">
           <DialogHeader>
             <DialogTitle>Role Permissions</DialogTitle>
+            <DialogDescription>
+              Configure permissions for this role.
+            </DialogDescription>
           </DialogHeader>
           {permissionsRoleId != null ? (
             <div className="max-h-[70vh] overflow-y-auto">

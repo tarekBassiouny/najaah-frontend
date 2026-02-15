@@ -26,13 +26,13 @@ export function MenuItem(
     isActive: boolean;
   } & ({ as?: "button"; onClick: () => void } | { as: "link"; href: string }),
 ) {
-  const { toggleSidebar, isMobile } = useSidebarContext();
+  const { closeSidebar, isMobile } = useSidebarContext();
 
   if (props.as === "link") {
     return (
       <Link
         href={props.href}
-        onClick={() => isMobile && toggleSidebar()}
+        onClick={() => isMobile && closeSidebar()}
         className={cn(
           menuItemBaseStyles({
             isActive: props.isActive,

@@ -26,6 +26,23 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+function getRoleLabel(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (value && typeof value === "object") {
+    const role = value as Record<string, unknown>;
+    const candidates = [role.name, role.slug, role.role];
+    const label = candidates.find(
+      (candidate) => typeof candidate === "string" && candidate.trim(),
+    );
+    return typeof label === "string" ? label.trim() : null;
+  }
+
+  return null;
+}
+
 export function UserInfo() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isLoading } = useAuth();
@@ -57,7 +74,8 @@ export function UserInfo() {
 
   const displayName = user.name || "User";
   const displayEmail = user.email || "";
-  const displayRole = user.role || user.roles?.[0] || "Admin";
+  const displayRole =
+    getRoleLabel(user.role) ?? getRoleLabel(user.roles?.[0]) ?? "Admin";
   const avatarUrl = user.avatar;
 
   return (

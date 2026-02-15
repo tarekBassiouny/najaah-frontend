@@ -66,7 +66,7 @@ export function DeleteAdminUserDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Admin User</DialogTitle>
         </DialogHeader>

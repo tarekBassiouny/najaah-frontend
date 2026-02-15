@@ -5,6 +5,7 @@ import type { PaginatedResponse } from "@/types/pagination";
 export type ListAuditLogsParams = {
   page?: number;
   per_page?: number;
+  search?: string;
   action?: string;
   user_id?: number | string;
   entity_id?: number | string;
@@ -36,6 +37,7 @@ export async function listAuditLogs(
       params: {
         page: params.page,
         per_page: params.per_page,
+        search: params.search || undefined,
         action: params.action || undefined,
         user_id: params.user_id ?? undefined,
         entity_id: params.entity_id ?? undefined,

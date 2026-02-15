@@ -11,13 +11,13 @@ import { UserInfo } from "./user-info";
 import { useSidebarContext } from "../sidebar/sidebar-context";
 
 export function Header() {
-  const { toggleSidebar, isMobile } = useSidebarContext();
+  const { openSidebar, isMobile } = useSidebarContext();
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
       <div className="flex items-center gap-2 min-[375px]:gap-4">
         <button
-          onClick={toggleSidebar}
+          onClick={openSidebar}
           className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white lg:hidden"
           aria-label="Toggle Sidebar"
         >

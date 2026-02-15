@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -62,6 +63,9 @@ export default function RolesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Role</DialogTitle>
+            <DialogDescription>
+              Add a new role with specific permissions.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-1">

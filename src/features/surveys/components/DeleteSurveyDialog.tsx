@@ -72,7 +72,7 @@ export function DeleteSurveyDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Survey</DialogTitle>
         </DialogHeader>

@@ -3,6 +3,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -30,7 +31,10 @@ export function StudentDetailsDrawer({
     student?.status_label,
   );
   const centerLabel =
-    student?.center?.name ?? student?.center_id ?? student?.center?.id ?? "—";
+    student?.center?.name ??
+    student?.center_id ??
+    student?.center?.id ??
+    "Najaah App";
   const email = student?.email ?? "—";
   const phone = student?.phone
     ? `${student?.country_code ?? ""} ${student.phone}`.trim()
@@ -44,9 +48,9 @@ export function StudentDetailsDrawer({
             <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
               {name}
             </DialogTitle>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <DialogDescription>
               Student details, analytics, and device status.
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">

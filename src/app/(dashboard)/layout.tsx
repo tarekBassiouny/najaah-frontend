@@ -7,16 +7,33 @@ import { SidebarProvider } from "@/components/Layouts/sidebar/sidebar-context";
 import { getSidebarSections } from "@/components/Layouts/sidebar/data";
 import { useTenant } from "@/app/tenant-provider";
 import { PageLoading } from "@/components/ui/page-loading";
-import { type ReactNode } from "react";
+import { setTenantState } from "@/lib/tenant-store";
+import { usePathname } from "next/navigation";
+import { type ReactNode, useEffect, useRef } from "react";
 
 type Props = {
   children: ReactNode;
 };
 
 export default function DashboardLayout({ children }: Props) {
+  const pathname = usePathname();
   const { centerSlug } = useTenant();
   const isPlatformAdmin = !centerSlug;
   const sidebarConfig = getSidebarSections(isPlatformAdmin);
+  const previousPathRef = useRef(pathname);
+
+  useEffect(() => {
+    if (!isPlatformAdmin) {
+      previousPathRef.current = pathname;
+      return;
+    }
+
+    if (previousPathRef.current === pathname) return;
+    previousPathRef.current = pathname;
+
+    // Always clear the temporary center picker selection when navigating pages.
+    setTenantState({ centerId: null, centerName: null });
+  }, [isPlatformAdmin, pathname]);
 
   return (
     <AuthProvider>

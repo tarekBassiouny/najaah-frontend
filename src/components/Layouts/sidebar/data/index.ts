@@ -31,7 +31,9 @@ const CENTER_SCOPED_OMIT_TITLES = new Set([
   "Centers",
   "Agents",
   "Roles",
+  "Roles & Permissions",
   "Permissions",
+  "Audit Log",
   "Audit Logs",
 ]);
 

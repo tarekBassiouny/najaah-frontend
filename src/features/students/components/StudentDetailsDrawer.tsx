@@ -30,7 +30,10 @@ export function StudentDetailsDrawer({
     student?.status_label,
   );
   const centerLabel =
-    student?.center?.name ?? student?.center_id ?? student?.center?.id ?? "—";
+    student?.center?.name ??
+    student?.center_id ??
+    student?.center?.id ??
+    "Najaah App";
   const email = student?.email ?? "—";
   const phone = student?.phone
     ? `${student?.country_code ?? ""} ${student.phone}`.trim()

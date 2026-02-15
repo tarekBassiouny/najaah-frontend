@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteStudent } from "@/features/students/hooks/use-students";
 import type { Student } from "@/features/students/types/student";
-import { useModal } from "@/components/ui/modal-store";
 
 type DeleteStudentDialogProps = {
   open: boolean;
@@ -35,9 +35,9 @@ export function DeleteStudentDialog({
   student,
   onSuccess,
 }: DeleteStudentDialogProps) {
+  const descriptionId = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteStudent();
-  const { showToast } = useModal();
 
   const handleDelete = () => {
     if (!student) return;
@@ -47,7 +47,6 @@ export function DeleteStudentDialog({
       onSuccess: () => {
         onOpenChange(false);
         onSuccess?.("Student deleted successfully.");
-        showToast("Student deleted successfully.", "success");
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error));
@@ -66,9 +65,12 @@ export function DeleteStudentDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={descriptionId}>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Student</DialogTitle>
+          <DialogDescription id={descriptionId} className="sr-only">
+            Permanently delete the selected student.
+          </DialogDescription>
         </DialogHeader>
         <HardDeletePanel
           title="Delete Student"

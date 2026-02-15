@@ -16,6 +16,7 @@ type SidebarContextType = {
   isOpen: boolean;
   setIsOpen: (_value: boolean) => void;
   isMobile: boolean;
+  openSidebar: () => void;
   toggleSidebar: () => void;
   closeSidebar: () => void;
 };
@@ -48,6 +49,10 @@ export function SidebarProvider({
     setIsOpen((prev) => !prev);
   }, []);
 
+  const openSidebar = useCallback(() => {
+    setIsOpen(true);
+  }, []);
+
   const closeSidebar = useCallback(() => {
     setIsOpen(false);
   }, []);
@@ -59,6 +64,7 @@ export function SidebarProvider({
         isOpen,
         setIsOpen,
         isMobile,
+        openSidebar,
         toggleSidebar,
         closeSidebar,
       }}

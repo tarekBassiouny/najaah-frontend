@@ -1,6 +1,7 @@
 import { http } from "@/lib/http";
 import type { PaginatedResponse } from "@/types/pagination";
 import type {
+  CreateCenterEnrollmentPayload,
   CreateEnrollmentPayload,
   Enrollment,
   ListEnrollmentsParams,
@@ -17,6 +18,12 @@ type RawEnrollmentsResponse = {
 };
 
 type RawEnrollmentResponse = {
+  data?: Enrollment;
+};
+
+type RawCreateCenterEnrollmentResponse = {
+  success?: boolean;
+  message?: string;
   data?: Enrollment;
 };
 
@@ -64,6 +71,18 @@ export async function createEnrollment(
     "/api/v1/admin/enrollments",
     payload,
   );
+  return data?.data ?? (data as unknown as Enrollment);
+}
+
+export async function createCenterEnrollment(
+  centerId: string | number,
+  payload: CreateCenterEnrollmentPayload,
+): Promise<Enrollment> {
+  const { data } = await http.post<RawCreateCenterEnrollmentResponse>(
+    `/api/v1/admin/centers/${centerId}/enrollments`,
+    payload,
+  );
+
   return data?.data ?? (data as unknown as Enrollment);
 }
 

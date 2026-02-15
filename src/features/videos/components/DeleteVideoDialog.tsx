@@ -75,7 +75,7 @@ export function DeleteVideoDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Video</DialogTitle>
         </DialogHeader>

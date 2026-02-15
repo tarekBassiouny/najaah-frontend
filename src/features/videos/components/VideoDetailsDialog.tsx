@@ -3,6 +3,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -37,9 +38,7 @@ export function VideoDetailsDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="space-y-2">
           <DialogTitle>{title}</DialogTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {description}
-          </p>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 text-sm">

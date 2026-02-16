@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAdminLogin } from "@/features/auth/hooks/use-admin-login";
+import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { isAxiosError } from "axios";
 import { type ApiErrorResponse } from "@/types/auth";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formMessage, setFormMessage] = useState<string | null>(null);
+  const { data: user } = useAdminMe();
   const loginMutation = useAdminLogin({
     onSuccess: () => {
       setFormMessage(null);
@@ -58,6 +60,11 @@ export function LoginForm() {
     if (reason !== "session_expired") return;
     setFormMessage("Your session expired. Please sign in again.");
   }, [reason]);
+
+  useEffect(() => {
+    if (!user) return;
+    router.replace("/dashboard");
+  }, [router, user]);
 
   const onSubmit = (values: FormValues) => {
     setFormMessage(null);

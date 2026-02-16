@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTenant } from "@/app/tenant-provider";
 import { cn } from "@/lib/utils";
 import { setTenantState } from "@/lib/tenant-store";
+import { listCenterOptions } from "@/features/centers/services/centers.service";
 import {
   SearchableSelect,
   type SearchableSelectOption,
 } from "@/components/ui/searchable-select";
-import { useCenters } from "../hooks/use-centers";
 
 const BuildingIcon = () => (
   <svg
@@ -48,9 +49,20 @@ type CenterPickerProps = {
   allLabel?: string;
   hideWhenCenterScoped?: boolean;
   disabled?: boolean;
+  value?: string | number | null;
+  onValueChange?: (
+    _centerId: string | number | null,
+    _center: {
+      id: string | number;
+      name?: string | null;
+      slug?: string | null;
+    } | null,
+  ) => void;
 };
 
 const ALL_CENTERS_VALUE = "__all_centers__";
+const CENTER_PICKER_PAGE_SIZE = 20;
+const CENTER_PICKER_SEARCH_DEBOUNCE_MS = 300;
 
 export function CenterPicker({
   className,
@@ -58,16 +70,86 @@ export function CenterPicker({
   allLabel = "All Centers",
   hideWhenCenterScoped = true,
   disabled = false,
+  value,
+  onValueChange,
 }: CenterPickerProps) {
   const { centerSlug, centerId, centerName } = useTenant();
   const isPlatformAdmin = !centerSlug;
+  const isControlled = typeof onValueChange === "function";
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const cachedCentersRef = useRef<
+    Map<
+      string,
+      { id: string | number; name?: string | null; slug?: string | null }
+    >
+  >(new Map());
 
-  const { data: centersData, isLoading } = useCenters(
-    { page: 1, per_page: 100 },
-    { enabled: isPlatformAdmin },
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, CENTER_PICKER_SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  const {
+    data: centersData,
+    isLoading,
+    isFetchingNextPage: isLoadingMore,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["center-picker-centers", debouncedSearch],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      listCenterOptions({
+        page: pageParam,
+        per_page: CENTER_PICKER_PAGE_SIZE,
+        search: debouncedSearch || undefined,
+      }),
+    getNextPageParam: (lastPage) => {
+      const page = Number(lastPage.meta?.page ?? 1);
+      const perPage = Number(
+        lastPage.meta?.per_page ?? CENTER_PICKER_PAGE_SIZE,
+      );
+      const total = Number(lastPage.meta?.total ?? 0);
+      if (total > 0) {
+        return page * perPage < total ? page + 1 : undefined;
+      }
+
+      return lastPage.items.length >= perPage ? page + 1 : undefined;
+    },
+    enabled: isPlatformAdmin,
+    staleTime: 60_000,
+  });
+
+  const centers = useMemo(
+    () =>
+      (centersData?.pages ?? [])
+        .flatMap((page) => page.items)
+        .filter(
+          (center, index, array) =>
+            array.findIndex((item) => String(item.id) === String(center.id)) ===
+            index,
+        ),
+    [centersData?.pages],
   );
-  const centers = useMemo(() => centersData?.items ?? [], [centersData]);
+
+  useEffect(() => {
+    centers.forEach((center) => {
+      cachedCentersRef.current.set(String(center.id), {
+        id: center.id,
+        name: center.name ?? null,
+        slug: center.slug ?? null,
+      });
+    });
+  }, [centers]);
+
   const shouldHide = hideWhenCenterScoped && !isPlatformAdmin;
+  const selectedCenterId = isControlled ? (value ?? null) : centerId;
+  const selectedCenterIdString =
+    selectedCenterId != null ? String(selectedCenterId) : null;
 
   // Build options for the searchable select
   const options: SearchableSelectOption<string>[] = useMemo(() => {
@@ -86,29 +168,63 @@ export function CenterPicker({
       }),
     );
 
+    if (
+      selectedCenterIdString &&
+      !centerOptions.some((option) => option.value === selectedCenterIdString)
+    ) {
+      const selectedCenter = cachedCentersRef.current.get(
+        selectedCenterIdString,
+      );
+      centerOptions.unshift({
+        value: selectedCenterIdString,
+        label:
+          selectedCenter?.name ??
+          (String(centerId ?? "") === selectedCenterIdString
+            ? centerName
+            : null) ??
+          `Center ${selectedCenterIdString}`,
+        icon: <BuildingIcon />,
+        description: selectedCenter?.slug ?? undefined,
+      });
+    }
+
     return [allCentersOption, ...centerOptions];
-  }, [centers, allLabel]);
+  }, [allLabel, centerId, centerName, centers, selectedCenterIdString]);
 
   // Current value for the select
   const currentValue = useMemo(() => {
-    if (centerId == null) return ALL_CENTERS_VALUE;
-    return String(centerId);
-  }, [centerId]);
+    if (selectedCenterId == null) return ALL_CENTERS_VALUE;
+    return String(selectedCenterId);
+  }, [selectedCenterId]);
 
   // Handle value change
   const handleValueChange = (selectedId: string | null) => {
     if (disabled) return;
 
     if (!selectedId || selectedId === ALL_CENTERS_VALUE) {
-      setTenantState({ centerId: null, centerName: null });
+      if (isControlled) {
+        onValueChange?.(null, null);
+      } else {
+        setTenantState({ centerId: null, centerName: null });
+      }
       return;
     }
 
-    const selected = centers.find((center) => String(center.id) === selectedId);
+    const selected =
+      centers.find((center) => String(center.id) === selectedId) ??
+      cachedCentersRef.current.get(selectedId);
+
+    if (isControlled) {
+      const nextId = selected?.id ?? selectedId;
+      onValueChange?.(nextId, selected ?? null);
+      return;
+    }
 
     setTenantState({
-      centerId: selected?.id ?? null,
-      centerName: selected?.name ?? null,
+      centerId: selected?.id ?? selectedId,
+      centerName:
+        selected?.name ??
+        (String(centerId ?? "") === selectedId ? (centerName ?? null) : null),
     });
   };
 
@@ -123,6 +239,8 @@ export function CenterPicker({
         value={currentValue}
         onValueChange={handleValueChange}
         options={options}
+        searchValue={search}
+        onSearchValueChange={setSearch}
         placeholder={centerName ?? allLabel}
         searchPlaceholder="Search centers..."
         emptyMessage="No centers found"
@@ -130,11 +248,19 @@ export function CenterPicker({
         icon={<BuildingIcon />}
         isLoading={isLoading}
         disabled={disabled}
+        filterOptions={false}
+        hasMore={Boolean(hasNextPage)}
+        isLoadingMore={isLoadingMore}
+        onReachEnd={() => {
+          if (hasNextPage) {
+            void fetchNextPage();
+          }
+        }}
         triggerClassName={cn(
           "bg-gradient-to-r from-white to-gray-50/80 dark:from-gray-900 dark:to-gray-800/80",
           selectClassName,
         )}
-        showSearch={centers.length > 5}
+        showSearch={isPlatformAdmin}
       />
     </div>
   );

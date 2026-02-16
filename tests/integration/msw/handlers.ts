@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 const loginRoute = "/api/v1/admin/auth/login";
 const meRoute = "/api/v1/admin/auth/me";
 const centersRoute = "/api/v1/admin/centers";
+const centersOptionsRoute = "/api/v1/admin/centers/options";
 const agentsExecutionsRoute = "/api/v1/admin/agents/executions";
 const agentsAvailableRoute = "/api/v1/admin/agents/available";
 const agentsExecuteRoute = "/api/v1/admin/agents/execute";
@@ -47,6 +48,21 @@ export const handlers = [
         { id: 1, name: "Center A" },
         { id: 2, name: "Center B" },
       ],
+    });
+  }),
+
+  http.get(centersOptionsRoute, () => {
+    return HttpResponse.json({
+      data: [
+        { id: 1, name: "Center A", slug: "center-a" },
+        { id: 2, name: "Center B", slug: "center-b" },
+      ],
+      meta: {
+        page: 1,
+        per_page: 20,
+        total: 2,
+        last_page: 1,
+      },
     });
   }),
 

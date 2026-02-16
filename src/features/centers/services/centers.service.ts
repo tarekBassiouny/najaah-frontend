@@ -15,6 +15,19 @@ export type ListCentersParams = {
   created_to?: string;
 };
 
+export type CenterOption = {
+  id: string | number;
+  name?: string | null;
+  slug?: string | null;
+};
+
+export type ListCenterOptionsParams = {
+  page: number;
+  per_page: number;
+  search?: string;
+  type?: string;
+};
+
 export type CenterAdminPayload = {
   name: string;
   email: string;
@@ -57,6 +70,87 @@ type RawCenterResponse = {
   data?: Center;
 };
 
+type RawCenterOption = {
+  id?: string | number;
+  center_id?: string | number;
+  name?: string | null;
+  center_name?: string | null;
+  slug?: string | null;
+  center_slug?: string | null;
+};
+
+type RawCenterOptionsMeta = {
+  page?: number | string;
+  current_page?: number | string;
+  per_page?: number | string;
+  total?: number | string;
+  last_page?: number | string;
+  next_page_url?: string | null;
+};
+
+type RawCenterOptionsNode = {
+  data?: RawCenterOption[] | unknown;
+  items?: RawCenterOption[] | unknown;
+  meta?: RawCenterOptionsMeta;
+  page?: number | string;
+  current_page?: number | string;
+  per_page?: number | string;
+  total?: number | string;
+  last_page?: number | string;
+  next_page_url?: string | null;
+  [key: string]: unknown;
+};
+
+type RawCenterOptionsResponse = {
+  data?: RawCenterOption[] | RawCenterOptionsNode;
+  payload?: RawCenterOptionsNode;
+  meta?: RawCenterOptionsMeta;
+  [key: string]: unknown;
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function toCenterOption(value: unknown): CenterOption | null {
+  if (!value || typeof value !== "object") return null;
+
+  const record = value as Record<string, unknown>;
+  const id = record.id ?? record.center_id;
+  if (id == null) return null;
+
+  return {
+    id: id as string | number,
+    name:
+      typeof record.name === "string"
+        ? record.name
+        : typeof record.center_name === "string"
+          ? record.center_name
+          : null,
+    slug:
+      typeof record.slug === "string"
+        ? record.slug
+        : typeof record.center_slug === "string"
+          ? record.center_slug
+          : null,
+  };
+}
+
 export async function listCenters(
   params: ListCentersParams,
 ): Promise<PaginatedResponse<Center>> {
@@ -84,6 +178,70 @@ export async function listCenters(
       page: data?.meta?.page ?? params.page,
       per_page: data?.meta?.per_page ?? params.per_page,
       total: data?.meta?.total ?? 0,
+    },
+  };
+}
+
+export async function listCenterOptions(
+  params: ListCenterOptionsParams,
+): Promise<PaginatedResponse<CenterOption>> {
+  const { data } = await http.get<RawCenterOptionsResponse>(
+    "/api/v1/admin/centers/options",
+    {
+      params: {
+        page: params.page,
+        per_page: params.per_page,
+        search: params.search || undefined,
+        type: params.type || undefined,
+      },
+    },
+  );
+
+  const root = asRecord(data) ?? {};
+  const payload = asRecord(root.data) ?? asRecord(root.payload) ?? root;
+  const itemsSource = Array.isArray(root.data)
+    ? root.data
+    : Array.isArray(payload.data)
+      ? payload.data
+      : Array.isArray(payload.items)
+        ? payload.items
+        : Array.isArray(root.items)
+          ? root.items
+          : [];
+  const items = itemsSource
+    .map((item) => toCenterOption(item))
+    .filter((item): item is CenterOption => Boolean(item));
+
+  const metaSource =
+    (asRecord(payload.meta) as RawCenterOptionsMeta | null) ??
+    (asRecord(root.meta) as RawCenterOptionsMeta | null) ??
+    (payload as RawCenterOptionsMeta);
+
+  const page =
+    toNumber(metaSource?.page ?? metaSource?.current_page ?? payload.page) ??
+    params.page;
+  const perPage =
+    toNumber(metaSource?.per_page ?? payload.per_page) ?? params.per_page;
+  const totalFromMeta = toNumber(metaSource?.total ?? payload.total);
+  const lastPage = toNumber(metaSource?.last_page ?? payload.last_page);
+  const hasNextFromUrl = Boolean(
+    metaSource?.next_page_url ?? payload.next_page_url,
+  );
+
+  const inferredTotal =
+    totalFromMeta ??
+    (lastPage != null
+      ? lastPage * perPage
+      : hasNextFromUrl
+        ? page * perPage + 1
+        : (page - 1) * perPage + items.length);
+
+  return {
+    items,
+    meta: {
+      page,
+      per_page: perPage,
+      total: inferredTotal,
     },
   };
 }

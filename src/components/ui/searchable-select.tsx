@@ -79,6 +79,8 @@ type SearchableSelectProps<T = string> = {
   value: T | null;
   onValueChange: (_value: T | null) => void;
   options: SearchableSelectOption<T>[];
+  searchValue?: string;
+  onSearchValueChange?: (_value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
@@ -90,16 +92,22 @@ type SearchableSelectProps<T = string> = {
   triggerClassName?: string;
   contentClassName?: string;
   showSearch?: boolean;
+  filterOptions?: boolean;
   allowClear?: boolean;
   clearLabel?: string;
   clearIcon?: React.ReactNode;
   groupedOptions?: { label: string; options: SearchableSelectOption<T>[] }[];
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onReachEnd?: () => void;
 };
 
 export function SearchableSelect<T = string>({
   value,
   onValueChange,
   options,
+  searchValue,
+  onSearchValueChange,
   placeholder = "Select an option",
   searchPlaceholder = "Search...",
   emptyMessage = "No results found",
@@ -111,18 +119,34 @@ export function SearchableSelect<T = string>({
   triggerClassName,
   contentClassName,
   showSearch = true,
+  filterOptions = true,
   allowClear = false,
   clearLabel = "Clear selection",
   clearIcon,
   groupedOptions,
+  hasMore = false,
+  isLoadingMore = false,
+  onReachEnd,
 }: SearchableSelectProps<T>) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [search, setSearch] = React.useState("");
+  const [internalSearch, setInternalSearch] = React.useState("");
   const [highlightedIndex, setHighlightedIndex] = React.useState(0);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
+  const search = searchValue ?? internalSearch;
+
+  const updateSearch = React.useCallback(
+    (nextValue: string) => {
+      if (searchValue === undefined) {
+        setInternalSearch(nextValue);
+      }
+
+      onSearchValueChange?.(nextValue);
+    },
+    [onSearchValueChange, searchValue],
+  );
 
   // Flatten grouped options or use regular options
   const allOptions = React.useMemo(() => {
@@ -134,6 +158,7 @@ export function SearchableSelect<T = string>({
 
   // Filter options based on search
   const filteredOptions = React.useMemo(() => {
+    if (!filterOptions) return allOptions;
     const query = search.trim().toLowerCase();
     if (!query) return allOptions;
     return allOptions.filter(
@@ -141,7 +166,7 @@ export function SearchableSelect<T = string>({
         option.label.toLowerCase().includes(query) ||
         option.description?.toLowerCase().includes(query),
     );
-  }, [allOptions, search]);
+  }, [allOptions, filterOptions, search]);
 
   // Get selected option label
   const selectedOption = React.useMemo(
@@ -182,23 +207,23 @@ export function SearchableSelect<T = string>({
             if (!option.disabled) {
               onValueChange(option.value);
               setIsOpen(false);
-              setSearch("");
+              updateSearch("");
             }
           }
           break;
         case "Escape":
           event.preventDefault();
           setIsOpen(false);
-          setSearch("");
+          updateSearch("");
           triggerRef.current?.focus();
           break;
         case "Tab":
           setIsOpen(false);
-          setSearch("");
+          updateSearch("");
           break;
       }
     },
-    [isOpen, filteredOptions, highlightedIndex, onValueChange],
+    [isOpen, filteredOptions, highlightedIndex, onValueChange, updateSearch],
   );
 
   // Focus search input when dropdown opens
@@ -231,26 +256,29 @@ export function SearchableSelect<T = string>({
   React.useEffect(() => {
     if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleInteractionOutside = (event: PointerEvent) => {
       const target = event.target as Node;
       if (
         !triggerRef.current?.contains(target) &&
         !contentRef.current?.contains(target)
       ) {
         setIsOpen(false);
-        setSearch("");
+        updateSearch("");
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+    document.addEventListener("pointerdown", handleInteractionOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleInteractionOutside);
+    };
+  }, [isOpen, updateSearch]);
 
   const handleSelect = (option: SearchableSelectOption<T>) => {
     if (option.disabled) return;
     onValueChange(option.value);
     setIsOpen(false);
-    setSearch("");
+    updateSearch("");
     triggerRef.current?.focus();
   };
 
@@ -387,7 +415,7 @@ export function SearchableSelect<T = string>({
                   ref={searchInputRef}
                   type="text"
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(event) => updateSearch(event.target.value)}
                   placeholder={searchPlaceholder}
                   className={cn(
                     "h-9 w-full rounded-lg border bg-gray-50 pl-9 pr-3 text-sm outline-none transition-all duration-200",
@@ -406,6 +434,15 @@ export function SearchableSelect<T = string>({
             ref={listRef}
             className="overflow-y-auto p-1.5"
             style={{ maxHeight: showSearch ? "16rem" : "18rem" }}
+            onScroll={(event) => {
+              if (!hasMore || isLoadingMore || !onReachEnd) return;
+              const element = event.currentTarget;
+              const distanceToBottom =
+                element.scrollHeight - element.scrollTop - element.clientHeight;
+              if (distanceToBottom <= 24) {
+                onReachEnd();
+              }
+            }}
           >
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option, index) => (
@@ -415,6 +452,10 @@ export function SearchableSelect<T = string>({
                   aria-selected={option.value === value}
                   aria-disabled={option.disabled}
                   data-index={index}
+                  onMouseDown={(event) => {
+                    // Keep focus stable inside dialog focus traps so click select is not swallowed.
+                    event.preventDefault();
+                  }}
                   onClick={() => handleSelect(option)}
                   className={cn(
                     "relative flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none transition-colors duration-150",
@@ -467,6 +508,19 @@ export function SearchableSelect<T = string>({
                   <span className="text-xs text-gray-400 dark:text-gray-500">
                     Try a different search term
                   </span>
+                )}
+              </div>
+            )}
+
+            {(hasMore || isLoadingMore) && (
+              <div className="flex items-center justify-center px-2 py-2 text-xs text-gray-500 dark:text-gray-400">
+                {isLoadingMore ? (
+                  <span className="flex items-center gap-2">
+                    <LoadingSpinner className="h-3.5 w-3.5" />
+                    Loading more...
+                  </span>
+                ) : (
+                  <span>Scroll to load more</span>
                 )}
               </div>
             )}

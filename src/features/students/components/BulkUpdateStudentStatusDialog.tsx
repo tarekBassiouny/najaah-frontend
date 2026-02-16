@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -91,9 +92,9 @@ export function BulkUpdateStudentStatusDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="space-y-2">
           <DialogTitle>Bulk Change Status</DialogTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <DialogDescription>
             Update status for {students.length} selected students.
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         {errorMessage && (

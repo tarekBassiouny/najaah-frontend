@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTenant } from "@/app/tenant-provider";
-import { useAdminUsers } from "@/features/admin-users/hooks/use-admin-users";
-import { listCourses } from "@/features/courses/services/courses.service";
+import { listAdminUsers } from "@/features/admin-users/services/admin-users.service";
+import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { useAuditLogs } from "@/features/audit-logs/hooks/use-audit-logs";
 import type { AuditLog } from "@/features/audit-logs/types/audit-log";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
@@ -46,10 +46,12 @@ import { formatDateTime } from "@/lib/format-date-time";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
+const FILTER_LIST_PAGE_SIZE = 20;
 const ALL_ACTIONS_VALUE = "__all_actions__";
 const ALL_USERS_VALUE = "__all_users__";
 const ALL_COURSES_VALUE = "__all_courses__";
 const COURSE_ENTITY_TYPE = "App\\Models\\Course";
+const FILTER_SEARCH_DEBOUNCE_MS = 300;
 
 const ACTION_OPTIONS = [
   { value: ALL_ACTIONS_VALUE, label: "All actions" },
@@ -150,9 +152,9 @@ function buildEventSummary(log: AuditLog) {
 export function AuditLogsTable() {
   const { centerSlug, centerId } = useTenant();
   const isPlatformAdmin = !centerSlug;
-
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
+
   const [action, setAction] = useState(ALL_ACTIONS_VALUE);
   const [selectedUser, setSelectedUser] = useState<string | null>(
     ALL_USERS_VALUE,
@@ -163,8 +165,37 @@ export function AuditLogsTable() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [datePreset, setDatePreset] = useState<string>("");
+  const [userSearch, setUserSearch] = useState("");
+  const [courseSearch, setCourseSearch] = useState("");
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
+  const [debouncedCourseSearch, setDebouncedCourseSearch] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const cachedUsersRef = useRef<
+    Map<
+      string,
+      { id: string | number; name?: string | null; email?: string | null }
+    >
+  >(new Map());
+  const cachedCoursesRef = useRef<
+    Map<string, { id: string | number; title?: string | null }>
+  >(new Map());
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedUserSearch(userSearch.trim());
+    }, FILTER_SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+  }, [userSearch]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedCourseSearch(courseSearch.trim());
+    }, FILTER_SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+  }, [courseSearch]);
 
   useEffect(() => {
     setPage(1);
@@ -178,55 +209,151 @@ export function AuditLogsTable() {
     perPage,
   ]);
 
-  const usersParams = useMemo(
-    () => ({
-      page: 1,
-      per_page: 100,
-      center_id: centerId ?? undefined,
-    }),
-    [centerId],
-  );
+  useEffect(() => {
+    setSelectedCourse(ALL_COURSES_VALUE);
+    setCourseSearch("");
+    setDebouncedCourseSearch("");
+  }, [centerId]);
 
-  const { data: usersData } = useAdminUsers(usersParams);
-
-  const { data: coursesData } = useQuery({
-    queryKey: ["audit-filter-courses", centerId ?? "all"],
-    queryFn: () =>
-      listCourses({
-        page: 1,
-        per_page: 100,
+  const usersQuery = useInfiniteQuery({
+    queryKey: ["audit-filter-users", centerId ?? "all", debouncedUserSearch],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      listAdminUsers({
+        page: pageParam,
+        per_page: FILTER_LIST_PAGE_SIZE,
         center_id: centerId ?? undefined,
+        search: debouncedUserSearch || undefined,
       }),
+    getNextPageParam: (lastPage) => {
+      const page = Number(lastPage.meta?.page ?? 1);
+      const perPage = Number(lastPage.meta?.per_page ?? FILTER_LIST_PAGE_SIZE);
+      const total = Number(lastPage.meta?.total ?? 0);
+      return page * perPage < total ? page + 1 : undefined;
+    },
+    staleTime: 60_000,
   });
+
+  const coursesQuery = useInfiniteQuery({
+    queryKey: [
+      "audit-filter-courses",
+      centerId ?? "all",
+      debouncedCourseSearch,
+    ],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      listCenterCourses({
+        center_id: centerId!,
+        page: pageParam,
+        per_page: FILTER_LIST_PAGE_SIZE,
+        search: debouncedCourseSearch || undefined,
+      }),
+    enabled: Boolean(centerId),
+    getNextPageParam: (lastPage) => {
+      const page = Number(lastPage.page ?? 1);
+      const perPage = Number(lastPage.perPage ?? FILTER_LIST_PAGE_SIZE);
+      const total = Number(lastPage.total ?? 0);
+      return page * perPage < total ? page + 1 : undefined;
+    },
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    const users = (usersQuery.data?.pages ?? []).flatMap((queryPage) =>
+      queryPage.items.map((user) => ({
+        id: user.id,
+        name: user.name ?? null,
+        email: user.email ?? null,
+      })),
+    );
+
+    users.forEach((user) => {
+      cachedUsersRef.current.set(String(user.id), user);
+    });
+  }, [usersQuery.data?.pages]);
+
+  useEffect(() => {
+    const courses = (coursesQuery.data?.pages ?? []).flatMap((queryPage) =>
+      queryPage.items.map((course) => ({
+        id: course.id,
+        title: course.title ?? null,
+      })),
+    );
+
+    courses.forEach((course) => {
+      cachedCoursesRef.current.set(String(course.id), course);
+    });
+  }, [coursesQuery.data?.pages]);
 
   const userOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
       { value: ALL_USERS_VALUE, label: "All users" },
     ];
 
-    const users =
-      usersData?.items.map((user) => ({
+    const users = (usersQuery.data?.pages ?? [])
+      .flatMap((page) => page.items)
+      .filter(
+        (user, index, array) =>
+          array.findIndex((item) => String(item.id) === String(user.id)) ===
+          index,
+      )
+      .map((user) => ({
         value: String(user.id),
         label: user.name || `User ${user.id}`,
         description: user.email || undefined,
-      })) ?? [];
+      }));
+
+    if (
+      selectedUser &&
+      selectedUser !== ALL_USERS_VALUE &&
+      !users.some((option) => option.value === selectedUser)
+    ) {
+      const selected = cachedUsersRef.current.get(selectedUser);
+      users.unshift({
+        value: selectedUser,
+        label: selected?.name ?? `User ${selectedUser}`,
+        description: selected?.email ?? undefined,
+      });
+    }
 
     return [...defaults, ...users];
-  }, [usersData]);
+  }, [selectedUser, usersQuery.data?.pages]);
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
       { value: ALL_COURSES_VALUE, label: "All courses" },
     ];
 
-    const courses =
-      coursesData?.items.map((course) => ({
+    if (!centerId) {
+      return defaults;
+    }
+
+    const courses = (coursesQuery.data?.pages ?? [])
+      .flatMap((page) => page.items)
+      .filter(
+        (course, index, array) =>
+          array.findIndex((item) => String(item.id) === String(course.id)) ===
+          index,
+      )
+      .map((course) => ({
         value: String(course.id),
         label: course.title || `Course ${course.id}`,
-      })) ?? [];
+      }));
+
+    if (
+      selectedCourse &&
+      selectedCourse !== ALL_COURSES_VALUE &&
+      !courses.some((option) => option.value === selectedCourse)
+    ) {
+      const selected = cachedCoursesRef.current.get(selectedCourse);
+      courses.unshift({
+        value: selectedCourse,
+        label: selected?.title ?? `Course ${selectedCourse}`,
+      });
+    }
 
     return [...defaults, ...courses];
-  }, [coursesData]);
+  }, [centerId, coursesQuery.data?.pages, selectedCourse]);
 
   const params = useMemo(
     () => ({
@@ -274,6 +401,8 @@ export function AuditLogsTable() {
     setAction(ALL_ACTIONS_VALUE);
     setSelectedUser(ALL_USERS_VALUE);
     setSelectedCourse(ALL_COURSES_VALUE);
+    setUserSearch("");
+    setCourseSearch("");
     setDateFrom("");
     setDateTo("");
     setDatePreset("");
@@ -380,10 +509,26 @@ export function AuditLogsTable() {
               value={selectedCourse}
               onValueChange={setSelectedCourse}
               options={courseOptions}
-              placeholder="All courses"
+              searchValue={courseSearch}
+              onSearchValueChange={setCourseSearch}
+              placeholder={centerId ? "All courses" : "Select center first"}
               searchPlaceholder="Search courses..."
-              emptyMessage="No courses found"
-              showSearch={courseOptions.length > 8}
+              emptyMessage={
+                centerId
+                  ? "No courses found"
+                  : "Select a center to load courses"
+              }
+              isLoading={coursesQuery.isLoading}
+              filterOptions={false}
+              showSearch
+              disabled={!centerId}
+              hasMore={Boolean(coursesQuery.hasNextPage)}
+              isLoadingMore={coursesQuery.isFetchingNextPage}
+              onReachEnd={() => {
+                if (coursesQuery.hasNextPage) {
+                  void coursesQuery.fetchNextPage();
+                }
+              }}
               triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
           </FilterField>
@@ -393,10 +538,21 @@ export function AuditLogsTable() {
               value={selectedUser}
               onValueChange={setSelectedUser}
               options={userOptions}
+              searchValue={userSearch}
+              onSearchValueChange={setUserSearch}
               placeholder="All users"
               searchPlaceholder="Search users..."
               emptyMessage="No users found"
-              showSearch={userOptions.length > 8}
+              isLoading={usersQuery.isLoading}
+              filterOptions={false}
+              showSearch
+              hasMore={Boolean(usersQuery.hasNextPage)}
+              isLoadingMore={usersQuery.isFetchingNextPage}
+              onReachEnd={() => {
+                if (usersQuery.hasNextPage) {
+                  void usersQuery.fetchNextPage();
+                }
+              }}
               triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
           </FilterField>

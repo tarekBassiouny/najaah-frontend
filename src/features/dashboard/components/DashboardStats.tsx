@@ -7,12 +7,30 @@ type DashboardStatsProps = {
     totalCourses: number;
     totalStudents: number;
     activeEnrollments: number;
+    activeEnrollmentsChangePercent?: number;
+    activeEnrollmentsTrend?: string | null;
     pendingApprovals: number;
+    pendingEnrollmentRequests?: number;
+    pendingDeviceChangeRequests?: number;
+    pendingExtraViewRequests?: number;
   };
   isLoading?: boolean;
 };
 
 export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
+  const activeTrend =
+    typeof stats?.activeEnrollmentsChangePercent === "number"
+      ? {
+          value: stats.activeEnrollmentsChangePercent,
+          isPositive: (stats.activeEnrollmentsTrend ?? "up") !== "down",
+        }
+      : undefined;
+  const pendingBreakdown = [
+    `Enrollments ${stats?.pendingEnrollmentRequests ?? 0}`,
+    `Device ${stats?.pendingDeviceChangeRequests ?? 0}`,
+    `Extra view ${stats?.pendingExtraViewRequests ?? 0}`,
+  ].join(" • ");
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatsCard
@@ -62,7 +80,7 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
         value={stats?.activeEnrollments ?? 0}
         description="Currently enrolled"
         loading={isLoading}
-        trend={{ value: 12, isPositive: true }}
+        trend={activeTrend}
         icon={
           <svg
             className="h-5 w-5"
@@ -82,7 +100,7 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
       <StatsCard
         title="Pending Approvals"
         value={stats?.pendingApprovals ?? 0}
-        description="Require attention"
+        description={pendingBreakdown}
         loading={isLoading}
         icon={
           <svg

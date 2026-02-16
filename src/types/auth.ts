@@ -1,13 +1,19 @@
+export type AdminUserRole = {
+  id?: string | number;
+  name?: string;
+  slug?: string;
+  role?: string;
+  permissions?: string[];
+  [key: string]: unknown;
+};
+
 export type AdminUser = {
   id: string | number;
   name: string;
   email: string;
   role?: string;
-  roles?: string[];
-  roles_with_permissions?: Array<{
-    permissions?: string[];
-    [key: string]: unknown;
-  }> | null;
+  roles?: Array<string | AdminUserRole>;
+  roles_with_permissions?: AdminUserRole[] | null;
   avatar?: string | null;
   permissions?: string[];
   [key: string]: unknown;

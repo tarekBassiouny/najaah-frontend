@@ -14,7 +14,7 @@ export function ListingCard({
   contentClassName,
 }: ListingCardProps) {
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={className}>
       <CardContent className={cn("p-0", contentClassName)}>
         {children}
       </CardContent>

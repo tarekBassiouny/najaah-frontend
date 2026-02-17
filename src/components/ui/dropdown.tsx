@@ -112,20 +112,31 @@ export function DropdownContent({
   );
 }
 
-type DropdownTriggerProps = React.HTMLAttributes<HTMLButtonElement> & {
+type DropdownTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
 };
 
-export function DropdownTrigger({ children, className }: DropdownTriggerProps) {
+export function DropdownTrigger({
+  children,
+  className,
+  onClick,
+  ...props
+}: DropdownTriggerProps) {
   const { handleOpen, isOpen } = useDropdownContext();
+
+  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    onClick?.(event);
+    handleOpen();
+  };
 
   return (
     <button
       className={className}
-      onClick={handleOpen}
+      onClick={handleClick}
       aria-expanded={isOpen}
       aria-haspopup="menu"
       data-state={isOpen ? "open" : "closed"}
+      {...props}
     >
       {children}
     </button>

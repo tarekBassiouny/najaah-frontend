@@ -1,9 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  changeAdminPassword,
   fetchAdminProfile,
+  forgotAdminPassword,
   loginAdmin,
   logoutAdmin,
   refreshAdminSession,
+  updateAdminProfile,
 } from "@/services/admin-auth.service";
 import { http } from "@/lib/http";
 import { tokenStorage } from "@/lib/token-storage";
@@ -14,6 +17,7 @@ vi.mock("@/lib/http", () => {
     http: {
       post: vi.fn(),
       get: vi.fn(),
+      patch: vi.fn(),
     },
   };
 });
@@ -34,6 +38,7 @@ vi.mock("@/lib/auth-state", () => ({
 const mockedHttp = http as unknown as {
   post: ReturnType<typeof vi.fn>;
   get: ReturnType<typeof vi.fn>;
+  patch: ReturnType<typeof vi.fn>;
 };
 
 const mockedTokenStorage = tokenStorage as unknown as {
@@ -142,6 +147,90 @@ describe("fetchAdminProfile", () => {
 
     expect(result).toBeNull();
     expect(mockedSetAuthPermissions).toHaveBeenCalledWith(null);
+  });
+});
+
+describe("forgotAdminPassword", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sends forgot-password request without auth", async () => {
+    mockedHttp.post.mockResolvedValueOnce({
+      data: { success: true, message: "If account exists, email sent." },
+    });
+
+    const payload = { email: "admin@example.com" };
+    const result = await forgotAdminPassword(payload);
+
+    expect(mockedHttp.post).toHaveBeenCalledWith(
+      "/api/v1/admin/auth/password/forgot",
+      payload,
+      { skipAuth: true },
+    );
+    expect(result).toEqual({
+      success: true,
+      message: "If account exists, email sent.",
+    });
+  });
+});
+
+describe("updateAdminProfile", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("patches profile and returns normalized user", async () => {
+    const user = {
+      id: 1,
+      name: "New Name",
+      email: "admin@example.com",
+      permissions: ["admin.read"],
+    };
+
+    mockedHttp.patch.mockResolvedValueOnce({
+      data: { success: true, data: { user } },
+    });
+
+    const payload = {
+      name: "New Name",
+      phone: "19990000003",
+      country_code: "+1",
+    };
+
+    const result = await updateAdminProfile(payload);
+
+    expect(mockedHttp.patch).toHaveBeenCalledWith(
+      "/api/v1/admin/auth/me",
+      payload,
+    );
+    expect(result).toMatchObject(user);
+    expect(mockedSetAuthPermissions).toHaveBeenCalledWith(["admin.read"]);
+  });
+});
+
+describe("changeAdminPassword", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sends change-password request", async () => {
+    mockedHttp.post.mockResolvedValueOnce({
+      data: { success: true, message: "Password changed." },
+    });
+
+    const payload = {
+      current_password: "CurrentPass123",
+      new_password: "NewPass123",
+    };
+
+    const result = await changeAdminPassword(payload);
+
+    expect(mockedHttp.post).toHaveBeenCalledWith(
+      "/api/v1/admin/auth/change-password",
+      payload,
+    );
+    expect(result).toEqual({ success: true, message: "Password changed." });
   });
 });
 

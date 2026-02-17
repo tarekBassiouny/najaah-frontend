@@ -6,7 +6,10 @@ import {
   type AdminAuthResponse,
   type AdminAuthTokens,
   type AdminLoginPayload,
+  type AdminPasswordForgotPayload,
   type AdminPasswordResetPayload,
+  type AdminProfileUpdatePayload,
+  type AdminChangePasswordPayload,
   type AdminUser,
   type ApiErrorResponse,
 } from "@/types/auth";
@@ -85,13 +88,8 @@ function normalizeAdminUser(
     roles_with_permissions?: RolesWithPermissionsPayload[] | null;
   },
 ) {
-  const {
-    roles: _roles,
-    roles_with_permissions: _rolesWithPermissions,
-    ...rest
-  } = user;
   return {
-    ...rest,
+    ...user,
     permissions: normalizePermissions(user),
   };
 }
@@ -157,6 +155,18 @@ export async function fetchAdminProfile(): Promise<AdminUser | null> {
   }
 }
 
+export async function updateAdminProfile(
+  payload: AdminProfileUpdatePayload,
+): Promise<AdminUser> {
+  const { data } = await http.patch<AdminAuthResponse>(
+    "/api/v1/admin/auth/me",
+    payload,
+  );
+  const user = normalizeAdminUser(extractUser(data));
+  setAuthPermissions(user.permissions ?? []);
+  return user;
+}
+
 export async function refreshAdminSession() {
   const response = await http.post("/api/v1/admin/auth/refresh");
 
@@ -189,6 +199,23 @@ export async function logoutAdmin() {
     tokenStorage.clear();
     setAuthPermissions(null);
   }
+}
+
+export async function changeAdminPassword(payload: AdminChangePasswordPayload) {
+  const { data } = await http.post<ApiErrorResponse>(
+    "/api/v1/admin/auth/change-password",
+    payload,
+  );
+  return data;
+}
+
+export async function forgotAdminPassword(payload: AdminPasswordForgotPayload) {
+  const { data } = await http.post<ApiErrorResponse>(
+    "/api/v1/admin/auth/password/forgot",
+    payload,
+    { skipAuth: true },
+  );
+  return data;
 }
 
 export async function resetAdminPassword(payload: AdminPasswordResetPayload) {

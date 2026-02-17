@@ -40,6 +40,11 @@ import { resolveStudentStatus } from "@/features/students/utils/student-status";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
+const ALL_CENTER_TYPE_VALUE = "all";
+type CenterTypeFilterValue =
+  | typeof ALL_CENTER_TYPE_VALUE
+  | "branded"
+  | "unbranded";
 
 function getInitials(value: string): string {
   const parts = value.trim().split(" ").filter(Boolean);
@@ -77,6 +82,7 @@ type StudentsTableProps = {
   onEdit?: (_student: Student) => void;
   onDelete?: (_student: Student) => void;
   onViewDetails?: (_student: Student) => void;
+  onEnrollCourse?: (_student: Student) => void;
   onBulkEnrollCourse?: (_students: Student[]) => void;
   onBulkChangeStatus?: (_students: Student[]) => void;
 };
@@ -91,6 +97,7 @@ export function StudentsTable({
   onEdit,
   onDelete,
   onViewDetails,
+  onEnrollCourse,
   onBulkEnrollCourse,
   onBulkChangeStatus,
 }: StudentsTableProps) {
@@ -103,6 +110,8 @@ export function StudentsTable({
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [centerTypeFilter, setCenterTypeFilter] =
+    useState<CenterTypeFilterValue>(ALL_CENTER_TYPE_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<
     Record<string, Student>
@@ -116,8 +125,12 @@ export function StudentsTable({
       center_id: centerId,
       course_id: courseId,
       status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      type:
+        centerTypeFilter === ALL_CENTER_TYPE_VALUE
+          ? undefined
+          : centerTypeFilter,
     }),
-    [page, perPage, query, centerId, courseId, statusFilter],
+    [page, perPage, query, centerId, courseId, statusFilter, centerTypeFilter],
   );
 
   const { data, isLoading, isError, isFetching } = useStudents(params);
@@ -129,10 +142,13 @@ export function StudentsTable({
   const isLoadingState = isLoading;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
   const hasActiveFilters =
-    search.trim().length > 0 || statusFilter !== ALL_STATUS_VALUE;
+    search.trim().length > 0 ||
+    statusFilter !== ALL_STATUS_VALUE ||
+    centerTypeFilter !== ALL_CENTER_TYPE_VALUE;
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
-    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0);
+    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (centerTypeFilter !== ALL_CENTER_TYPE_VALUE ? 1 : 0);
   const selectedIds = useMemo(
     () => Object.keys(selectedStudents),
     [selectedStudents],
@@ -168,10 +184,18 @@ export function StudentsTable({
 
   useEffect(() => {
     setSelectedStudents({});
-  }, [centerId, courseId, page, perPage, query, statusFilter]);
+  }, [
+    centerId,
+    courseId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    centerTypeFilter,
+  ]);
 
   const hasActions = Boolean(
-    onEdit || onDelete || onViewDetails || buildProfileHref,
+    onEdit || onDelete || onViewDetails || onEnrollCourse || buildProfileHref,
   );
 
   const toggleStudentSelection = (student: Student) => {
@@ -218,6 +242,7 @@ export function StudentsTable({
           setSearch("");
           setQuery("");
           setStatusFilter(ALL_STATUS_VALUE);
+          setCenterTypeFilter(ALL_CENTER_TYPE_VALUE);
           setPage(1);
         }}
         summary={
@@ -227,8 +252,8 @@ export function StudentsTable({
         }
         gridClassName={
           showCenterFilter
-            ? "grid-cols-1 md:grid-cols-3"
-            : "grid-cols-1 md:grid-cols-2"
+            ? "grid-cols-1 md:grid-cols-4"
+            : "grid-cols-1 md:grid-cols-3"
         }
       >
         <div className="relative">
@@ -292,6 +317,31 @@ export function StudentsTable({
         ) : null}
 
         <Select
+          value={centerTypeFilter}
+          onValueChange={(value) => {
+            setPage(1);
+            if (
+              value === ALL_CENTER_TYPE_VALUE ||
+              value === "branded" ||
+              value === "unbranded"
+            ) {
+              setCenterTypeFilter(value);
+              return;
+            }
+            setCenterTypeFilter(ALL_CENTER_TYPE_VALUE);
+          }}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Center Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_CENTER_TYPE_VALUE}>Center Type</SelectItem>
+            <SelectItem value="branded">Branded</SelectItem>
+            <SelectItem value="unbranded">Unbranded</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
           value={statusFilter}
           onValueChange={(value) => {
             setPage(1);
@@ -350,7 +400,6 @@ export function StudentsTable({
                   />
                 </TableHead>
                 <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Phone</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">Center</TableHead>
                 <TableHead className="font-medium">Activity</TableHead>
@@ -373,9 +422,6 @@ export function StudentsTable({
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-4 w-44" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-5 w-20 rounded-full" />
@@ -402,7 +448,7 @@ export function StudentsTable({
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={hasActions ? 9 : 8} className="h-48">
+                  <TableCell colSpan={hasActions ? 8 : 7} className="h-48">
                     <EmptyState
                       title={query ? "No students found" : "No students yet"}
                       description={
@@ -471,13 +517,15 @@ export function StudentsTable({
                               </span>
                             )}
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {student.email ?? "—"}
+                              {student.phone ?? "—"}
                             </span>
+                            {student.email ? (
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                {student.email}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400">
-                        {student.phone ?? "—"}
                       </TableCell>
                       <TableCell>
                         {student.status != null || student.status_label ? (
@@ -490,7 +538,7 @@ export function StudentsTable({
                         {student.center?.name ??
                           student.center?.id ??
                           student.center_id ??
-                          "—"}
+                          "Najaah App"}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {activityLabel}
@@ -550,6 +598,17 @@ export function StudentsTable({
                                     }}
                                   >
                                     View details
+                                  </button>
+                                )}
+                                {onEnrollCourse && (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onEnrollCourse(student);
+                                    }}
+                                  >
+                                    Enroll in Course
                                   </button>
                                 )}
                                 {onEdit && (

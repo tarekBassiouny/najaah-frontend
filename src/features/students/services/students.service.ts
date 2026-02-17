@@ -12,6 +12,7 @@ export type ListStudentsParams = {
   center_id?: number | string;
   status?: string | number;
   course_id?: number | string;
+  type?: "branded" | "unbranded" | 0 | 1;
 };
 
 type RawStudentsResponse = {
@@ -44,6 +45,7 @@ export async function listStudents(
         center_id: params.center_id ?? undefined,
         status: params.status ?? undefined,
         course_id: params.course_id ?? undefined,
+        type: params.type ?? undefined,
       },
     },
   );

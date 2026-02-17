@@ -4,6 +4,7 @@ type SidebarIcon = (typeof Icons)[keyof typeof Icons];
 
 const EXACT_ICON_MAP: Record<string, SidebarIcon> = {
   Dashboard: Icons.HomeIcon,
+  Analysis: Icons.PieChart,
   Analytics: Icons.PieChart,
   Categories: Icons.FourCircle,
   Centers: Icons.Building,
@@ -15,10 +16,12 @@ const EXACT_ICON_MAP: Record<string, SidebarIcon> = {
   Instructors: Icons.User,
   PDFs: Icons.FileText,
   Roles: Icons.KeyShield,
+  "Roles & Permissions": Icons.KeyShield,
   Permissions: Icons.Authentication,
   Admins: Icons.ShieldCheck,
   Students: Icons.UsersGroup,
   Settings: Icons.Gear,
+  "Audit Log": Icons.HistoryIcon,
   "Audit Logs": Icons.HistoryIcon,
 };
 

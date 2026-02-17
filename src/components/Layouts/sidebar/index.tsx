@@ -58,7 +58,7 @@ function isPathActive(pathname: string, url?: string) {
 
 export function Sidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
-  const { isOpen, isMobile, toggleSidebar } = useSidebarContext();
+  const { isOpen, isMobile, closeSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const {
     centerSlug: tenantCenterSlug,
@@ -87,8 +87,8 @@ export function Sidebar({ sections }: SidebarProps) {
   }, [centerId, sections]);
 
   const filteredSections = useMemo(() => {
-    if (!permissions) {
-      return resolvedSections;
+    if (permissions === null) {
+      return [];
     }
 
     return resolvedSections
@@ -143,7 +143,7 @@ export function Sidebar({ sections }: SidebarProps) {
       {isMobile && isOpen ? (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={toggleSidebar}
+          onClick={closeSidebar}
           aria-hidden="true"
         />
       ) : null}
@@ -171,7 +171,7 @@ export function Sidebar({ sections }: SidebarProps) {
                   {isMobile && (
                     <button
                       type="button"
-                      onClick={toggleSidebar}
+                      onClick={closeSidebar}
                       className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                       aria-label="Close Sidebar"
                     >
@@ -230,7 +230,7 @@ export function Sidebar({ sections }: SidebarProps) {
                 {isMobile && (
                   <button
                     type="button"
-                    onClick={toggleSidebar}
+                    onClick={closeSidebar}
                     className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
                     aria-label="Close Sidebar"
                   >
@@ -261,7 +261,7 @@ export function Sidebar({ sections }: SidebarProps) {
                 {isMobile && (
                   <button
                     type="button"
-                    onClick={toggleSidebar}
+                    onClick={closeSidebar}
                     className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
                     aria-label="Close Sidebar"
                   >

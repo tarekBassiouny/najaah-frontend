@@ -3,6 +3,9 @@ import { http, HttpResponse } from "msw";
 const loginRoute = "/api/v1/admin/auth/login";
 const meRoute = "/api/v1/admin/auth/me";
 const centersRoute = "/api/v1/admin/centers";
+const centersOptionsRoute = "/api/v1/admin/centers/options";
+const centersCoursesRoute = "/api/v1/admin/centers/:centerId/courses";
+const studentsRoute = "/api/v1/admin/students";
 const agentsExecutionsRoute = "/api/v1/admin/agents/executions";
 const agentsAvailableRoute = "/api/v1/admin/agents/available";
 const agentsExecuteRoute = "/api/v1/admin/agents/execute";
@@ -47,6 +50,76 @@ export const handlers = [
         { id: 1, name: "Center A" },
         { id: 2, name: "Center B" },
       ],
+    });
+  }),
+
+  http.get(centersOptionsRoute, () => {
+    return HttpResponse.json({
+      data: [
+        { id: 1, name: "Center A", slug: "center-a" },
+        { id: 2, name: "Center B", slug: "center-b" },
+      ],
+      meta: {
+        page: 1,
+        per_page: 20,
+        total: 2,
+        last_page: 1,
+      },
+    });
+  }),
+
+  http.get(centersCoursesRoute, () => {
+    return HttpResponse.json({
+      data: {
+        data: [
+          {
+            id: 12,
+            title: "Algebra I",
+            status: "published",
+            status_key: "published",
+            status_label: "Published",
+          },
+          {
+            id: 13,
+            title: "Geometry Basics",
+            status: "draft",
+            status_key: "draft",
+            status_label: "Draft",
+          },
+        ],
+        meta: {
+          current_page: 1,
+          per_page: 20,
+          total: 2,
+          last_page: 1,
+        },
+      },
+    });
+  }),
+
+  http.get(studentsRoute, () => {
+    return HttpResponse.json({
+      data: [
+        {
+          id: 201,
+          name: "Mariam Ali",
+          email: "mariam@example.com",
+          phone: "1999000001",
+          center_id: 1,
+        },
+        {
+          id: 202,
+          name: "Omar Hassan",
+          email: "omar@example.com",
+          phone: "1999000002",
+          center_id: 1,
+        },
+      ],
+      meta: {
+        page: 1,
+        per_page: 20,
+        total: 2,
+      },
     });
   }),
 

@@ -5,17 +5,23 @@ import {
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import {
+  assignSurvey,
+  closeSurvey,
   createSurvey,
   deleteSurvey,
+  getSurvey,
   getSurveyAnalytics,
   listSurveys,
+  updateSurvey,
 } from "@/features/surveys/services/surveys.service";
 import type {
+  AssignSurveyPayload,
   CreateSurveyPayload,
   ListSurveysParams,
   Survey,
   SurveyAnalyticsRaw,
   SurveysResponse,
+  UpdateSurveyPayload,
 } from "@/features/surveys/types/survey";
 
 type UseSurveysOptions = Omit<
@@ -42,6 +48,81 @@ export function useCreateSurvey() {
     mutationFn: (payload: CreateSurveyPayload) => createSurvey(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["surveys"] });
+    },
+  });
+}
+
+type UseSurveyOptions = Omit<
+  UseQueryOptions<Survey | null>,
+  "queryKey" | "queryFn"
+>;
+
+export function useSurvey(
+  surveyId: string | number | undefined,
+  options?: UseSurveyOptions,
+) {
+  return useQuery({
+    queryKey: ["survey", surveyId],
+    queryFn: () => getSurvey(surveyId!),
+    enabled: Boolean(surveyId),
+    ...options,
+  });
+}
+
+export function useUpdateSurvey() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      surveyId,
+      payload,
+    }: {
+      surveyId: string | number;
+      payload: UpdateSurveyPayload;
+    }) => updateSurvey(surveyId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["surveys"] });
+      queryClient.invalidateQueries({
+        queryKey: ["survey", variables.surveyId],
+      });
+    },
+  });
+}
+
+export function useAssignSurvey() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      surveyId,
+      payload,
+    }: {
+      surveyId: string | number;
+      payload: AssignSurveyPayload;
+    }) => assignSurvey(surveyId, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["surveys"] });
+      queryClient.invalidateQueries({
+        queryKey: ["survey", variables.surveyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["survey-analytics", variables.surveyId],
+      });
+    },
+  });
+}
+
+export function useCloseSurvey() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (surveyId: string | number) => closeSurvey(surveyId),
+    onSuccess: (_data, surveyId) => {
+      queryClient.invalidateQueries({ queryKey: ["surveys"] });
+      queryClient.invalidateQueries({ queryKey: ["survey", surveyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["survey-analytics", surveyId],
+      });
     },
   });
 }

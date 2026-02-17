@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { useTenant } from "@/app/tenant-provider";
+import { setTenantState } from "@/lib/tenant-store";
 import { AnalyticsFiltersBar } from "@/features/analytics/components/AnalyticsFiltersBar";
 import { AnalyticsOverviewPanel } from "@/features/analytics/components/AnalyticsOverviewPanel";
 import { AnalyticsCoursesMediaPanel } from "@/features/analytics/components/AnalyticsCoursesMediaPanel";
@@ -22,7 +23,7 @@ function toDateInput(date: Date) {
 function getDefaultDateRange() {
   const to = new Date();
   const from = new Date(to);
-  from.setDate(to.getDate() - 30);
+  from.setDate(to.getDate() - 29);
 
   return {
     from: toDateInput(from),
@@ -33,24 +34,18 @@ function getDefaultDateRange() {
 export default function AnalyticsPage() {
   const tenant = useTenant();
   const isPlatformAdmin = !tenant.centerSlug;
-  const defaultRange = getDefaultDateRange();
+  const [sessionDefaultRange] = useState(() => getDefaultDateRange());
 
-  const [draftFrom, setDraftFrom] = useState(defaultRange.from);
-  const [draftTo, setDraftTo] = useState(defaultRange.to);
-  const [draftTimezone, setDraftTimezone] = useState("UTC");
-
-  const [appliedFrom, setAppliedFrom] = useState(defaultRange.from);
-  const [appliedTo, setAppliedTo] = useState(defaultRange.to);
-  const [appliedTimezone, setAppliedTimezone] = useState("UTC");
+  const [from, setFrom] = useState(sessionDefaultRange.from);
+  const [to, setTo] = useState(sessionDefaultRange.to);
 
   const filters = useMemo(
     () => ({
       center_id: tenant.centerId ?? undefined,
-      from: appliedFrom,
-      to: appliedTo,
-      timezone: appliedTimezone,
+      from,
+      to,
     }),
-    [tenant.centerId, appliedFrom, appliedTo, appliedTimezone],
+    [tenant.centerId, from, to],
   );
 
   const overviewQuery = useAnalyticsOverview(filters);
@@ -64,20 +59,12 @@ export default function AnalyticsPage() {
     learnersQuery.isFetching ||
     devicesQuery.isFetching;
 
-  const applyFilters = () => {
-    setAppliedFrom(draftFrom);
-    setAppliedTo(draftTo);
-    setAppliedTimezone(draftTimezone);
-  };
-
   const resetFilters = () => {
-    const nextRange = getDefaultDateRange();
-    setDraftFrom(nextRange.from);
-    setDraftTo(nextRange.to);
-    setDraftTimezone("UTC");
-    setAppliedFrom(nextRange.from);
-    setAppliedTo(nextRange.to);
-    setAppliedTimezone("UTC");
+    setFrom(sessionDefaultRange.from);
+    setTo(sessionDefaultRange.to);
+    if (isPlatformAdmin) {
+      setTenantState({ centerId: null, centerName: null });
+    }
   };
 
   return (
@@ -89,13 +76,12 @@ export default function AnalyticsPage() {
 
       <AnalyticsFiltersBar
         isPlatformAdmin={isPlatformAdmin}
-        from={draftFrom}
-        to={draftTo}
-        timezone={draftTimezone}
-        onFromChange={setDraftFrom}
-        onToChange={setDraftTo}
-        onTimezoneChange={setDraftTimezone}
-        onApply={applyFilters}
+        defaultFrom={sessionDefaultRange.from}
+        defaultTo={sessionDefaultRange.to}
+        from={from}
+        to={to}
+        onFromChange={setFrom}
+        onToChange={setTo}
         onReset={resetFilters}
         isLoading={isLoadingAny}
       />

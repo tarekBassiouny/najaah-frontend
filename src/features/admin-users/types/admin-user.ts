@@ -38,3 +38,79 @@ export type AdminUser = {
   updated_at?: string | null;
   [key: string]: unknown;
 };
+
+export type BulkAssignCentersPayload = {
+  assignments: Array<{
+    user_id: string | number;
+    center_id: string | number;
+  }>;
+};
+
+export type BulkAssignCentersResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  updated?: AdminUser[];
+  skipped?: Array<{
+    user_id: string | number;
+    reason?: string;
+  }>;
+  failed?: Array<{
+    user_id: string | number;
+    center_id?: string | number;
+    reason?: string;
+  }>;
+};
+
+export type BulkAssignRolesPayload = {
+  user_ids: (string | number)[];
+  role_ids: (string | number)[];
+};
+
+export type BulkAssignRolesResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  updated?: AdminUser[];
+  skipped?: Array<{
+    user_id: string | number;
+    reason?: string;
+  }>;
+  failed?: Array<{
+    user_id: string | number;
+    reason?: string;
+  }>;
+};
+
+export type UpdateAdminUserStatusPayload = {
+  status: string | number;
+};
+
+export type BulkUpdateAdminUserStatusPayload = {
+  status: string | number;
+  user_ids: (string | number)[];
+};
+
+export type BulkUpdateAdminUserStatusResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  updated?: AdminUser[];
+  skipped?: Array<{
+    user_id: string | number;
+    reason?: string;
+  }>;
+  failed?: Array<{
+    user_id: string | number;
+    reason?: string;
+  }>;
+};

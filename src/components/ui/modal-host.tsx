@@ -7,6 +7,7 @@ import { useModal } from "@/components/ui/modal-store";
 import { useSyncAdminUserRoles } from "@/features/admin-users/hooks/use-admin-users";
 import { AdminUserFormDialog } from "@/features/admin-users/components/AdminUserFormDialog";
 import { SyncAdminUserRolesDialog } from "@/features/admin-users/components/SyncAdminUserRolesDialog";
+import { cn } from "@/lib/utils";
 const dangerousModals = new Set(["confirmRoleChange"]);
 
 function getFocusableElements(container: HTMLElement) {
@@ -115,7 +116,7 @@ function ConfirmRoleChangeModal({
         I understand this will change access permissions
       </label>
 
-      <div className="mt-6 flex justify-end gap-3">
+      <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
         <button
           className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
           onClick={closeModal}
@@ -146,8 +147,6 @@ function getErrorMessage(error: unknown) {
 function ConfirmRoleChangeContainer(props: ConfirmRoleChangeProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const syncMutation = useSyncAdminUserRoles();
-  const { showToast } = useModal();
-
   const handleConfirm = async () => {
     if (!props.userId) return;
     setErrorMessage(null);
@@ -155,7 +154,6 @@ function ConfirmRoleChangeContainer(props: ConfirmRoleChangeProps) {
       userId: props.userId,
       roleIds: props.roleIds ?? [],
     });
-    showToast("Roles updated successfully.", "success");
   };
 
   useEffect(() => {
@@ -308,14 +306,14 @@ export function ModalHost() {
     modalType && content
       ? createPortal(
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm sm:p-6"
             onClick={() => {
               if (dangerousModals.has(modalType)) return;
               closeModal();
             }}
           >
             <div
-              className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
+              className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-800 dark:bg-gray-900 sm:max-h-[calc(100dvh-4rem)] sm:p-6"
               ref={modalRef}
               role="dialog"
               aria-modal="true"
@@ -331,7 +329,14 @@ export function ModalHost() {
 
   const toastPortal = toast
     ? createPortal(
-        <div className="fixed right-6 top-6 z-[60] rounded-md bg-gray-900 px-4 py-2 text-sm text-white shadow-lg">
+        <div
+          className={cn(
+            "fixed right-4 top-4 z-[60] max-w-sm rounded-md border px-4 py-2 text-sm shadow-lg sm:right-6 sm:top-6",
+            toast.variant === "error"
+              ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-200",
+          )}
+        >
           {toast.message}
         </div>,
         document.body,

@@ -26,6 +26,8 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
   const requiredCapabilities = isResolved
     ? getRouteCapabilities(pathname, isPlatformAdmin)
     : undefined;
+  const isAuthRejected =
+    isResolved && hasToken && !isLoading && (isError || data === null);
 
   useEffect(() => {
     if (!isResolved) {
@@ -52,11 +54,22 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
     if (hasToken && (isError || data === null)) {
       tokenStorage.clear();
       router.replace("/login");
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/login"
+      ) {
+        window.location.replace("/login");
+      }
     }
   }, [data, hasToken, isError, isResolved, router]);
 
   useEffect(() => {
-    if (!isResolved || isLoading || requiredCapabilities === undefined) {
+    if (
+      !isResolved ||
+      isLoading ||
+      isAuthRejected ||
+      requiredCapabilities === undefined
+    ) {
       return;
     }
 
@@ -72,9 +85,9 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
     if (!hasAccess) {
       router.replace("/dashboard");
     }
-  }, [isLoading, isResolved, requiredCapabilities, router]);
+  }, [isAuthRejected, isLoading, isResolved, requiredCapabilities, router]);
 
-  if (!isResolved || !hasToken || isLoading) {
+  if (!isResolved || !hasToken || isLoading || isAuthRejected) {
     return <>{fallback ?? <PageLoading />}</>;
   }
 

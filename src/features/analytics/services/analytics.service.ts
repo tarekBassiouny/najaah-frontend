@@ -17,7 +17,6 @@ function withFilters(filters?: AnalyticsFilters) {
     center_id: filters?.center_id ?? undefined,
     from: filters?.from || undefined,
     to: filters?.to || undefined,
-    timezone: filters?.timezone || undefined,
   };
 }
 

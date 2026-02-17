@@ -27,7 +27,7 @@ import { useSurveys } from "@/features/surveys/hooks/use-surveys";
 import type { Survey } from "@/features/surveys/types/survey";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_PER_PAGE = 15;
+const DEFAULT_PER_PAGE = 20;
 
 type SurveysTableProps = {
   centerId?: string | number;
@@ -57,28 +57,48 @@ function getCenterLabel(survey: Survey) {
 }
 
 function getAssignmentLabel(survey: Survey) {
+  const formatAssignment = (assignment?: Survey["assignment"]) => {
+    if (!assignment) return null;
+    const type = String(assignment.type ?? "").toLowerCase();
+
+    if (type === "all") return "All Students";
+
+    const assignableName =
+      typeof assignment.assignable_name === "string" &&
+      assignment.assignable_name.trim()
+        ? assignment.assignable_name.trim()
+        : null;
+
+    if (assignableName) return assignableName;
+
+    const assignableId = assignment.assignable_id ?? assignment.id;
+    if (assignableId == null) return null;
+
+    const prefix =
+      type === "course"
+        ? "Course"
+        : type === "center"
+          ? "Center"
+          : type === "video"
+            ? "Video"
+            : type === "user"
+              ? "Student"
+              : "Assignment";
+
+    return `${prefix} #${assignableId}`;
+  };
+
   const assignments = Array.isArray(survey.assignments)
     ? survey.assignments
     : [];
   const firstAssignment = assignments[0];
-
-  if (firstAssignment?.type === "all") {
-    return "All Students";
-  }
-
-  if (firstAssignment?.type === "course" && firstAssignment.id != null) {
-    return `Course #${firstAssignment.id}`;
-  }
+  const assignmentLabel = formatAssignment(firstAssignment);
+  if (assignmentLabel) return assignmentLabel;
 
   if (survey.show_to_all_students) return "All Students";
 
-  if (survey.assignment?.type === "all") {
-    return "All Students";
-  }
-
-  if (survey.assignment?.type === "course" && survey.assignment.id != null) {
-    return `Course #${survey.assignment.id}`;
-  }
+  const singleAssignmentLabel = formatAssignment(survey.assignment);
+  if (singleAssignmentLabel) return singleAssignmentLabel;
 
   return "—";
 }
@@ -126,8 +146,8 @@ export function SurveysTable({
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
-  const maxPage = data?.lastPage ?? 1;
-  const isLoadingState = isLoading || isFetching;
+  const maxPage = Math.max(1, data?.lastPage ?? Math.ceil(total / perPage));
+  const isLoadingState = isLoading;
   const hasActions = Boolean(onDelete || onViewResults);
 
   useEffect(() => {

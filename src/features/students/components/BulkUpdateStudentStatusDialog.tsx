@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -88,12 +89,12 @@ export function BulkUpdateStudentStatusDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
           <DialogTitle>Bulk Change Status</DialogTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <DialogDescription>
             Update status for {students.length} selected students.
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         {errorMessage && (
@@ -139,7 +140,7 @@ export function BulkUpdateStudentStatusDialog({
           </Select>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>

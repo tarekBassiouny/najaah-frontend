@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -29,25 +30,73 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RolePermissionsForm } from "@/features/role-permissions/components/RolePermissionsForm";
+import { BulkManageRolePermissionsDialog } from "@/features/role-permissions/components/BulkManageRolePermissionsDialog";
 import { DeleteRoleDialog } from "@/features/roles/components/DeleteRoleDialog";
+import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
-import { formatDateTime } from "@/lib/format-date-time";
+import type { Role } from "@/features/roles/types/role";
 
-const DEFAULT_PER_PAGE = 10;
+const DEFAULT_PER_PAGE = 20;
+const EMPTY_ROLES: Role[] = [];
+const DESCRIPTION_PREVIEW_LENGTH = 90;
 
-export function RolesTable() {
+type RolesTableProps = {
+  onEdit?: (_role: Role) => void;
+  canManageWrite?: boolean;
+};
+
+function getRoleDescription(role: Role): string {
+  const direct = role.description;
+  if (typeof direct === "string" && direct.trim()) {
+    return direct.trim();
+  }
+
+  const translations = role.description_translations;
+  if (translations && typeof translations === "object") {
+    const english = translations.en;
+    if (typeof english === "string" && english.trim()) {
+      return english.trim();
+    }
+
+    for (const value of Object.values(translations)) {
+      if (typeof value === "string" && value.trim()) {
+        return value.trim();
+      }
+    }
+  }
+
+  return "";
+}
+
+function getDescriptionPreview(description: string): string {
+  if (description.length <= DESCRIPTION_PREVIEW_LENGTH) {
+    return description;
+  }
+
+  return `${description.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}...`;
+}
+
+export function RolesTable({
+  onEdit,
+  canManageWrite = false,
+}: RolesTableProps) {
   const [deletingRole, setDeletingRole] = useState<{
     id: string | number;
     name?: string | null;
   } | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
-  const [permissionsRoleId, setPermissionsRoleId] = useState<
-    string | number | null
-  >(null);
+  const [permissionsRole, setPermissionsRole] = useState<Role | null>(null);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, Role>>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Record<string, boolean>
+  >({});
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+
+  const { showToast } = useModal();
 
   const params = useMemo(
     () => ({
@@ -60,15 +109,34 @@ export function RolesTable() {
 
   const { data, isLoading, isError, isFetching } = useRoles(params);
 
-  const items = data?.items ?? [];
+  const items = data?.items ?? EMPTY_ROLES;
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
-  const isLoadingState = isLoading || isFetching;
+  const isLoadingState = isLoading;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
   const isBusy = Boolean(deletingRole);
   const hasActiveFilters = search.trim().length > 0;
   const activeFilterCount = search.trim().length > 0 ? 1 : 0;
+
+  const selectedIds = useMemo(
+    () => Object.keys(selectedRoles),
+    [selectedRoles],
+  );
+  const selectedCount = selectedIds.length;
+  const selectedRolesList = useMemo(
+    () =>
+      selectedIds
+        .map((id) => selectedRoles[id])
+        .filter((role): role is Role => Boolean(role)),
+    [selectedIds, selectedRoles],
+  );
+  const pageRoleIds = useMemo(
+    () => items.map((role) => String(role.id)),
+    [items],
+  );
+  const isAllPageSelected =
+    pageRoleIds.length > 0 && pageRoleIds.every((id) => selectedRoles[id]);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -78,6 +146,60 @@ export function RolesTable() {
     }, 400);
     return () => clearTimeout(timeout);
   }, [search]);
+
+  useEffect(() => {
+    setSelectedRoles({});
+    setExpandedDescriptions({});
+  }, [page, perPage, query]);
+
+  const toggleRoleSelection = (role: Role) => {
+    if (!canManageWrite) return;
+
+    const id = String(role.id);
+    setSelectedRoles((prev) => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = role;
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectPage = () => {
+    if (!canManageWrite) return;
+
+    setSelectedRoles((prev) => {
+      const next = { ...prev };
+
+      if (isAllPageSelected) {
+        pageRoleIds.forEach((id) => {
+          delete next[id];
+        });
+        return next;
+      }
+
+      items.forEach((role) => {
+        next[String(role.id)] = role;
+      });
+
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedRoles({});
+  };
+
+  const toggleDescriptionExpansion = (roleId: string) => {
+    setExpandedDescriptions((prev) => ({
+      ...prev,
+      [roleId]: !prev[roleId],
+    }));
+  };
+
+  const columnsCount = canManageWrite ? 6 : 5;
 
   return (
     <div className="space-y-6">
@@ -90,7 +212,9 @@ export function RolesTable() {
           onClear={() => {
             setSearch("");
             setQuery("");
+            setPerPage(DEFAULT_PER_PAGE);
             setPage(1);
+            clearSelection();
           }}
           summary={
             <>
@@ -116,7 +240,7 @@ export function RolesTable() {
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by role name"
+              placeholder="Search by role name or slug"
               className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             />
             <button
@@ -169,14 +293,31 @@ export function RolesTable() {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="min-w-[840px]">
+          <div
+            className={cn(
+              "overflow-x-auto transition-opacity",
+              isFetching && !isLoading ? "opacity-60" : "opacity-100",
+            )}
+          >
+            <Table className="min-w-[1000px]">
               <TableHeader>
                 <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
+                  {canManageWrite ? (
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={isAllPageSelected}
+                        onChange={toggleSelectPage}
+                        aria-label="Select all roles on page"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        disabled={isLoadingState || items.length === 0}
+                      />
+                    </TableHead>
+                  ) : null}
                   <TableHead className="font-medium">Name</TableHead>
                   <TableHead className="font-medium">Slug</TableHead>
+                  <TableHead className="font-medium">Permissions</TableHead>
                   <TableHead className="font-medium">Description</TableHead>
-                  <TableHead className="font-medium">Created At</TableHead>
                   <TableHead className="w-10 text-right font-medium">
                     Actions
                   </TableHead>
@@ -187,6 +328,11 @@ export function RolesTable() {
                   <>
                     {Array.from({ length: 5 }).map((_, index) => (
                       <TableRow key={index} className="animate-pulse">
+                        {canManageWrite ? (
+                          <TableCell>
+                            <Skeleton className="h-4 w-4" />
+                          </TableCell>
+                        ) : null}
                         <TableCell>
                           <Skeleton className="h-4 w-40" />
                         </TableCell>
@@ -194,10 +340,10 @@ export function RolesTable() {
                           <Skeleton className="h-4 w-32" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-4 w-20" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-4 w-60" />
                         </TableCell>
                         <TableCell>
                           <Skeleton className="ml-auto h-8 w-24" />
@@ -207,10 +353,10 @@ export function RolesTable() {
                   </>
                 ) : showEmptyState ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-48">
+                    <TableCell colSpan={columnsCount} className="h-48">
                       <EmptyState
                         title={query ? "No roles found" : "No roles yet"}
-                        description="Create your first role with the Add Role button."
+                        description="Create your first role to start assigning permissions."
                         className="border-0 bg-transparent"
                       />
                     </TableCell>
@@ -218,23 +364,69 @@ export function RolesTable() {
                 ) : (
                   items.map((role, index) => {
                     const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                    const roleId = String(role.id);
+                    const isSelected = Boolean(selectedRoles[roleId]);
+                    const permissionsCount = Array.isArray(role.permissions)
+                      ? role.permissions.length
+                      : 0;
+                    const description = getRoleDescription(role);
+                    const isDescriptionExpanded = Boolean(
+                      expandedDescriptions[roleId],
+                    );
+                    const hasLongDescription =
+                      description.length > DESCRIPTION_PREVIEW_LENGTH;
+                    const descriptionText = isDescriptionExpanded
+                      ? description
+                      : getDescriptionPreview(description);
 
                     return (
                       <TableRow
                         key={role.id}
                         className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                       >
-                        <TableCell className="text-gray-500 dark:text-gray-400">
+                        {canManageWrite ? (
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleRoleSelection(role)}
+                              aria-label={`Select ${role.name ?? role.slug ?? "role"}`}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                          </TableCell>
+                        ) : null}
+                        <TableCell className="text-gray-700 dark:text-gray-200">
                           {role.name ?? "—"}
                         </TableCell>
-                        <TableCell className="text-gray-500 dark:text-gray-400">
+                        <TableCell className="font-mono text-xs text-gray-500 dark:text-gray-400">
                           {role.slug ?? "—"}
                         </TableCell>
                         <TableCell className="text-gray-500 dark:text-gray-400">
-                          {role.description ?? "—"}
+                          {permissionsCount}
                         </TableCell>
-                        <TableCell className="text-gray-500 dark:text-gray-400">
-                          {formatDateTime(role.created_at)}
+                        <TableCell className="max-w-[380px] text-gray-500 dark:text-gray-400">
+                          {description ? (
+                            <div className="space-y-1">
+                              <p className="break-words text-sm leading-5">
+                                {descriptionText}
+                              </p>
+                              {hasLongDescription ? (
+                                <button
+                                  type="button"
+                                  className="text-xs font-medium text-primary hover:underline"
+                                  onClick={() =>
+                                    toggleDescriptionExpansion(roleId)
+                                  }
+                                >
+                                  {isDescriptionExpanded
+                                    ? "View less"
+                                    : "View more"}
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : (
+                            "—"
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end">
@@ -258,24 +450,39 @@ export function RolesTable() {
                                   className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                   onClick={() => {
                                     setOpenMenuId(null);
-                                    setPermissionsRoleId(role.id);
+                                    setPermissionsRole(role);
                                   }}
                                 >
-                                  Permissions
+                                  {canManageWrite
+                                    ? "Manage Permissions"
+                                    : "View Permissions"}
                                 </button>
-                                <button
-                                  className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                  onClick={() => {
-                                    setOpenMenuId(null);
-                                    setDeletingRole({
-                                      id: role.id,
-                                      name: role.name ?? null,
-                                    });
-                                  }}
-                                  disabled={isBusy}
-                                >
-                                  Delete
-                                </button>
+                                {canManageWrite && onEdit ? (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onEdit(role);
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                ) : null}
+                                {canManageWrite ? (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      setDeletingRole({
+                                        id: role.id,
+                                        name: role.name ?? null,
+                                      });
+                                    }}
+                                    disabled={isBusy}
+                                  >
+                                    Delete
+                                  </button>
+                                ) : null}
                               </DropdownContent>
                             </Dropdown>
                           </div>
@@ -289,7 +496,25 @@ export function RolesTable() {
           </div>
         )}
 
-        {!isError && maxPage > 1 && (
+        {canManageWrite && selectedCount > 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
+            <div className="text-gray-500 dark:text-gray-400">
+              {selectedCount} selected
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setBulkDialogOpen(true)}
+                disabled={isLoadingState}
+              >
+                Manage Permissions
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {!isError && maxPage > 1 ? (
           <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
             <PaginationControls
               page={page}
@@ -304,26 +529,53 @@ export function RolesTable() {
               size="sm"
             />
           </div>
-        )}
+        ) : null}
       </ListingCard>
 
       <Dialog
-        open={permissionsRoleId != null}
+        open={permissionsRole != null}
         onOpenChange={(open) => {
-          if (!open) setPermissionsRoleId(null);
+          if (!open) setPermissionsRole(null);
         }}
       >
         <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Role Permissions</DialogTitle>
+            <DialogTitle>
+              {canManageWrite
+                ? "Sync Permissions"
+                : "Role Permissions (Read only)"}
+            </DialogTitle>
+            <DialogDescription>
+              {permissionsRole?.name
+                ? `Update permissions for ${permissionsRole.name}.`
+                : "Update permissions for this role."}
+            </DialogDescription>
           </DialogHeader>
-          {permissionsRoleId != null ? (
+          {permissionsRole ? (
             <div className="max-h-[70vh] overflow-y-auto">
-              <RolePermissionsForm roleId={String(permissionsRoleId)} />
+              <RolePermissionsForm
+                roleId={String(permissionsRole.id)}
+                readOnly={!canManageWrite}
+              />
             </div>
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <BulkManageRolePermissionsDialog
+        open={bulkDialogOpen}
+        onOpenChange={(nextOpen) => {
+          setBulkDialogOpen(nextOpen);
+          if (!nextOpen) {
+            clearSelection();
+          }
+        }}
+        roles={selectedRolesList}
+        onSuccess={(message) => {
+          showToast(message, "success");
+          clearSelection();
+        }}
+      />
 
       <DeleteRoleDialog
         open={Boolean(deletingRole)}

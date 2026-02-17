@@ -6,12 +6,14 @@ import {
 } from "@tanstack/react-query";
 import type { PaginatedResponse } from "@/types/pagination";
 import type {
+  CreateCenterEnrollmentPayload,
   Enrollment,
   ListEnrollmentsParams,
   CreateEnrollmentPayload,
   UpdateEnrollmentPayload,
 } from "@/features/enrollments/types/enrollment";
 import {
+  createCenterEnrollment,
   createEnrollment,
   deleteEnrollment,
   getEnrollment,
@@ -58,6 +60,23 @@ export function useCreateEnrollment() {
 
   return useMutation({
     mutationFn: (payload: CreateEnrollmentPayload) => createEnrollment(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+    },
+  });
+}
+
+export function useCreateCenterEnrollment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      payload,
+    }: {
+      centerId: string | number;
+      payload: CreateCenterEnrollmentPayload;
+    }) => createCenterEnrollment(centerId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["enrollments"] });
     },

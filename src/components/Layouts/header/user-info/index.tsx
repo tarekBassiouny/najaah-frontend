@@ -15,7 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
+import { LogOutIcon, UserIcon } from "./icons";
 
 function getInitials(name: string): string {
   return name
@@ -24,6 +24,23 @@ function getInitials(name: string): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+function getRoleLabel(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (value && typeof value === "object") {
+    const role = value as Record<string, unknown>;
+    const candidates = [role.name, role.slug, role.role];
+    const label = candidates.find(
+      (candidate) => typeof candidate === "string" && candidate.trim(),
+    );
+    return typeof label === "string" ? label.trim() : null;
+  }
+
+  return null;
 }
 
 export function UserInfo() {
@@ -57,7 +74,8 @@ export function UserInfo() {
 
   const displayName = user.name || "User";
   const displayEmail = user.email || "";
-  const displayRole = user.role || user.roles?.[0] || "Admin";
+  const displayRole =
+    getRoleLabel(user.role) ?? getRoleLabel(user.roles?.[0]) ?? "Admin";
   const avatarUrl = user.avatar;
 
   return (
@@ -128,15 +146,6 @@ export function UserInfo() {
           >
             <UserIcon className="h-4 w-4" />
             <span>View profile</span>
-          </Link>
-
-          <Link
-            href="/settings"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <SettingsIcon className="h-4 w-4" />
-            <span>Settings</span>
           </Link>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { isAxiosError } from "axios";
@@ -24,10 +24,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  SearchableSelect,
-  type SearchableSelectOption,
-} from "@/components/ui/searchable-select";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -35,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useCenters } from "@/features/centers/hooks/use-centers";
+import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import {
   useCreateStudent,
   useUpdateStudent,
@@ -52,6 +48,17 @@ function getInitials(value: string) {
     .slice(0, 2);
 }
 
+const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
+const COUNTRY_CODE_REGEX = /^\+[1-9]\d{0,3}$/;
+
+function normalizePhone(value?: string) {
+  return value?.replace(/\s+/g, "").trim() ?? "";
+}
+
+function normalizeCountryCode(value?: string) {
+  return value?.replace(/\s+/g, "").trim() ?? "";
+}
+
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters."),
   email: z
@@ -60,8 +67,22 @@ const schema = z.object({
     .email("Enter a valid email address.")
     .optional()
     .or(z.literal("")),
-  phone: z.string().trim().optional(),
-  countryCode: z.string().trim().optional(),
+  phone: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
+      "Use base mobile number only (10 digits, no leading 0).",
+    ),
+  countryCode: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) => !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
+      "Country code must be in +NN format (for example +20).",
+    ),
   centerId: z.string().trim().optional(),
   status: z.enum(["1", "0", "2"]),
 });
@@ -77,21 +98,54 @@ type StudentFormDialogProps = {
   onCreated?: (_student: Student) => void;
 };
 
+function getFirstValidationMessage(details: unknown): string | null {
+  if (!details || typeof details !== "object") return null;
+
+  for (const value of Object.values(details as Record<string, unknown>)) {
+    if (Array.isArray(value)) {
+      const first = value.find(
+        (item) => typeof item === "string" && item.trim(),
+      ) as string | undefined;
+      if (first) return first;
+      continue;
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 function getErrorMessage(error: unknown) {
   if (isAxiosError(error)) {
     const data = error.response?.data as
-      | { message?: string; errors?: Record<string, string[]> }
+      | {
+          message?: string;
+          errors?: Record<string, string[] | string>;
+          error?: {
+            code?: string;
+            message?: string;
+            details?: Record<string, string[] | string>;
+          };
+        }
       | undefined;
+
+    const validationMessage =
+      getFirstValidationMessage(data?.error?.details) ??
+      getFirstValidationMessage(data?.errors);
+
+    if (validationMessage) {
+      return validationMessage;
+    }
+
+    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
+      return data.error.message;
+    }
 
     if (typeof data?.message === "string" && data.message.trim()) {
       return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const firstEntry = Object.values(data.errors)[0];
-      if (Array.isArray(firstEntry) && firstEntry.length > 0) {
-        return firstEntry[0];
-      }
     }
   }
 
@@ -115,20 +169,6 @@ export function StudentFormDialog({
   const isPending = createMutation.isPending || updateMutation.isPending;
   const displayName = student?.name ? String(student.name) : "Student";
   const displayEmail = student?.email ? String(student.email) : "new.student";
-  const { data: centersData, isLoading: isCentersLoading } = useCenters({
-    page: 1,
-    per_page: 100,
-  });
-  const centerOptions = useMemo<SearchableSelectOption<string>[]>(() => {
-    const items =
-      centersData?.items.map((center) => ({
-        value: String(center.id),
-        label: center.name ?? `Center ${center.id}`,
-        description: center.slug ?? undefined,
-      })) ?? [];
-
-    return [{ value: "", label: "No center (optional)" }, ...items];
-  }, [centersData]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -174,16 +214,41 @@ export function StudentFormDialog({
   const onSubmit = (values: FormValues) => {
     setFormError(null);
 
-    if (!isEditMode && !values.phone?.trim()) {
-      setFormError("Phone is required to create a student.");
+    const normalizedPhone = normalizePhone(values.phone);
+    const normalizedCountryCode = normalizeCountryCode(values.countryCode);
+
+    if (!isEditMode && !normalizedPhone) {
+      form.setError("phone", {
+        type: "manual",
+        message: "Phone is required to create a student.",
+      });
+      return;
+    }
+
+    if (normalizedPhone && !BASE_MOBILE_REGEX.test(normalizedPhone)) {
+      form.setError("phone", {
+        type: "manual",
+        message: "Use base mobile number only (10 digits, no leading 0).",
+      });
+      return;
+    }
+
+    if (
+      normalizedCountryCode &&
+      !COUNTRY_CODE_REGEX.test(normalizedCountryCode)
+    ) {
+      form.setError("countryCode", {
+        type: "manual",
+        message: "Country code must be in +NN format (for example +20).",
+      });
       return;
     }
 
     const payload = {
       name: values.name,
       email: values.email || undefined,
-      phone: values.phone || undefined,
-      country_code: values.countryCode || undefined,
+      phone: normalizedPhone || undefined,
+      country_code: normalizedCountryCode || undefined,
       status: Number(values.status),
       center_id: values.centerId || null,
     };
@@ -214,7 +279,8 @@ export function StudentFormDialog({
             ({
               id: "new",
               name: values.name,
-              phone: values.phone,
+              phone: normalizedPhone,
+              country_code: normalizedCountryCode || null,
               center_id: values.centerId || null,
             } as Student),
         );
@@ -225,7 +291,7 @@ export function StudentFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-4rem)] max-w-[640px] overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-[640px] overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-3">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold uppercase text-primary">
@@ -330,8 +396,12 @@ export function StudentFormDialog({
                     ) : null}
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="19990000002" {...field} />
+                    <Input placeholder="1225291841" {...field} />
                   </FormControl>
+                  <p className="text-xs text-gray-400">
+                    Base number only (10 digits). Do not include country code or
+                    a leading 0.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -362,16 +432,20 @@ export function StudentFormDialog({
                     Center <span className="text-gray-400">(optional)</span>
                   </FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      value={field.value || ""}
-                      onValueChange={(value) => field.onChange(value ?? "")}
-                      options={centerOptions}
-                      placeholder="Select a center"
-                      searchPlaceholder="Search centers..."
-                      emptyMessage="No centers found"
-                      isLoading={isCentersLoading}
-                      showSearch={centerOptions.length > 8}
-                      triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+                    <CenterPicker
+                      value={field.value || null}
+                      onValueChange={(selectedCenterId) =>
+                        field.onChange(
+                          selectedCenterId != null
+                            ? String(selectedCenterId)
+                            : "",
+                        )
+                      }
+                      allLabel="No center (optional)"
+                      hideWhenCenterScoped={false}
+                      className="w-full min-w-0"
+                      selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage />

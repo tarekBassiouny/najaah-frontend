@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -467,18 +468,14 @@ export default function StudentProfilePage({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader>
             <DialogTitle>Grant Extra Views</DialogTitle>
+            <DialogDescription>
+              Add extra views for {grantTarget?.videoName}.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              Add extra views for{" "}
-              <span className="font-medium text-gray-900 dark:text-white">
-                {grantTarget?.videoName}
-              </span>
-              .
-            </p>
             <div className="flex flex-wrap gap-2">
               {[1, 3, 5].map((value) => (
                 <Button

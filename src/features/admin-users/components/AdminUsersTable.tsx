@@ -568,7 +568,7 @@ export function AdminUsersTable({
                         {user.center?.name ??
                           (user.center_id != null
                             ? `Center #${user.center_id}`
-                            : "—")}
+                            : "Najaah system")}
                       </TableCell>
                       <TableCell>
                         {roleCount === 0 ? (
@@ -646,17 +646,17 @@ export function AdminUsersTable({
                               >
                                 Assign centers
                               </button>
-                              <button
-                                className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onToggleStatus?.(user);
-                                }}
-                              >
-                                {status.key === "active"
-                                  ? "Suspend"
-                                  : "Activate"}
-                              </button>
+                              {onToggleStatus ? (
+                                <button
+                                  className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onToggleStatus(user);
+                                  }}
+                                >
+                                  Change status
+                                </button>
+                              ) : null}
                               <button
                                 className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                 onClick={() => {
@@ -685,30 +685,36 @@ export function AdminUsersTable({
             {selectedCount} selected
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onBulkAssignRoles?.(selectedUsersList)}
-              disabled={isLoadingState}
-            >
-              Assign Roles
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onBulkAssignCenters?.(selectedUsersList)}
-              disabled={isLoadingState}
-            >
-              Assign Centers
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onBulkChangeStatus?.(selectedUsersList)}
-              disabled={isLoadingState}
-            >
-              Change Status
-            </Button>
+            {onBulkAssignRoles ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onBulkAssignRoles(selectedUsersList)}
+                disabled={isLoadingState}
+              >
+                Assign Roles
+              </Button>
+            ) : null}
+            {onBulkAssignCenters ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onBulkAssignCenters(selectedUsersList)}
+                disabled={isLoadingState}
+              >
+                Assign Centers
+              </Button>
+            ) : null}
+            {onBulkChangeStatus ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onBulkChangeStatus(selectedUsersList)}
+                disabled={isLoadingState}
+              >
+                Change Status
+              </Button>
+            ) : null}
           </div>
         </div>
       )}

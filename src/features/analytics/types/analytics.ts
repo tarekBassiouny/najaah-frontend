@@ -2,7 +2,6 @@ export type AnalyticsFilters = {
   center_id?: string | number;
   from?: string;
   to?: string;
-  timezone?: string;
 };
 
 export type AnalyticsMeta = {

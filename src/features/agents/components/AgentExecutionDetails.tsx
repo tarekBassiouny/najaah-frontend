@@ -30,7 +30,14 @@ export function AgentExecutionDetails({
 }: AgentExecutionDetailsProps) {
   const { data, isLoading, isError } = useAgentExecution(executionId, {
     enabled: Boolean(executionId),
-    refetchInterval: 2_000,
+    refetchInterval: (query) => {
+      const status = String(
+        (query.state?.data as { status?: string | null } | undefined)?.status ??
+          "",
+      ).toLowerCase();
+
+      return status === "running" || status === "pending" ? 2_000 : false;
+    },
   });
 
   const statusKey = String(data?.status ?? "pending").toLowerCase();
@@ -165,23 +172,23 @@ export function AgentExecutionDetails({
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
+            <Card className="min-w-0">
               <CardHeader>
                 <CardTitle>Context</CardTitle>
               </CardHeader>
-              <CardContent>
-                <pre className="max-h-80 overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100">
+              <CardContent className="min-w-0">
+                <pre className="max-h-[60vh] w-full overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100 sm:max-h-[28rem]">
                   {prettyJson(data.context)}
                 </pre>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="min-w-0">
               <CardHeader>
                 <CardTitle>Result</CardTitle>
               </CardHeader>
-              <CardContent>
-                <pre className="max-h-80 overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100">
+              <CardContent className="min-w-0">
+                <pre className="max-h-[60vh] w-full overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100 sm:max-h-[28rem]">
                   {prettyJson(data.result)}
                 </pre>
               </CardContent>

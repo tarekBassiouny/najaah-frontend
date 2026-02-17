@@ -72,7 +72,7 @@ export function AnalyticsLearnersEnrollmentsPanel({
                   .map((row) =>
                     row.center_id != null
                       ? `Center ${row.center_id}`
-                      : "Unknown",
+                      : "Najaah App",
                   )}
                 values={learners.by_center
                   .slice(0, 8)

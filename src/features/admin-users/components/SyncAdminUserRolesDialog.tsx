@@ -46,7 +46,7 @@ export function SyncAdminUserRolesDialog({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data: rolesData, isLoading: isRolesLoading } = useRoles(
-    { page: 1, per_page: 15 },
+    { page: 1, per_page: 20 },
     { staleTime: 60_000 },
   );
   const roleOptions = useMemo(() => rolesData?.items ?? [], [rolesData]);

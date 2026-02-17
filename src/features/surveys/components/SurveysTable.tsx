@@ -27,7 +27,7 @@ import { useSurveys } from "@/features/surveys/hooks/use-surveys";
 import type { Survey } from "@/features/surveys/types/survey";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_PER_PAGE = 15;
+const DEFAULT_PER_PAGE = 20;
 
 type SurveysTableProps = {
   centerId?: string | number;
@@ -146,8 +146,8 @@ export function SurveysTable({
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
-  const maxPage = data?.lastPage ?? 1;
-  const isLoadingState = isLoading || isFetching;
+  const maxPage = Math.max(1, data?.lastPage ?? Math.ceil(total / perPage));
+  const isLoadingState = isLoading;
   const hasActions = Boolean(onDelete || onViewResults);
 
   useEffect(() => {

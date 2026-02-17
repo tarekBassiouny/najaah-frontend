@@ -32,7 +32,7 @@ export default function SurveysPage() {
                 setIsFormOpen(true);
               }}
             >
-              Create System Survey
+              Add Survey
             </Button>
           </>
         }

@@ -5,18 +5,28 @@ import {
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import {
+  bulkAssignAdminCenters,
+  bulkAssignAdminRoles,
+  bulkUpdateAdminUserStatus,
   createAdminUser,
   deleteAdminUser,
   getAdminUser,
   listAdminUsers,
   syncAdminUserRoles,
   updateAdminUser,
+  updateAdminUserStatus,
   type CreateAdminUserPayload,
   type ListAdminUsersParams,
   type UpdateAdminUserPayload,
 } from "../services/admin-users.service";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { AdminUser } from "@/features/admin-users/types/admin-user";
+import type {
+  AdminUser,
+  BulkAssignCentersPayload,
+  BulkAssignRolesPayload,
+  BulkUpdateAdminUserStatusPayload,
+  UpdateAdminUserStatusPayload,
+} from "@/features/admin-users/types/admin-user";
 
 type UseAdminUsersOptions = Omit<
   UseQueryOptions<PaginatedResponse<AdminUser>>,
@@ -105,6 +115,60 @@ export function useSyncAdminUserRoles() {
     }) => syncAdminUserRoles(userId, { role_ids: roleIds }),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+}
+
+export function useBulkAssignAdminRoles() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: BulkAssignRolesPayload) =>
+      bulkAssignAdminRoles(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+}
+
+export function useBulkAssignAdminCenters() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: BulkAssignCentersPayload) =>
+      bulkAssignAdminCenters(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+}
+
+export function useUpdateAdminUserStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      payload,
+    }: {
+      userId: string | number;
+      payload: UpdateAdminUserStatusPayload;
+    }) => updateAdminUserStatus(userId, payload),
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
+    },
+  });
+}
+
+export function useBulkUpdateAdminUserStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: BulkUpdateAdminUserStatusPayload) =>
+      bulkUpdateAdminUserStatus(payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });

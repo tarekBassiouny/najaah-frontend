@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { useDeleteAdminUser } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
-import { useModal } from "@/components/ui/modal-store";
 
 type DeleteAdminUserDialogProps = {
   user?: AdminUser | null;
@@ -37,8 +36,6 @@ export function DeleteAdminUserDialog({
 }: DeleteAdminUserDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteAdminUser();
-  const { showToast } = useModal();
-
   const handleDelete = () => {
     if (!user) return;
     setErrorMessage(null);
@@ -47,7 +44,6 @@ export function DeleteAdminUserDialog({
       onSuccess: () => {
         onOpenChange(false);
         onSuccess?.("Admin user deleted successfully.");
-        showToast("Admin user deleted successfully.", "success");
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error));

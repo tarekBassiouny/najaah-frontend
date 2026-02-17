@@ -286,7 +286,7 @@ export function EnrollStudentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl p-4 sm:p-6">
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>Enroll Student</DialogTitle>
           <DialogDescription>
@@ -356,7 +356,7 @@ export function EnrollStudentDialog({
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col-reverse justify-end gap-2 sm:flex-row">
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

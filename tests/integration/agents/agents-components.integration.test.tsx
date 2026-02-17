@@ -25,13 +25,18 @@ describe("agents components (integration with MSW)", () => {
     await user.click(screen.getByRole("button", { name: "Run Agent" }));
 
     const dialog = await screen.findByRole("dialog");
+
+    await waitFor(() => {
+      expect(within(dialog).getByText("Algebra I")).toBeInTheDocument();
+    });
+
     await user.click(within(dialog).getByRole("button", { name: "Run Agent" }));
 
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    expect(screen.getByPlaceholderText("Execution ID")).toHaveValue("99");
+    expect(screen.getByText("Execution #99")).toBeInTheDocument();
   });
 
   it("renders execution details page data", async () => {

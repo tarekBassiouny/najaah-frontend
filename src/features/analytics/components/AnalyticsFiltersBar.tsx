@@ -6,13 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
 import { FilterField } from "@/components/ui/filters-bar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 
 type AnalyticsFiltersBarProps = {
@@ -21,20 +14,11 @@ type AnalyticsFiltersBarProps = {
   defaultTo: string;
   from: string;
   to: string;
-  timezone: string;
   onFromChange: (_value: string) => void;
   onToChange: (_value: string) => void;
-  onTimezoneChange: (_value: string) => void;
   onReset: () => void;
   isLoading?: boolean;
 };
-
-const TIMEZONE_OPTIONS = [
-  "UTC",
-  "Africa/Cairo",
-  "Asia/Riyadh",
-  "Europe/London",
-];
 
 const DATE_PRESETS = [
   { key: "today", label: "Today", daysBack: 0 },
@@ -63,10 +47,8 @@ export function AnalyticsFiltersBar({
   defaultTo,
   from,
   to,
-  timezone,
   onFromChange,
   onToChange,
-  onTimezoneChange,
   onReset,
   isLoading,
 }: AnalyticsFiltersBarProps) {
@@ -75,13 +57,9 @@ export function AnalyticsFiltersBar({
   const hasSelectedCenterFilter = isPlatformAdmin && Boolean(centerId);
   const hasInvalidRange = Boolean(from && to && from > to);
   const hasActiveFilters =
-    hasSelectedCenterFilter ||
-    timezone !== "UTC" ||
-    from !== defaultFrom ||
-    to !== defaultTo;
+    hasSelectedCenterFilter || from !== defaultFrom || to !== defaultTo;
   const activeFilterCount =
     (hasSelectedCenterFilter ? 1 : 0) +
-    (timezone !== "UTC" ? 1 : 0) +
     (from !== defaultFrom ? 1 : 0) +
     (to !== defaultTo ? 1 : 0);
 
@@ -125,7 +103,7 @@ export function AnalyticsFiltersBar({
             </span>
           </div>
         }
-        gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-6"
+        gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
         {isPlatformAdmin ? (
           <FilterField label="Center" className="lg:col-span-2">
@@ -136,22 +114,7 @@ export function AnalyticsFiltersBar({
           </FilterField>
         ) : null}
 
-        <FilterField label="Timezone" className="lg:col-span-2">
-          <Select value={timezone} onValueChange={onTimezoneChange}>
-            <SelectTrigger className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIMEZONE_OPTIONS.map((item) => (
-                <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FilterField>
-
-        <FilterField label="From" className="lg:col-span-2">
+        <FilterField label="From" className="lg:col-span-1">
           <input
             type="date"
             className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
@@ -164,7 +127,7 @@ export function AnalyticsFiltersBar({
           />
         </FilterField>
 
-        <FilterField label="To" className="lg:col-span-2">
+        <FilterField label="To" className="lg:col-span-1">
           <input
             type="date"
             className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"

@@ -2,6 +2,13 @@ import { http } from "@/lib/http";
 import type {
   AdminUser,
   AdminUserRole,
+  BulkAssignCentersPayload,
+  BulkAssignCentersResult,
+  BulkAssignRolesPayload,
+  BulkAssignRolesResult,
+  BulkUpdateAdminUserStatusPayload,
+  BulkUpdateAdminUserStatusResult,
+  UpdateAdminUserStatusPayload,
 } from "@/features/admin-users/types/admin-user";
 import type { PaginatedResponse } from "@/types/pagination";
 
@@ -59,7 +66,6 @@ export type CreateAdminUserPayload = {
   email: string;
   phone?: string;
   center_id?: string | number | null;
-  password?: string;
   status?: number;
   [key: string]: unknown;
 };
@@ -69,7 +75,6 @@ export type UpdateAdminUserPayload = {
   email?: string;
   phone?: string;
   center_id?: string | number | null;
-  password?: string;
   status?: string | number;
   [key: string]: unknown;
 };
@@ -134,4 +139,39 @@ export async function syncAdminUserRoles(
     payload,
   );
   return data?.data ?? [];
+}
+
+export async function bulkAssignAdminRoles(
+  payload: BulkAssignRolesPayload,
+): Promise<BulkAssignRolesResult> {
+  const { data } = await http.post("/api/v1/admin/users/roles/bulk", payload);
+  return (data?.data ?? data) as BulkAssignRolesResult;
+}
+
+export async function bulkAssignAdminCenters(
+  payload: BulkAssignCentersPayload,
+): Promise<BulkAssignCentersResult> {
+  const { data } = await http.put(
+    "/api/v1/admin/users/bulk-assign-centers",
+    payload,
+  );
+  return (data?.data ?? data) as BulkAssignCentersResult;
+}
+
+export async function updateAdminUserStatus(
+  userId: string | number,
+  payload: UpdateAdminUserStatusPayload,
+): Promise<AdminUser> {
+  const { data } = await http.put<RawAdminUserResponse>(
+    `/api/v1/admin/users/${userId}/status`,
+    payload,
+  );
+  return data?.data ?? (data as unknown as AdminUser);
+}
+
+export async function bulkUpdateAdminUserStatus(
+  payload: BulkUpdateAdminUserStatusPayload,
+): Promise<BulkUpdateAdminUserStatusResult> {
+  const { data } = await http.post("/api/v1/admin/users/bulk-status", payload);
+  return (data?.data ?? data) as BulkUpdateAdminUserStatusResult;
 }

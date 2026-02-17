@@ -6,6 +6,7 @@ import {
   QueryClientProvider,
   useQueryClient,
 } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { AppBootstrapProvider } from "./app-bootstrap-provider";
 import { TenantProvider } from "./tenant-provider";
@@ -55,11 +56,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             refetchOnWindowFocus: false,
-            retry: 1,
+            retry: (failureCount, error) => {
+              if (isAxiosError(error) && error.response?.status === 401) {
+                return false;
+              }
+              return failureCount < 1;
+            },
           },
         },
       }),
   );
+
+  useEffect(() => {
+    if (!tokenStorage.getAccessToken()) {
+      return;
+    }
+
+    scheduleTokenRefresh();
+
+    return () => {
+      cancelTokenRefresh();
+    };
+  }, []);
 
   return (
     <ThemeProvider defaultTheme="light" attribute="class">

@@ -122,7 +122,10 @@ export function BulkManageRolePermissionsDialog({
       setFormError(null);
     }
   }, [open]);
-  const permissions = permissionsQuery.data?.items ?? [];
+  const permissions = useMemo(
+    () => permissionsQuery.data?.items ?? [],
+    [permissionsQuery.data?.items],
+  );
   const roleIds = useMemo(() => roles.map((role) => role.id), [roles]);
   const availablePermissionIds = useMemo(
     () => new Set(permissions.map((permission) => String(permission.id))),

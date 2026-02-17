@@ -51,11 +51,15 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
 };
 
 const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
-  { pattern: "/settings", capabilities: ["view_dashboard"] },
-  { pattern: "/settings/*", capabilities: ["view_dashboard"] },
-  { pattern: "/playback", capabilities: ["view_dashboard"] },
-  { pattern: "/playback/*", capabilities: ["view_dashboard"] },
-  { pattern: "/devices/*", capabilities: ["view_dashboard"] },
+  { pattern: "/permissions", capabilities: ["view_permissions"] },
+  { pattern: "/permissions/*", capabilities: ["view_permissions"] },
+  { pattern: "/settings", capabilities: ["view_settings"] },
+  { pattern: "/settings/*", capabilities: ["view_settings"] },
+  { pattern: "/profile", capabilities: [] },
+  { pattern: "/profile/*", capabilities: [] },
+  { pattern: "/playback", capabilities: ["override_video_playback"] },
+  { pattern: "/playback/*", capabilities: ["override_video_playback"] },
+  { pattern: "/devices/*", capabilities: ["manage_students"] },
 ];
 
 const PLATFORM_ROUTE_EXTRAS: RouteCapabilityRule[] = [

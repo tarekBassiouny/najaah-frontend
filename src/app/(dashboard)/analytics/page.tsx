@@ -38,16 +38,14 @@ export default function AnalyticsPage() {
 
   const [from, setFrom] = useState(sessionDefaultRange.from);
   const [to, setTo] = useState(sessionDefaultRange.to);
-  const [timezone, setTimezone] = useState("UTC");
 
   const filters = useMemo(
     () => ({
       center_id: tenant.centerId ?? undefined,
       from,
       to,
-      timezone,
     }),
-    [tenant.centerId, from, to, timezone],
+    [tenant.centerId, from, to],
   );
 
   const overviewQuery = useAnalyticsOverview(filters);
@@ -64,7 +62,6 @@ export default function AnalyticsPage() {
   const resetFilters = () => {
     setFrom(sessionDefaultRange.from);
     setTo(sessionDefaultRange.to);
-    setTimezone("UTC");
     if (isPlatformAdmin) {
       setTenantState({ centerId: null, centerName: null });
     }
@@ -83,10 +80,8 @@ export default function AnalyticsPage() {
         defaultTo={sessionDefaultRange.to}
         from={from}
         to={to}
-        timezone={timezone}
         onFromChange={setFrom}
         onToChange={setTo}
-        onTimezoneChange={setTimezone}
         onReset={resetFilters}
         isLoading={isLoadingAny}
       />

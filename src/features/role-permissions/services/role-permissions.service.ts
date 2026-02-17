@@ -8,8 +8,14 @@ type RawRoleResponse = {
   data?: RoleWithPermissions;
 };
 
+type RawPermissionsPayload =
+  | RolePermission[]
+  | {
+      data?: RolePermission[];
+    };
+
 type RawPermissionsResponse = {
-  data?: RolePermission[];
+  data?: RawPermissionsPayload;
 };
 
 export type RolePermissionsResponse = {
@@ -18,11 +24,41 @@ export type RolePermissionsResponse = {
   rolePermissions: RolePermission[];
 };
 
+export type BulkAssignRolePermissionsPayload = {
+  role_ids: Array<string | number>;
+  permission_ids: Array<string | number>;
+};
+
+export type BulkAssignRolePermissionsResponse = {
+  roles: Array<string | number>;
+  permission_ids: Array<string | number>;
+};
+
+function normalizePermissions(payload: RawPermissionsResponse | undefined) {
+  const raw = payload?.data;
+
+  if (Array.isArray(raw)) {
+    return raw;
+  }
+
+  if (raw && typeof raw === "object" && Array.isArray(raw.data)) {
+    return raw.data;
+  }
+
+  return [];
+}
+
 export async function getRolePermissions(
   roleId: string | number,
 ): Promise<RolePermissionsResponse> {
   const permissionsResponse = await http.get<RawPermissionsResponse>(
     "/api/v1/admin/permissions",
+    {
+      params: {
+        page: 1,
+        per_page: 500,
+      },
+    },
   );
 
   const { data } = await http.get<RawRoleResponse>(
@@ -30,7 +66,7 @@ export async function getRolePermissions(
   );
 
   const role = data?.data ?? null;
-  const permissions = permissionsResponse.data?.data ?? [];
+  const permissions = normalizePermissions(permissionsResponse.data);
   const rolePermissions = role?.permissions ?? [];
 
   return {
@@ -49,4 +85,19 @@ export async function updateRolePermissions(
   });
 
   return data;
+}
+
+export async function bulkAssignRolePermissions(
+  payload: BulkAssignRolePermissionsPayload,
+): Promise<BulkAssignRolePermissionsResponse> {
+  const { data } = await http.post<{
+    data?: BulkAssignRolePermissionsResponse;
+  }>("/api/v1/admin/roles/permissions/bulk", payload);
+
+  return (
+    data?.data ?? {
+      roles: payload.role_ids,
+      permission_ids: payload.permission_ids,
+    }
+  );
 }

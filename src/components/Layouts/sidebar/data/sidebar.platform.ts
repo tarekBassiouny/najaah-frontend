@@ -34,7 +34,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Analysis",
-        capability: "view_dashboard",
+        capability: "manage_analytics",
         icon: iconFromTitle("Analysis"),
         url: "/analytics",
         items: [],
@@ -48,13 +48,14 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Surveys",
-        capability: "manage_courses",
+        capability: "manage_surveys",
         icon: iconFromTitle("Surveys"),
         url: "/surveys",
         items: [],
       },
       {
         title: "Agents",
+        capability: "view_agents",
         icon: iconFromTitle("Agents"),
         url: "/agents/executions",
         items: [],
@@ -82,7 +83,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Settings",
-        capability: "view_dashboard",
+        capability: "view_settings",
         icon: iconFromTitle("Settings"),
         url: "/settings",
         items: [],

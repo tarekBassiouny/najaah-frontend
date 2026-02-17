@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAdminLogin } from "@/features/auth/hooks/use-admin-login";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { isAxiosError } from "axios";
@@ -29,11 +30,14 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+type MessageTone = "default" | "destructive";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [messageTitle, setMessageTitle] = useState<string>("Unable to sign in");
+  const [messageTone, setMessageTone] = useState<MessageTone>("destructive");
   const { data: user } = useAdminMe();
   const loginMutation = useAdminLogin({
     onSuccess: () => {
@@ -41,6 +45,8 @@ export function LoginForm() {
       router.push("/dashboard");
     },
     onError: (error) => {
+      setMessageTone("destructive");
+      setMessageTitle("Unable to sign in");
       setFormMessage(extractErrorMessage(error));
     },
   });
@@ -55,10 +61,33 @@ export function LoginForm() {
   });
 
   const reason = searchParams.get("reason");
+  const emailFromQuery = searchParams.get("email") ?? "";
 
   useEffect(() => {
-    if (reason !== "session_expired") return;
-    setFormMessage("Your session expired. Please sign in again.");
+    if (emailFromQuery) {
+      form.setValue("email", emailFromQuery, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [emailFromQuery, form]);
+
+  useEffect(() => {
+    if (reason === "session_expired") {
+      setMessageTone("default");
+      setMessageTitle("Session expired");
+      setFormMessage("Your session expired. Please sign in again.");
+      return;
+    }
+
+    if (reason === "password_reset") {
+      setMessageTone("default");
+      setMessageTitle("Password updated");
+      setFormMessage(
+        "Password set successfully. Sign in with your new password.",
+      );
+      return;
+    }
   }, [reason]);
 
   useEffect(() => {
@@ -89,15 +118,8 @@ export function LoginForm() {
       </div>
 
       {formMessage && (
-        <Alert
-          variant={reason === "session_expired" ? "default" : "destructive"}
-          className="mt-6"
-        >
-          <AlertTitle>
-            {reason === "session_expired"
-              ? "Session expired"
-              : "Unable to sign in"}
-          </AlertTitle>
+        <Alert variant={messageTone} className="mt-6">
+          <AlertTitle>{messageTitle}</AlertTitle>
           <AlertDescription>{formMessage}</AlertDescription>
         </Alert>
       )}
@@ -146,22 +168,33 @@ export function LoginForm() {
             control={form.control}
             name="rememberMe"
             render={({ field }) => (
-              <FormItem className="flex items-center gap-2">
-                <FormControl>
-                  <input
-                    type="checkbox"
-                    id="rememberMe"
-                    checked={field.value}
-                    onChange={field.onChange}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-dark-3 dark:bg-dark-2"
-                  />
-                </FormControl>
-                <FormLabel
-                  htmlFor="rememberMe"
-                  className="!mt-0 cursor-pointer text-sm font-normal"
-                >
-                  Remember me for 30 days
-                </FormLabel>
+              <FormItem className="space-y-0">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        id="rememberMe"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-dark-3 dark:bg-dark-2"
+                      />
+                    </FormControl>
+                    <FormLabel
+                      htmlFor="rememberMe"
+                      className="!mt-0 cursor-pointer text-sm font-normal"
+                    >
+                      Remember me for 30 days
+                    </FormLabel>
+                  </div>
+
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-medium text-primary hover:text-primary/80 hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
               </FormItem>
             )}
           />

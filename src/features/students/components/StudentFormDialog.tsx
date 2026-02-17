@@ -98,21 +98,54 @@ type StudentFormDialogProps = {
   onCreated?: (_student: Student) => void;
 };
 
+function getFirstValidationMessage(details: unknown): string | null {
+  if (!details || typeof details !== "object") return null;
+
+  for (const value of Object.values(details as Record<string, unknown>)) {
+    if (Array.isArray(value)) {
+      const first = value.find(
+        (item) => typeof item === "string" && item.trim(),
+      ) as string | undefined;
+      if (first) return first;
+      continue;
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 function getErrorMessage(error: unknown) {
   if (isAxiosError(error)) {
     const data = error.response?.data as
-      | { message?: string; errors?: Record<string, string[]> }
+      | {
+          message?: string;
+          errors?: Record<string, string[] | string>;
+          error?: {
+            code?: string;
+            message?: string;
+            details?: Record<string, string[] | string>;
+          };
+        }
       | undefined;
+
+    const validationMessage =
+      getFirstValidationMessage(data?.error?.details) ??
+      getFirstValidationMessage(data?.errors);
+
+    if (validationMessage) {
+      return validationMessage;
+    }
+
+    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
+      return data.error.message;
+    }
 
     if (typeof data?.message === "string" && data.message.trim()) {
       return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const firstEntry = Object.values(data.errors)[0];
-      if (Array.isArray(firstEntry) && firstEntry.length > 0) {
-        return firstEntry[0];
-      }
     }
   }
 
@@ -258,7 +291,7 @@ export function StudentFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-4rem)] max-w-[640px] overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-[640px] overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-3">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold uppercase text-primary">

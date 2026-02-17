@@ -13,6 +13,22 @@ import type {
   ExecuteAgentPayload,
 } from "../types/agent";
 
+type AgentExecutionRefetchQuery = {
+  state?: {
+    data?: {
+      status?: string | null;
+    } | null;
+  };
+};
+
+type AgentExecutionQueryOptions = {
+  enabled?: boolean;
+  refetchInterval?:
+    | number
+    | false
+    | ((_query: AgentExecutionRefetchQuery) => number | false | undefined);
+};
+
 export function useAgentExecutions(filters: AgentExecutionFilters = {}) {
   return useQuery({
     queryKey: ["agent-executions", filters],
@@ -23,7 +39,7 @@ export function useAgentExecutions(filters: AgentExecutionFilters = {}) {
 
 export function useAgentExecution(
   id: string | number | undefined,
-  options?: { enabled?: boolean; refetchInterval?: number },
+  options?: AgentExecutionQueryOptions,
 ) {
   return useQuery({
     queryKey: ["agent-execution", id],

@@ -1,16 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { AdminUsersTable } from "@/features/admin-users/components/AdminUsersTable";
-import type { AdminUser } from "@/features/admin-users/types/admin-user";
-import { useState } from "react";
+import { useTenant } from "@/app/tenant-provider";
 import { useModal } from "@/components/ui/modal-store";
+import { AdminUsersTable } from "@/features/admin-users/components/AdminUsersTable";
+import { BulkAssignCentersDialog } from "@/features/admin-users/components/BulkAssignCentersDialog";
+import { BulkAssignRolesDialog } from "@/features/admin-users/components/BulkAssignRolesDialog";
+import { BulkUpdateAdminUserStatusDialog } from "@/features/admin-users/components/BulkUpdateAdminUserStatusDialog";
 import { DeleteAdminUserDialog } from "@/features/admin-users/components/DeleteAdminUserDialog";
+import { UpdateAdminUserStatusDialog } from "@/features/admin-users/components/UpdateAdminUserStatusDialog";
+import type { AdminUser } from "@/features/admin-users/types/admin-user";
 
 export default function AdminUsersPage() {
-  const { openModal, showToast } = useModal();
+  const { openModal } = useModal();
+  const { centerSlug } = useTenant();
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
+  const [statusUser, setStatusUser] = useState<AdminUser | null>(null);
+  const [bulkAssignRolesUsers, setBulkAssignRolesUsers] = useState<AdminUser[]>(
+    [],
+  );
+  const [bulkAssignCentersUsers, setBulkAssignCentersUsers] = useState<
+    AdminUser[]
+  >([]);
+  const [bulkStatusUsers, setBulkStatusUsers] = useState<AdminUser[]>([]);
 
   const openCreateAdmin = () => {
     openModal("editAdmin", {
@@ -76,22 +90,52 @@ export default function AdminUsersPage() {
       <AdminUsersTable
         onEdit={(user) => openModal("editAdmin", { user })}
         onManageRoles={openManageRoles}
-        onAssignCenters={() => {
-          showToast("Assign centers not implemented yet.", "error");
-        }}
-        onToggleStatus={() => {
-          showToast("Status update not implemented yet.", "error");
-        }}
+        onAssignCenters={
+          centerSlug ? undefined : (user) => setBulkAssignCentersUsers([user])
+        }
+        onToggleStatus={centerSlug ? undefined : (user) => setStatusUser(user)}
         onDelete={(user) => setDeletingUser(user)}
-        onBulkAssignRoles={(_users) => {
-          showToast("Bulk role assignment not implemented yet.", "error");
+        onBulkAssignRoles={
+          centerSlug ? undefined : (users) => setBulkAssignRolesUsers(users)
+        }
+        onBulkAssignCenters={
+          centerSlug ? undefined : (users) => setBulkAssignCentersUsers(users)
+        }
+        onBulkChangeStatus={
+          centerSlug ? undefined : (users) => setBulkStatusUsers(users)
+        }
+      />
+
+      <BulkAssignCentersDialog
+        open={bulkAssignCentersUsers.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkAssignCentersUsers([]);
         }}
-        onBulkAssignCenters={(_users) => {
-          showToast("Bulk center assignment not implemented yet.", "error");
+        users={bulkAssignCentersUsers}
+      />
+
+      <BulkAssignRolesDialog
+        open={bulkAssignRolesUsers.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkAssignRolesUsers([]);
         }}
-        onBulkChangeStatus={(_users) => {
-          showToast("Bulk status changes not implemented yet.", "error");
+        users={bulkAssignRolesUsers}
+      />
+
+      <UpdateAdminUserStatusDialog
+        open={Boolean(statusUser)}
+        onOpenChange={(open) => {
+          if (!open) setStatusUser(null);
         }}
+        user={statusUser}
+      />
+
+      <BulkUpdateAdminUserStatusDialog
+        open={bulkStatusUsers.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkStatusUsers([]);
+        }}
+        users={bulkStatusUsers}
       />
 
       <DeleteAdminUserDialog

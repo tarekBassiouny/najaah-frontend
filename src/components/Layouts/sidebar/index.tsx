@@ -87,8 +87,8 @@ export function Sidebar({ sections }: SidebarProps) {
   }, [centerId, sections]);
 
   const filteredSections = useMemo(() => {
-    if (!permissions) {
-      return resolvedSections;
+    if (permissions === null) {
+      return [];
     }
 
     return resolvedSections

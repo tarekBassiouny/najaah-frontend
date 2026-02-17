@@ -30,7 +30,7 @@ export function StudentEnrollmentPromptDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-3">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold uppercase text-primary">
@@ -60,7 +60,7 @@ export function StudentEnrollmentPromptDialog({
           always enroll them later from the Students list.
         </div>
 
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={onSkip}>
             Not now
           </Button>

@@ -468,7 +468,7 @@ export default function StudentProfilePage({
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader>
             <DialogTitle>Grant Extra Views</DialogTitle>
             <DialogDescription>

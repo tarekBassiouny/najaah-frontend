@@ -64,7 +64,7 @@ export function DeleteStudentDialog({
         onOpenChange(nextOpen);
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle className="sr-only">Delete Student</DialogTitle>
           <DialogDescription className="sr-only">

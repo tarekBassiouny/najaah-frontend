@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
-import { can, type Capability } from "@/lib/capabilities";
+import { hasCapability, type Capability } from "@/lib/capabilities";
 import { getAuthPermissions } from "@/lib/auth-state";
 import { cn } from "@/lib/utils";
 import { ChevronUp, ArrowLeftIcon, type PropsType } from "./icons";
@@ -12,6 +12,7 @@ import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
 import { getCenterScopedSections } from "./data";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { useTenant } from "@/app/tenant-provider";
 
 type SidebarSubItem = {
@@ -65,7 +66,16 @@ export function Sidebar({ sections }: SidebarProps) {
     centerName: tenantCenterName,
     branding,
   } = useTenant();
-  const permissions = getAuthPermissions();
+  const { data: currentAdmin } = useAdminMe();
+  const profilePermissions = currentAdmin?.permissions;
+  const permissions = useMemo(() => {
+    if (Array.isArray(profilePermissions)) {
+      return profilePermissions;
+    }
+
+    const fallbackPermissions = getAuthPermissions();
+    return Array.isArray(fallbackPermissions) ? fallbackPermissions : [];
+  }, [profilePermissions]);
   const centerId = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
     if (segments[0] !== "centers") return null;
@@ -87,17 +97,15 @@ export function Sidebar({ sections }: SidebarProps) {
   }, [centerId, sections]);
 
   const filteredSections = useMemo(() => {
-    if (permissions === null) {
-      return [];
-    }
-
     return resolvedSections
       .map((section) => {
         const items = section.items
           .map((item) => {
             if (item.items?.length) {
               const subItems = item.items.filter((subItem) =>
-                subItem.capability ? can(subItem.capability) : true,
+                subItem.capability
+                  ? hasCapability(subItem.capability, permissions)
+                  : true,
               );
 
               if (!subItems.length) return null;
@@ -108,7 +116,12 @@ export function Sidebar({ sections }: SidebarProps) {
               };
             }
 
-            if (item.capability && !can(item.capability)) return null;
+            if (
+              item.capability &&
+              !hasCapability(item.capability, permissions)
+            ) {
+              return null;
+            }
 
             return item;
           })

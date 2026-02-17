@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 type RolePermissionsFormProps = {
   roleId: string;
   readOnly?: boolean;
+  onApplied?: (_summary: { added: number; removed: number }) => void;
 };
 
 const PERMISSION_GROUPS = [
@@ -222,6 +223,7 @@ function getDescriptionPreview(value?: string | null): string {
 export function RolePermissionsForm({
   roleId,
   readOnly = false,
+  onApplied,
 }: RolePermissionsFormProps) {
   const { roleQuery, updateMutation } = useRolePermissions(roleId);
   const { data, isLoading, isError, error } = roleQuery;
@@ -440,6 +442,10 @@ export function RolePermissionsForm({
         setConfirmOpen(false);
         setConfirmChecked(false);
         setConfirmError(null);
+        onApplied?.({
+          added: pendingPermissionChanges.added.length,
+          removed: pendingPermissionChanges.removed.length,
+        });
       },
       onError: (error) => {
         if (isAxiosError<BackendErrorData>(error)) {
@@ -716,6 +722,7 @@ export function RolePermissionsForm({
         }}
       >
         <DialogContent
+          className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6"
           onEscapeKeyDown={(event) => {
             if (updateMutation.isPending) {
               event.preventDefault();

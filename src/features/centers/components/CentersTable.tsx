@@ -86,8 +86,7 @@ function getOnboardingLabel(center: Center) {
 }
 
 function isCenterDeleted(center: Center) {
-  if (center.deleted_at) return true;
-  return Boolean(center.setting?.deleted_at);
+  return Boolean(center.deleted_at);
 }
 
 export function CentersTable({

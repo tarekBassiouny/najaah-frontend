@@ -22,6 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useCenter,
@@ -38,6 +44,54 @@ type PageProps = {
 
 type TierValue = "standard" | "premium" | "vip";
 type StatusValue = "active" | "inactive";
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function resolveCenterLogoUrlFromCenter(center: unknown): string | null {
+  const centerRecord = asRecord(center);
+  if (!centerRecord) return null;
+
+  const direct = readString(centerRecord.logo_url);
+  if (direct) return direct;
+
+  const setting = asRecord(centerRecord.setting);
+  const settings = asRecord(setting?.settings);
+  const branding = asRecord(settings?.branding);
+  const brandingLogo = readString(branding?.logo_url);
+  if (brandingLogo) return brandingLogo;
+
+  const metadata = asRecord(centerRecord.branding_metadata);
+  const metadataLogo = readString(metadata?.logo_url);
+  if (metadataLogo) return metadataLogo;
+
+  return null;
+}
+
+function resolveCenterLogoUrlFromUploadResponse(
+  response: unknown,
+): string | null {
+  const root = asRecord(response);
+  if (!root) return null;
+
+  const direct = readString(root.logo_url);
+  if (direct) return direct;
+
+  const data = asRecord(root.data);
+  const dataDirect = readString(data?.logo_url);
+  if (dataDirect) return dataDirect;
+
+  const center = asRecord(data?.center);
+  return resolveCenterLogoUrlFromCenter(center);
+}
 
 function resolveTier(value: unknown): TierValue {
   const raw = String(value ?? "")
@@ -74,7 +128,12 @@ function getOnboardingBadgeVariant(status: string) {
 
 export default function CenterSettingsPage({ params }: PageProps) {
   const { centerId } = use(params);
-  const { data: center, isLoading, isError } = useCenter(centerId);
+  const {
+    data: center,
+    isLoading,
+    isError,
+    refetch: refetchCenter,
+  } = useCenter(centerId);
 
   const updateCenterMutation = useUpdateCenter();
   const updateStatusMutation = useUpdateCenterStatus();
@@ -87,6 +146,9 @@ export default function CenterSettingsPage({ params }: PageProps) {
   const [primaryColor, setPrimaryColor] = useState("");
   const [status, setStatus] = useState<StatusValue>("active");
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
+  const [isLogoPreviewOpen, setIsLogoPreviewOpen] = useState(false);
+  const [logoPreviewFailed, setLogoPreviewFailed] = useState(false);
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -103,6 +165,22 @@ export default function CenterSettingsPage({ params }: PageProps) {
   const statusLabel =
     center?.status_label ?? (status === "active" ? "Active" : "Inactive");
   const onboardingStatus = String(center?.onboarding_status ?? "DRAFT");
+  const centerLogoUrl =
+    resolveCenterLogoUrlFromCenter(center) ?? uploadedLogoUrl ?? null;
+  const selectedLogoPreviewUrl = useMemo(() => {
+    if (!logoFile) return null;
+    return URL.createObjectURL(logoFile);
+  }, [logoFile]);
+  const previewImageUrl = selectedLogoPreviewUrl ?? centerLogoUrl;
+  const isPreviewingSelectedFile = Boolean(selectedLogoPreviewUrl);
+
+  useEffect(() => {
+    return () => {
+      if (selectedLogoPreviewUrl) {
+        URL.revokeObjectURL(selectedLogoPreviewUrl);
+      }
+    };
+  }, [selectedLogoPreviewUrl]);
 
   useEffect(() => {
     if (!center) return;
@@ -216,8 +294,13 @@ export default function CenterSettingsPage({ params }: PageProps) {
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: async (response) => {
           setLogoFile(null);
+          const uploadedUrl = resolveCenterLogoUrlFromUploadResponse(response);
+          if (uploadedUrl) {
+            setUploadedLogoUrl(uploadedUrl);
+          }
+          await refetchCenter();
         },
         onError: (error) => {
           setLogoError(
@@ -229,6 +312,12 @@ export default function CenterSettingsPage({ params }: PageProps) {
         },
       },
     );
+  };
+
+  const handleOpenLogoPreview = () => {
+    if (!previewImageUrl) return;
+    setLogoPreviewFailed(false);
+    setIsLogoPreviewOpen(true);
   };
 
   if (isLoading) {
@@ -428,6 +517,7 @@ export default function CenterSettingsPage({ params }: PageProps) {
                   onChange={(event) => {
                     const file = event.target.files?.[0] ?? null;
                     setLogoFile(file);
+                    setLogoPreviewFailed(false);
                   }}
                 />
                 {logoFile ? (
@@ -435,15 +525,16 @@ export default function CenterSettingsPage({ params }: PageProps) {
                     Selected: {logoFile.name}
                   </p>
                 ) : null}
-                {center.logo_url ? (
-                  <a
-                    href={center.logo_url}
-                    target="_blank"
-                    rel="noreferrer"
+                {previewImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={handleOpenLogoPreview}
                     className="text-xs text-primary underline-offset-2 hover:underline"
                   >
-                    Preview current logo
-                  </a>
+                    {isPreviewingSelectedFile
+                      ? "Preview selected logo"
+                      : "Preview current logo"}
+                  </button>
                 ) : null}
               </div>
 
@@ -547,6 +638,46 @@ export default function CenterSettingsPage({ params }: PageProps) {
           </Card>
         </div>
       </div>
+
+      <Dialog
+        open={isLogoPreviewOpen}
+        onOpenChange={(open) => {
+          setIsLogoPreviewOpen(open);
+          if (!open) {
+            setLogoPreviewFailed(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Center Logo Preview</DialogTitle>
+          </DialogHeader>
+
+          {previewImageUrl ? (
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-950">
+              {logoPreviewFailed ? (
+                <div className="flex min-h-[14rem] items-center justify-center px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {isPreviewingSelectedFile
+                    ? "Unable to load the selected logo preview."
+                    : "Unable to load the current logo preview."}
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewImageUrl}
+                  alt={`${center.name ?? `Center ${center.id}`} logo`}
+                  className="mx-auto max-h-[70vh] w-auto rounded-md object-contain"
+                  onError={() => setLogoPreviewFailed(true)}
+                />
+              )}
+            </div>
+          ) : (
+            <div className="flex min-h-[10rem] items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-400">
+              No logo is available for preview yet.
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

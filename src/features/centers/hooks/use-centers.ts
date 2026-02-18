@@ -90,9 +90,9 @@ export function useUpdateCenter() {
       id: string | number;
       payload: UpdateCenterPayload;
     }) => updateCenter(id, payload),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-      queryClient.invalidateQueries({ queryKey: ["center", id] });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -108,9 +108,9 @@ export function useUpdateCenterStatus() {
       id: string | number;
       payload: UpdateCenterStatusPayload;
     }) => updateCenterStatus(id, payload),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-      queryClient.invalidateQueries({ queryKey: ["center", id] });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -122,12 +122,9 @@ export function useBulkUpdateCenterStatus() {
     mutationFn: (
       payload: BulkUpdateCenterStatusPayload,
     ): Promise<BulkCentersActionResult> => bulkUpdateCenterStatus(payload),
-    onSuccess: (_, payload) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-
-      payload.center_ids.forEach((centerId) => {
-        queryClient.invalidateQueries({ queryKey: ["center", centerId] });
-      });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -139,12 +136,9 @@ export function useBulkUpdateCenterFeatured() {
     mutationFn: (
       payload: BulkUpdateCenterFeaturedPayload,
     ): Promise<BulkCentersActionResult> => bulkUpdateCenterFeatured(payload),
-    onSuccess: (_, payload) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-
-      payload.center_ids.forEach((centerId) => {
-        queryClient.invalidateQueries({ queryKey: ["center", centerId] });
-      });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -156,12 +150,9 @@ export function useBulkUpdateCenterTier() {
     mutationFn: (
       payload: BulkUpdateCenterTierPayload,
     ): Promise<BulkCentersActionResult> => bulkUpdateCenterTier(payload),
-    onSuccess: (_, payload) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-
-      payload.center_ids.forEach((centerId) => {
-        queryClient.invalidateQueries({ queryKey: ["center", centerId] });
-      });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -221,9 +212,9 @@ export function useRestoreCenter() {
 
   return useMutation({
     mutationFn: (id: string | number) => restoreCenter(id),
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-      queryClient.invalidateQueries({ queryKey: ["center", id] });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -233,9 +224,9 @@ export function useRetryCenterOnboarding() {
 
   return useMutation({
     mutationFn: (id: string | number) => retryCenterOnboarding(id),
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["centers"] });
-      queryClient.invalidateQueries({ queryKey: ["center", id] });
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }
@@ -251,8 +242,8 @@ export function useUploadCenterLogo() {
       id: string | number;
       payload: UploadCenterLogoPayload;
     }) => uploadCenterLogo(id, payload),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["center", id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["center"] });
     },
   });
 }

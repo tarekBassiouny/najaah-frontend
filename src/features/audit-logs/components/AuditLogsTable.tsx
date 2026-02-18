@@ -21,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FilterField } from "@/components/ui/filters-bar";
 import {
   SearchableSelect,
   type SearchableSelectOption,
@@ -137,6 +136,23 @@ function formatMetadataFull(metadata: unknown) {
   } catch {
     return String(metadata);
   }
+}
+
+function getMetadataTypeLabel(metadata: unknown) {
+  if (metadata === null || metadata === undefined) return "empty";
+  if (Array.isArray(metadata)) return "array";
+  if (typeof metadata === "object") return "object";
+  return typeof metadata;
+}
+
+function getMetadataSizeLabel(metadata: unknown) {
+  if (metadata === null || metadata === undefined) return "0";
+  if (typeof metadata === "string") return `${metadata.length} chars`;
+  if (Array.isArray(metadata)) return `${metadata.length} items`;
+  if (typeof metadata === "object") {
+    return `${Object.keys(metadata as Record<string, unknown>).length} keys`;
+  }
+  return "1 value";
 }
 
 function buildEventSummary(log: AuditLog) {
@@ -496,22 +512,22 @@ export function AuditLogsTable() {
           gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-6"
         >
           {isPlatformAdmin ? (
-            <FilterField label="Center" className="lg:col-span-2">
+            <div className="lg:col-span-2">
               <CenterPicker
                 className="w-full min-w-0"
                 selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
               />
-            </FilterField>
+            </div>
           ) : null}
 
-          <FilterField label="Course" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <SearchableSelect
               value={selectedCourse}
               onValueChange={setSelectedCourse}
               options={courseOptions}
               searchValue={courseSearch}
               onSearchValueChange={setCourseSearch}
-              placeholder={centerId ? "All courses" : "Select center first"}
+              placeholder={centerId ? "Course" : "Select center first"}
               searchPlaceholder="Search courses..."
               emptyMessage={
                 centerId
@@ -531,16 +547,16 @@ export function AuditLogsTable() {
               }}
               triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
-          </FilterField>
+          </div>
 
-          <FilterField label="User" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <SearchableSelect
               value={selectedUser}
               onValueChange={setSelectedUser}
               options={userOptions}
               searchValue={userSearch}
               onSearchValueChange={setUserSearch}
-              placeholder="All users"
+              placeholder="User"
               searchPlaceholder="Search users..."
               emptyMessage="No users found"
               isLoading={usersQuery.isLoading}
@@ -555,11 +571,11 @@ export function AuditLogsTable() {
               }}
               triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
-          </FilterField>
+          </div>
 
-          <FilterField label="Action" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <Select value={action} onValueChange={setAction}>
-              <SelectTrigger className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+              <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
                 <SelectValue placeholder="Action" />
               </SelectTrigger>
               <SelectContent>
@@ -570,24 +586,32 @@ export function AuditLogsTable() {
                 ))}
               </SelectContent>
             </Select>
-          </FilterField>
+          </div>
 
-          <FilterField label="From" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <input
               type="date"
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+              title="From date"
+              className={cn(
+                "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
+                !dateFrom && "text-gray-500",
+              )}
               value={dateFrom}
               onChange={(event) => {
                 setDateFrom(event.target.value);
                 clearDatePreset();
               }}
             />
-          </FilterField>
+          </div>
 
-          <FilterField label="To" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <input
               type="date"
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+              title="To date"
+              className={cn(
+                "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
+                !dateTo && "text-gray-500",
+              )}
               min={dateFrom || undefined}
               value={dateTo}
               onChange={(event) => {
@@ -595,7 +619,7 @@ export function AuditLogsTable() {
                 clearDatePreset();
               }}
             />
-          </FilterField>
+          </div>
         </ListingFilters>
 
         {hasActiveFilters ? (
@@ -752,46 +776,98 @@ export function AuditLogsTable() {
       </ListingCard>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Audit Log #{selectedLog?.id ?? "-"}</DialogTitle>
+        <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-4xl overflow-hidden p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
+              <span>Audit Log #{selectedLog?.id ?? "-"}</span>
+              <Badge variant={getActionVariant(selectedLog?.action)}>
+                {formatActionLabel(selectedLog?.action)}
+              </Badge>
+            </DialogTitle>
             <DialogDescription>
               Full event details and metadata payload.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-gray-950 sm:grid-cols-2">
-            <p className="truncate">
-              <span className="font-semibold">Action:</span>{" "}
-              {formatActionLabel(selectedLog?.action)}
-            </p>
-            <p className="truncate">
-              <span className="font-semibold">User:</span>{" "}
-              {selectedLog?.user?.name ?? "-"} (#{selectedLog?.user_id ?? "-"})
-            </p>
-            <p className="truncate">
-              <span className="font-semibold">Center:</span> #
-              {selectedLog?.center_id ?? "-"}
-            </p>
-            <p className="truncate">
-              <span className="font-semibold">Entity:</span>{" "}
-              {formatEntityType(selectedLog?.entity_type)} #
-              {selectedLog?.entity_id ?? "-"}
-            </p>
-            <p className="truncate sm:col-span-2">
-              <span className="font-semibold">Label:</span>{" "}
-              {selectedLog?.entity_label ?? "-"}
-            </p>
-            <p className="truncate sm:col-span-2">
-              <span className="font-semibold">Created:</span>{" "}
-              {formatDateTime(selectedLog?.created_at)}
-            </p>
-          </div>
+          <div className="max-h-[calc(100dvh-12.5rem)] space-y-4 overflow-y-auto pr-1 sm:max-h-[calc(100dvh-13rem)]">
+            <section className="rounded-xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-700 dark:bg-gray-900/40 sm:p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Event Details
+              </p>
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Summary
+                  </dt>
+                  <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white sm:min-h-[2.5rem]">
+                    {selectedLog ? buildEventSummary(selectedLog) : "-"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    User
+                  </dt>
+                  <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
+                    {selectedLog?.user?.name ?? "-"} (#
+                    {selectedLog?.user_id ?? "-"})
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Center
+                  </dt>
+                  <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
+                    #{selectedLog?.center_id ?? "-"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Entity
+                  </dt>
+                  <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
+                    {formatEntityType(selectedLog?.entity_type)} #
+                    {selectedLog?.entity_id ?? "-"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900 sm:col-span-2">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Label
+                  </dt>
+                  <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
+                    {selectedLog?.entity_label ?? "-"}
+                  </dd>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900 sm:col-span-2">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Created
+                  </dt>
+                  <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
+                    {formatDateTime(selectedLog?.created_at)}
+                  </dd>
+                </div>
+              </dl>
+            </section>
 
-          <div className="overflow-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-950">
-            <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-5 text-dark dark:text-white">
-              {formatMetadataFull(selectedLog?.metadata)}
-            </pre>
+            <section className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900/50">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-gray-50/80 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/70 sm:px-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Metadata
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Type: {getMetadataTypeLabel(selectedLog?.metadata)}
+                  </p>
+                </div>
+                <Badge variant="secondary">
+                  {getMetadataSizeLabel(selectedLog?.metadata)}
+                </Badge>
+              </div>
+              <div className="max-h-[46dvh] overflow-auto p-3 sm:max-h-[52dvh] sm:p-4">
+                <pre className="whitespace-pre font-mono text-xs leading-5 text-dark dark:text-white">
+                  {formatMetadataFull(selectedLog?.metadata)}
+                </pre>
+              </div>
+            </section>
           </div>
         </DialogContent>
       </Dialog>

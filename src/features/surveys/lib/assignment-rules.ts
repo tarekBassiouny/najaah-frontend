@@ -4,7 +4,7 @@ import type {
   SurveyScopeType,
 } from "@/features/surveys/types/survey";
 
-const SYSTEM_ASSIGNMENT_TYPES = ["all", "center", "course", "user"] as const;
+const SYSTEM_ASSIGNMENT_TYPES = ["all", "course", "user"] as const;
 const CENTER_ASSIGNMENT_TYPES = ["all", "course", "video", "user"] as const;
 
 function toNumber(value: unknown): number | null {
@@ -103,22 +103,6 @@ export function validateSurveyAssignment(
       valid: false,
       error: "Please select a valid assignment target.",
     };
-  }
-
-  if (assignmentType === "center") {
-    if (scopeType !== 1) {
-      return {
-        valid: false,
-        error: "Center assignment is only allowed for system surveys.",
-      };
-    }
-
-    if (!includesNumericId(unbrandedCenterIds, numericId)) {
-      return {
-        valid: false,
-        error: "Only unbranded centers can be assigned in system scope.",
-      };
-    }
   }
 
   if (assignmentType === "course") {

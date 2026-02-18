@@ -3,12 +3,19 @@
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { tokenStorage } from "@/lib/token-storage";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { PageLoading } from "@/components/ui/page-loading";
 import { useTenant } from "@/app/tenant-provider";
 import { can } from "@/lib/capabilities";
 import { getRouteCapabilities } from "@/components/Layouts/sidebar/data";
 import { usePathname } from "next/navigation";
+import {
+  getAdminScope,
+  isSystemOnlyRoute,
+  isCenterScopedRoute,
+  extractCenterIdFromPath,
+  getCenterAdminHomeUrl,
+} from "@/lib/user-scope";
 
 type AdminRouteGuardProps = {
   children: React.ReactNode;
@@ -63,6 +70,46 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
     }
   }, [data, hasToken, isError, isResolved, router]);
 
+  const userScope = useMemo(() => getAdminScope(data), [data]);
+
+  // Enforce center admin scope restrictions
+  useEffect(() => {
+    if (!isResolved || isLoading || isAuthRejected || !data) {
+      return;
+    }
+
+    // Only apply restrictions to center admins
+    if (!userScope.isCenterAdmin || !userScope.centerId) {
+      return;
+    }
+
+    const centerHomeUrl = getCenterAdminHomeUrl(userScope.centerId);
+
+    // Block center admin from system-only routes
+    if (isSystemOnlyRoute(pathname)) {
+      router.replace(centerHomeUrl);
+      return;
+    }
+
+    // Block center admin from accessing other center's pages
+    if (isCenterScopedRoute(pathname)) {
+      const pathCenterId = extractCenterIdFromPath(pathname);
+      if (pathCenterId && pathCenterId !== userScope.centerId) {
+        router.replace(centerHomeUrl);
+        return;
+      }
+    }
+  }, [
+    data,
+    isAuthRejected,
+    isLoading,
+    isResolved,
+    pathname,
+    router,
+    userScope.centerId,
+    userScope.isCenterAdmin,
+  ]);
+
   useEffect(() => {
     if (
       !isResolved ||
@@ -73,8 +120,14 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
       return;
     }
 
+    // Determine the fallback route based on user scope
+    const fallbackRoute =
+      userScope.isCenterAdmin && userScope.centerId
+        ? getCenterAdminHomeUrl(userScope.centerId)
+        : "/dashboard";
+
     if (requiredCapabilities === null) {
-      router.replace("/dashboard");
+      router.replace(fallbackRoute);
       return;
     }
 
@@ -83,9 +136,17 @@ export function AdminRouteGuard({ children, fallback }: AdminRouteGuardProps) {
       requiredCapabilities.every((capability) => can(capability));
 
     if (!hasAccess) {
-      router.replace("/dashboard");
+      router.replace(fallbackRoute);
     }
-  }, [isAuthRejected, isLoading, isResolved, requiredCapabilities, router]);
+  }, [
+    isAuthRejected,
+    isLoading,
+    isResolved,
+    requiredCapabilities,
+    router,
+    userScope.centerId,
+    userScope.isCenterAdmin,
+  ]);
 
   if (!isResolved || !hasToken || isLoading || isAuthRejected) {
     return <>{fallback ?? <PageLoading />}</>;

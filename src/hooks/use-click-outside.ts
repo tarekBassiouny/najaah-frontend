@@ -1,10 +1,19 @@
 import { useEffect, useRef } from "react";
 
-export function useClickOutside<T extends HTMLElement>(callback: () => void) {
+type UseClickOutsideOptions = {
+  ignore?: (_event: MouseEvent) => boolean;
+};
+
+export function useClickOutside<T extends HTMLElement>(
+  callback: () => void,
+  options?: UseClickOutsideOptions,
+) {
   const ref = useRef<T>(null);
 
   useEffect(() => {
     function handleEvent(event: MouseEvent) {
+      if (options?.ignore?.(event)) return;
+
       if (ref.current && !ref.current.contains(event.target as Node)) {
         callback();
       }
@@ -15,7 +24,7 @@ export function useClickOutside<T extends HTMLElement>(callback: () => void) {
     return () => {
       document.removeEventListener("mousedown", handleEvent);
     };
-  }, [callback, ref]);
+  }, [callback, options, ref]);
 
   return ref;
 }

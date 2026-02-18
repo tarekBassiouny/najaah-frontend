@@ -77,18 +77,36 @@ type DropdownContentProps = {
   align?: "start" | "end" | "center";
   className?: string;
   children: React.ReactNode;
+  ignoreOutsideClickSelector?: string | string[];
 };
 
 export function DropdownContent({
   children,
   align = "center",
   className,
+  ignoreOutsideClickSelector,
 }: DropdownContentProps) {
   const { isOpen, handleClose } = useDropdownContext();
 
-  const contentRef = useClickOutside<HTMLDivElement>(() => {
-    if (isOpen) handleClose();
-  });
+  const contentRef = useClickOutside<HTMLDivElement>(
+    () => {
+      if (isOpen) handleClose();
+    },
+    {
+      ignore: (event) => {
+        if (!ignoreOutsideClickSelector) return false;
+
+        const target = event.target;
+        if (!(target instanceof Element)) return false;
+
+        const selectors = Array.isArray(ignoreOutsideClickSelector)
+          ? ignoreOutsideClickSelector
+          : [ignoreOutsideClickSelector];
+
+        return selectors.some((selector) => Boolean(target.closest(selector)));
+      },
+    },
+  );
 
   if (!isOpen) return null;
 
@@ -112,20 +130,31 @@ export function DropdownContent({
   );
 }
 
-type DropdownTriggerProps = React.HTMLAttributes<HTMLButtonElement> & {
+type DropdownTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
 };
 
-export function DropdownTrigger({ children, className }: DropdownTriggerProps) {
+export function DropdownTrigger({
+  children,
+  className,
+  onClick,
+  ...props
+}: DropdownTriggerProps) {
   const { handleOpen, isOpen } = useDropdownContext();
+
+  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    onClick?.(event);
+    handleOpen();
+  };
 
   return (
     <button
       className={className}
-      onClick={handleOpen}
+      onClick={handleClick}
       aria-expanded={isOpen}
       aria-haspopup="menu"
       data-state={isOpen ? "open" : "closed"}
+      {...props}
     >
       {children}
     </button>

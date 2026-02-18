@@ -6,6 +6,10 @@ export type SurveyType = 1 | 2 | 3;
 
 export type SurveyQuestionType = 1 | 2 | 3 | 4 | 5;
 
+export type SurveyApiScopeContext = {
+  centerId?: number | string | null;
+};
+
 export type SurveyAssignmentType =
   | "all"
   | "center"
@@ -71,6 +75,7 @@ export type Survey = {
   show_to_all_students?: boolean | null;
   assignment?: SurveyAssignment | null;
   assignments?: SurveyAssignment[] | null;
+  submitted_users_count?: number | string | null;
   start_at?: string | null;
   end_at?: string | null;
   questions?: SurveyQuestion[] | null;
@@ -84,6 +89,13 @@ export type ListSurveysParams = {
   per_page: number;
   search?: string;
   center_id?: number;
+  is_active?: boolean;
+  is_mandatory?: boolean;
+  type?: SurveyType;
+  start_from?: string;
+  start_to?: string;
+  end_from?: string;
+  end_to?: string;
 };
 
 export type SurveysResponse = {
@@ -174,6 +186,47 @@ export type UpdateSurveyPayload = Partial<
 
 export type AssignSurveyPayload = {
   assignments: CreateSurveyPayload["assignments"];
+};
+
+export type UpdateSurveyStatusPayload = {
+  is_active: boolean;
+};
+
+export type BulkUpdateSurveyStatusPayload = {
+  is_active: boolean;
+  survey_ids: Array<string | number>;
+};
+
+export type BulkSurveyActionPayload = {
+  survey_ids: Array<string | number>;
+};
+
+export type BulkSurveyActionResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+    [key: string]: unknown;
+  };
+  updated?: Array<Record<string, unknown>>;
+  skipped?: Array<Record<string, unknown>>;
+  failed?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+};
+
+export type BulkUpdateSurveyStatusResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+    [key: string]: unknown;
+  };
+  updated?: Array<Record<string, unknown>>;
+  skipped?: Array<Record<string, unknown>>;
+  failed?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
 };
 
 export type SurveyAnalyticsRaw = Record<string, unknown>;

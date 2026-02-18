@@ -50,9 +50,16 @@ describe("centers.service", () => {
         type: undefined,
         tier: undefined,
         is_featured: undefined,
+        status: undefined,
+        is_demo: undefined,
         onboarding_status: undefined,
         created_from: undefined,
         created_to: undefined,
+        updated_from: undefined,
+        updated_to: undefined,
+        deleted: undefined,
+        sort_by: undefined,
+        sort_dir: undefined,
       },
     });
     expect(result).toEqual({
@@ -78,9 +85,14 @@ describe("centers.service", () => {
     mockedHttp.put.mockResolvedValueOnce({ data: { data: { id: 11 } } });
     mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 11 } } });
 
-    await expect(createCenter({ name: "Center A" })).resolves.toEqual({
-      id: 11,
-    });
+    await expect(
+      createCenter({
+        name: "Center A",
+        slug: "center-a",
+        type: "unbranded",
+        admin: { name: "Admin A", email: "admin@example.com" },
+      }),
+    ).resolves.toEqual({ id: 11 });
     await expect(updateCenter(11, { status: "active" })).resolves.toEqual({
       id: 11,
     });

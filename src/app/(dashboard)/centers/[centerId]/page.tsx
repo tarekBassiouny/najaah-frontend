@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
+import { getAdminScope } from "@/lib/user-scope";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -223,6 +225,19 @@ const SECTIONS = [
 export default function CenterDetailPage({ params }: PageProps) {
   const { centerId } = use(params);
   const { data: center, isLoading } = useCenter(centerId);
+  const { data: currentAdmin } = useAdminMe();
+  const userScope = getAdminScope(currentAdmin);
+
+  // Build breadcrumbs based on user scope
+  const breadcrumbs = useMemo(() => {
+    const crumbs = [];
+    // Only show "Centers" link for system admins
+    if (userScope.isSystemAdmin) {
+      crumbs.push({ label: "Centers", href: "/centers" });
+    }
+    crumbs.push({ label: center?.name ?? `Center ${centerId}` });
+    return crumbs;
+  }, [userScope.isSystemAdmin, center?.name, centerId]);
 
   if (isLoading) {
     return (
@@ -255,12 +270,10 @@ export default function CenterDetailPage({ params }: PageProps) {
     );
   }
 
-  const statusVariant =
-    center?.status === "active"
-      ? "success"
-      : center?.status === "inactive"
-        ? "error"
-        : "secondary";
+  const centerStatusNumber = Number(center?.status);
+  const statusVariant = centerStatusNumber === 1 ? "success" : "error";
+  const statusLabel =
+    center?.status_label ?? (centerStatusNumber === 1 ? "Active" : "Inactive");
 
   return (
     <div className="space-y-8">
@@ -270,15 +283,15 @@ export default function CenterDetailPage({ params }: PageProps) {
         description={
           center?.slug ? `/${center.slug}` : "Center overview and management"
         }
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: center?.name ?? `Center ${centerId}` },
-        ]}
+        breadcrumbs={breadcrumbs}
         actions={
           <div className="flex items-center gap-2">
-            <Link href="/centers">
-              <Button variant="outline">Back to Centers</Button>
-            </Link>
+            {/* Only show "Back to Centers" for system admins */}
+            {userScope.isSystemAdmin && (
+              <Link href="/centers">
+                <Button variant="outline">Back to Centers</Button>
+              </Link>
+            )}
             <Link href={`/centers/${centerId}/settings`}>
               <Button variant="ghost" size="icon">
                 <SettingsIcon className="h-5 w-5" />
@@ -309,12 +322,12 @@ export default function CenterDetailPage({ params }: PageProps) {
 
           <div className="hidden h-8 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
 
-          {center?.status && (
+          {center?.status != null && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
                 Status
               </span>
-              <Badge variant={statusVariant}>{center.status}</Badge>
+              <Badge variant={statusVariant}>{statusLabel}</Badge>
             </div>
           )}
 

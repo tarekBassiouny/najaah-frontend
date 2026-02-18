@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,17 +25,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { listCenterOptions } from "@/features/centers/services/centers.service";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
-import { useCreateSurvey } from "@/features/surveys/hooks/use-surveys";
+import {
+  useCreateSurvey,
+  useUpdateSurvey,
+} from "@/features/surveys/hooks/use-surveys";
 import {
   getScopeAssignmentTypes,
   validateSurveyAssignment,
 } from "@/features/surveys/lib/assignment-rules";
+import { getSurveyApiErrorMessage } from "@/features/surveys/lib/api-error";
 import { listSurveyTargetStudents } from "@/features/surveys/services/surveys.service";
 import type {
   CreateSurveyPayload,
+  Survey,
   SurveyAssignmentType,
   SurveyQuestionType,
   SurveyType,
+  UpdateSurveyPayload,
 } from "@/features/surveys/types/survey";
 import { listVideos } from "@/features/videos/services/videos.service";
 import type { AdminUser } from "@/types/auth";
@@ -68,6 +73,7 @@ type SurveyFormDialogProps = {
   open: boolean;
   onOpenChange: (_open: boolean) => void;
   centerId?: string | number | null;
+  survey?: Survey | null;
   onSuccess?: (_message: string) => void;
 };
 
@@ -184,8 +190,6 @@ function getAssignmentTypeLabel(type: SurveyAssignmentType) {
   switch (type) {
     case "all":
       return "All Students";
-    case "center":
-      return "Specific Unbranded Center";
     case "course":
       return "Specific Course";
     case "user":
@@ -251,70 +255,122 @@ function isSuperAdminUser(user: AdminUser | null | undefined) {
   });
 }
 
-function extractFirstMessage(node: unknown): string | null {
-  if (typeof node === "string" && node.trim()) {
-    return node.trim();
-  }
-
-  if (Array.isArray(node)) {
-    for (const item of node) {
-      const message = extractFirstMessage(item);
-      if (message) return message;
-    }
-    return null;
-  }
-
-  if (!node || typeof node !== "object") return null;
-
-  for (const value of Object.values(node as Record<string, unknown>)) {
-    const message = extractFirstMessage(value);
-    if (message) return message;
-  }
-
-  return null;
+function getErrorMessage(error: unknown) {
+  return getSurveyApiErrorMessage(
+    error,
+    "Unable to save survey. Please try again.",
+  );
 }
 
-function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    if ((error.response?.status ?? 0) >= 500) {
-      return "Invalid survey assignment for the selected scope. Please review assignment rules and try again.";
-    }
+function getQuestionText(question: Record<string, unknown>) {
+  const translations = question.question_translations as
+    | Record<string, string>
+    | undefined;
 
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, string[]>;
-          details?: unknown;
-        }
-      | undefined;
+  return (
+    (typeof translations?.en === "string" && translations.en.trim()
+      ? translations.en.trim()
+      : null) ||
+    (typeof translations?.ar === "string" && translations.ar.trim()
+      ? translations.ar.trim()
+      : null) ||
+    (typeof question.question === "string" && question.question.trim()
+      ? question.question.trim()
+      : null) ||
+    (typeof question.title === "string" && question.title.trim()
+      ? question.title.trim()
+      : null) ||
+    ""
+  );
+}
 
-    const detailsMessage = extractFirstMessage(data?.details);
-    if (detailsMessage) {
-      return detailsMessage;
-    }
+function getQuestionOptions(question: Record<string, unknown>) {
+  const options = Array.isArray(question.options) ? question.options : [];
 
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
+  return options
+    .map((option) => (option && typeof option === "object" ? option : null))
+    .filter((option): option is Record<string, unknown> => Boolean(option))
+    .map((option) => {
+      const translations = option.option_translations as
+        | Record<string, string>
+        | undefined;
+      return (
+        (typeof translations?.en === "string" && translations.en.trim()
+          ? translations.en.trim()
+          : null) ||
+        (typeof translations?.ar === "string" && translations.ar.trim()
+          ? translations.ar.trim()
+          : null) ||
+        (typeof option.option === "string" && option.option.trim()
+          ? option.option.trim()
+          : null) ||
+        (typeof option.label === "string" && option.label.trim()
+          ? option.label.trim()
+          : null) ||
+        ""
+      );
+    })
+    .filter(Boolean);
+}
 
-    if (data?.errors && typeof data.errors === "object") {
-      const firstEntry = Object.values(data.errors)[0];
-      if (Array.isArray(firstEntry) && firstEntry.length > 0) {
-        return firstEntry[0];
-      }
-    }
+function normalizeQuestionDrafts(survey?: Survey | null): QuestionDraft[] {
+  if (
+    !survey ||
+    !Array.isArray(survey.questions) ||
+    survey.questions.length === 0
+  ) {
+    return [defaultQuestion()];
   }
 
-  return "Unable to create survey. Please try again.";
+  const mapped = survey.questions
+    .map((question) =>
+      question && typeof question === "object" ? question : null,
+    )
+    .filter((question): question is Record<string, unknown> =>
+      Boolean(question),
+    )
+    .map((question) => {
+      const typeValue = toNumber(question.type);
+      const type =
+        typeValue === 1 ||
+        typeValue === 2 ||
+        typeValue === 3 ||
+        typeValue === 4 ||
+        typeValue === 5
+          ? (typeValue as SurveyQuestionType)
+          : 3;
+
+      return {
+        question: getQuestionText(question),
+        type,
+        isRequired: Boolean(question.is_required ?? true),
+        options: type === 1 || type === 2 ? getQuestionOptions(question) : [],
+      } satisfies QuestionDraft;
+    })
+    .slice(0, 10);
+
+  return mapped.length > 0 ? mapped : [defaultQuestion()];
 }
 
 export function SurveyFormDialog({
   open,
   onOpenChange,
   centerId,
+  survey,
   onSuccess,
 }: SurveyFormDialogProps) {
-  const createMutation = useCreateSurvey();
+  const isEditMode = Boolean(survey);
+  const normalizedCenterId = useMemo(() => {
+    if (centerId == null) return null;
+    return toNumber(centerId);
+  }, [centerId]);
+  const scopeContext = useMemo(
+    () => ({ centerId: normalizedCenterId }),
+    [normalizedCenterId],
+  );
+
+  const createMutation = useCreateSurvey(scopeContext);
+  const updateMutation = useUpdateSurvey(scopeContext);
   const { data: currentAdmin, isLoading: isAdminLoading } = useAdminMe();
   const [formError, setFormError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -328,7 +384,6 @@ export function SurveyFormDialog({
   const [endAt, setEndAt] = useState("");
   const [assignmentType, setAssignmentType] =
     useState<SurveyAssignmentType>("all");
-  const [assignmentCenterId, setAssignmentCenterId] = useState("none");
   const [assignmentCourseCenterId, setAssignmentCourseCenterId] =
     useState("none");
   const [assignmentCourseId, setAssignmentCourseId] = useState("none");
@@ -337,11 +392,6 @@ export function SurveyFormDialog({
   const [questions, setQuestions] = useState<QuestionDraft[]>([
     defaultQuestion(),
   ]);
-
-  const normalizedCenterId = useMemo(() => {
-    if (centerId == null) return null;
-    return toNumber(centerId);
-  }, [centerId]);
 
   const scopeType = normalizedCenterId != null ? 2 : 1;
   const isSystemScope = scopeType === 1;
@@ -378,9 +428,7 @@ export function SurveyFormDialog({
       return page * perPage < total ? page + 1 : undefined;
     },
     enabled:
-      open &&
-      scopeType === 1 &&
-      (assignmentType === "center" || assignmentType === "course"),
+      !isEditMode && open && scopeType === 1 && assignmentType === "course",
     staleTime: 60_000,
   });
 
@@ -472,16 +520,18 @@ export function SurveyFormDialog({
     queryKey: ["survey-assignment-students", scopeType, normalizedCenterId],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      listSurveyTargetStudents({
-        scope_type: scopeType,
-        center_id:
-          scopeType === 2 ? (normalizedCenterId ?? undefined) : undefined,
-        page: pageParam,
-        per_page: PICKER_PAGE_SIZE,
-      }),
+      listSurveyTargetStudents(
+        {
+          scope_type: scopeType,
+          page: pageParam,
+          per_page: PICKER_PAGE_SIZE,
+        },
+        scopeContext,
+      ),
     getNextPageParam: (lastPage) =>
       lastPage.page < lastPage.lastPage ? lastPage.page + 1 : undefined,
     enabled:
+      !isEditMode &&
       open &&
       assignmentType === "user" &&
       (scopeType === 1 || normalizedCenterId != null),
@@ -517,10 +567,18 @@ export function SurveyFormDialog({
 
   useEffect(() => {
     if (!open) return;
+    if (isEditMode) return;
     if (assignmentType !== "user") return;
     if (scopeType === 2 && normalizedCenterId == null) return;
     void refetchStudents();
-  }, [open, assignmentType, scopeType, normalizedCenterId, refetchStudents]);
+  }, [
+    open,
+    isEditMode,
+    assignmentType,
+    scopeType,
+    normalizedCenterId,
+    refetchStudents,
+  ]);
 
   const {
     data: videosData,
@@ -544,6 +602,7 @@ export function SurveyFormDialog({
       return page * perPage < total ? page + 1 : undefined;
     },
     enabled:
+      !isEditMode &&
       open &&
       scopeType === 2 &&
       assignmentType === "video" &&
@@ -584,22 +643,46 @@ export function SurveyFormDialog({
     if (!open) return;
 
     setFormError(null);
-    setTitle("");
-    setDescription("");
-    setSurveyType(1);
-    setIsActive(false);
-    setIsMandatory(true);
-    setAllowMultipleSubmissions(true);
-    setStartAt("");
-    setEndAt("");
+    const titleTranslations = survey?.title_translations ?? {};
+    const descriptionTranslations = survey?.description_translations ?? {};
+
+    setTitle(
+      titleTranslations.en ||
+        titleTranslations.ar ||
+        (typeof survey?.title === "string" ? survey.title : "") ||
+        "",
+    );
+    setDescription(
+      descriptionTranslations.en ||
+        descriptionTranslations.ar ||
+        (typeof survey?.description === "string" ? survey.description : "") ||
+        "",
+    );
+
+    const parsedSurveyType = toNumber(survey?.type);
+    setSurveyType(
+      parsedSurveyType === 1 || parsedSurveyType === 2 || parsedSurveyType === 3
+        ? (parsedSurveyType as SurveyType)
+        : 1,
+    );
+    setIsActive(Boolean(survey?.is_active ?? false));
+    setIsMandatory(Boolean(survey?.is_mandatory ?? true));
+    setAllowMultipleSubmissions(
+      Boolean(survey?.allow_multiple_submissions ?? true),
+    );
+    setStartAt(
+      typeof survey?.start_at === "string" ? survey.start_at.slice(0, 10) : "",
+    );
+    setEndAt(
+      typeof survey?.end_at === "string" ? survey.end_at.slice(0, 10) : "",
+    );
     setAssignmentType("all");
-    setAssignmentCenterId("none");
     setAssignmentCourseCenterId("none");
     setAssignmentCourseId("none");
     setAssignmentUserId("none");
     setAssignmentVideoId("none");
-    setQuestions([defaultQuestion()]);
-  }, [open]);
+    setQuestions(normalizeQuestionDrafts(survey));
+  }, [open, survey]);
 
   const updateQuestion = (
     index: number,
@@ -624,7 +707,11 @@ export function SurveyFormDialog({
     }
 
     if (scopeType === 1 && !isSystemScopeAllowed) {
-      setFormError("System surveys can only be created by super admins.");
+      setFormError(
+        isEditMode
+          ? "System surveys can only be updated by super admins."
+          : "System surveys can only be created by super admins.",
+      );
       return;
     }
 
@@ -683,16 +770,60 @@ export function SurveyFormDialog({
       };
     });
 
+    const commonPayload = {
+      title_translations: {
+        en: title.trim(),
+        ar: title.trim(),
+      },
+      description_translations: description.trim()
+        ? {
+            en: description.trim(),
+            ar: description.trim(),
+          }
+        : undefined,
+      type: surveyType,
+      is_active: isActive,
+      is_mandatory: isMandatory,
+      allow_multiple_submissions: allowMultipleSubmissions,
+      start_at: startAt || undefined,
+      end_at: endAt || undefined,
+      questions: mappedQuestions,
+    };
+
+    if (isEditMode) {
+      if (!survey?.id) {
+        setFormError("Missing survey identifier.");
+        return;
+      }
+
+      const payload: UpdateSurveyPayload = {
+        ...commonPayload,
+      };
+
+      updateMutation.mutate(
+        { surveyId: survey.id, payload },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+            onSuccess?.("Survey updated successfully.");
+          },
+          onError: (error) => {
+            setFormError(getErrorMessage(error));
+          },
+        },
+      );
+
+      return;
+    }
+
     const assignmentId =
-      assignmentType === "center"
-        ? assignmentCenterId
-        : assignmentType === "course"
-          ? assignmentCourseId
-          : assignmentType === "user"
-            ? assignmentUserId
-            : assignmentType === "video"
-              ? assignmentVideoId
-              : null;
+      assignmentType === "course"
+        ? assignmentCourseId
+        : assignmentType === "user"
+          ? assignmentUserId
+          : assignmentType === "video"
+            ? assignmentVideoId
+            : null;
 
     const assignmentValidation = validateSurveyAssignment({
       scopeType,
@@ -714,23 +845,7 @@ export function SurveyFormDialog({
       scope_type: scopeType,
       center_id: normalizedCenterId,
       assignments: [assignmentValidation.assignment],
-      title_translations: {
-        en: title.trim(),
-        ar: title.trim(),
-      },
-      description_translations: description.trim()
-        ? {
-            en: description.trim(),
-            ar: description.trim(),
-          }
-        : undefined,
-      type: surveyType,
-      is_active: isActive,
-      is_mandatory: isMandatory,
-      allow_multiple_submissions: allowMultipleSubmissions,
-      start_at: startAt || undefined,
-      end_at: endAt || undefined,
-      questions: mappedQuestions,
+      ...commonPayload,
     };
 
     createMutation.mutate(payload, {
@@ -744,7 +859,7 @@ export function SurveyFormDialog({
     });
   };
 
-  const isPending = createMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending;
   const isSubmitBlockedByRole =
     scopeType === 1 && (isAdminLoading || !isSystemScopeAllowed);
 
@@ -753,17 +868,21 @@ export function SurveyFormDialog({
       <DialogContent className="max-h-[95vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Create {scopeType === 2 ? "Center" : "System"} Survey
+            {isEditMode ? "Edit" : "Create"}{" "}
+            {scopeType === 2 ? "Center" : "System"} Survey
           </DialogTitle>
           <DialogDescription>
-            Build a survey with scoped assignment rules and configurable
-            questions.
+            {isEditMode
+              ? "Update survey details. Note: updating questions replaces the full question set."
+              : "Build a survey with scoped assignment rules and configurable questions."}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not create survey</AlertTitle>
+            <AlertTitle>
+              Could not {isEditMode ? "update" : "create"} survey
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -772,7 +891,8 @@ export function SurveyFormDialog({
           <Alert>
             <AlertTitle>Permission required</AlertTitle>
             <AlertDescription>
-              Only super admins can create system surveys.
+              Only super admins can {isEditMode ? "update" : "create"} system
+              surveys.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -830,39 +950,42 @@ export function SurveyFormDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Assignment Mode
-            </label>
-            <Select
-              value={assignmentType}
-              onValueChange={(value) => {
-                if (
-                  !assignmentTypeOptions.includes(value as SurveyAssignmentType)
-                ) {
-                  return;
-                }
+          {!isEditMode ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Assignment Mode
+              </label>
+              <Select
+                value={assignmentType}
+                onValueChange={(value) => {
+                  if (
+                    !assignmentTypeOptions.includes(
+                      value as SurveyAssignmentType,
+                    )
+                  ) {
+                    return;
+                  }
 
-                setAssignmentType(value as SurveyAssignmentType);
-                setAssignmentCenterId("none");
-                setAssignmentCourseCenterId("none");
-                setAssignmentCourseId("none");
-                setAssignmentUserId("none");
-                setAssignmentVideoId("none");
-              }}
-            >
-              <SelectTrigger className="h-10 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {assignmentTypeOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {getAssignmentTypeLabel(option)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                  setAssignmentType(value as SurveyAssignmentType);
+                  setAssignmentCourseCenterId("none");
+                  setAssignmentCourseId("none");
+                  setAssignmentUserId("none");
+                  setAssignmentVideoId("none");
+                }}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {assignmentTypeOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {getAssignmentTypeLabel(option)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -887,37 +1010,7 @@ export function SurveyFormDialog({
             />
           </div>
 
-          {assignmentType === "center" ? (
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Unbranded Center
-              </label>
-              <SearchableSelect
-                value={
-                  assignmentCenterId === "none" ? null : assignmentCenterId
-                }
-                onValueChange={(value) =>
-                  setAssignmentCenterId(value ?? "none")
-                }
-                options={unbrandedCenterOptions}
-                placeholder="Select an unbranded center"
-                searchPlaceholder="Search centers..."
-                emptyMessage="No unbranded centers found"
-                isLoading={isUnbrandedCentersLoading}
-                disabled={isUnbrandedCentersLoading}
-                showSearch={unbrandedCenterOptions.length > 6}
-                hasMore={Boolean(hasMoreUnbrandedCenters)}
-                isLoadingMore={isUnbrandedCentersLoadingMore}
-                onReachEnd={() => {
-                  if (hasMoreUnbrandedCenters) {
-                    void fetchMoreUnbrandedCenters();
-                  }
-                }}
-              />
-            </div>
-          ) : null}
-
-          {assignmentType === "course" ? (
+          {!isEditMode && assignmentType === "course" ? (
             <>
               {scopeType === 1 ? (
                 <div className="space-y-2 md:col-span-2">
@@ -990,7 +1083,7 @@ export function SurveyFormDialog({
             </>
           ) : null}
 
-          {assignmentType === "user" ? (
+          {!isEditMode && assignmentType === "user" ? (
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Student
@@ -1016,7 +1109,7 @@ export function SurveyFormDialog({
             </div>
           ) : null}
 
-          {assignmentType === "video" ? (
+          {!isEditMode && assignmentType === "video" ? (
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Video (Full Play)
@@ -1083,6 +1176,10 @@ export function SurveyFormDialog({
               Multiple Submissions
             </label>
           </div>
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            Multiple submissions is currently not enforced by mobile submit
+            flow.
+          </p>
         </div>
 
         <div className="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
@@ -1292,10 +1389,14 @@ export function SurveyFormDialog({
             }}
           >
             {isPending
-              ? "Creating..."
+              ? isEditMode
+                ? "Saving..."
+                : "Creating..."
               : isAdminLoading && scopeType === 1
                 ? "Checking permissions..."
-                : "Create Survey"}
+                : isEditMode
+                  ? "Save Changes"
+                  : "Create Survey"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -363,7 +363,9 @@ export function RolesTable({
                   </TableRow>
                 ) : (
                   items.map((role, index) => {
-                    const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                    const shouldOpenUp =
+                      items.length > 4 &&
+                      index >= Math.max(0, items.length - 2);
                     const roleId = String(role.id);
                     const isSelected = Boolean(selectedRoles[roleId]);
                     const permissionsCount = Array.isArray(role.permissions)
@@ -538,7 +540,7 @@ export function RolesTable({
           if (!open) setPermissionsRole(null);
         }}
       >
-        <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden">
+        <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-hidden p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader>
             <DialogTitle>
               {canManageWrite
@@ -556,6 +558,16 @@ export function RolesTable({
               <RolePermissionsForm
                 roleId={String(permissionsRole.id)}
                 readOnly={!canManageWrite}
+                onApplied={({ added, removed }) => {
+                  setPermissionsRole(null);
+                  setBulkDialogOpen(false);
+                  setOpenMenuId(null);
+                  clearSelection();
+                  showToast(
+                    `Permissions updated (${added} added, ${removed} removed).`,
+                    "success",
+                  );
+                }}
               />
             </div>
           ) : null}
@@ -572,6 +584,9 @@ export function RolesTable({
         }}
         roles={selectedRolesList}
         onSuccess={(message) => {
+          setPermissionsRole(null);
+          setBulkDialogOpen(false);
+          setOpenMenuId(null);
           showToast(message, "success");
           clearSelection();
         }}

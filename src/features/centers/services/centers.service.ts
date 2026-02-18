@@ -7,12 +7,26 @@ export type ListCentersParams = {
   per_page: number;
   search?: string;
   slug?: string;
-  type?: string;
-  tier?: string;
+  type?: string | number;
+  tier?: string | number;
   is_featured?: boolean;
+  status?: string | number;
+  is_demo?: boolean;
   onboarding_status?: string;
   created_from?: string;
   created_to?: string;
+  updated_from?: string;
+  updated_to?: string;
+  deleted?: "active" | "with_deleted" | "only_deleted";
+  sort_by?:
+    | "created_at"
+    | "updated_at"
+    | "slug"
+    | "tier"
+    | "status"
+    | "is_featured"
+    | "onboarding_status";
+  sort_dir?: "asc" | "desc";
 };
 
 export type CenterOption = {
@@ -43,18 +57,55 @@ export type CenterBrandingPayload = {
 
 export type CreateCenterPayload = {
   name: string;
-  slug?: string;
-  type?: string;
+  slug: string;
+  type: string | number;
   tier?: string;
   is_featured?: boolean;
-  onboarding_status?: string;
   branding_metadata?: CenterBrandingPayload;
-  admin?: CenterAdminPayload;
+  admin: CenterAdminPayload;
   [key: string]: unknown;
 };
 
-export type UpdateCenterPayload = Partial<CreateCenterPayload> & {
-  status?: string;
+export type UpdateCenterPayload = {
+  name?: string;
+  tier?: string | number;
+  is_featured?: boolean;
+  branding_metadata?: CenterBrandingPayload;
+  [key: string]: unknown;
+};
+
+export type UpdateCenterStatusPayload = {
+  status: number;
+};
+
+export type BulkCenterIdsPayload = {
+  center_ids: Array<string | number>;
+};
+
+export type BulkUpdateCenterStatusPayload = BulkCenterIdsPayload & {
+  status: number;
+};
+
+export type BulkUpdateCenterFeaturedPayload = BulkCenterIdsPayload & {
+  is_featured: boolean;
+};
+
+export type BulkUpdateCenterTierPayload = BulkCenterIdsPayload & {
+  tier: string;
+};
+
+export type BulkCentersActionResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+    [key: string]: unknown;
+  };
+  updated?: Array<Record<string, unknown>>;
+  skipped?: Array<Record<string, unknown>>;
+  failed?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
 };
 
 type RawCentersResponse = {
@@ -68,6 +119,7 @@ type RawCentersResponse = {
 
 type RawCenterResponse = {
   data?: Center;
+  [key: string]: unknown;
 };
 
 type RawCenterOption = {
@@ -114,6 +166,19 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   }
 
   return value as Record<string, unknown>;
+}
+
+function unwrapObjectPayload(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== "object") return {};
+
+  const root = raw as Record<string, unknown>;
+  const data = root.data;
+
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    return data as Record<string, unknown>;
+  }
+
+  return root;
 }
 
 function toNumber(value: unknown): number | null {
@@ -166,9 +231,16 @@ export async function listCenters(
         typeof params.is_featured === "boolean"
           ? params.is_featured
           : undefined,
+      status: params.status ?? undefined,
+      is_demo: typeof params.is_demo === "boolean" ? params.is_demo : undefined,
       onboarding_status: params.onboarding_status || undefined,
       created_from: params.created_from || undefined,
       created_to: params.created_to || undefined,
+      updated_from: params.updated_from || undefined,
+      updated_to: params.updated_to || undefined,
+      deleted: params.deleted || undefined,
+      sort_by: params.sort_by || undefined,
+      sort_dir: params.sort_dir || undefined,
     },
   });
 
@@ -277,6 +349,18 @@ export async function updateCenter(
   return data?.data ?? (data as unknown as Center);
 }
 
+export async function updateCenterStatus(
+  centerId: string | number,
+  payload: UpdateCenterStatusPayload,
+): Promise<Center> {
+  const { data } = await http.put<RawCenterResponse>(
+    `/api/v1/admin/centers/${centerId}/status`,
+    payload,
+  );
+
+  return data?.data ?? (data as unknown as Center);
+}
+
 export async function deleteCenter(centerId: string | number): Promise<void> {
   await http.delete(`/api/v1/admin/centers/${centerId}`);
 }
@@ -294,7 +378,71 @@ export async function retryCenterOnboarding(centerId: string | number) {
   const { data } = await http.post(
     `/api/v1/admin/centers/${centerId}/onboarding/retry`,
   );
-  return data;
+
+  return unwrapObjectPayload(data) as Center;
+}
+
+export async function bulkUpdateCenterStatus(
+  payload: BulkUpdateCenterStatusPayload,
+): Promise<BulkCentersActionResult> {
+  const { data } = await http.post(
+    "/api/v1/admin/centers/bulk-status",
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkCentersActionResult;
+}
+
+export async function bulkUpdateCenterFeatured(
+  payload: BulkUpdateCenterFeaturedPayload,
+): Promise<BulkCentersActionResult> {
+  const { data } = await http.post(
+    "/api/v1/admin/centers/bulk-featured",
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkCentersActionResult;
+}
+
+export async function bulkUpdateCenterTier(
+  payload: BulkUpdateCenterTierPayload,
+): Promise<BulkCentersActionResult> {
+  const { data } = await http.post("/api/v1/admin/centers/bulk-tier", payload);
+
+  return unwrapObjectPayload(data) as BulkCentersActionResult;
+}
+
+export async function bulkDeleteCenters(
+  payload: BulkCenterIdsPayload,
+): Promise<BulkCentersActionResult> {
+  const { data } = await http.post(
+    "/api/v1/admin/centers/bulk-delete",
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkCentersActionResult;
+}
+
+export async function bulkRestoreCenters(
+  payload: BulkCenterIdsPayload,
+): Promise<BulkCentersActionResult> {
+  const { data } = await http.post(
+    "/api/v1/admin/centers/bulk-restore",
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkCentersActionResult;
+}
+
+export async function bulkRetryCenterOnboarding(
+  payload: BulkCenterIdsPayload,
+): Promise<BulkCentersActionResult> {
+  const { data } = await http.post(
+    "/api/v1/admin/centers/bulk-onboarding-retry",
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkCentersActionResult;
 }
 
 export type UploadCenterLogoPayload = {

@@ -23,6 +23,11 @@ export function useRolePermissions(roleId: string | number) {
         queryKey: ["role-permissions", roleId],
       });
       queryClient.invalidateQueries({ queryKey: ["roles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "me"] });
+      queryClient.refetchQueries({
+        queryKey: ["admin", "me"],
+        type: "all",
+      });
     },
   });
 
@@ -38,6 +43,11 @@ export function useBulkAssignRolePermissions() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "me"] });
+      queryClient.refetchQueries({
+        queryKey: ["admin", "me"],
+        type: "all",
+      });
       result.roles.forEach((roleId) => {
         queryClient.invalidateQueries({
           queryKey: ["role-permissions", roleId],

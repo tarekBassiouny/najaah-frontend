@@ -1,9 +1,14 @@
 import { http } from "@/lib/http";
 import type {
   AssignSurveyPayload,
+  BulkSurveyActionPayload,
+  BulkSurveyActionResult,
+  BulkUpdateSurveyStatusPayload,
+  BulkUpdateSurveyStatusResult,
   CreateSurveyPayload,
   ListSurveyTargetStudentsParams,
   ListSurveysParams,
+  SurveyApiScopeContext,
   Survey,
   SurveyAnalyticsMetric,
   SurveyAnalyticsOption,
@@ -15,6 +20,7 @@ import type {
   SurveyTargetStudentsResponse,
   SurveyQuestion,
   SurveysResponse,
+  UpdateSurveyStatusPayload,
   UpdateSurveyPayload,
 } from "@/features/surveys/types/survey";
 
@@ -24,6 +30,25 @@ type RawResponse = {
   meta?: Record<string, unknown>;
   [key: string]: unknown;
 };
+
+function normalizeScopeCenterId(centerId: unknown): number | null {
+  if (typeof centerId === "number" && Number.isFinite(centerId)) {
+    return centerId;
+  }
+
+  if (typeof centerId === "string" && centerId.trim()) {
+    const parsed = Number(centerId);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+
+  return null;
+}
+
+function buildSurveyBasePath(context?: SurveyApiScopeContext) {
+  const centerId = normalizeScopeCenterId(context?.centerId);
+  if (centerId == null) return "/api/v1/admin/surveys";
+  return `/api/v1/admin/centers/${centerId}/surveys`;
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -235,11 +260,20 @@ function getQuestionTypeLabel(type: unknown): string {
 
   if (normalized === "1" || normalized === "single_choice")
     return "Single Choice";
+  if (normalized === "singlechoice") return "Single Choice";
   if (normalized === "2" || normalized === "multiple_choice")
     return "Multiple Choice";
+  if (normalized === "multiplechoice") return "Multiple Choice";
   if (normalized === "3" || normalized === "rating") return "Rating";
   if (normalized === "4" || normalized === "text") return "Text";
   if (normalized === "5" || normalized === "yes_no") return "Yes / No";
+  if (
+    normalized === "yesno" ||
+    normalized === "yes/no" ||
+    normalized === "yes-no"
+  ) {
+    return "Yes / No";
+  }
 
   return normalized ? prettifyKey(normalized) : "Question";
 }
@@ -277,6 +311,25 @@ function getOptionCount(value: Record<string, unknown>) {
 function extractOptions(
   question: Record<string, unknown>,
 ): SurveyAnalyticsOption[] {
+  const distributionRecord = asRecord(question.distribution);
+  if (distributionRecord) {
+    const optionsFromDistribution = Object.entries(distributionRecord)
+      .map(([key, rawValue]) => {
+        const count = toNumber(rawValue);
+        if (count == null) return null;
+
+        return {
+          label: prettifyKey(key),
+          count,
+        };
+      })
+      .filter((option): option is SurveyAnalyticsOption => Boolean(option));
+
+    if (optionsFromDistribution.length > 0) {
+      return optionsFromDistribution;
+    }
+  }
+
   const optionArray =
     firstArray<unknown>([
       question.options,
@@ -289,6 +342,15 @@ function extractOptions(
     .map((item, index) => {
       const record = asRecord(item);
       if (!record) {
+        const numeric = toNumber(item);
+        if (numeric != null) {
+          const isRating = getQuestionTypeLabel(question.type) === "Rating";
+          return {
+            label: isRating ? String(index + 1) : `Option ${index + 1}`,
+            count: numeric,
+          };
+        }
+
         if (typeof item === "string" && item.trim()) {
           return { label: item.trim(), count: 0 };
         }
@@ -309,6 +371,7 @@ function extractTextResponses(question: Record<string, unknown>): string[] {
   const textSources =
     firstArray<unknown>([
       question.text_answers,
+      question.sample_answers,
       Array.isArray(question.responses) ? question.responses : null,
       Array.isArray(question.answers) ? question.answers : null,
     ]) ?? [];
@@ -333,6 +396,8 @@ function extractTextResponses(question: Record<string, unknown>): string[] {
 function extractQuestionTitle(question: SurveyQuestion, index: number) {
   const translated = getTranslationText(question.question_translations);
   if (translated) return translated;
+  const translatedQuestion = getTranslationText(question.question);
+  if (translatedQuestion) return translatedQuestion;
 
   if (typeof question.question === "string" && question.question.trim()) {
     return question.question.trim();
@@ -370,6 +435,7 @@ function extractQuestions(
 
     const explicitTotal =
       toNumber(questionRecord.total_responses) ??
+      toNumber(questionRecord.total_answers) ??
       toNumber(questionRecord.responses_count) ??
       toNumber(questionRecord.total);
 
@@ -466,13 +532,23 @@ export function normalizeSurveyAnalytics(
 
 export async function listSurveys(
   params: ListSurveysParams,
+  context?: SurveyApiScopeContext,
 ): Promise<SurveysResponse> {
-  const { data } = await http.get<RawResponse>("/api/v1/admin/surveys", {
+  const centerScopeId = normalizeScopeCenterId(context?.centerId);
+  const { data } = await http.get<RawResponse>(buildSurveyBasePath(context), {
     params: {
       page: params.page,
       per_page: params.per_page,
       search: params.search || undefined,
-      center_id: params.center_id ?? undefined,
+      center_id:
+        centerScopeId == null ? (params.center_id ?? undefined) : undefined,
+      is_active: params.is_active ?? undefined,
+      is_mandatory: params.is_mandatory ?? undefined,
+      type: params.type ?? undefined,
+      start_from: params.start_from || undefined,
+      start_to: params.start_to || undefined,
+      end_from: params.end_from || undefined,
+      end_to: params.end_to || undefined,
     },
   });
 
@@ -481,37 +557,39 @@ export async function listSurveys(
 
 export async function listSurveyTargetStudents(
   params: ListSurveyTargetStudentsParams,
+  context?: SurveyApiScopeContext,
 ): Promise<SurveyTargetStudentsResponse> {
-  const { data } = await http.get<RawResponse>(
-    "/api/v1/admin/surveys/target-students",
-    {
-      params: {
-        scope_type: params.scope_type,
-        center_id: params.center_id ?? undefined,
-        status: params.status ?? undefined,
-        search: params.search || undefined,
-        page: params.page,
-        per_page: params.per_page,
-      },
+  const basePath = buildSurveyBasePath(context);
+  const { data } = await http.get<RawResponse>(`${basePath}/target-students`, {
+    params: {
+      scope_type: params.scope_type,
+      status: params.status ?? undefined,
+      search: params.search || undefined,
+      page: params.page,
+      per_page: params.per_page,
     },
-  );
+  });
 
   return normalizeSurveyTargetStudentsResponse(data, params);
 }
 
 export async function createSurvey(
   payload: CreateSurveyPayload,
+  context?: SurveyApiScopeContext,
 ): Promise<Survey> {
   const { data } = await http.post<RawResponse>(
-    "/api/v1/admin/surveys",
+    buildSurveyBasePath(context),
     payload,
   );
   return normalizeSurvey(data);
 }
 
-export async function getSurvey(surveyId: string | number): Promise<Survey> {
+export async function getSurvey(
+  surveyId: string | number,
+  context?: SurveyApiScopeContext,
+): Promise<Survey> {
   const { data } = await http.get<RawResponse>(
-    `/api/v1/admin/surveys/${surveyId}`,
+    `${buildSurveyBasePath(context)}/${surveyId}`,
   );
   return normalizeSurvey(data);
 }
@@ -519,9 +597,10 @@ export async function getSurvey(surveyId: string | number): Promise<Survey> {
 export async function updateSurvey(
   surveyId: string | number,
   payload: UpdateSurveyPayload,
+  context?: SurveyApiScopeContext,
 ): Promise<Survey> {
   const { data } = await http.put<RawResponse>(
-    `/api/v1/admin/surveys/${surveyId}`,
+    `${buildSurveyBasePath(context)}/${surveyId}`,
     payload,
   );
   return normalizeSurvey(data);
@@ -530,30 +609,86 @@ export async function updateSurvey(
 export async function assignSurvey(
   surveyId: string | number,
   payload: AssignSurveyPayload,
+  context?: SurveyApiScopeContext,
 ): Promise<Survey> {
   const { data } = await http.post<RawResponse>(
-    `/api/v1/admin/surveys/${surveyId}/assign`,
+    `${buildSurveyBasePath(context)}/${surveyId}/assign`,
     payload,
   );
   return normalizeSurvey(data);
 }
 
-export async function closeSurvey(surveyId: string | number): Promise<Survey> {
+export async function closeSurvey(
+  surveyId: string | number,
+  context?: SurveyApiScopeContext,
+): Promise<Survey> {
   const { data } = await http.post<RawResponse>(
-    `/api/v1/admin/surveys/${surveyId}/close`,
+    `${buildSurveyBasePath(context)}/${surveyId}/close`,
   );
   return normalizeSurvey(data);
 }
 
-export async function deleteSurvey(surveyId: string | number): Promise<void> {
-  await http.delete(`/api/v1/admin/surveys/${surveyId}`);
+export async function updateSurveyStatus(
+  surveyId: string | number,
+  payload: UpdateSurveyStatusPayload,
+  context?: SurveyApiScopeContext,
+): Promise<Survey> {
+  const { data } = await http.put<RawResponse>(
+    `${buildSurveyBasePath(context)}/${surveyId}/status`,
+    payload,
+  );
+  return normalizeSurvey(data);
+}
+
+export async function bulkUpdateSurveyStatus(
+  payload: BulkUpdateSurveyStatusPayload,
+  context?: SurveyApiScopeContext,
+): Promise<BulkUpdateSurveyStatusResult> {
+  const { data } = await http.post<RawResponse>(
+    `${buildSurveyBasePath(context)}/bulk-status`,
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkUpdateSurveyStatusResult;
+}
+
+export async function bulkCloseSurveys(
+  payload: BulkSurveyActionPayload,
+  context?: SurveyApiScopeContext,
+): Promise<BulkSurveyActionResult> {
+  const { data } = await http.post<RawResponse>(
+    `${buildSurveyBasePath(context)}/bulk-close`,
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkSurveyActionResult;
+}
+
+export async function bulkDeleteSurveys(
+  payload: BulkSurveyActionPayload,
+  context?: SurveyApiScopeContext,
+): Promise<BulkSurveyActionResult> {
+  const { data } = await http.post<RawResponse>(
+    `${buildSurveyBasePath(context)}/bulk-delete`,
+    payload,
+  );
+
+  return unwrapObjectPayload(data) as BulkSurveyActionResult;
+}
+
+export async function deleteSurvey(
+  surveyId: string | number,
+  context?: SurveyApiScopeContext,
+): Promise<void> {
+  await http.delete(`${buildSurveyBasePath(context)}/${surveyId}`);
 }
 
 export async function getSurveyAnalytics(
   surveyId: string | number,
+  context?: SurveyApiScopeContext,
 ): Promise<SurveyAnalyticsRaw> {
   const { data } = await http.get<RawResponse>(
-    `/api/v1/admin/surveys/${surveyId}/analytics`,
+    `${buildSurveyBasePath(context)}/${surveyId}/analytics`,
   );
 
   return unwrapObjectPayload(data);

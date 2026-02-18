@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
-import { can, type Capability } from "@/lib/capabilities";
+import { hasCapability, type Capability } from "@/lib/capabilities";
 import { getAuthPermissions } from "@/lib/auth-state";
 import { cn } from "@/lib/utils";
 import { ChevronUp, ArrowLeftIcon, type PropsType } from "./icons";
@@ -12,7 +12,9 @@ import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
 import { getCenterScopedSections } from "./data";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { useTenant } from "@/app/tenant-provider";
+import { getAdminScope } from "@/lib/user-scope";
 
 type SidebarSubItem = {
   title: string;
@@ -65,7 +67,17 @@ export function Sidebar({ sections }: SidebarProps) {
     centerName: tenantCenterName,
     branding,
   } = useTenant();
-  const permissions = getAuthPermissions();
+  const { data: currentAdmin } = useAdminMe();
+  const userScope = getAdminScope(currentAdmin);
+  const profilePermissions = currentAdmin?.permissions;
+  const permissions = useMemo(() => {
+    if (Array.isArray(profilePermissions)) {
+      return profilePermissions;
+    }
+
+    const fallbackPermissions = getAuthPermissions();
+    return Array.isArray(fallbackPermissions) ? fallbackPermissions : [];
+  }, [profilePermissions]);
   const centerId = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
     if (segments[0] !== "centers") return null;
@@ -87,17 +99,15 @@ export function Sidebar({ sections }: SidebarProps) {
   }, [centerId, sections]);
 
   const filteredSections = useMemo(() => {
-    if (permissions === null) {
-      return [];
-    }
-
     return resolvedSections
       .map((section) => {
         const items = section.items
           .map((item) => {
             if (item.items?.length) {
               const subItems = item.items.filter((subItem) =>
-                subItem.capability ? can(subItem.capability) : true,
+                subItem.capability
+                  ? hasCapability(subItem.capability, permissions)
+                  : true,
               );
 
               if (!subItems.length) return null;
@@ -108,7 +118,12 @@ export function Sidebar({ sections }: SidebarProps) {
               };
             }
 
-            if (item.capability && !can(item.capability)) return null;
+            if (
+              item.capability &&
+              !hasCapability(item.capability, permissions)
+            ) {
+              return null;
+            }
 
             return item;
           })
@@ -159,16 +174,33 @@ export function Sidebar({ sections }: SidebarProps) {
           <div className="relative pr-4.5">
             {centerId ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Link
-                    href="/centers"
-                    className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                  >
-                    <ArrowLeftIcon className="h-4 w-4" />
-                    Back to Centers
-                  </Link>
+                {/* Only show "Back to Centers" for system admins */}
+                {userScope.isSystemAdmin && (
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href="/centers"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    >
+                      <ArrowLeftIcon className="h-4 w-4" />
+                      Back to Centers
+                    </Link>
 
-                  {isMobile && (
+                    {isMobile && (
+                      <button
+                        type="button"
+                        onClick={closeSidebar}
+                        className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        aria-label="Close Sidebar"
+                      >
+                        <ArrowLeftIcon className="size-6" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Mobile close button for center admins */}
+                {userScope.isCenterAdmin && isMobile && (
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={closeSidebar}
@@ -177,8 +209,8 @@ export function Sidebar({ sections }: SidebarProps) {
                     >
                       <ArrowLeftIcon className="size-6" />
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <Link
                   href={`/centers/${centerId}`}

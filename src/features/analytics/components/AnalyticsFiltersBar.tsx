@@ -5,8 +5,8 @@ import { useTenant } from "@/app/tenant-provider";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
-import { FilterField } from "@/components/ui/filters-bar";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
+import { cn } from "@/lib/utils";
 
 type AnalyticsFiltersBarProps = {
   isPlatformAdmin: boolean;
@@ -106,18 +106,22 @@ export function AnalyticsFiltersBar({
         gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
         {isPlatformAdmin ? (
-          <FilterField label="Center" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <CenterPicker
               className="w-full min-w-0"
               selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
-          </FilterField>
+          </div>
         ) : null}
 
-        <FilterField label="From" className="lg:col-span-1">
+        <div className="lg:col-span-1">
           <input
             type="date"
-            className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+            title="From date"
+            className={cn(
+              "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
+              !from && "text-gray-500",
+            )}
             value={from}
             max={to || undefined}
             onChange={(event) => {
@@ -125,12 +129,16 @@ export function AnalyticsFiltersBar({
               clearDatePreset();
             }}
           />
-        </FilterField>
+        </div>
 
-        <FilterField label="To" className="lg:col-span-1">
+        <div className="lg:col-span-1">
           <input
             type="date"
-            className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+            title="To date"
+            className={cn(
+              "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
+              !to && "text-gray-500",
+            )}
             min={from || undefined}
             value={to}
             onChange={(event) => {
@@ -138,7 +146,7 @@ export function AnalyticsFiltersBar({
               clearDatePreset();
             }}
           />
-        </FilterField>
+        </div>
       </ListingFilters>
 
       {hasInvalidRange ? (

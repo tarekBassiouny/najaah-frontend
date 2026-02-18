@@ -6,12 +6,7 @@ import {
 
 describe("survey assignment rules", () => {
   it("returns scope-specific assignment types", () => {
-    expect(getScopeAssignmentTypes(1)).toEqual([
-      "all",
-      "center",
-      "course",
-      "user",
-    ]);
+    expect(getScopeAssignmentTypes(1)).toEqual(["all", "course", "user"]);
     expect(getScopeAssignmentTypes(2)).toEqual([
       "all",
       "course",
@@ -35,7 +30,7 @@ describe("survey assignment rules", () => {
     });
   });
 
-  it("rejects system center assignment when center is not unbranded", () => {
+  it("rejects system center assignment type", () => {
     const result = validateSurveyAssignment({
       scopeType: 1,
       assignmentType: "center",
@@ -46,7 +41,7 @@ describe("survey assignment rules", () => {
 
     expect(result.valid).toBe(false);
     expect(result).toMatchObject({
-      error: "Only unbranded centers can be assigned in system scope.",
+      error: "This assignment type is not allowed for the selected scope.",
     });
   });
 

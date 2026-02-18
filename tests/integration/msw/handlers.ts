@@ -9,6 +9,98 @@ const studentsRoute = "/api/v1/admin/students";
 const agentsExecutionsRoute = "/api/v1/admin/agents/executions";
 const agentsAvailableRoute = "/api/v1/admin/agents/available";
 const agentsExecuteRoute = "/api/v1/admin/agents/execute";
+const notificationsRoute = "/api/v1/admin/notifications";
+const notificationsCountRoute = "/api/v1/admin/notifications/count";
+const notificationsReadAllRoute = "/api/v1/admin/notifications/read-all";
+
+type MockNotification = {
+  id: number;
+  type: number;
+  type_label: string;
+  type_label_translations: { en: string; ar: string };
+  type_icon: string;
+  title: string;
+  body: string | null;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+};
+
+function createNotificationsFixture(): MockNotification[] {
+  return [
+    {
+      id: 1,
+      type: 2,
+      type_label: "Device Change Request",
+      type_label_translations: {
+        en: "Device Change Request",
+        ar: "طلب تغيير الجهاز",
+      },
+      type_icon: "smartphone",
+      title: "New Device Change Request",
+      body: "Ahmed has requested to change their device.",
+      data: {
+        entity_type: "device_change_request",
+        entity_id: 123,
+        action_url: "/admin/device-requests/123",
+      },
+      is_read: false,
+      read_at: null,
+      created_at: "2026-02-17T10:30:00+00:00",
+    },
+    {
+      id: 2,
+      type: 3,
+      type_label: "Extra View Request",
+      type_label_translations: {
+        en: "Extra View Request",
+        ar: "طلب مشاهدات إضافية",
+      },
+      type_icon: "eye",
+      title: "Extra views requested",
+      body: "Sara requested 5 additional views.",
+      data: {
+        entity_type: "extra_view_request",
+        entity_id: 456,
+        action_url: "/admin/extra-view-requests/456",
+      },
+      is_read: false,
+      read_at: null,
+      created_at: "2026-02-17T09:00:00+00:00",
+    },
+    {
+      id: 3,
+      type: 1,
+      type_label: "System Alert",
+      type_label_translations: {
+        en: "System Alert",
+        ar: "تنبيه النظام",
+      },
+      type_icon: "alert-circle",
+      title: "Maintenance Tonight",
+      body: "Scheduled maintenance starts at 11 PM.",
+      data: {
+        entity_type: "custom",
+      },
+      is_read: true,
+      read_at: "2026-02-17T08:30:00+00:00",
+      created_at: "2026-02-17T08:00:00+00:00",
+    },
+  ];
+}
+
+let notificationRecords = createNotificationsFixture();
+
+export function resetMswFixtures() {
+  notificationRecords = createNotificationsFixture();
+}
+
+function toBooleanParam(value: string | null): boolean {
+  if (!value) return false;
+  const normalized = value.toLowerCase();
+  return normalized === "1" || normalized === "true";
+}
 
 export const handlers = [
   http.post(loginRoute, async ({ request }) => {
@@ -224,5 +316,102 @@ export const handlers = [
         updated_at: "2026-02-05T12:00:00Z",
       },
     });
+  }),
+
+  http.get(notificationsRoute, ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get("page") ?? "1");
+    const perPage = Number(url.searchParams.get("per_page") ?? "15");
+    const unreadOnly = toBooleanParam(url.searchParams.get("unread_only"));
+    const type = Number(url.searchParams.get("type"));
+
+    let filtered = [...notificationRecords];
+    if (unreadOnly) {
+      filtered = filtered.filter((notification) => !notification.is_read);
+    }
+    if (Number.isFinite(type) && type > 0) {
+      filtered = filtered.filter((notification) => notification.type === type);
+    }
+
+    const start = (Math.max(page, 1) - 1) * Math.max(perPage, 1);
+    const paginated = filtered.slice(start, start + Math.max(perPage, 1));
+    const total = filtered.length;
+    const lastPage = Math.max(1, Math.ceil(total / Math.max(perPage, 1)));
+
+    return HttpResponse.json({
+      success: true,
+      data: paginated,
+      meta: {
+        page,
+        per_page: perPage,
+        total,
+        last_page: lastPage,
+      },
+    });
+  }),
+
+  http.get(notificationsCountRoute, () => {
+    const unreadCount = notificationRecords.filter(
+      (notification) => !notification.is_read,
+    ).length;
+
+    return HttpResponse.json({
+      success: true,
+      data: {
+        unread_count: unreadCount,
+      },
+    });
+  }),
+
+  http.put(`${notificationsRoute}/:id/read`, ({ params }) => {
+    const id = Number(params.id);
+    const target = notificationRecords.find(
+      (notification) => notification.id === id,
+    );
+
+    if (!target) {
+      return HttpResponse.json(
+        {
+          success: false,
+          message: "Notification not found",
+        },
+        { status: 404 },
+      );
+    }
+
+    target.is_read = true;
+    target.read_at = "2026-02-17T11:00:00+00:00";
+
+    return HttpResponse.json({
+      success: true,
+      message: "Notification marked as read.",
+      data: target,
+    });
+  }),
+
+  http.post(notificationsReadAllRoute, () => {
+    const unread = notificationRecords.filter(
+      (notification) => !notification.is_read,
+    );
+    for (const notification of unread) {
+      notification.is_read = true;
+      notification.read_at = "2026-02-17T11:00:00+00:00";
+    }
+
+    return HttpResponse.json({
+      success: true,
+      message: "All notifications marked as read.",
+      data: {
+        marked_count: unread.length,
+      },
+    });
+  }),
+
+  http.delete(`${notificationsRoute}/:id`, ({ params }) => {
+    const id = Number(params.id);
+    notificationRecords = notificationRecords.filter(
+      (notification) => notification.id !== id,
+    );
+    return new HttpResponse(null, { status: 204 });
   }),
 ];

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteSurvey } from "@/features/surveys/hooks/use-surveys";
+import { getSurveyApiErrorMessage } from "@/features/surveys/lib/api-error";
 import type { Survey } from "@/features/surveys/types/survey";
 import { useModal } from "@/components/ui/modal-store";
 
@@ -17,17 +17,9 @@ type DeleteSurveyDialogProps = {
   open: boolean;
   onOpenChange: (_isOpen: boolean) => void;
   survey?: Survey | null;
+  centerId?: string | number | null;
   onSuccess?: (_value: string) => void;
 };
-
-function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
-  }
-
-  return "Unable to delete survey. Please try again.";
-}
 
 function getSurveyTitle(survey?: Survey | null) {
   if (!survey) return null;
@@ -41,10 +33,11 @@ export function DeleteSurveyDialog({
   open,
   onOpenChange,
   survey,
+  centerId,
   onSuccess,
 }: DeleteSurveyDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const deleteMutation = useDeleteSurvey();
+  const deleteMutation = useDeleteSurvey({ centerId });
   const { showToast } = useModal();
 
   const handleDelete = () => {
@@ -58,7 +51,12 @@ export function DeleteSurveyDialog({
         showToast("Survey deleted successfully.", "success");
       },
       onError: (error) => {
-        setErrorMessage(getErrorMessage(error));
+        setErrorMessage(
+          getSurveyApiErrorMessage(
+            error,
+            "Unable to delete survey. Please try again.",
+          ),
+        );
       },
     });
   };

@@ -14,6 +14,7 @@ import { getCenterScopedSections } from "./data";
 import { useCenter } from "@/features/centers/hooks/use-centers";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { useTenant } from "@/app/tenant-provider";
+import { getAdminScope } from "@/lib/user-scope";
 
 type SidebarSubItem = {
   title: string;
@@ -67,6 +68,7 @@ export function Sidebar({ sections }: SidebarProps) {
     branding,
   } = useTenant();
   const { data: currentAdmin } = useAdminMe();
+  const userScope = getAdminScope(currentAdmin);
   const profilePermissions = currentAdmin?.permissions;
   const permissions = useMemo(() => {
     if (Array.isArray(profilePermissions)) {
@@ -172,16 +174,33 @@ export function Sidebar({ sections }: SidebarProps) {
           <div className="relative pr-4.5">
             {centerId ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Link
-                    href="/centers"
-                    className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                  >
-                    <ArrowLeftIcon className="h-4 w-4" />
-                    Back to Centers
-                  </Link>
+                {/* Only show "Back to Centers" for system admins */}
+                {userScope.isSystemAdmin && (
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href="/centers"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    >
+                      <ArrowLeftIcon className="h-4 w-4" />
+                      Back to Centers
+                    </Link>
 
-                  {isMobile && (
+                    {isMobile && (
+                      <button
+                        type="button"
+                        onClick={closeSidebar}
+                        className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        aria-label="Close Sidebar"
+                      >
+                        <ArrowLeftIcon className="size-6" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Mobile close button for center admins */}
+                {userScope.isCenterAdmin && isMobile && (
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={closeSidebar}
@@ -190,8 +209,8 @@ export function Sidebar({ sections }: SidebarProps) {
                     >
                       <ArrowLeftIcon className="size-6" />
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <Link
                   href={`/centers/${centerId}`}

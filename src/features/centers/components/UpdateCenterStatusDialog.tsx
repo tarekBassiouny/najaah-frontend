@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUpdateCenter } from "@/features/centers/hooks/use-centers";
+import { useUpdateCenterStatus } from "@/features/centers/hooks/use-centers";
+import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
 
 type UpdateCenterStatusDialogProps = {
@@ -28,40 +28,16 @@ type UpdateCenterStatusDialogProps = {
   onSuccess?: (_message: string) => void;
 };
 
-type CenterStatusOption = "active" | "inactive" | "pending";
-
-function getErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, string[]>;
-        }
-      | undefined;
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const first = Object.values(data.errors)[0];
-      if (Array.isArray(first) && first.length > 0) {
-        return first[0];
-      }
-    }
-  }
-
-  return "Unable to update center status. Please try again.";
-}
+type CenterStatusOption = "active" | "inactive";
 
 function getInitialStatus(center?: Center | null): CenterStatusOption {
-  const raw = String(center?.status ?? "")
+  if (Number(center?.status) === 0) return "inactive";
+
+  const label = String(center?.status_label ?? "")
     .trim()
     .toLowerCase();
+  if (label === "inactive") return "inactive";
 
-  if (["active", "enabled", "approved"].includes(raw)) return "active";
-  if (["inactive", "disabled"].includes(raw)) return "inactive";
-  if (["pending", "processing"].includes(raw)) return "pending";
   return "active";
 }
 
@@ -71,7 +47,7 @@ export function UpdateCenterStatusDialog({
   center,
   onSuccess,
 }: UpdateCenterStatusDialogProps) {
-  const mutation = useUpdateCenter();
+  const mutation = useUpdateCenterStatus();
   const [status, setStatus] = useState<CenterStatusOption>("active");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -95,7 +71,7 @@ export function UpdateCenterStatusDialog({
     mutation.mutate(
       {
         id: center.id,
-        payload: { status },
+        payload: { status: status === "active" ? 1 : 0 },
       },
       {
         onSuccess: () => {
@@ -103,7 +79,12 @@ export function UpdateCenterStatusDialog({
           onOpenChange(false);
         },
         onError: (error) => {
-          setErrorMessage(getErrorMessage(error));
+          setErrorMessage(
+            getCenterApiErrorMessage(
+              error,
+              "Unable to update center status. Please try again.",
+            ),
+          );
         },
       },
     );
@@ -149,7 +130,6 @@ export function UpdateCenterStatusDialog({
             <SelectContent>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
             </SelectContent>
           </Select>
         </div>

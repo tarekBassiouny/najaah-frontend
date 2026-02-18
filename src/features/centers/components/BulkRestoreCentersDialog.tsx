@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,32 +10,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useBulkUpdateCenterStatus } from "@/features/centers/hooks/use-centers";
+import { useBulkRestoreCenters } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { BulkCentersActionResult } from "@/features/centers/services/centers.service";
 import type { Center } from "@/features/centers/types/center";
 
-type BulkUpdateCenterStatusDialogProps = {
+type BulkRestoreCentersDialogProps = {
   open: boolean;
   onOpenChange: (_open: boolean) => void;
   centers: Center[];
   onSuccess?: (_message: string) => void;
 };
 
-type CenterStatusOption = "active" | "inactive";
-
 function toRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as Record<string, unknown>;
+}
+
+function extractFirstMessage(node: unknown): string | null {
+  if (typeof node === "string" && node.trim()) return node.trim();
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const message = extractFirstMessage(item);
+      if (message) return message;
+    }
+    return null;
+  }
+
+  const record = toRecord(node);
+  if (!record) return null;
+
+  for (const value of Object.values(record)) {
+    const message = extractFirstMessage(value);
+    if (message) return message;
+  }
+
+  return null;
 }
 
 function readCount(result: BulkCentersActionResult, key: string) {
@@ -46,18 +59,25 @@ function readCount(result: BulkCentersActionResult, key: string) {
   return 0;
 }
 
-export function BulkUpdateCenterStatusDialog({
+function readActionItems(
+  result: BulkCentersActionResult,
+  key: "failed" | "skipped",
+) {
+  const value = result[key];
+  return Array.isArray(value) ? value : [];
+}
+
+export function BulkRestoreCentersDialog({
   open,
   onOpenChange,
   centers,
   onSuccess,
-}: BulkUpdateCenterStatusDialogProps) {
-  const mutation = useBulkUpdateCenterStatus();
-  const [status, setStatus] = useState<CenterStatusOption>("active");
+}: BulkRestoreCentersDialogProps) {
+  const mutation = useBulkRestoreCenters();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkCentersActionResult | null>(null);
 
-  const handleUpdate = () => {
+  const handleRestoreCenters = () => {
     if (centers.length === 0) {
       setErrorMessage("No centers selected.");
       return;
@@ -66,7 +86,6 @@ export function BulkUpdateCenterStatusDialog({
     setErrorMessage(null);
     mutation.mutate(
       {
-        status: status === "active" ? 1 : 0,
         center_ids: centers.map((center) => center.id),
       },
       {
@@ -76,18 +95,18 @@ export function BulkUpdateCenterStatusDialog({
           const skipped = readCount(data, "skipped");
           const failed = readCount(data, "failed");
           if (skipped === 0 && failed === 0) {
-            onSuccess?.("Centers status updated successfully.");
+            onSuccess?.("Selected centers were restored successfully.");
             onOpenChange(false);
             return;
           }
 
-          onSuccess?.("Bulk status update processed.");
+          onSuccess?.("Bulk restore action processed.");
         },
         onError: (error) => {
           setErrorMessage(
             getCenterApiErrorMessage(
               error,
-              "Unable to update status for selected centers. Please try again.",
+              "Unable to restore selected centers. Please try again.",
             ),
           );
         },
@@ -103,43 +122,48 @@ export function BulkUpdateCenterStatusDialog({
         if (!nextOpen) {
           setErrorMessage(null);
           setResult(null);
-          setStatus("active");
         }
         onOpenChange(nextOpen);
       }}
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Change Status</DialogTitle>
+          <DialogTitle>Bulk Restore Centers</DialogTitle>
           <DialogDescription>
-            Update status for {centers.length} selected center
+            Restore {centers.length} selected center
             {centers.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-300">
+          Restored centers become active in management and app resolution flows.
+        </div>
+
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>Unable to restore</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
-        {result?.counts ? (
+        {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
               <span>Total: {readCount(result, "total") || centers.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
+              <span>Restored: {readCount(result, "restored")}</span>
               <span>Skipped: {readCount(result, "skipped")}</span>
               <span>Failed: {readCount(result, "failed")}</span>
             </div>
 
-            {Array.isArray(result.failed) && result.failed.length > 0 ? (
+            {readActionItems(result, "failed").length > 0 ? (
               <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
-                {result.failed.map((item, index) => {
-                  const record = toRecord(item) ?? {};
-                  const centerId = record.center_id ?? record.id ?? "unknown";
+                {readActionItems(result, "failed").map((item, index) => {
+                  const record = toRecord(item);
+                  const centerId = record?.center_id ?? record?.id ?? item;
                   const reason =
-                    (typeof record.reason === "string" && record.reason) ||
+                    extractFirstMessage(record?.reason) ??
+                    extractFirstMessage(record?.error) ??
+                    extractFirstMessage(record?.message) ??
                     "Failed";
                   return (
                     <p key={`failed-${String(centerId)}-${index}`}>
@@ -149,33 +173,34 @@ export function BulkUpdateCenterStatusDialog({
                 })}
               </div>
             ) : null}
+
+            {readActionItems(result, "skipped").length > 0 ? (
+              <div className="mt-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
+                {readActionItems(result, "skipped").map((item, index) => {
+                  const record = toRecord(item);
+                  const centerId = record?.center_id ?? record?.id ?? item;
+                  const reason =
+                    extractFirstMessage(record?.reason) ??
+                    extractFirstMessage(record?.error) ??
+                    extractFirstMessage(record?.message) ??
+                    "Skipped";
+                  return (
+                    <p key={`skipped-${String(centerId)}-${index}`}>
+                      Center #{String(centerId)}: {reason}
+                    </p>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
-        <div className="space-y-2">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for selected centers.
-          </p>
-          <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as CenterStatusOption)}
-          >
-            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            Cancel
           </Button>
-          <Button onClick={handleUpdate} disabled={mutation.isPending}>
-            {mutation.isPending ? "Updating..." : "Update Status"}
+          <Button onClick={handleRestoreCenters} disabled={mutation.isPending}>
+            {mutation.isPending ? "Restoring..." : "Restore Centers"}
           </Button>
         </div>
       </DialogContent>

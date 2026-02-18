@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useCenters } from "@/features/centers/hooks/use-centers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +12,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
   Table,
   TableBody,
@@ -24,55 +30,83 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { useCenters } from "@/features/centers/hooks/use-centers";
 import type { Center } from "@/features/centers/types/center";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
 
-type CenterStatus = "active" | "inactive" | "pending" | string;
-
-const statusConfig: Record<
-  string,
-  {
-    variant: "success" | "warning" | "secondary" | "error" | "default";
-    label: string;
-  }
-> = {
-  active: { variant: "success", label: "Active" },
-  enabled: { variant: "success", label: "Enabled" },
-  approved: { variant: "success", label: "Approved" },
-  pending: { variant: "warning", label: "Pending" },
-  processing: { variant: "warning", label: "Processing" },
-  inactive: { variant: "default", label: "Inactive" },
-  disabled: { variant: "default", label: "Disabled" },
-  failed: { variant: "error", label: "Failed" },
-  rejected: { variant: "error", label: "Rejected" },
-  error: { variant: "error", label: "Error" },
-};
-
-function getStatusConfig(status: CenterStatus) {
-  const normalized = status.toLowerCase();
-  return (
-    statusConfig[normalized] || {
-      variant: "default" as const,
-      label: status.charAt(0).toUpperCase() + status.slice(1),
-    }
-  );
-}
+type CenterStatusFilter = "all" | "active" | "inactive";
+type CenterDeletedFilter = "active" | "with_deleted" | "only_deleted";
 
 type CentersTableProps = {
-  onToggleStatus?: (_center: Center) => void;
+  onChangeStatus?: (_center: Center) => void;
+  onDelete?: (_center: Center) => void;
+  onRestore?: (_center: Center) => void;
+  onRetryOnboarding?: (_center: Center) => void;
   onBulkChangeStatus?: (_centers: Center[]) => void;
+  onBulkDelete?: (_centers: Center[]) => void;
+  onBulkRestore?: (_centers: Center[]) => void;
+  onBulkRetryOnboarding?: (_centers: Center[]) => void;
 };
 
+function getStatusBadge(center: Center) {
+  const statusValue = Number(center.status);
+  const isInactive = statusValue === 0;
+  const label =
+    center.status_label?.trim() || (isInactive ? "Inactive" : "Active");
+
+  return <Badge variant={isInactive ? "default" : "success"}>{label}</Badge>;
+}
+
+function getTypeLabel(center: Center) {
+  const raw = String(center.type ?? "")
+    .trim()
+    .toLowerCase();
+  if (!raw) return "-";
+  if (raw === "branded") return "Branded";
+  if (raw === "unbranded") return "Unbranded";
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+function getTierLabel(center: Center) {
+  const raw = String(center.tier ?? "")
+    .trim()
+    .toLowerCase();
+  if (!raw) return "-";
+  if (raw === "premium") return "Premium";
+  if (raw === "vip") return "VIP";
+  if (raw === "standard") return "Standard";
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+function getOnboardingLabel(center: Center) {
+  const raw = String(center.onboarding_status ?? "").trim();
+  return raw || "-";
+}
+
+function isCenterDeleted(center: Center) {
+  if (center.deleted_at) return true;
+  return Boolean(center.setting?.deleted_at);
+}
+
 export function CentersTable({
-  onToggleStatus,
+  onChangeStatus,
+  onDelete,
+  onRestore,
+  onRetryOnboarding,
   onBulkChangeStatus,
+  onBulkDelete,
+  onBulkRestore,
+  onBulkRetryOnboarding,
 }: CentersTableProps) {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<CenterStatusFilter>("all");
+  const [deletedFilter, setDeletedFilter] =
+    useState<CenterDeletedFilter>("active");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedCenters, setSelectedCenters] = useState<
     Record<string, Center>
@@ -83,8 +117,10 @@ export function CentersTable({
       page,
       per_page: perPage,
       search: query || undefined,
+      status: status === "all" ? undefined : status === "active" ? 1 : 0,
+      deleted: deletedFilter,
     }),
-    [page, perPage, query],
+    [page, perPage, query, status, deletedFilter],
   );
 
   const { data, isLoading, isError, isFetching } = useCenters(params);
@@ -94,6 +130,7 @@ export function CentersTable({
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
   const isLoadingState = isLoading;
+
   const selectedIds = useMemo(
     () => Object.keys(selectedCenters),
     [selectedCenters],
@@ -106,6 +143,7 @@ export function CentersTable({
         .filter((center): center is Center => Boolean(center)),
     [selectedCenters, selectedIds],
   );
+
   const pageCenterIds = useMemo(
     () => items.map((center) => String(center.id)),
     [items],
@@ -113,6 +151,28 @@ export function CentersTable({
   const isAllPageSelected =
     pageCenterIds.length > 0 &&
     pageCenterIds.every((id) => Boolean(selectedCenters[id]));
+
+  const hasActiveFilters =
+    Boolean(search.trim()) || status !== "all" || deletedFilter !== "active";
+
+  const activeFilterCount =
+    (search.trim() ? 1 : 0) +
+    (status !== "all" ? 1 : 0) +
+    (deletedFilter !== "active" ? 1 : 0);
+
+  const selectedHasDeleted = selectedCentersList.some((center) =>
+    isCenterDeleted(center),
+  );
+  const selectedHasActive = selectedCentersList.some(
+    (center) => !isCenterDeleted(center),
+  );
+
+  const enableBulkSelection = Boolean(
+    onBulkChangeStatus ||
+    onBulkDelete ||
+    onBulkRestore ||
+    onBulkRetryOnboarding,
+  );
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -125,7 +185,7 @@ export function CentersTable({
 
   useEffect(() => {
     setSelectedCenters({});
-  }, [page, perPage, query]);
+  }, [page, perPage, query, status, deletedFilter]);
 
   const toggleCenterSelection = (center: Center) => {
     const centerId = String(center.id);
@@ -164,13 +224,15 @@ export function CentersTable({
   return (
     <ListingCard>
       <ListingFilters
-        activeCount={search.trim() ? 1 : 0}
+        activeCount={activeFilterCount}
         isFetching={isFetching}
         isLoading={isLoading}
-        hasActiveFilters={Boolean(search.trim())}
+        hasActiveFilters={hasActiveFilters}
         onClear={() => {
           setSearch("");
           setQuery("");
+          setStatus("all");
+          setDeletedFilter("active");
           setPage(1);
         }}
         summary={
@@ -178,7 +240,7 @@ export function CentersTable({
             {total} {total === 1 ? "center" : "centers"}
           </>
         }
-        gridClassName="grid-cols-1"
+        gridClassName="grid-cols-1 lg:grid-cols-3"
       >
         <div className="relative">
           <svg
@@ -231,6 +293,40 @@ export function CentersTable({
             </svg>
           </button>
         </div>
+
+        <Select
+          value={status}
+          onValueChange={(value) => {
+            setStatus(value as CenterStatusFilter);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={deletedFilter}
+          onValueChange={(value) => {
+            setDeletedFilter(value as CenterDeletedFilter);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Visibility" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active Only</SelectItem>
+            <SelectItem value="with_deleted">With Deleted</SelectItem>
+            <SelectItem value="only_deleted">Deleted Only</SelectItem>
+          </SelectContent>
+        </Select>
       </ListingFilters>
 
       {isError ? (
@@ -248,23 +344,27 @@ export function CentersTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[780px]">
+          <Table className="min-w-[980px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
                 <TableHead className="w-8">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                    checked={isAllPageSelected}
-                    onChange={toggleAllSelections}
-                    disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all centers on this page"
-                  />
+                  {enableBulkSelection ? (
+                    <input
+                      type="checkbox"
+                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                      checked={isAllPageSelected}
+                      onChange={toggleAllSelections}
+                      disabled={isLoadingState || items.length === 0}
+                      aria-label="Select all centers on this page"
+                    />
+                  ) : null}
                 </TableHead>
                 <TableHead className="font-medium">Name</TableHead>
                 <TableHead className="font-medium">Slug</TableHead>
                 <TableHead className="font-medium">Type</TableHead>
+                <TableHead className="font-medium">Tier</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
+                <TableHead className="font-medium">Onboarding</TableHead>
                 <TableHead className="w-10 text-right font-medium">
                   Actions
                 </TableHead>
@@ -284,10 +384,16 @@ export function CentersTable({
                       <Skeleton className="h-4 w-32" />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-5 w-24 rounded-full" />
+                      <Skeleton className="h-5 w-20 rounded-full" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-5 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="ml-auto h-4 w-6" />
@@ -296,7 +402,7 @@ export function CentersTable({
                 ))
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48">
+                  <TableCell colSpan={8} className="h-48">
                     <EmptyState
                       title={query ? "No centers found" : "No centers yet"}
                       description={
@@ -310,6 +416,7 @@ export function CentersTable({
                 </TableRow>
               ) : (
                 items.map((center, index) => {
+                  const rowDeleted = isCenterDeleted(center);
                   const shouldOpenUp =
                     items.length > 4 && index >= Math.max(0, items.length - 2);
 
@@ -319,44 +426,38 @@ export function CentersTable({
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
                       <TableCell>
-                        <input
-                          type="checkbox"
-                          className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                          checked={Boolean(selectedCenters[String(center.id)])}
-                          onChange={() => toggleCenterSelection(center)}
-                          aria-label={`Select ${center.name ?? `center ${center.id}`}`}
-                        />
+                        {enableBulkSelection ? (
+                          <input
+                            type="checkbox"
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                            checked={Boolean(
+                              selectedCenters[String(center.id)],
+                            )}
+                            onChange={() => toggleCenterSelection(center)}
+                            aria-label={`Select ${center.name ?? `center ${center.id}`}`}
+                          />
+                        ) : null}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         <Link
                           href={`/centers/${center.id}`}
                           className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
                         >
-                          {center.name ?? "—"}
+                          {center.name ?? "-"}
                         </Link>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {center.slug ?? "—"}
+                        {center.slug ?? "-"}
                       </TableCell>
-                      <TableCell>
-                        {center.type ? (
-                          <Badge variant={getStatusConfig(center.type).variant}>
-                            {getStatusConfig(center.type).label}
-                          </Badge>
-                        ) : (
-                          "—"
-                        )}
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {getTypeLabel(center)}
                       </TableCell>
-                      <TableCell>
-                        {center.status ? (
-                          <Badge
-                            variant={getStatusConfig(center.status).variant}
-                          >
-                            {getStatusConfig(center.status).label}
-                          </Badge>
-                        ) : (
-                          "—"
-                        )}
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {getTierLabel(center)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(center)}</TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {getOnboardingLabel(center)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end">
@@ -372,7 +473,7 @@ export function CentersTable({
                             <DropdownContent
                               align="end"
                               className={cn(
-                                "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
+                                "z-[120] w-48 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
                                 shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
@@ -385,16 +486,66 @@ export function CentersTable({
                               >
                                 Manage
                               </Link>
-                              {onToggleStatus ? (
+
+                              <Link
+                                href={`/centers/${center.id}/settings`}
+                                className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                Settings
+                              </Link>
+
+                              {onChangeStatus ? (
                                 <button
                                   type="button"
                                   className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                   onClick={() => {
                                     setOpenMenuId(null);
-                                    onToggleStatus(center);
+                                    onChangeStatus(center);
                                   }}
                                 >
                                   Change status
+                                </button>
+                              ) : null}
+
+                              {!rowDeleted && onRetryOnboarding ? (
+                                <button
+                                  type="button"
+                                  className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onRetryOnboarding(center);
+                                  }}
+                                >
+                                  Retry onboarding
+                                </button>
+                              ) : null}
+
+                              {rowDeleted && onRestore ? (
+                                <button
+                                  type="button"
+                                  className="w-full rounded px-3 py-2 text-left text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/20"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onRestore(center);
+                                  }}
+                                >
+                                  Restore
+                                </button>
+                              ) : null}
+
+                              {!rowDeleted && onDelete ? (
+                                <button
+                                  type="button"
+                                  className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onDelete(center);
+                                  }}
+                                >
+                                  Delete
                                 </button>
                               ) : null}
                             </DropdownContent>
@@ -410,23 +561,83 @@ export function CentersTable({
         </div>
       )}
 
-      {selectedCount > 0 && onBulkChangeStatus ? (
+      {selectedCount > 0 && enableBulkSelection ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
             {selectedCount} selected
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setOpenMenuId(null);
-                onBulkChangeStatus(selectedCentersList);
-              }}
-              disabled={isLoadingState}
-            >
-              Change Status
-            </Button>
+            {onBulkChangeStatus ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setOpenMenuId(null);
+                  onBulkChangeStatus(selectedCentersList);
+                }}
+                disabled={isLoadingState}
+              >
+                Change Status
+              </Button>
+            ) : null}
+
+            {selectedHasDeleted && onBulkRestore ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setOpenMenuId(null);
+                  onBulkRestore(
+                    selectedCentersList.filter((center) =>
+                      isCenterDeleted(center),
+                    ),
+                  );
+                }}
+                disabled={isLoadingState}
+              >
+                Restore Centers
+              </Button>
+            ) : null}
+
+            {selectedHasActive ? (
+              <>
+                {onBulkRetryOnboarding ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      onBulkRetryOnboarding(
+                        selectedCentersList.filter(
+                          (center) => !isCenterDeleted(center),
+                        ),
+                      );
+                    }}
+                    disabled={isLoadingState}
+                  >
+                    Retry Onboarding
+                  </Button>
+                ) : null}
+
+                {onBulkDelete ? (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      setOpenMenuId(null);
+                      onBulkDelete(
+                        selectedCentersList.filter(
+                          (center) => !isCenterDeleted(center),
+                        ),
+                      );
+                    }}
+                    disabled={isLoadingState}
+                  >
+                    Delete Centers
+                  </Button>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}

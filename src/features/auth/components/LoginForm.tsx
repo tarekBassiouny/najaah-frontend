@@ -10,6 +10,7 @@ import { useAdminLogin } from "@/features/auth/hooks/use-admin-login";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { isAxiosError } from "axios";
 import { type ApiErrorResponse } from "@/types/auth";
+import { getAdminScope, getCenterAdminHomeUrl } from "@/lib/user-scope";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -40,9 +41,14 @@ export function LoginForm() {
   const [messageTone, setMessageTone] = useState<MessageTone>("destructive");
   const { data: user } = useAdminMe();
   const loginMutation = useAdminLogin({
-    onSuccess: () => {
+    onSuccess: (result) => {
       setFormMessage(null);
-      router.push("/dashboard");
+      const scope = getAdminScope(result.user);
+      if (scope.isCenterAdmin && scope.centerId) {
+        router.push(getCenterAdminHomeUrl(scope.centerId));
+      } else {
+        router.push("/dashboard");
+      }
     },
     onError: (error) => {
       setMessageTone("destructive");
@@ -92,7 +98,12 @@ export function LoginForm() {
 
   useEffect(() => {
     if (!user) return;
-    router.replace("/dashboard");
+    const scope = getAdminScope(user);
+    if (scope.isCenterAdmin && scope.centerId) {
+      router.replace(getCenterAdminHomeUrl(scope.centerId));
+    } else {
+      router.replace("/dashboard");
+    }
   }, [router, user]);
 
   const onSubmit = (values: FormValues) => {

@@ -1,11 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { CentersTable } from "@/features/centers/components/CentersTable";
+import { UpdateCenterStatusDialog } from "@/features/centers/components/UpdateCenterStatusDialog";
+import { BulkUpdateCenterStatusDialog } from "@/features/centers/components/BulkUpdateCenterStatusDialog";
+import type { Center } from "@/features/centers/types/center";
 
 export default function CentersPage() {
+  const [statusCenter, setStatusCenter] = useState<Center | null>(null);
+  const [bulkStatusCenters, setBulkStatusCenters] = useState<Center[]>([]);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -14,26 +21,32 @@ export default function CentersPage() {
         actions={
           <Link href="/centers/create">
             <Button>
-              <svg
-                className="mr-2 h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Create Center
+              Add Center
             </Button>
           </Link>
         }
       />
 
-      <CentersTable />
+      <CentersTable
+        onToggleStatus={(center) => setStatusCenter(center)}
+        onBulkChangeStatus={(centers) => setBulkStatusCenters(centers)}
+      />
+
+      <UpdateCenterStatusDialog
+        open={Boolean(statusCenter)}
+        onOpenChange={(open) => {
+          if (!open) setStatusCenter(null);
+        }}
+        center={statusCenter}
+      />
+
+      <BulkUpdateCenterStatusDialog
+        open={bulkStatusCenters.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkStatusCenters([]);
+        }}
+        centers={bulkStatusCenters}
+      />
     </div>
   );
 }

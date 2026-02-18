@@ -21,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FilterField } from "@/components/ui/filters-bar";
 import {
   SearchableSelect,
   type SearchableSelectOption,
@@ -513,22 +512,22 @@ export function AuditLogsTable() {
           gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-6"
         >
           {isPlatformAdmin ? (
-            <FilterField label="Center" className="lg:col-span-2">
+            <div className="lg:col-span-2">
               <CenterPicker
                 className="w-full min-w-0"
                 selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
               />
-            </FilterField>
+            </div>
           ) : null}
 
-          <FilterField label="Course" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <SearchableSelect
               value={selectedCourse}
               onValueChange={setSelectedCourse}
               options={courseOptions}
               searchValue={courseSearch}
               onSearchValueChange={setCourseSearch}
-              placeholder={centerId ? "All courses" : "Select center first"}
+              placeholder={centerId ? "Course" : "Select center first"}
               searchPlaceholder="Search courses..."
               emptyMessage={
                 centerId
@@ -548,16 +547,16 @@ export function AuditLogsTable() {
               }}
               triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
-          </FilterField>
+          </div>
 
-          <FilterField label="User" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <SearchableSelect
               value={selectedUser}
               onValueChange={setSelectedUser}
               options={userOptions}
               searchValue={userSearch}
               onSearchValueChange={setUserSearch}
-              placeholder="All users"
+              placeholder="User"
               searchPlaceholder="Search users..."
               emptyMessage="No users found"
               isLoading={usersQuery.isLoading}
@@ -572,11 +571,11 @@ export function AuditLogsTable() {
               }}
               triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
-          </FilterField>
+          </div>
 
-          <FilterField label="Action" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <Select value={action} onValueChange={setAction}>
-              <SelectTrigger className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+              <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
                 <SelectValue placeholder="Action" />
               </SelectTrigger>
               <SelectContent>
@@ -587,24 +586,32 @@ export function AuditLogsTable() {
                 ))}
               </SelectContent>
             </Select>
-          </FilterField>
+          </div>
 
-          <FilterField label="From" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <input
               type="date"
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+              title="From date"
+              className={cn(
+                "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
+                !dateFrom && "text-gray-500",
+              )}
               value={dateFrom}
               onChange={(event) => {
                 setDateFrom(event.target.value);
                 clearDatePreset();
               }}
             />
-          </FilterField>
+          </div>
 
-          <FilterField label="To" className="lg:col-span-2">
+          <div className="lg:col-span-2">
             <input
               type="date"
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
+              title="To date"
+              className={cn(
+                "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
+                !dateTo && "text-gray-500",
+              )}
               min={dateFrom || undefined}
               value={dateTo}
               onChange={(event) => {
@@ -612,7 +619,7 @@ export function AuditLogsTable() {
                 clearDatePreset();
               }}
             />
-          </FilterField>
+          </div>
         </ListingFilters>
 
         {hasActiveFilters ? (

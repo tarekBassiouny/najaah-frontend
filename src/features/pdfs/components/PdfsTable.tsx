@@ -261,7 +261,8 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                 </TableRow>
               ) : (
                 items.map((pdf, index) => {
-                  const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                  const shouldOpenUp =
+                    items.length > 4 && index >= Math.max(0, items.length - 2);
 
                   return (
                     <TableRow

@@ -77,18 +77,36 @@ type DropdownContentProps = {
   align?: "start" | "end" | "center";
   className?: string;
   children: React.ReactNode;
+  ignoreOutsideClickSelector?: string | string[];
 };
 
 export function DropdownContent({
   children,
   align = "center",
   className,
+  ignoreOutsideClickSelector,
 }: DropdownContentProps) {
   const { isOpen, handleClose } = useDropdownContext();
 
-  const contentRef = useClickOutside<HTMLDivElement>(() => {
-    if (isOpen) handleClose();
-  });
+  const contentRef = useClickOutside<HTMLDivElement>(
+    () => {
+      if (isOpen) handleClose();
+    },
+    {
+      ignore: (event) => {
+        if (!ignoreOutsideClickSelector) return false;
+
+        const target = event.target;
+        if (!(target instanceof Element)) return false;
+
+        const selectors = Array.isArray(ignoreOutsideClickSelector)
+          ? ignoreOutsideClickSelector
+          : [ignoreOutsideClickSelector];
+
+        return selectors.some((selector) => Boolean(target.closest(selector)));
+      },
+    },
+  );
 
   if (!isOpen) return null;
 

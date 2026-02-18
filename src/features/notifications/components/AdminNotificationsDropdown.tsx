@@ -7,6 +7,13 @@ import {
 } from "@/components/ui/dropdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -147,6 +154,67 @@ function NotificationIcon({ iconName, className }: NotificationIconProps) {
   );
 }
 
+function toIdParam(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(Math.trunc(value));
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  return null;
+}
+
+function withQuery(
+  path: string,
+  params: Record<string, string | null | undefined>,
+) {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (!value) return;
+    searchParams.set(key, value);
+  });
+
+  const query = searchParams.toString();
+  return query ? `${path}?${query}` : path;
+}
+
+function mapSurveyResponsePath(path: string): string | null {
+  try {
+    const parsed = new URL(path, "http://localhost");
+    const pathname = parsed.pathname.replace(/\/+$/, "");
+
+    const centerMatch = pathname.match(
+      /^\/(?:admin\/)?centers\/([^/]+)\/surveys\/([^/]+)\/responses\/([^/]+)$/i,
+    );
+    if (centerMatch) {
+      const [, centerId, surveyId, responseId] = centerMatch;
+      return withQuery(`/centers/${encodeURIComponent(centerId)}/surveys`, {
+        open_results_survey_id: surveyId,
+        focus_tab: "responses",
+        response_id: responseId,
+      });
+    }
+
+    const systemMatch = pathname.match(
+      /^\/(?:admin\/)?surveys\/([^/]+)\/responses\/([^/]+)$/i,
+    );
+    if (systemMatch) {
+      const [, surveyId, responseId] = systemMatch;
+      return withQuery("/surveys", {
+        open_results_survey_id: surveyId,
+        focus_tab: "responses",
+        response_id: responseId,
+      });
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function resolveActionPath(notification: AdminNotification): string | null {
   const payload = notification.data ?? {};
   const rawAction = payload.action_url;
@@ -167,6 +235,9 @@ function resolveActionPath(notification: AdminNotification): string | null {
       next = `/${next}`;
     }
 
+    const mappedSurveyPath = mapSurveyResponsePath(next);
+    if (mappedSurveyPath) return mappedSurveyPath;
+
     if (next.startsWith("/admin/")) {
       next = next.replace(/^\/admin/, "");
     }
@@ -177,7 +248,29 @@ function resolveActionPath(notification: AdminNotification): string | null {
   if (entityType === "device_change_request")
     return "/devices/pending-approvals";
   if (entityType === "extra_view_request") return "/extra-view-requests";
-  if (entityType === "survey_response") return "/surveys";
+  if (entityType === "survey_response") {
+    const centerId = toIdParam(payload.center_id);
+    const surveyId = toIdParam(payload.survey_id ?? payload.entity_id);
+    const responseId = toIdParam(payload.entity_id);
+
+    if (centerId && surveyId) {
+      return withQuery(`/centers/${encodeURIComponent(centerId)}/surveys`, {
+        open_results_survey_id: surveyId,
+        focus_tab: "responses",
+        response_id: responseId,
+      });
+    }
+
+    if (surveyId) {
+      return withQuery("/surveys", {
+        open_results_survey_id: surveyId,
+        focus_tab: "responses",
+        response_id: responseId,
+      });
+    }
+
+    return "/surveys";
+  }
   if (entityType === "enrollment") return "/enrollments";
   if (entityType === "center") return "/centers";
 
@@ -341,6 +434,7 @@ export function AdminNotificationsDropdown() {
 
       <DropdownContent
         align="end"
+        ignoreOutsideClickSelector='[data-click-outside-ignore="true"]'
         className="w-[min(94vw,26rem)] max-w-[calc(100vw-1rem)] rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 max-sm:fixed max-sm:inset-x-2 max-sm:top-[4.25rem] max-sm:mt-0 max-sm:w-auto max-sm:max-w-none"
       >
         <div className="rounded-md border border-gray-200 bg-gray-50/90 p-3 dark:border-gray-700 dark:bg-gray-800/70">
@@ -367,8 +461,8 @@ export function AdminNotificationsDropdown() {
             </Button>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center rounded-md bg-white p-0.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700">
+          <div className="mt-2 flex items-center gap-2">
+            <div className="inline-flex shrink-0 items-center rounded-md bg-white p-0.5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700">
               <button
                 type="button"
                 className={cn(
@@ -395,19 +489,24 @@ export function AdminNotificationsDropdown() {
               </button>
             </div>
 
-            <select
-              aria-label="Filter notifications by type"
-              className="ml-auto h-8 min-w-[140px] rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-              value={selectedType}
-              onChange={(event) => setSelectedType(event.target.value)}
-            >
-              <option value="all">All types</option>
-              {ADMIN_NOTIFICATION_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="ml-auto w-[9.25rem] max-w-[44vw] shrink-0">
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger
+                  aria-label="Filter notifications by type"
+                  className="h-8 w-full px-2 text-xs"
+                >
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent data-click-outside-ignore="true">
+                  <SelectItem value="all">All types</SelectItem>
+                  {ADMIN_NOTIFICATION_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={String(option.value)}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 

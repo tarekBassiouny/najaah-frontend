@@ -363,7 +363,9 @@ export function RolesTable({
                   </TableRow>
                 ) : (
                   items.map((role, index) => {
-                    const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                    const shouldOpenUp =
+                      items.length > 4 &&
+                      index >= Math.max(0, items.length - 2);
                     const roleId = String(role.id);
                     const isSelected = Boolean(selectedRoles[roleId]);
                     const permissionsCount = Array.isArray(role.permissions)

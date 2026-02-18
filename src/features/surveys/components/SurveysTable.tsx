@@ -821,8 +821,7 @@ export function SurveysTable({
                 </TableRow>
               ) : (
                 items.map((survey, index) => {
-                  const shouldOpenUp =
-                    index >= Math.max(0, items.length - 2);
+                  const shouldOpenUp = index >= Math.max(0, items.length - 2);
 
                   return (
                     <TableRow

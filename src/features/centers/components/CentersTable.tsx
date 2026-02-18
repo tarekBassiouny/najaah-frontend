@@ -416,8 +416,7 @@ export function CentersTable({
               ) : (
                 items.map((center, index) => {
                   const rowDeleted = isCenterDeleted(center);
-                  const shouldOpenUp =
-                    items.length > 4 && index >= Math.max(0, items.length - 2);
+                  const shouldOpenUp = index >= Math.max(0, items.length - 2);
 
                   return (
                     <TableRow

@@ -476,7 +476,7 @@ export function StudentsTable({
                     ? formatDateTime(analytics.last_activity_at)
                     : "—";
                   const shouldOpenUp =
-                    items.length > 4 && index >= Math.max(0, items.length - 2);
+                    index >= Math.max(0, items.length - 2);
                   const profileHref = buildProfileHref?.(student) ?? null;
 
                   return (

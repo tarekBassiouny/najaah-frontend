@@ -48,6 +48,13 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   "/videos": (centerId) => `/centers/${centerId}/videos`,
   "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
   "/students": (centerId) => `/centers/${centerId}/students`,
+  "/student-requests": (centerId) => `/centers/${centerId}/student-requests`,
+  "/student-requests/enrollments": (centerId) =>
+    `/centers/${centerId}/student-requests/enrollments`,
+  "/student-requests/extra-view": (centerId) =>
+    `/centers/${centerId}/student-requests/extra-view`,
+  "/student-requests/device-change": (centerId) =>
+    `/centers/${centerId}/student-requests/device-change`,
 };
 
 const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [

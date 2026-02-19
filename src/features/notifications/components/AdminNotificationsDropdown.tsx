@@ -245,9 +245,18 @@ function resolveActionPath(notification: AdminNotification): string | null {
     return next || null;
   }
 
-  if (entityType === "device_change_request")
-    return "/devices/pending-approvals";
-  if (entityType === "extra_view_request") return "/extra-view-requests";
+  if (entityType === "device_change_request") {
+    const centerId = toIdParam(payload.center_id);
+    return centerId
+      ? `/centers/${encodeURIComponent(centerId)}/student-requests/device-change`
+      : "/student-requests/device-change";
+  }
+  if (entityType === "extra_view_request") {
+    const centerId = toIdParam(payload.center_id);
+    return centerId
+      ? `/centers/${encodeURIComponent(centerId)}/student-requests/extra-view`
+      : "/student-requests/extra-view";
+  }
   if (entityType === "survey_response") {
     const centerId = toIdParam(payload.center_id);
     const surveyId = toIdParam(payload.survey_id ?? payload.entity_id);
@@ -271,7 +280,12 @@ function resolveActionPath(notification: AdminNotification): string | null {
 
     return "/surveys";
   }
-  if (entityType === "enrollment") return "/enrollments";
+  if (entityType === "enrollment_request" || entityType === "enrollment") {
+    const centerId = toIdParam(payload.center_id);
+    return centerId
+      ? `/centers/${encodeURIComponent(centerId)}/student-requests/enrollments`
+      : "/student-requests/enrollments";
+  }
   if (entityType === "center") return "/centers";
 
   return null;

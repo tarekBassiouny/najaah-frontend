@@ -6,18 +6,27 @@ import {
 } from "@tanstack/react-query";
 import {
   approveDeviceChangeRequest,
+  bulkApproveDeviceChangeRequests,
+  bulkPreApproveDeviceChangeRequests,
+  bulkRejectDeviceChangeRequests,
   createDeviceChangeRequestForStudent,
   listDeviceChangeRequests,
   preApproveDeviceChangeRequest,
   rejectDeviceChangeRequest,
-  type ApproveDeviceChangeRequestPayload,
-  type CreateDeviceChangeRequestPayload,
-  type ListDeviceChangeRequestsParams,
-  type PreApproveDeviceChangeRequestPayload,
-  type RejectDeviceChangeRequestPayload,
 } from "../services/device-change-requests.service";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { DeviceChangeRequest } from "@/features/device-change-requests/types/device-change-request";
+import type {
+  ApproveDeviceChangeRequestPayload,
+  BulkApproveDeviceChangeRequestsPayload,
+  BulkPreApproveDeviceChangeRequestsPayload,
+  BulkRejectDeviceChangeRequestsPayload,
+  CreateDeviceChangeRequestPayload,
+  DeviceChangeBulkActionResult,
+  DeviceChangeRequest,
+  ListDeviceChangeRequestsParams,
+  PreApproveDeviceChangeRequestPayload,
+  RejectDeviceChangeRequestPayload,
+} from "@/features/device-change-requests/types/device-change-request";
 
 type UseDeviceChangeRequestsOptions = Omit<
   UseQueryOptions<PaginatedResponse<DeviceChangeRequest>>,
@@ -25,12 +34,15 @@ type UseDeviceChangeRequestsOptions = Omit<
 >;
 
 export function useDeviceChangeRequests(
-  params: ListDeviceChangeRequestsParams,
+  params: ListDeviceChangeRequestsParams & {
+    centerScopeId?: string | number | null;
+  },
   options?: UseDeviceChangeRequestsOptions,
 ) {
+  const { centerScopeId, ...queryParams } = params;
   return useQuery({
     queryKey: ["device-change-requests", params],
-    queryFn: () => listDeviceChangeRequests(params),
+    queryFn: () => listDeviceChangeRequests(queryParams, centerScopeId),
     placeholderData: (previous) => previous,
     ...options,
   });
@@ -43,10 +55,12 @@ export function useApproveDeviceChangeRequest() {
     mutationFn: ({
       requestId,
       payload,
+      centerId,
     }: {
       requestId: string | number;
       payload?: ApproveDeviceChangeRequestPayload;
-    }) => approveDeviceChangeRequest(requestId, payload),
+      centerId?: string | number | null;
+    }) => approveDeviceChangeRequest(requestId, payload, centerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -60,10 +74,12 @@ export function useRejectDeviceChangeRequest() {
     mutationFn: ({
       requestId,
       payload,
+      centerId,
     }: {
       requestId: string | number;
       payload: RejectDeviceChangeRequestPayload;
-    }) => rejectDeviceChangeRequest(requestId, payload),
+      centerId?: string | number | null;
+    }) => rejectDeviceChangeRequest(requestId, payload, centerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -77,10 +93,12 @@ export function usePreApproveDeviceChangeRequest() {
     mutationFn: ({
       requestId,
       payload,
+      centerId,
     }: {
       requestId: string | number;
       payload?: PreApproveDeviceChangeRequestPayload;
-    }) => preApproveDeviceChangeRequest(requestId, payload),
+      centerId?: string | number | null;
+    }) => preApproveDeviceChangeRequest(requestId, payload, centerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },
@@ -94,10 +112,66 @@ export function useCreateDeviceChangeRequestForStudent() {
     mutationFn: ({
       studentId,
       payload,
+      centerId,
     }: {
       studentId: string | number;
       payload: CreateDeviceChangeRequestPayload;
-    }) => createDeviceChangeRequestForStudent(studentId, payload),
+      centerId?: string | number | null;
+    }) => createDeviceChangeRequestForStudent(studentId, payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
+    },
+  });
+}
+
+export function useBulkApproveDeviceChangeRequests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkApproveDeviceChangeRequestsPayload;
+      centerId?: string | number | null;
+    }): Promise<DeviceChangeBulkActionResult> =>
+      bulkApproveDeviceChangeRequests(payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
+    },
+  });
+}
+
+export function useBulkRejectDeviceChangeRequests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkRejectDeviceChangeRequestsPayload;
+      centerId?: string | number | null;
+    }): Promise<DeviceChangeBulkActionResult> =>
+      bulkRejectDeviceChangeRequests(payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
+    },
+  });
+}
+
+export function useBulkPreApproveDeviceChangeRequests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkPreApproveDeviceChangeRequestsPayload;
+      centerId?: string | number | null;
+    }): Promise<DeviceChangeBulkActionResult> =>
+      bulkPreApproveDeviceChangeRequests(payload, centerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["device-change-requests"] });
     },

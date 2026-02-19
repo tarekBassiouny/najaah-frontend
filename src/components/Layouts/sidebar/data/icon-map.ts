@@ -10,6 +10,7 @@ const EXACT_ICON_MAP: Record<string, SidebarIcon> = {
   Centers: Icons.Building,
   Courses: Icons.BookOpen,
   Surveys: Icons.ClipboardList,
+  "Student Requests": Icons.ClipboardList,
   Agents: Icons.Table,
   "Enrollment & Controls": Icons.ClipboardList,
   Videos: Icons.VideoPlay,

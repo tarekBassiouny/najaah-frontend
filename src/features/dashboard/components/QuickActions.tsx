@@ -57,7 +57,7 @@ const quickActions: QuickAction[] = [
   {
     title: "Enroll Students",
     description: "Add enrollments",
-    href: "/enrollments",
+    href: "/student-requests/enrollments",
     color: "bg-green-500",
     icon: (
       <svg
@@ -78,7 +78,7 @@ const quickActions: QuickAction[] = [
   {
     title: "View Requests",
     description: "Pending approvals",
-    href: "/device-change-requests",
+    href: "/student-requests/device-change",
     color: "bg-orange-500",
     icon: (
       <svg

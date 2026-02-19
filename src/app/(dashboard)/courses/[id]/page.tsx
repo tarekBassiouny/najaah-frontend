@@ -302,7 +302,10 @@ export default function CourseDetailPage({ params }: PageProps) {
                   Manage Videos
                 </Button>
               </Link>
-              <Link href={`/enrollments?course_id=${id}`} className="block">
+              <Link
+                href={`/student-requests/enrollments?course_id=${id}`}
+                className="block"
+              >
                 <Button variant="outline" className="w-full justify-start">
                   <svg
                     className="mr-2 h-4 w-4"

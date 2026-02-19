@@ -68,26 +68,11 @@ export const CENTER_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
-        title: "Enrollment & Controls",
+        title: "Student Requests",
         capability: "manage_enrollments",
-        icon: iconFromTitle("Enrollment & Controls"),
-        items: [
-          {
-            title: "Enrollments",
-            url: "/enrollments",
-            capability: "manage_enrollments",
-          },
-          {
-            title: "Extra View Requests",
-            url: "/extra-view-requests",
-            capability: "manage_extra_view_requests",
-          },
-          {
-            title: "Device Change Requests",
-            url: "/device-change-requests",
-            capability: "manage_device_change_requests",
-          },
-        ],
+        icon: iconFromTitle("Student Requests"),
+        url: "/student-requests",
+        items: [],
       },
       {
         title: "Videos",

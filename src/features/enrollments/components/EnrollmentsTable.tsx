@@ -33,18 +33,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  useBulkApproveExtraViewRequests,
-  useBulkRejectExtraViewRequests,
-  useExtraViewRequests,
-} from "@/features/extra-view-requests/hooks/use-extra-view-requests";
-import { ExtraViewActionDialog } from "@/features/extra-view-requests/components/ExtraViewActionDialog";
+  useBulkUpdateEnrollmentStatus,
+  useEnrollments,
+  useUpdateEnrollment,
+} from "@/features/enrollments/hooks/use-enrollments";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
-import { listVideos } from "@/features/videos/services/videos.service";
-import type {
-  ExtraViewRequest,
-  ExtraViewRequestStatus,
-} from "@/features/extra-view-requests/types/extra-view-request";
-import { BulkExtraViewActionDialog } from "@/features/student-requests/components/BulkExtraViewActionDialog";
+import type { Enrollment } from "@/features/enrollments/types/enrollment";
 import { RequestActionButtons } from "@/features/student-requests/components/RequestActionButtons";
 import { formatDateTime } from "@/lib/format-date-time";
 import { setTenantState } from "@/lib/tenant-store";
@@ -52,26 +46,39 @@ import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
+const DEFAULT_REQUEST_STATUS = "PENDING";
 const ALL_COURSES_VALUE = "all";
-const ALL_VIDEOS_VALUE = "all";
 const FILTER_LIST_PAGE_SIZE = 20;
 const FILTER_SEARCH_DEBOUNCE_MS = 300;
-const EXTRA_PAGE_KEY = "xv_page";
-const EXTRA_PER_PAGE_KEY = "xv_per_page";
-const EXTRA_STATUS_KEY = "xv_status";
-const EXTRA_COURSE_KEY = "xv_course";
-const EXTRA_VIDEO_KEY = "xv_video";
-const EXTRA_STUDENT_SEARCH_KEY = "xv_student";
-const EXTRA_FROM_KEY = "xv_from";
-const EXTRA_TO_KEY = "xv_to";
-const LEGACY_EXTRA_USER_KEY = "xv_user";
-const LEGACY_EXTRA_STUDENT_NAME_KEY = "xv_student_name";
-const LEGACY_EXTRA_STUDENT_PHONE_KEY = "xv_student_phone";
+const ENROLLMENTS_PAGE_KEY = "er_page";
+const ENROLLMENTS_PER_PAGE_KEY = "er_per_page";
+const ENROLLMENTS_STATUS_KEY = "er_status";
+const ENROLLMENTS_COURSE_KEY = "er_course";
+const ENROLLMENTS_STUDENT_SEARCH_KEY = "er_student";
+const ENROLLMENTS_FROM_KEY = "er_from";
+const ENROLLMENTS_TO_KEY = "er_to";
+const LEGACY_ENROLLMENTS_USER_KEY = "er_user";
+const LEGACY_ENROLLMENTS_STUDENT_NAME_KEY = "er_student_name";
+const LEGACY_ENROLLMENTS_STUDENT_PHONE_KEY = "er_student_phone";
 
-type ExtraViewRequestsTableProps = {
+type EnrollmentsTableProps = {
   centerId?: string | number;
-  hideHeader?: boolean;
   showCenterFilter?: boolean;
+  initialCourseId?: string | number | null;
+  initialUserId?: string | number | null;
+};
+
+type EnrollmentStatusVariant =
+  | "default"
+  | "success"
+  | "warning"
+  | "error"
+  | "secondary";
+
+type StudentCellData = {
+  primary: string;
+  phone: string | null;
+  email: string | null;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -90,37 +97,11 @@ function asString(value: unknown): string | null {
   return null;
 }
 
-function resolveStatusVariant(
-  value: string | null | undefined,
-): "warning" | "success" | "error" | "secondary" {
-  const normalized = String(value ?? "").toUpperCase();
-  if (normalized === "APPROVED") return "success";
-  if (normalized === "REJECTED") return "error";
-  if (normalized === "PENDING") return "warning";
-  return "secondary";
-}
-
-function resolveStatusLabel(value: string | null | undefined) {
-  const raw = String(value ?? "").trim();
-  if (!raw) return "Unknown";
-  return raw
+function formatLabel(value: string): string {
+  return value
     .replace(/[_-]/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function resolveStatus(request: ExtraViewRequest): {
-  key: string;
-  label: string;
-} {
-  const key =
-    asString(request.status_key) ?? asString(request.status) ?? "unknown";
-
-  const label =
-    asString(request.status_label) ??
-    resolveStatusLabel(asString(request.status));
-
-  return { key, label };
 }
 
 function getInitials(value: string): string {
@@ -165,160 +146,221 @@ function setOrDeleteParam(
   params.set(key, value);
 }
 
-function resolveUserLabel(request: ExtraViewRequest): {
-  primary: string;
-  phone: string | null;
-  email: string | null;
+function resolveStatus(enrollment: Enrollment): {
+  label: string;
+  variant: EnrollmentStatusVariant;
+  key: string;
 } {
-  const user = asRecord(request.user);
+  const raw =
+    asString(enrollment.status_label) ??
+    asString(enrollment.status_key) ??
+    asString(enrollment.status) ??
+    asString(enrollment.status_value) ??
+    "unknown";
+
+  const normalized = raw.toLowerCase();
+
+  if (
+    ["active", "approved", "enrolled", "confirmed", "1"].includes(normalized)
+  ) {
+    return {
+      label: asString(enrollment.status_label) ?? formatLabel(raw),
+      variant: "success",
+      key: normalized,
+    };
+  }
+
+  if (["pending", "processing", "in_progress"].includes(normalized)) {
+    return {
+      label: asString(enrollment.status_label) ?? formatLabel(raw),
+      variant: "warning",
+      key: normalized,
+    };
+  }
+
+  if (["cancelled", "canceled", "rejected", "expired"].includes(normalized)) {
+    return {
+      label: asString(enrollment.status_label) ?? formatLabel(raw),
+      variant: "error",
+      key: normalized,
+    };
+  }
+
+  if (["deactivated", "inactive", "disabled", "0"].includes(normalized)) {
+    return {
+      label: asString(enrollment.status_label) ?? formatLabel(raw),
+      variant: "secondary",
+      key: normalized,
+    };
+  }
+
+  return {
+    label: asString(enrollment.status_label) ?? formatLabel(raw),
+    variant: "default",
+    key: normalized,
+  };
+}
+
+function resolveStudent(enrollment: Enrollment): StudentCellData {
+  const student = asRecord(enrollment.student) ?? asRecord(enrollment.user);
   const primary =
-    asString(user?.name) ?? asString(request.user_name) ?? "Unknown Student";
-  const phone = asString(user?.phone) ?? null;
-  const email = asString(user?.email) ?? null;
+    asString(student?.name) ??
+    asString(enrollment.student_name) ??
+    asString(enrollment.user_name) ??
+    "Unknown Student";
+  const phone =
+    asString(student?.phone) ?? asString(enrollment.student_phone) ?? null;
+  const email =
+    asString(student?.email) ?? asString(enrollment.student_email) ?? null;
+
   return { primary, phone, email };
 }
 
-function resolveCourseLabel(request: ExtraViewRequest) {
-  const course = asRecord(request.course);
+function resolveCourse(enrollment: Enrollment): string {
+  const course = asRecord(enrollment.course);
   return (
-    asString(course?.name) ??
     asString(course?.title) ??
-    asString(request.course_name) ??
+    asString(course?.name) ??
+    asString(enrollment.course_title) ??
     "Unknown Course"
   );
 }
 
-function resolveVideoLabel(request: ExtraViewRequest) {
-  const video = asRecord(request.video);
+function resolveCenter(enrollment: Enrollment): string {
+  const center = asRecord(enrollment.center);
   return (
-    asString(video?.title) ?? asString(request.video_title) ?? "Unknown Video"
+    asString(center?.name) ?? asString(enrollment.center_name) ?? "Najaah App"
   );
 }
 
-function resolveDecidedBy(request: ExtraViewRequest): string | null {
-  const decider = asRecord(request.decider);
-  const decidedBy = asRecord(request.decided_by);
+function resolveDecidedBy(enrollment: Enrollment): string | null {
+  const decidedBy = asRecord(enrollment.decided_by);
   return (
-    asString(decider?.name) ??
     asString(decidedBy?.name) ??
-    asString(request.decided_by_name) ??
+    asString(enrollment.decided_by_name) ??
+    asString(enrollment.approved_by_name) ??
     null
   );
 }
 
-function resolveDecidedAt(request: ExtraViewRequest): string | null {
-  return asString(request.decided_at) ?? asString(request.updated_at) ?? null;
-}
-
-function resolveRequestedAt(request: ExtraViewRequest): string | null {
-  return asString(request.requested_at) ?? asString(request.created_at) ?? null;
-}
-
-function resolveCenter(request: ExtraViewRequest): string {
-  const center = asRecord(request.center);
+function resolveDecidedAt(enrollment: Enrollment): string | null {
   return (
-    asString(center?.name) ?? asString(request.center_name) ?? "Najaah App"
+    asString(enrollment.decided_at) ??
+    asString(enrollment.approved_at) ??
+    asString(enrollment.updated_at) ??
+    null
   );
 }
 
-export function ExtraViewRequestsTable({
+function resolveDecisionTimestamp(
+  enrollment: Enrollment,
+  statusKey: string,
+): string | null {
+  if (
+    ["active", "approved", "enrolled", "confirmed", "1"].includes(statusKey)
+  ) {
+    return (
+      asString(enrollment.enrolled_at) ??
+      asString(enrollment.decided_at) ??
+      asString(enrollment.approved_at) ??
+      asString(enrollment.updated_at) ??
+      null
+    );
+  }
+
+  return resolveDecidedAt(enrollment);
+}
+
+export function EnrollmentsTable({
   centerId: centerIdProp,
-  hideHeader = false,
   showCenterFilter = true,
-}: ExtraViewRequestsTableProps) {
+  initialCourseId,
+  initialUserId,
+}: EnrollmentsTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tenant = useTenant();
+  const tenantCenterId = tenant.centerId ?? undefined;
   const isTenantCenterScoped = Boolean(tenant.centerSlug);
-  const selectedCenterId = tenant.centerId ?? undefined;
   const centerScopeId = centerIdProp ?? null;
   const shouldShowCenterFilter =
     showCenterFilter && !isTenantCenterScoped && centerScopeId == null;
   const showCenterColumn = centerScopeId == null && !isTenantCenterScoped;
 
-  const bulkApproveMutation = useBulkApproveExtraViewRequests();
-  const bulkRejectMutation = useBulkRejectExtraViewRequests();
+  const updateEnrollmentMutation = useUpdateEnrollment();
+  const bulkUpdateStatusMutation = useBulkUpdateEnrollmentStatus();
 
   const [page, setPage] = useState(() =>
-    getPositiveIntParam(searchParams, EXTRA_PAGE_KEY, 1),
+    getPositiveIntParam(searchParams, ENROLLMENTS_PAGE_KEY, 1),
   );
   const [perPage, setPerPage] = useState<number>(() =>
-    getPositiveIntParam(searchParams, EXTRA_PER_PAGE_KEY, DEFAULT_PER_PAGE),
+    getPositiveIntParam(
+      searchParams,
+      ENROLLMENTS_PER_PAGE_KEY,
+      DEFAULT_PER_PAGE,
+    ),
   );
   const [statusFilter, setStatusFilter] = useState<string>(() =>
-    getStringParam(searchParams, EXTRA_STATUS_KEY, ALL_STATUS_VALUE),
+    getStringParam(
+      searchParams,
+      ENROLLMENTS_STATUS_KEY,
+      DEFAULT_REQUEST_STATUS,
+    ),
   );
   const [studentSearch, setStudentSearch] = useState(() => {
     const fromCurrent = getStringParam(
       searchParams,
-      EXTRA_STUDENT_SEARCH_KEY,
+      ENROLLMENTS_STUDENT_SEARCH_KEY,
       "",
     );
     if (fromCurrent) return fromCurrent;
     const fromLegacyUser = getStringParam(
       searchParams,
-      LEGACY_EXTRA_USER_KEY,
+      LEGACY_ENROLLMENTS_USER_KEY,
       "",
     );
     if (fromLegacyUser) return fromLegacyUser;
     const fromLegacyName = getStringParam(
       searchParams,
-      LEGACY_EXTRA_STUDENT_NAME_KEY,
+      LEGACY_ENROLLMENTS_STUDENT_NAME_KEY,
       "",
     );
     if (fromLegacyName) return fromLegacyName;
     const fromLegacyPhone = getStringParam(
       searchParams,
-      LEGACY_EXTRA_STUDENT_PHONE_KEY,
+      LEGACY_ENROLLMENTS_STUDENT_PHONE_KEY,
       "",
     );
-    return fromLegacyPhone;
+    if (fromLegacyPhone) return fromLegacyPhone;
+    return initialUserId != null ? String(initialUserId) : "";
   });
-  const [selectedCourse, setSelectedCourse] = useState(() =>
-    getStringParam(searchParams, EXTRA_COURSE_KEY, ALL_COURSES_VALUE),
-  );
+  const [selectedCourse, setSelectedCourse] = useState(() => {
+    const fromUrl = searchParams.get(ENROLLMENTS_COURSE_KEY);
+    if (fromUrl && fromUrl.trim().length > 0) return fromUrl.trim();
+    return initialCourseId != null
+      ? String(initialCourseId)
+      : ALL_COURSES_VALUE;
+  });
   const [courseSearch, setCourseSearch] = useState("");
-  const [videoSearch, setVideoSearch] = useState("");
   const [debouncedCourseSearch, setDebouncedCourseSearch] = useState("");
-  const [debouncedVideoSearch, setDebouncedVideoSearch] = useState("");
-  const [selectedVideo, setSelectedVideo] = useState(() =>
-    getStringParam(searchParams, EXTRA_VIDEO_KEY, ALL_VIDEOS_VALUE),
-  );
   const [dateFrom, setDateFrom] = useState(() =>
-    getStringParam(searchParams, EXTRA_FROM_KEY, ""),
+    getStringParam(searchParams, ENROLLMENTS_FROM_KEY, ""),
   );
   const [dateTo, setDateTo] = useState(() =>
-    getStringParam(searchParams, EXTRA_TO_KEY, ""),
+    getStringParam(searchParams, ENROLLMENTS_TO_KEY, ""),
   );
-  const [selectedRequests, setSelectedRequests] = useState<
-    Record<string, ExtraViewRequest>
+  const [selectedEnrollments, setSelectedEnrollments] = useState<
+    Record<string, Enrollment>
   >({});
-  const [singleAction, setSingleAction] = useState<{
-    action: "approve" | "reject";
-    request: ExtraViewRequest;
-  } | null>(null);
-  const [bulkAction, setBulkAction] = useState<"approve" | "reject" | null>(
+  const [processingId, setProcessingId] = useState<string | number | null>(
     null,
   );
   const hasInitializedFilterSyncRef = useRef(false);
-  const queryCenterId = centerScopeId ?? selectedCenterId ?? undefined;
+  const queryCenterId = centerScopeId ?? tenantCenterId ?? undefined;
   const cachedCoursesRef = useRef<
     Map<string, { id: string | number; title?: string | null }>
   >(new Map());
-  const cachedVideosRef = useRef<
-    Map<
-      string,
-      { id: string | number; title?: string | null; courseId?: string }
-    >
-  >(new Map());
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedVideoSearch(videoSearch.trim());
-    }, FILTER_SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timeout);
-  }, [videoSearch]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -329,7 +371,7 @@ export function ExtraViewRequestsTable({
 
   const coursesQuery = useInfiniteQuery({
     queryKey: [
-      "extra-view-filter-courses",
+      "enrollment-filter-courses",
       queryCenterId ?? "none",
       debouncedCourseSearch,
     ],
@@ -351,31 +393,6 @@ export function ExtraViewRequestsTable({
     staleTime: 60_000,
   });
 
-  const videosQuery = useInfiniteQuery({
-    queryKey: [
-      "extra-view-filter-videos",
-      queryCenterId ?? "none",
-      selectedCourse,
-      debouncedVideoSearch,
-    ],
-    initialPageParam: 1,
-    queryFn: ({ pageParam }) =>
-      listVideos({
-        centerId: queryCenterId!,
-        page: pageParam,
-        per_page: FILTER_LIST_PAGE_SIZE,
-        search: debouncedVideoSearch || undefined,
-      }),
-    enabled: Boolean(queryCenterId),
-    getNextPageParam: (lastPage) => {
-      const page = Number(lastPage.meta?.page ?? 1);
-      const perPage = Number(lastPage.meta?.per_page ?? FILTER_LIST_PAGE_SIZE);
-      const total = Number(lastPage.meta?.total ?? 0);
-      return page * perPage < total ? page + 1 : undefined;
-    },
-    staleTime: 60_000,
-  });
-
   useEffect(() => {
     const courses = (coursesQuery.data?.pages ?? []).flatMap((queryPage) =>
       queryPage.items.map((course) => ({
@@ -388,24 +405,6 @@ export function ExtraViewRequestsTable({
       cachedCoursesRef.current.set(String(course.id), course);
     });
   }, [coursesQuery.data?.pages]);
-
-  useEffect(() => {
-    const videos = (videosQuery.data?.pages ?? []).flatMap((queryPage) =>
-      queryPage.items.map((video) => ({
-        id: video.id,
-        title:
-          video.title ??
-          video.title_translations?.en ??
-          video.title_translations?.ar ??
-          null,
-        courseId: video.course_id != null ? String(video.course_id) : undefined,
-      })),
-    );
-
-    videos.forEach((video) => {
-      cachedVideosRef.current.set(String(video.id), video);
-    });
-  }, [videosQuery.data?.pages]);
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
@@ -444,71 +443,20 @@ export function ExtraViewRequestsTable({
     return [...defaults, ...courses];
   }, [coursesQuery.data?.pages, queryCenterId, selectedCourse]);
 
-  const videoOptions = useMemo<SearchableSelectOption<string>[]>(() => {
-    const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_VIDEOS_VALUE, label: "All videos" },
-    ];
-
-    if (!queryCenterId) return defaults;
-
-    const videos = (videosQuery.data?.pages ?? [])
-      .flatMap((queryPage) => queryPage.items)
-      .filter((video, index, array) => {
-        if (selectedCourse !== ALL_COURSES_VALUE) {
-          const videoCourseId =
-            video.course_id != null ? String(video.course_id) : null;
-          if (videoCourseId !== selectedCourse) return false;
-        }
-        return (
-          array.findIndex((item) => String(item.id) === String(video.id)) ===
-          index
-        );
-      })
-      .map((video) => ({
-        value: String(video.id),
-        label:
-          video.title ??
-          video.title_translations?.en ??
-          video.title_translations?.ar ??
-          `Video ${video.id}`,
-      }));
-
-    if (
-      selectedVideo &&
-      selectedVideo !== ALL_VIDEOS_VALUE &&
-      !videos.some((option) => option.value === selectedVideo)
-    ) {
-      const selected = cachedVideosRef.current.get(selectedVideo);
-      videos.unshift({
-        value: selectedVideo,
-        label: selected?.title ?? `Video ${selectedVideo}`,
-      });
-    }
-
-    return [...defaults, ...videos];
-  }, [queryCenterId, selectedCourse, selectedVideo, videosQuery.data?.pages]);
-
   const params = useMemo(
     () => ({
       page,
       per_page: perPage,
       centerScopeId,
-      center_id: shouldShowCenterFilter ? selectedCenterId : undefined,
-      status:
-        statusFilter === ALL_STATUS_VALUE
-          ? undefined
-          : (statusFilter as ExtraViewRequestStatus),
+      center_id: shouldShowCenterFilter ? tenantCenterId : undefined,
+      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
       course_id:
         selectedCourse && selectedCourse !== ALL_COURSES_VALUE
           ? selectedCourse
           : undefined,
-      video_id:
-        selectedVideo && selectedVideo !== ALL_VIDEOS_VALUE
-          ? selectedVideo
-          : undefined,
       search: studentSearch.trim() || undefined,
-      requested_at_from: dateFrom || undefined,
-      requested_at_to: dateTo || undefined,
+      date_from: dateFrom || undefined,
+      date_to: dateTo || undefined,
     }),
     [
       centerScopeId,
@@ -516,16 +464,15 @@ export function ExtraViewRequestsTable({
       dateTo,
       page,
       perPage,
-      selectedCenterId,
       selectedCourse,
-      selectedVideo,
       studentSearch,
       shouldShowCenterFilter,
       statusFilter,
+      tenantCenterId,
     ],
   );
 
-  const { data, isLoading, isError, isFetching } = useExtraViewRequests(params);
+  const { data, isLoading, isError, isFetching } = useEnrollments(params);
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const meta = data?.meta;
@@ -534,38 +481,39 @@ export function ExtraViewRequestsTable({
   const isLoadingState = isLoading;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
   const hasActiveFilters =
-    statusFilter !== ALL_STATUS_VALUE ||
+    statusFilter !== DEFAULT_REQUEST_STATUS ||
     selectedCourse !== ALL_COURSES_VALUE ||
-    selectedVideo !== ALL_VIDEOS_VALUE ||
     studentSearch.trim().length > 0 ||
     dateFrom.trim().length > 0 ||
     dateTo.trim().length > 0 ||
-    (shouldShowCenterFilter && selectedCenterId != null);
+    (shouldShowCenterFilter && tenantCenterId != null);
   const activeFilterCount =
-    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (statusFilter !== DEFAULT_REQUEST_STATUS ? 1 : 0) +
     (selectedCourse !== ALL_COURSES_VALUE ? 1 : 0) +
-    (selectedVideo !== ALL_VIDEOS_VALUE ? 1 : 0) +
     (studentSearch.trim().length > 0 ? 1 : 0) +
     (dateFrom.trim().length > 0 ? 1 : 0) +
     (dateTo.trim().length > 0 ? 1 : 0) +
-    (shouldShowCenterFilter && selectedCenterId != null ? 1 : 0);
+    (shouldShowCenterFilter && tenantCenterId != null ? 1 : 0);
 
   const selectedIds = useMemo(
-    () => Object.keys(selectedRequests),
-    [selectedRequests],
+    () => Object.keys(selectedEnrollments),
+    [selectedEnrollments],
   );
   const selectedCount = selectedIds.length;
-  const selectedList = useMemo(
+  const selectedEnrollmentsList = useMemo(
     () =>
       selectedIds
-        .map((id) => selectedRequests[id])
-        .filter((item): item is ExtraViewRequest => Boolean(item)),
-    [selectedIds, selectedRequests],
+        .map((id) => selectedEnrollments[id])
+        .filter((enrollment): enrollment is Enrollment => Boolean(enrollment)),
+    [selectedEnrollments, selectedIds],
   );
-
-  const pageIds = useMemo(() => items.map((item) => String(item.id)), [items]);
+  const pageEnrollmentIds = useMemo(
+    () => items.map((enrollment) => String(enrollment.id)),
+    [items],
+  );
   const isAllPageSelected =
-    pageIds.length > 0 && pageIds.every((id) => Boolean(selectedRequests[id]));
+    pageEnrollmentIds.length > 0 &&
+    pageEnrollmentIds.every((id) => Boolean(selectedEnrollments[id]));
 
   useEffect(() => {
     if (!hasInitializedFilterSyncRef.current) {
@@ -575,10 +523,9 @@ export function ExtraViewRequestsTable({
     setPage(1);
   }, [
     centerScopeId,
-    selectedCenterId,
+    tenantCenterId,
     statusFilter,
     selectedCourse,
-    selectedVideo,
     studentSearch,
     dateFrom,
     dateTo,
@@ -589,43 +536,40 @@ export function ExtraViewRequestsTable({
     const expectedPerPage =
       perPage !== DEFAULT_PER_PAGE ? String(perPage) : null;
     const expectedStatus =
-      statusFilter !== ALL_STATUS_VALUE ? statusFilter : null;
+      statusFilter !== DEFAULT_REQUEST_STATUS ? statusFilter : null;
     const expectedCourse =
       selectedCourse !== ALL_COURSES_VALUE ? selectedCourse : null;
-    const expectedVideo =
-      selectedVideo !== ALL_VIDEOS_VALUE ? selectedVideo : null;
     const expectedStudentSearch = studentSearch || null;
     const expectedFrom = dateFrom || null;
     const expectedTo = dateTo || null;
 
     const hasDiff =
-      searchParams.get(EXTRA_PAGE_KEY) !== expectedPage ||
-      searchParams.get(EXTRA_PER_PAGE_KEY) !== expectedPerPage ||
-      searchParams.get(EXTRA_STATUS_KEY) !== expectedStatus ||
-      searchParams.get(EXTRA_COURSE_KEY) !== expectedCourse ||
-      searchParams.get(EXTRA_VIDEO_KEY) !== expectedVideo ||
-      searchParams.get(EXTRA_STUDENT_SEARCH_KEY) !== expectedStudentSearch ||
-      searchParams.get(EXTRA_FROM_KEY) !== expectedFrom ||
-      searchParams.get(EXTRA_TO_KEY) !== expectedTo;
+      searchParams.get(ENROLLMENTS_PAGE_KEY) !== expectedPage ||
+      searchParams.get(ENROLLMENTS_PER_PAGE_KEY) !== expectedPerPage ||
+      searchParams.get(ENROLLMENTS_STATUS_KEY) !== expectedStatus ||
+      searchParams.get(ENROLLMENTS_COURSE_KEY) !== expectedCourse ||
+      searchParams.get(ENROLLMENTS_STUDENT_SEARCH_KEY) !==
+        expectedStudentSearch ||
+      searchParams.get(ENROLLMENTS_FROM_KEY) !== expectedFrom ||
+      searchParams.get(ENROLLMENTS_TO_KEY) !== expectedTo;
 
     if (!hasDiff) return;
 
     const nextParams = new URLSearchParams(searchParams.toString());
-    setOrDeleteParam(nextParams, EXTRA_PAGE_KEY, expectedPage);
-    setOrDeleteParam(nextParams, EXTRA_PER_PAGE_KEY, expectedPerPage);
-    setOrDeleteParam(nextParams, EXTRA_STATUS_KEY, expectedStatus);
-    setOrDeleteParam(nextParams, EXTRA_COURSE_KEY, expectedCourse);
-    setOrDeleteParam(nextParams, EXTRA_VIDEO_KEY, expectedVideo);
+    setOrDeleteParam(nextParams, ENROLLMENTS_PAGE_KEY, expectedPage);
+    setOrDeleteParam(nextParams, ENROLLMENTS_PER_PAGE_KEY, expectedPerPage);
+    setOrDeleteParam(nextParams, ENROLLMENTS_STATUS_KEY, expectedStatus);
+    setOrDeleteParam(nextParams, ENROLLMENTS_COURSE_KEY, expectedCourse);
     setOrDeleteParam(
       nextParams,
-      EXTRA_STUDENT_SEARCH_KEY,
+      ENROLLMENTS_STUDENT_SEARCH_KEY,
       expectedStudentSearch,
     );
-    nextParams.delete(LEGACY_EXTRA_USER_KEY);
-    nextParams.delete(LEGACY_EXTRA_STUDENT_NAME_KEY);
-    nextParams.delete(LEGACY_EXTRA_STUDENT_PHONE_KEY);
-    setOrDeleteParam(nextParams, EXTRA_FROM_KEY, expectedFrom);
-    setOrDeleteParam(nextParams, EXTRA_TO_KEY, expectedTo);
+    nextParams.delete(LEGACY_ENROLLMENTS_USER_KEY);
+    nextParams.delete(LEGACY_ENROLLMENTS_STUDENT_NAME_KEY);
+    nextParams.delete(LEGACY_ENROLLMENTS_STUDENT_PHONE_KEY);
+    setOrDeleteParam(nextParams, ENROLLMENTS_FROM_KEY, expectedFrom);
+    setOrDeleteParam(nextParams, ENROLLMENTS_TO_KEY, expectedTo);
 
     const nextQuery = nextParams.toString();
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
@@ -640,42 +584,40 @@ export function ExtraViewRequestsTable({
     router,
     searchParams,
     selectedCourse,
-    selectedVideo,
     studentSearch,
     statusFilter,
   ]);
 
   useEffect(() => {
-    setSelectedRequests({});
+    setSelectedEnrollments({});
   }, [
     centerScopeId,
     page,
     perPage,
-    selectedCenterId,
+    tenantCenterId,
     statusFilter,
     selectedCourse,
-    selectedVideo,
     studentSearch,
     dateFrom,
     dateTo,
   ]);
 
-  const toggleSelection = (request: ExtraViewRequest) => {
-    const requestId = String(request.id);
-    setSelectedRequests((prev) => {
-      if (prev[requestId]) {
-        const { [requestId]: _, ...rest } = prev;
+  const toggleEnrollmentSelection = (enrollment: Enrollment) => {
+    const enrollmentId = String(enrollment.id);
+    setSelectedEnrollments((prev) => {
+      if (prev[enrollmentId]) {
+        const { [enrollmentId]: _, ...rest } = prev;
         return rest;
       }
-      return { ...prev, [requestId]: request };
+      return { ...prev, [enrollmentId]: enrollment };
     });
   };
 
   const toggleAllSelections = () => {
     if (isAllPageSelected) {
-      setSelectedRequests((prev) => {
+      setSelectedEnrollments((prev) => {
         const next = { ...prev };
-        pageIds.forEach((id) => {
+        pageEnrollmentIds.forEach((id) => {
           delete next[id];
         });
         return next;
@@ -683,74 +625,101 @@ export function ExtraViewRequestsTable({
       return;
     }
 
-    setSelectedRequests((prev) => {
+    setSelectedEnrollments((prev) => {
       const next = { ...prev };
-      items.forEach((item) => {
-        next[String(item.id)] = item;
+      items.forEach((enrollment) => {
+        next[String(enrollment.id)] = enrollment;
       });
       return next;
     });
   };
 
-  const handleApprove = (request: ExtraViewRequest) => {
-    setSingleAction({ action: "approve", request });
+  const handleApprove = (enrollment: Enrollment) => {
+    setProcessingId(enrollment.id);
+    updateEnrollmentMutation.mutate(
+      {
+        enrollmentId: enrollment.id,
+        payload: { status: "ACTIVE" },
+        centerId: centerScopeId,
+      },
+      {
+        onSettled: () => setProcessingId(null),
+      },
+    );
   };
 
-  const handleReject = (request: ExtraViewRequest) => {
-    setSingleAction({ action: "reject", request });
+  const handleReject = (enrollment: Enrollment) => {
+    setProcessingId(enrollment.id);
+    updateEnrollmentMutation.mutate(
+      {
+        enrollmentId: enrollment.id,
+        payload: { status: "CANCELLED" },
+        centerId: centerScopeId,
+      },
+      {
+        onSettled: () => setProcessingId(null),
+      },
+    );
   };
 
   const handleBulkApprove = () => {
-    if (selectedList.length === 0) return;
-    setBulkAction("approve");
+    const ids = selectedEnrollmentsList.map((e) => e.id);
+    if (ids.length === 0) return;
+
+    bulkUpdateStatusMutation.mutate(
+      {
+        payload: { status: "ACTIVE", enrollment_ids: ids },
+        centerId: centerScopeId,
+      },
+      {
+        onSuccess: () => setSelectedEnrollments({}),
+      },
+    );
   };
 
   const handleBulkReject = () => {
-    if (selectedList.length === 0) return;
-    setBulkAction("reject");
+    const ids = selectedEnrollmentsList.map((e) => e.id);
+    if (ids.length === 0) return;
+
+    bulkUpdateStatusMutation.mutate(
+      {
+        payload: { status: "CANCELLED", enrollment_ids: ids },
+        centerId: centerScopeId,
+      },
+      {
+        onSuccess: () => setSelectedEnrollments({}),
+      },
+    );
   };
 
   return (
     <ListingCard>
-      {!hideHeader ? (
-        <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Extra View Requests
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Review and process extra view access requests.
-          </p>
-        </div>
-      ) : null}
-
       <ListingFilters
         activeCount={activeFilterCount}
         isFetching={isFetching}
         isLoading={isLoading}
         hasActiveFilters={hasActiveFilters}
         onClear={() => {
-          setStatusFilter(ALL_STATUS_VALUE);
+          setStatusFilter(DEFAULT_REQUEST_STATUS);
           setSelectedCourse(ALL_COURSES_VALUE);
-          setSelectedVideo(ALL_VIDEOS_VALUE);
-          setStudentSearch("");
           setCourseSearch("");
-          setVideoSearch("");
+          setStudentSearch("");
           setDateFrom("");
           setDateTo("");
+          setPage(1);
           if (shouldShowCenterFilter) {
             setTenantState({ centerId: null, centerName: null });
           }
-          setPage(1);
         }}
         summary={
           <>
-            {total} {total === 1 ? "request" : "requests"}
+            {total} {total === 1 ? "enrollment request" : "enrollment requests"}
           </>
         }
         gridClassName={
           shouldShowCenterFilter
             ? "grid-cols-1 md:grid-cols-3 lg:grid-cols-4"
-            : "grid-cols-1 md:grid-cols-3 lg:grid-cols-4"
+            : "grid-cols-1 md:grid-cols-3"
         }
       >
         <div className="relative">
@@ -838,30 +807,6 @@ export function ExtraViewRequestsTable({
           triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
         />
 
-        <SearchableSelect
-          value={selectedVideo}
-          onValueChange={(value) => setSelectedVideo(value ?? ALL_VIDEOS_VALUE)}
-          options={videoOptions}
-          searchValue={videoSearch}
-          onSearchValueChange={setVideoSearch}
-          placeholder={queryCenterId ? "Video" : "Select center first"}
-          searchPlaceholder="Search videos..."
-          emptyMessage={
-            queryCenterId ? "No videos found" : "Select a center first"
-          }
-          isLoading={videosQuery.isLoading}
-          filterOptions={false}
-          disabled={!queryCenterId}
-          hasMore={Boolean(videosQuery.hasNextPage)}
-          isLoadingMore={videosQuery.isFetchingNextPage}
-          onReachEnd={() => {
-            if (videosQuery.hasNextPage) {
-              void videosQuery.fetchNextPage();
-            }
-          }}
-          triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-        />
-
         <Select
           value={statusFilter}
           onValueChange={(value) => setStatusFilter(value)}
@@ -872,8 +817,9 @@ export function ExtraViewRequestsTable({
           <SelectContent>
             <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
             <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="APPROVED">Approved</SelectItem>
-            <SelectItem value="REJECTED">Rejected</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="DEACTIVATED">Deactivated</SelectItem>
+            <SelectItem value="CANCELLED">Cancelled</SelectItem>
           </SelectContent>
         </Select>
 
@@ -881,7 +827,7 @@ export function ExtraViewRequestsTable({
           type="date"
           value={dateFrom}
           onChange={(event) => setDateFrom(event.target.value)}
-          title="Requested from date"
+          title="From date"
         />
 
         <Input
@@ -889,7 +835,7 @@ export function ExtraViewRequestsTable({
           value={dateTo}
           min={dateFrom || undefined}
           onChange={(event) => setDateTo(event.target.value)}
-          title="Requested to date"
+          title="To date"
         />
       </ListingFilters>
 
@@ -897,7 +843,7 @@ export function ExtraViewRequestsTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load extra view requests. Please try again.
+              Failed to load enrollment requests. Please try again.
             </p>
             <Button
               variant="outline"
@@ -926,23 +872,22 @@ export function ExtraViewRequestsTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all requests on this page"
+                    aria-label="Select all enrollment requests on this page"
                   />
                 </TableHead>
                 <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Video</TableHead>
                 <TableHead className="font-medium">Course</TableHead>
                 {showCenterColumn ? (
                   <TableHead className="font-medium">Center</TableHead>
                 ) : null}
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">Requested At</TableHead>
+                <TableHead className="font-medium">Enrollment Window</TableHead>
                 <TableHead className="w-10 text-right font-medium">
                   Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
-
             <TableBody>
               {isLoadingState ? (
                 <>
@@ -952,17 +897,14 @@ export function ExtraViewRequestsTable({
                         <Skeleton className="h-4 w-4" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-4 w-36" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-4 w-32" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-28" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-28" />
                       </TableCell>
                       {showCenterColumn ? (
                         <TableCell>
-                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-4 w-28" />
                         </TableCell>
                       ) : null}
                       <TableCell>
@@ -970,6 +912,9 @@ export function ExtraViewRequestsTable({
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-40" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="ml-auto h-7 w-32" />
@@ -984,24 +929,28 @@ export function ExtraViewRequestsTable({
                     className="h-48"
                   >
                     <EmptyState
-                      title="No extra view requests found"
+                      title="No enrollment requests found"
                       description="Try adjusting your filters."
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((request) => {
-                  const status = resolveStatus(request);
-                  const user = resolveUserLabel(request);
-                  const center = resolveCenter(request);
-                  const decidedByName = resolveDecidedBy(request);
-                  const decidedAt = resolveDecidedAt(request);
-                  const requestedAt = resolveRequestedAt(request);
+                items.map((enrollment) => {
+                  const status = resolveStatus(enrollment);
+                  const student = resolveStudent(enrollment);
+                  const course = resolveCourse(enrollment);
+                  const center = resolveCenter(enrollment);
+                  const decidedByName = resolveDecidedBy(enrollment);
+                  const decidedAt = resolveDecisionTimestamp(
+                    enrollment,
+                    status.key,
+                  );
+                  const isProcessing = processingId === enrollment.id;
 
                   return (
                     <TableRow
-                      key={request.id}
+                      key={enrollment.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
                       <TableCell>
@@ -1009,37 +958,34 @@ export function ExtraViewRequestsTable({
                           type="checkbox"
                           className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
                           checked={Boolean(
-                            selectedRequests[String(request.id)],
+                            selectedEnrollments[String(enrollment.id)],
                           )}
-                          onChange={() => toggleSelection(request)}
-                          aria-label={`Select request for ${user.primary}`}
+                          onChange={() => toggleEnrollmentSelection(enrollment)}
+                          aria-label={`Select enrollment for ${student.primary}`}
                         />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold uppercase text-white">
-                            {getInitials(user.primary)}
+                            {getInitials(student.primary)}
                           </div>
                           <div className="flex flex-col">
                             <span className="font-medium text-gray-900 dark:text-white">
-                              {user.primary}
+                              {student.primary}
                             </span>
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {user.phone ?? "—"}
+                              {student.phone ?? "—"}
                             </span>
-                            {user.email ? (
+                            {student.email ? (
                               <span className="text-sm text-gray-500 dark:text-gray-400">
-                                {user.email}
+                                {student.email}
                               </span>
                             ) : null}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {resolveVideoLabel(request)}
-                      </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400">
-                        {resolveCourseLabel(request)}
+                        {course}
                       </TableCell>
                       {showCenterColumn ? (
                         <TableCell className="text-gray-500 dark:text-gray-400">
@@ -1047,20 +993,46 @@ export function ExtraViewRequestsTable({
                         </TableCell>
                       ) : null}
                       <TableCell>
-                        <Badge variant={resolveStatusVariant(status.key)}>
-                          {status.label}
-                        </Badge>
+                        <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {formatDateTime(requestedAt)}
+                        {formatDateTime(enrollment.created_at)}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-col text-xs">
+                          <span>
+                            Enrolled:{" "}
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
+                              {formatDateTime(enrollment.enrolled_at)}
+                            </span>
+                          </span>
+                          <span>
+                            Expires:{" "}
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
+                              {formatDateTime(enrollment.expires_at)}
+                            </span>
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <RequestActionButtons
                           status={status.key}
                           decidedByName={decidedByName}
                           decidedAt={decidedAt}
-                          onApprove={() => handleApprove(request)}
-                          onReject={() => handleReject(request)}
+                          onApprove={() => handleApprove(enrollment)}
+                          onReject={() => handleReject(enrollment)}
+                          isApproving={
+                            isProcessing &&
+                            updateEnrollmentMutation.isPending &&
+                            updateEnrollmentMutation.variables?.payload
+                              .status === "ACTIVE"
+                          }
+                          isRejecting={
+                            isProcessing &&
+                            updateEnrollmentMutation.isPending &&
+                            updateEnrollmentMutation.variables?.payload
+                              .status === "CANCELLED"
+                          }
                           className="justify-end"
                         />
                       </TableCell>
@@ -1084,11 +1056,9 @@ export function ExtraViewRequestsTable({
               variant="outline"
               className="border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-800 dark:text-green-400"
               onClick={handleBulkApprove}
-              disabled={
-                bulkApproveMutation.isPending || bulkRejectMutation.isPending
-              }
+              disabled={bulkUpdateStatusMutation.isPending}
             >
-              {bulkApproveMutation.isPending
+              {bulkUpdateStatusMutation.isPending
                 ? "Processing..."
                 : "Approve Selected"}
             </Button>
@@ -1097,40 +1067,15 @@ export function ExtraViewRequestsTable({
               variant="outline"
               className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400"
               onClick={handleBulkReject}
-              disabled={
-                bulkApproveMutation.isPending || bulkRejectMutation.isPending
-              }
+              disabled={bulkUpdateStatusMutation.isPending}
             >
-              {bulkRejectMutation.isPending
+              {bulkUpdateStatusMutation.isPending
                 ? "Processing..."
                 : "Reject Selected"}
             </Button>
           </div>
         </div>
       ) : null}
-
-      <ExtraViewActionDialog
-        open={Boolean(singleAction)}
-        action={singleAction?.action ?? "approve"}
-        request={singleAction?.request ?? null}
-        centerId={centerScopeId}
-        onOpenChange={(open) => {
-          if (!open) setSingleAction(null);
-        }}
-      />
-
-      <BulkExtraViewActionDialog
-        open={bulkAction !== null}
-        action={bulkAction ?? "approve"}
-        requests={selectedList}
-        centerId={centerScopeId ?? undefined}
-        onOpenChange={(open) => {
-          if (!open) setBulkAction(null);
-        }}
-        onSuccess={() => {
-          setSelectedRequests({});
-        }}
-      />
 
       {!isError && maxPage > 1 ? (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">

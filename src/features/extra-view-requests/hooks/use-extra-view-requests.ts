@@ -6,14 +6,26 @@ import {
 } from "@tanstack/react-query";
 import {
   approveExtraViewRequest,
+  bulkGrantExtraViews,
+  bulkApproveExtraViewRequests,
+  bulkRejectExtraViewRequests,
+  grantExtraViewsToStudent,
   listExtraViewRequests,
   rejectExtraViewRequest,
-  type ApproveExtraViewRequestPayload,
-  type ListExtraViewRequestsParams,
-  type RejectExtraViewRequestPayload,
 } from "../services/extra-view-requests.service";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { ExtraViewRequest } from "@/features/extra-view-requests/types/extra-view-request";
+import type {
+  ApproveExtraViewRequestPayload,
+  BulkDirectGrantExtraViewPayload,
+  BulkApproveExtraViewRequestsPayload,
+  BulkRejectExtraViewRequestsPayload,
+  ExtraViewBulkActionResult,
+  ExtraViewDirectGrantResult,
+  ExtraViewRequest,
+  DirectGrantExtraViewPayload,
+  ListExtraViewRequestsParams,
+  RejectExtraViewRequestPayload,
+} from "@/features/extra-view-requests/types/extra-view-request";
 
 type UseExtraViewRequestsOptions = Omit<
   UseQueryOptions<PaginatedResponse<ExtraViewRequest>>,
@@ -21,12 +33,15 @@ type UseExtraViewRequestsOptions = Omit<
 >;
 
 export function useExtraViewRequests(
-  params: ListExtraViewRequestsParams,
+  params: ListExtraViewRequestsParams & {
+    centerScopeId?: string | number | null;
+  },
   options?: UseExtraViewRequestsOptions,
 ) {
+  const { centerScopeId, ...queryParams } = params;
   return useQuery({
     queryKey: ["extra-view-requests", params],
-    queryFn: () => listExtraViewRequests(params),
+    queryFn: () => listExtraViewRequests(queryParams, centerScopeId),
     placeholderData: (previous) => previous,
     ...options,
   });
@@ -39,10 +54,12 @@ export function useApproveExtraViewRequest() {
     mutationFn: ({
       requestId,
       payload,
+      centerId,
     }: {
       requestId: string | number;
       payload: ApproveExtraViewRequestPayload;
-    }) => approveExtraViewRequest(requestId, payload),
+      centerId?: string | number | null;
+    }) => approveExtraViewRequest(requestId, payload, centerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
     },
@@ -56,12 +73,89 @@ export function useRejectExtraViewRequest() {
     mutationFn: ({
       requestId,
       payload,
+      centerId,
     }: {
       requestId: string | number;
       payload: RejectExtraViewRequestPayload;
-    }) => rejectExtraViewRequest(requestId, payload),
+      centerId?: string | number | null;
+    }) => rejectExtraViewRequest(requestId, payload, centerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+    },
+  });
+}
+
+export function useBulkApproveExtraViewRequests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkApproveExtraViewRequestsPayload;
+      centerId?: string | number | null;
+    }): Promise<ExtraViewBulkActionResult> =>
+      bulkApproveExtraViewRequests(payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+    },
+  });
+}
+
+export function useBulkRejectExtraViewRequests() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkRejectExtraViewRequestsPayload;
+      centerId?: string | number | null;
+    }): Promise<ExtraViewBulkActionResult> =>
+      bulkRejectExtraViewRequests(payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+    },
+  });
+}
+
+export function useGrantExtraViewsToStudent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      studentId,
+      payload,
+      centerId,
+    }: {
+      studentId: string | number;
+      payload: DirectGrantExtraViewPayload;
+      centerId?: string | number | null;
+    }) => grantExtraViewsToStudent(studentId, payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+  });
+}
+
+export function useBulkGrantExtraViews() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkDirectGrantExtraViewPayload;
+      centerId?: string | number | null;
+    }): Promise<ExtraViewDirectGrantResult> =>
+      bulkGrantExtraViews(payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["extra-view-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
     },
   });
 }

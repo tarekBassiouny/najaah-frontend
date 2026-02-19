@@ -1,6 +1,9 @@
 import { http } from "@/lib/http";
 import type { PaginatedResponse } from "@/types/pagination";
 import type {
+  BulkEnrollmentsPayload,
+  BulkEnrollmentResult,
+  BulkEnrollmentStatusPayload,
   CreateCenterEnrollmentPayload,
   CreateEnrollmentPayload,
   Enrollment,
@@ -14,6 +17,7 @@ type RawEnrollmentsResponse = {
     page?: number;
     per_page?: number;
     total?: number;
+    last_page?: number;
   };
 };
 
@@ -21,29 +25,48 @@ type RawEnrollmentResponse = {
   data?: Enrollment;
 };
 
-type RawCreateCenterEnrollmentResponse = {
+type RawEnrollmentEnvelopeResponse = {
   success?: boolean;
   message?: string;
   data?: Enrollment;
 };
 
+type RawBulkEnrollmentResponse = {
+  success?: boolean;
+  message?: string;
+  data?: BulkEnrollmentResult;
+};
+
+function buildEnrollmentsBasePath(centerId?: string | number | null) {
+  if (centerId == null || centerId === "") {
+    return "/api/v1/admin/enrollments";
+  }
+  return `/api/v1/admin/centers/${centerId}/enrollments`;
+}
+
 export async function listEnrollments(
   params: ListEnrollmentsParams,
+  centerId?: string | number | null,
 ): Promise<PaginatedResponse<Enrollment>> {
-  const { data } = await http.get<RawEnrollmentsResponse>(
-    "/api/v1/admin/enrollments",
-    {
-      params: {
-        page: params.page,
-        per_page: params.per_page,
-        search: params.search || undefined,
-        status: params.status || undefined,
-        center_id: params.center_id ?? undefined,
-        course_id: params.course_id ?? undefined,
-        student_id: params.student_id ?? undefined,
-      },
+  const effectiveCenterId = centerId ?? params.center_id;
+  const basePath = buildEnrollmentsBasePath(effectiveCenterId);
+  const includeCenterFilter = effectiveCenterId == null;
+
+  const { data } = await http.get<RawEnrollmentsResponse>(basePath, {
+    params: {
+      page: params.page,
+      per_page: params.per_page,
+      status: params.status || undefined,
+      search: params.search || undefined,
+      center_id: includeCenterFilter
+        ? (params.center_id ?? undefined)
+        : undefined,
+      course_id: params.course_id ?? undefined,
+      user_id: params.user_id ?? params.student_id ?? undefined,
+      date_from: params.date_from || undefined,
+      date_to: params.date_to || undefined,
     },
-  );
+  });
 
   return {
     items: data?.data ?? [],
@@ -57,20 +80,21 @@ export async function listEnrollments(
 
 export async function getEnrollment(
   enrollmentId: string | number,
+  centerId?: string | number | null,
 ): Promise<Enrollment | null> {
+  const basePath = buildEnrollmentsBasePath(centerId);
   const { data } = await http.get<RawEnrollmentResponse>(
-    `/api/v1/admin/enrollments/${enrollmentId}`,
+    `${basePath}/${enrollmentId}`,
   );
   return data?.data ?? null;
 }
 
 export async function createEnrollment(
   payload: CreateEnrollmentPayload,
+  centerId?: string | number | null,
 ): Promise<Enrollment> {
-  const { data } = await http.post<RawEnrollmentResponse>(
-    "/api/v1/admin/enrollments",
-    payload,
-  );
+  const basePath = buildEnrollmentsBasePath(centerId);
+  const { data } = await http.post<RawEnrollmentResponse>(basePath, payload);
   return data?.data ?? (data as unknown as Enrollment);
 }
 
@@ -78,8 +102,8 @@ export async function createCenterEnrollment(
   centerId: string | number,
   payload: CreateCenterEnrollmentPayload,
 ): Promise<Enrollment> {
-  const { data } = await http.post<RawCreateCenterEnrollmentResponse>(
-    `/api/v1/admin/centers/${centerId}/enrollments`,
+  const { data } = await http.post<RawEnrollmentEnvelopeResponse>(
+    buildEnrollmentsBasePath(centerId),
     payload,
   );
 
@@ -89,9 +113,11 @@ export async function createCenterEnrollment(
 export async function updateEnrollment(
   enrollmentId: string | number,
   payload: UpdateEnrollmentPayload,
+  centerId?: string | number | null,
 ): Promise<Enrollment> {
+  const basePath = buildEnrollmentsBasePath(centerId);
   const { data } = await http.put<RawEnrollmentResponse>(
-    `/api/v1/admin/enrollments/${enrollmentId}`,
+    `${basePath}/${enrollmentId}`,
     payload,
   );
   return data?.data ?? (data as unknown as Enrollment);
@@ -99,6 +125,32 @@ export async function updateEnrollment(
 
 export async function deleteEnrollment(
   enrollmentId: string | number,
+  centerId?: string | number | null,
 ): Promise<void> {
-  await http.delete(`/api/v1/admin/enrollments/${enrollmentId}`);
+  const basePath = buildEnrollmentsBasePath(centerId);
+  await http.delete(`${basePath}/${enrollmentId}`);
+}
+
+export async function bulkEnrollments(
+  payload: BulkEnrollmentsPayload,
+  centerId?: string | number | null,
+): Promise<BulkEnrollmentResult> {
+  const basePath = buildEnrollmentsBasePath(centerId);
+  const { data } = await http.post<RawBulkEnrollmentResponse>(
+    `${basePath}/bulk`,
+    payload,
+  );
+  return data?.data ?? (data as unknown as BulkEnrollmentResult);
+}
+
+export async function bulkUpdateEnrollmentStatus(
+  payload: BulkEnrollmentStatusPayload,
+  centerId?: string | number | null,
+): Promise<BulkEnrollmentResult> {
+  const basePath = buildEnrollmentsBasePath(centerId);
+  const { data } = await http.post<RawBulkEnrollmentResponse>(
+    `${basePath}/bulk-status`,
+    payload,
+  );
+  return data?.data ?? (data as unknown as BulkEnrollmentResult);
 }

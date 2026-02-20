@@ -93,6 +93,7 @@ type StudentFormDialogProps = {
   open: boolean;
   onOpenChange: (_isOpen: boolean) => void;
   centerId?: string | number | null;
+  scopeCenterId?: string | number | null;
   student?: Student | null;
   onSuccess?: (_value: string) => void;
   onCreated?: (_student: Student) => void;
@@ -156,6 +157,7 @@ export function StudentFormDialog({
   open,
   onOpenChange,
   centerId,
+  scopeCenterId,
   student,
   onSuccess,
   onCreated,
@@ -164,8 +166,8 @@ export function StudentFormDialog({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditMode = Boolean(student);
 
-  const createMutation = useCreateStudent();
-  const updateMutation = useUpdateStudent();
+  const createMutation = useCreateStudent({ centerId: scopeCenterId ?? null });
+  const updateMutation = useUpdateStudent({ centerId: scopeCenterId ?? null });
   const isPending = createMutation.isPending || updateMutation.isPending;
   const displayName = student?.name ? String(student.name) : "Student";
   const displayEmail = student?.email ? String(student.email) : "new.student";

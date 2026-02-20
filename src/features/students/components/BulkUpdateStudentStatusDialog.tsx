@@ -25,6 +25,7 @@ type BulkUpdateStudentStatusDialogProps = {
   onOpenChange: (_open: boolean) => void;
   students: Student[];
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 export function BulkUpdateStudentStatusDialog({
@@ -32,6 +33,7 @@ export function BulkUpdateStudentStatusDialog({
   onOpenChange,
   students,
   onSuccess,
+  scopeCenterId,
 }: BulkUpdateStudentStatusDialogProps) {
   const [status, setStatus] = useState<string>("1");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,7 +48,9 @@ export function BulkUpdateStudentStatusDialog({
     failed?: Array<{ student_id?: string | number; reason?: string }>;
   } | null>(null);
 
-  const mutation = useBulkUpdateStudentStatus();
+  const mutation = useBulkUpdateStudentStatus({
+    centerId: scopeCenterId ?? null,
+  });
   const isPending = mutation.isPending;
 
   const handleUpdate = () => {

@@ -21,12 +21,14 @@ type EditAdminProps = {
   user?: AdminUser | null;
   onSuccess?: (_value: string) => void;
   onCreated?: (_user: AdminUser) => void;
+  scopeCenterId?: string | number | null;
 };
 
 type AssignRolesProps = {
   user?: AdminUser | null;
   initialRoleIds?: string[];
   onSuccess?: (_value: string) => void;
+  scopeCenterId?: string | number | null;
   onContinue?: (_value: {
     selectedRoleIds: string[];
     addedRoles: string[];
@@ -41,6 +43,7 @@ type ConfirmRoleChangeProps = {
   removedRoles?: string[];
   roleIds?: Array<string | number>;
   userId?: string | number;
+  scopeCenterId?: string | number | null;
   onConfirm?: () => Promise<void> | void;
 };
 

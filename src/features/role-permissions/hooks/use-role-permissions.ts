@@ -5,19 +5,23 @@ import {
   updateRolePermissions,
   type BulkAssignRolePermissionsPayload,
 } from "../services/role-permissions.service";
+import type { RolesApiScopeContext } from "@/features/roles/services/roles.service";
 
-export function useRolePermissions(roleId: string | number) {
+export function useRolePermissions(
+  roleId: string | number,
+  context?: RolesApiScopeContext,
+) {
   const queryClient = useQueryClient();
 
   const roleQuery = useQuery({
-    queryKey: ["role-permissions", roleId],
-    queryFn: () => getRolePermissions(roleId),
+    queryKey: ["role-permissions", roleId, context?.centerId ?? null],
+    queryFn: () => getRolePermissions(roleId, context),
     enabled: Boolean(roleId),
   });
 
   const updateMutation = useMutation({
     mutationFn: (permissionIds: Array<number | string>) =>
-      updateRolePermissions(roleId, permissionIds),
+      updateRolePermissions(roleId, permissionIds, context),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["role-permissions", roleId],
@@ -34,12 +38,12 @@ export function useRolePermissions(roleId: string | number) {
   return { roleQuery, updateMutation };
 }
 
-export function useBulkAssignRolePermissions() {
+export function useBulkAssignRolePermissions(context?: RolesApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: BulkAssignRolePermissionsPayload) =>
-      bulkAssignRolePermissions(payload),
+      bulkAssignRolePermissions(payload, context),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["roles"] });
       queryClient.invalidateQueries({ queryKey: ["permissions"] });

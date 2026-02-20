@@ -133,7 +133,9 @@ export function StudentsTable({
     [page, perPage, query, centerId, courseId, statusFilter, centerTypeFilter],
   );
 
-  const { data, isLoading, isError, isFetching } = useStudents(params);
+  const { data, isLoading, isError, isFetching } = useStudents(params, {
+    centerId: centerId ?? null,
+  });
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const meta = data?.meta;

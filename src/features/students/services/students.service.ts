@@ -5,6 +5,26 @@ import type {
 } from "@/features/students/types/student";
 import type { PaginatedResponse } from "@/types/pagination";
 
+export type StudentsApiScopeContext = {
+  centerId?: string | number | null;
+};
+
+function normalizeScopeCenterId(value?: string | number | null): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function buildStudentsBasePath(centerId?: string | number | null) {
+  const normalized = normalizeScopeCenterId(centerId);
+  if (normalized == null) return "/api/v1/admin/students";
+  return `/api/v1/admin/centers/${normalized}/students`;
+}
+
 export type ListStudentsParams = {
   page?: number;
   per_page?: number;
@@ -34,21 +54,27 @@ type RawImportResponse = {
 
 export async function listStudents(
   params: ListStudentsParams,
+  context?: StudentsApiScopeContext,
 ): Promise<PaginatedResponse<Student>> {
-  const { data } = await http.get<RawStudentsResponse>(
-    "/api/v1/admin/students",
-    {
-      params: {
-        page: params.page,
-        per_page: params.per_page,
-        search: params.search || undefined,
-        center_id: params.center_id ?? undefined,
-        status: params.status ?? undefined,
-        course_id: params.course_id ?? undefined,
-        type: params.type ?? undefined,
-      },
-    },
+  const scopeCenterId = normalizeScopeCenterId(
+    context?.centerId ?? params.center_id ?? null,
   );
+  const basePath = buildStudentsBasePath(scopeCenterId);
+  const includeCenterFilter = scopeCenterId == null;
+
+  const { data } = await http.get<RawStudentsResponse>(basePath, {
+    params: {
+      page: params.page,
+      per_page: params.per_page,
+      search: params.search || undefined,
+      center_id: includeCenterFilter
+        ? (params.center_id ?? undefined)
+        : undefined,
+      status: params.status ?? undefined,
+      course_id: params.course_id ?? undefined,
+      type: params.type ?? undefined,
+    },
+  });
 
   return {
     items: data?.data ?? [],
@@ -62,9 +88,11 @@ export async function listStudents(
 
 export async function getStudent(
   studentId: string | number,
+  context?: StudentsApiScopeContext,
 ): Promise<Student | null> {
+  const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.get<RawStudentResponse>(
-    `/api/v1/admin/students/${studentId}`,
+    `${basePath}/${studentId}`,
   );
   return data?.data ?? null;
 }
@@ -93,27 +121,32 @@ export type UpdateStudentPayload = {
 
 export async function createStudent(
   payload: CreateStudentPayload,
+  context?: StudentsApiScopeContext,
 ): Promise<Student> {
-  const { data } = await http.post<RawStudentResponse>(
-    "/api/v1/admin/students",
-    payload,
-  );
+  const basePath = buildStudentsBasePath(context?.centerId);
+  const { data } = await http.post<RawStudentResponse>(basePath, payload);
   return data?.data ?? (data as unknown as Student);
 }
 
 export async function updateStudent(
   studentId: string | number,
   payload: UpdateStudentPayload,
+  context?: StudentsApiScopeContext,
 ): Promise<Student> {
+  const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.put<RawStudentResponse>(
-    `/api/v1/admin/students/${studentId}`,
+    `${basePath}/${studentId}`,
     payload,
   );
   return data?.data ?? (data as unknown as Student);
 }
 
-export async function deleteStudent(studentId: string | number): Promise<void> {
-  await http.delete(`/api/v1/admin/students/${studentId}`);
+export async function deleteStudent(
+  studentId: string | number,
+  context?: StudentsApiScopeContext,
+): Promise<void> {
+  const basePath = buildStudentsBasePath(context?.centerId);
+  await http.delete(`${basePath}/${studentId}`);
 }
 
 export type UpdateStudentStatusPayload = {
@@ -159,9 +192,11 @@ export type BulkStudentStatusResult = {
 export async function updateStudentStatus(
   studentId: string | number,
   payload: UpdateStudentStatusPayload,
+  context?: StudentsApiScopeContext,
 ): Promise<Student> {
+  const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.put<RawStudentResponse>(
-    `/api/v1/admin/students/${studentId}/status`,
+    `${basePath}/${studentId}/status`,
     payload,
   );
   return data?.data ?? (data as unknown as Student);
@@ -176,19 +211,20 @@ export async function bulkEnrollStudents(
 
 export async function bulkUpdateStudentStatus(
   payload: BulkStudentStatusPayload,
+  context?: StudentsApiScopeContext,
 ): Promise<BulkStudentStatusResult> {
-  const { data } = await http.post(
-    "/api/v1/admin/students/bulk-status",
-    payload,
-  );
+  const basePath = buildStudentsBasePath(context?.centerId);
+  const { data } = await http.post(`${basePath}/bulk-status`, payload);
   return (data?.data ?? data) as BulkStudentStatusResult;
 }
 
 export async function resetStudentDevice(
   studentId: string | number,
+  context?: StudentsApiScopeContext,
 ): Promise<Student> {
+  const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.post<RawStudentResponse>(
-    `/api/v1/admin/students/${studentId}/reset-device`,
+    `${basePath}/${studentId}/reset-device`,
   );
   return data?.data ?? (data as unknown as Student);
 }

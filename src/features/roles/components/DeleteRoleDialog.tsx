@@ -18,6 +18,7 @@ type DeleteRoleDialogProps = {
   onOpenChange: (_open: boolean) => void;
   role?: Role | null;
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getErrorMessage(error: unknown) {
@@ -34,9 +35,12 @@ export function DeleteRoleDialog({
   onOpenChange,
   role,
   onSuccess,
+  scopeCenterId,
 }: DeleteRoleDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { mutate: deleteRole, isPending } = useDeleteRole();
+  const { mutate: deleteRole, isPending } = useDeleteRole({
+    centerId: scopeCenterId ?? null,
+  });
   const { showToast } = useModal();
 
   const handleDelete = () => {

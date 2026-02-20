@@ -48,6 +48,7 @@ describe("students.service", () => {
         center_id: undefined,
         status: undefined,
         course_id: undefined,
+        type: undefined,
       },
     });
     expect(result).toEqual({

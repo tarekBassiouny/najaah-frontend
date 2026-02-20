@@ -18,6 +18,7 @@ type DeleteStudentDialogProps = {
   onOpenChange: (_isOpen: boolean) => void;
   student?: Student | null;
   onSuccess?: (_value: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getErrorMessage(error: unknown) {
@@ -34,9 +35,10 @@ export function DeleteStudentDialog({
   onOpenChange,
   student,
   onSuccess,
+  scopeCenterId,
 }: DeleteStudentDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const deleteMutation = useDeleteStudent();
+  const deleteMutation = useDeleteStudent({ centerId: scopeCenterId ?? null });
 
   const handleDelete = () => {
     if (!student) return;

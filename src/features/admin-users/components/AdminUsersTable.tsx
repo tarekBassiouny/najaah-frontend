@@ -157,6 +157,8 @@ const RoleIcon = () => (
 );
 
 type AdminUsersTableProps = {
+  scopeCenterId?: string | number | null;
+  showCenterFilter?: boolean;
   onEdit?: (_user: AdminUser) => void;
   onManageRoles?: (_user: AdminUser) => void;
   onAssignCenters?: (_user: AdminUser) => void;
@@ -168,6 +170,8 @@ type AdminUsersTableProps = {
 };
 
 export function AdminUsersTable({
+  scopeCenterId = null,
+  showCenterFilter = true,
   onEdit,
   onManageRoles,
   onAssignCenters,
@@ -178,6 +182,9 @@ export function AdminUsersTable({
   onBulkChangeStatus,
 }: AdminUsersTableProps) {
   const { centerId, centerSlug } = useTenant();
+  const effectiveScopeCenterId = scopeCenterId ?? null;
+  const selectedCenterFilter =
+    effectiveScopeCenterId == null ? (centerId ?? undefined) : undefined;
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -194,18 +201,23 @@ export function AdminUsersTable({
       page,
       per_page: perPage,
       search: query || undefined,
-      center_id: centerId ?? undefined,
+      center_id: selectedCenterFilter,
       status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
       role_id: roleFilter === ALL_ROLE_VALUE ? undefined : roleFilter,
     }),
-    [centerId, page, perPage, query, roleFilter, statusFilter],
+    [page, perPage, query, roleFilter, selectedCenterFilter, statusFilter],
   );
 
-  const { data, isLoading, isError, isFetching } = useAdminUsers(params);
-  const { data: rolesData, isLoading: isRolesLoading } = useRoles({
-    page: 1,
-    per_page: 20,
+  const { data, isLoading, isError, isFetching } = useAdminUsers(params, {
+    centerId: effectiveScopeCenterId,
   });
+  const { data: rolesData, isLoading: isRolesLoading } = useRoles(
+    {
+      page: 1,
+      per_page: 20,
+    },
+    { centerId: effectiveScopeCenterId },
+  );
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const meta = data?.meta;
@@ -217,12 +229,20 @@ export function AdminUsersTable({
     search.trim().length > 0 ||
     statusFilter !== ALL_STATUS_VALUE ||
     roleFilter !== ALL_ROLE_VALUE ||
-    (!centerSlug && centerId != null);
+    (showCenterFilter &&
+      effectiveScopeCenterId == null &&
+      !centerSlug &&
+      centerId != null);
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
     (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
     (roleFilter !== ALL_ROLE_VALUE ? 1 : 0) +
-    (!centerSlug && centerId != null ? 1 : 0);
+    (showCenterFilter &&
+    effectiveScopeCenterId == null &&
+    !centerSlug &&
+    centerId != null
+      ? 1
+      : 0);
   const selectedIds = useMemo(
     () => Object.keys(selectedUsers),
     [selectedUsers],
@@ -253,11 +273,19 @@ export function AdminUsersTable({
 
   useEffect(() => {
     setPage(1);
-  }, [centerId]);
+  }, [centerId, effectiveScopeCenterId]);
 
   useEffect(() => {
     setSelectedUsers({});
-  }, [centerId, page, perPage, query, roleFilter, statusFilter]);
+  }, [
+    centerId,
+    effectiveScopeCenterId,
+    page,
+    perPage,
+    query,
+    roleFilter,
+    statusFilter,
+  ]);
 
   const roleOptions = useMemo(() => rolesData?.items ?? [], [rolesData]);
 
@@ -306,7 +334,11 @@ export function AdminUsersTable({
           setQuery("");
           setStatusFilter(ALL_STATUS_VALUE);
           setRoleFilter(ALL_ROLE_VALUE);
-          if (!centerSlug) {
+          if (
+            showCenterFilter &&
+            effectiveScopeCenterId == null &&
+            !centerSlug
+          ) {
             setTenantState({ centerId: null, centerName: null });
           }
           setPage(1);
@@ -316,7 +348,11 @@ export function AdminUsersTable({
             {total} {total === 1 ? "admin user" : "admin users"}
           </>
         }
-        gridClassName="grid-cols-1 md:grid-cols-4"
+        gridClassName={
+          showCenterFilter && effectiveScopeCenterId == null
+            ? "grid-cols-1 md:grid-cols-4"
+            : "grid-cols-1 md:grid-cols-3"
+        }
       >
         <div className="relative">
           <svg
@@ -370,11 +406,13 @@ export function AdminUsersTable({
           </button>
         </div>
 
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={false}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-        />
+        {showCenterFilter && effectiveScopeCenterId == null ? (
+          <CenterPicker
+            className="w-full min-w-0"
+            hideWhenCenterScoped={false}
+            selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+          />
+        ) : null}
 
         <Select
           value={statusFilter}

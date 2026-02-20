@@ -17,6 +17,7 @@ type DeleteAdminUserDialogProps = {
   open: boolean;
   onOpenChange: (_open: boolean) => void;
   onSuccess?: (_value: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getErrorMessage(error: unknown) {
@@ -33,9 +34,12 @@ export function DeleteAdminUserDialog({
   open,
   onOpenChange,
   onSuccess,
+  scopeCenterId,
 }: DeleteAdminUserDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const deleteMutation = useDeleteAdminUser();
+  const deleteMutation = useDeleteAdminUser({
+    centerId: scopeCenterId ?? null,
+  });
   const handleDelete = () => {
     if (!user) return;
     setErrorMessage(null);

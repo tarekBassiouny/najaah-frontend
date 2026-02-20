@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { use, useMemo, useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
-import { useTenant } from "@/app/tenant-provider";
-import { setTenantState } from "@/lib/tenant-store";
+import { Button } from "@/components/ui/button";
 import { AnalyticsFiltersBar } from "@/features/analytics/components/AnalyticsFiltersBar";
 import { AnalyticsOverviewPanel } from "@/features/analytics/components/AnalyticsOverviewPanel";
 import { AnalyticsCoursesMediaPanel } from "@/features/analytics/components/AnalyticsCoursesMediaPanel";
@@ -15,6 +15,10 @@ import {
   useAnalyticsLearnersEnrollments,
   useAnalyticsOverview,
 } from "@/features/analytics/hooks/use-analytics";
+
+type PageProps = {
+  params: Promise<{ centerId: string }>;
+};
 
 function toDateInput(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -31,25 +35,20 @@ function getDefaultDateRange() {
   };
 }
 
-export default function AnalyticsPage() {
-  const tenant = useTenant();
-  const isPlatformAdmin = !tenant.centerSlug;
+export default function CenterAnalyticsPage({ params }: PageProps) {
+  const { centerId } = use(params);
   const [sessionDefaultRange] = useState(() => getDefaultDateRange());
 
   const [from, setFrom] = useState(sessionDefaultRange.from);
   const [to, setTo] = useState(sessionDefaultRange.to);
 
-  const analyticsContext = useMemo(
-    () => ({ centerId: tenant.centerId ?? null }),
-    [tenant.centerId],
-  );
+  const analyticsContext = useMemo(() => ({ centerId }), [centerId]);
   const filters = useMemo(
     () => ({
-      center_id: tenant.centerId ?? undefined,
       from,
       to,
     }),
-    [tenant.centerId, from, to],
+    [from, to],
   );
 
   const overviewQuery = useAnalyticsOverview(filters, analyticsContext);
@@ -69,20 +68,27 @@ export default function AnalyticsPage() {
   const resetFilters = () => {
     setFrom(sessionDefaultRange.from);
     setTo(sessionDefaultRange.to);
-    if (isPlatformAdmin) {
-      setTenantState({ centerId: null, centerName: null });
-    }
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Analytics"
-        description="Track performance across courses, learners, devices, and media."
+        description="Track performance across courses, learners, devices, and media for this center."
+        breadcrumbs={[
+          { label: "Centers", href: "/centers" },
+          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
+          { label: "Analytics" },
+        ]}
+        actions={
+          <Link href={`/centers/${centerId}`}>
+            <Button variant="outline">Back to Center</Button>
+          </Link>
+        }
       />
 
       <AnalyticsFiltersBar
-        isPlatformAdmin={isPlatformAdmin}
+        isPlatformAdmin={false}
         defaultFrom={sessionDefaultRange.from}
         defaultTo={sessionDefaultRange.to}
         from={from}

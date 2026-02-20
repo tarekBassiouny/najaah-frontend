@@ -30,8 +30,6 @@ type RouteCapabilityRule = {
 const CENTER_SCOPED_OMIT_TITLES = new Set([
   "Centers",
   "Agents",
-  "Roles",
-  "Roles & Permissions",
   "Permissions",
   "Audit Log",
   "Audit Logs",
@@ -42,12 +40,16 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   (_centerId: string) => string
 > = {
   "/dashboard": (centerId) => `/centers/${centerId}`,
+  "/analytics": (centerId) => `/centers/${centerId}/analytics`,
   "/categories": (centerId) => `/centers/${centerId}/categories`,
   "/courses": (centerId) => `/centers/${centerId}/courses`,
   "/surveys": (centerId) => `/centers/${centerId}/surveys`,
   "/videos": (centerId) => `/centers/${centerId}/videos`,
   "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
+  "/roles": (centerId) => `/centers/${centerId}/roles`,
+  "/admin-users": (centerId) => `/centers/${centerId}/admin-users`,
   "/students": (centerId) => `/centers/${centerId}/students`,
+  "/settings": (centerId) => `/centers/${centerId}/settings`,
   "/student-requests": (centerId) => `/centers/${centerId}/student-requests`,
   "/student-requests/enrollments": (centerId) =>
     `/centers/${centerId}/student-requests/enrollments`,
@@ -113,6 +115,14 @@ function normalizePath(pathname: string) {
     : pathname;
 }
 
+function extractCenterIdFromPath(pathname: string): string | null {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length < 2 || segments[0] !== "centers") return null;
+  const candidate = segments[1];
+  if (!candidate || candidate === "create" || candidate === "list") return null;
+  return candidate;
+}
+
 function matchRoute(pathname: string, pattern: string) {
   if (!pattern.includes("*")) {
     return pathname === pattern;
@@ -152,7 +162,10 @@ export function getRouteCapabilities(
   isPlatformAdmin: boolean,
 ): Capability[] | null {
   const normalized = normalizePath(pathname);
-  const sections = getSidebarSections(isPlatformAdmin);
+  const centerId = extractCenterIdFromPath(normalized);
+  const sections = centerId
+    ? getCenterScopedSections(getSidebarSections(false), centerId)
+    : getSidebarSections(isPlatformAdmin);
   const extras = isPlatformAdmin
     ? [...SHARED_ROUTE_EXTRAS, ...PLATFORM_ROUTE_EXTRAS]
     : SHARED_ROUTE_EXTRAS;

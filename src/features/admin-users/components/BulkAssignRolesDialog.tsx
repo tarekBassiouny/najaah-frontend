@@ -26,6 +26,7 @@ type BulkAssignRolesDialogProps = {
   onOpenChange: (_open: boolean) => void;
   users: AdminUser[];
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -55,6 +56,7 @@ export function BulkAssignRolesDialog({
   onOpenChange,
   users,
   onSuccess,
+  scopeCenterId,
 }: BulkAssignRolesDialogProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -64,7 +66,9 @@ export function BulkAssignRolesDialog({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkAssignRolesResult | null>(null);
 
-  const bulkAssignMutation = useBulkAssignAdminRoles();
+  const bulkAssignMutation = useBulkAssignAdminRoles({
+    centerId: scopeCenterId ?? null,
+  });
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -96,6 +100,7 @@ export function BulkAssignRolesDialog({
       per_page: ROLES_PAGE_SIZE,
       search: debouncedSearch || undefined,
     },
+    { centerId: scopeCenterId ?? null },
     {
       enabled: open,
       staleTime: 60_000,

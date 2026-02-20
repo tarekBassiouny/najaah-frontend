@@ -3,6 +3,7 @@ import type {
   RolePermission,
   RoleWithPermissions,
 } from "@/features/role-permissions/types/role-permission";
+import type { RolesApiScopeContext } from "@/features/roles/services/roles.service";
 
 type RawRoleResponse = {
   data?: RoleWithPermissions;
@@ -34,6 +35,28 @@ export type BulkAssignRolePermissionsResponse = {
   permission_ids: Array<string | number>;
 };
 
+function normalizeScopeCenterId(value?: string | number | null): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function buildRolesBasePath(centerId?: string | number | null) {
+  const normalized = normalizeScopeCenterId(centerId);
+  if (normalized == null) return "/api/v1/admin/roles";
+  return `/api/v1/admin/centers/${normalized}/roles`;
+}
+
+function buildPermissionsBasePath(centerId?: string | number | null) {
+  const normalized = normalizeScopeCenterId(centerId);
+  if (normalized == null) return "/api/v1/admin/permissions";
+  return `/api/v1/admin/centers/${normalized}/permissions`;
+}
+
 function normalizePermissions(payload: RawPermissionsResponse | undefined) {
   const raw = payload?.data;
 
@@ -50,9 +73,11 @@ function normalizePermissions(payload: RawPermissionsResponse | undefined) {
 
 export async function getRolePermissions(
   roleId: string | number,
+  context?: RolesApiScopeContext,
 ): Promise<RolePermissionsResponse> {
+  const permissionsBasePath = buildPermissionsBasePath(context?.centerId);
   const permissionsResponse = await http.get<RawPermissionsResponse>(
-    "/api/v1/admin/permissions",
+    permissionsBasePath,
     {
       params: {
         page: 1,
@@ -61,9 +86,8 @@ export async function getRolePermissions(
     },
   );
 
-  const { data } = await http.get<RawRoleResponse>(
-    `/api/v1/admin/roles/${roleId}`,
-  );
+  const basePath = buildRolesBasePath(context?.centerId);
+  const { data } = await http.get<RawRoleResponse>(`${basePath}/${roleId}`);
 
   const role = data?.data ?? null;
   const permissions = normalizePermissions(permissionsResponse.data);
@@ -79,8 +103,10 @@ export async function getRolePermissions(
 export async function updateRolePermissions(
   roleId: string | number,
   permissionIds: Array<number | string>,
+  context?: RolesApiScopeContext,
 ) {
-  const { data } = await http.put(`/api/v1/admin/roles/${roleId}/permissions`, {
+  const basePath = buildRolesBasePath(context?.centerId);
+  const { data } = await http.put(`${basePath}/${roleId}/permissions`, {
     permission_ids: permissionIds,
   });
 
@@ -89,10 +115,12 @@ export async function updateRolePermissions(
 
 export async function bulkAssignRolePermissions(
   payload: BulkAssignRolePermissionsPayload,
+  context?: RolesApiScopeContext,
 ): Promise<BulkAssignRolePermissionsResponse> {
+  const basePath = buildRolesBasePath(context?.centerId);
   const { data } = await http.post<{
     data?: BulkAssignRolePermissionsResponse;
-  }>("/api/v1/admin/roles/permissions/bulk", payload);
+  }>(`${basePath}/permissions/bulk`, payload);
 
   return (
     data?.data ?? {

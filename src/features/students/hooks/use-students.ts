@@ -16,13 +16,15 @@ import {
   type ListStudentsParams,
   type UpdateStudentPayload,
   type BulkStudentStatusPayload,
+  type StudentsApiScopeContext,
 } from "../services/students.service";
 import type { PaginatedResponse } from "@/types/pagination";
 import type { Student } from "@/features/students/types/student";
 
 export const studentKeys = {
   all: ["students"] as const,
-  list: (params: ListStudentsParams) => [...studentKeys.all, params] as const,
+  list: (params: ListStudentsParams, context?: StudentsApiScopeContext) =>
+    [...studentKeys.all, params, context?.centerId ?? null] as const,
 };
 
 type UseStudentsOptions = Omit<
@@ -32,28 +34,30 @@ type UseStudentsOptions = Omit<
 
 export function useStudents(
   params: ListStudentsParams,
+  context?: StudentsApiScopeContext,
   options?: UseStudentsOptions,
 ) {
   return useQuery({
-    queryKey: studentKeys.list(params),
-    queryFn: () => listStudents(params),
+    queryKey: studentKeys.list(params, context),
+    queryFn: () => listStudents(params, context),
     placeholderData: (previous) => previous,
     ...options,
   });
 }
 
-export function useCreateStudent() {
+export function useCreateStudent(context?: StudentsApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateStudentPayload) => createStudent(payload),
+    mutationFn: (payload: CreateStudentPayload) =>
+      createStudent(payload, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.all });
     },
   });
 }
 
-export function useUpdateStudent() {
+export function useUpdateStudent(context?: StudentsApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -63,18 +67,19 @@ export function useUpdateStudent() {
     }: {
       studentId: string | number;
       payload: UpdateStudentPayload;
-    }) => updateStudent(studentId, payload),
+    }) => updateStudent(studentId, payload, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.all });
     },
   });
 }
 
-export function useDeleteStudent() {
+export function useDeleteStudent(context?: StudentsApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (studentId: string | number) => deleteStudent(studentId),
+    mutationFn: (studentId: string | number) =>
+      deleteStudent(studentId, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.all });
     },
@@ -88,12 +93,12 @@ export function useBulkEnrollStudents() {
   });
 }
 
-export function useBulkUpdateStudentStatus() {
+export function useBulkUpdateStudentStatus(context?: StudentsApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: BulkStudentStatusPayload) =>
-      bulkUpdateStudentStatus(payload),
+      bulkUpdateStudentStatus(payload, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.all });
     },

@@ -235,12 +235,15 @@ export function AuditLogsTable() {
     queryKey: ["audit-filter-users", centerId ?? "all", debouncedUserSearch],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      listAdminUsers({
-        page: pageParam,
-        per_page: FILTER_LIST_PAGE_SIZE,
-        center_id: centerId ?? undefined,
-        search: debouncedUserSearch || undefined,
-      }),
+      listAdminUsers(
+        {
+          page: pageParam,
+          per_page: FILTER_LIST_PAGE_SIZE,
+          center_id: centerId ?? undefined,
+          search: debouncedUserSearch || undefined,
+        },
+        { centerId: centerId ?? null },
+      ),
     getNextPageParam: (lastPage) => {
       const page = Number(lastPage.meta?.page ?? 1);
       const perPage = Number(lastPage.meta?.per_page ?? FILTER_LIST_PAGE_SIZE);

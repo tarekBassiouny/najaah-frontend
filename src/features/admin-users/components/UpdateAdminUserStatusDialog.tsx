@@ -26,6 +26,7 @@ type UpdateAdminUserStatusDialogProps = {
   onOpenChange: (_open: boolean) => void;
   user?: AdminUser | null;
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -75,8 +76,11 @@ export function UpdateAdminUserStatusDialog({
   onOpenChange,
   user,
   onSuccess,
+  scopeCenterId,
 }: UpdateAdminUserStatusDialogProps) {
-  const mutation = useUpdateAdminUserStatus();
+  const mutation = useUpdateAdminUserStatus({
+    centerId: scopeCenterId ?? null,
+  });
   const [status, setStatus] = useState<"0" | "1" | "2">("1");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

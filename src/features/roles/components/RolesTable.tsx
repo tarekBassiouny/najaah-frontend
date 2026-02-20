@@ -41,6 +41,7 @@ const EMPTY_ROLES: Role[] = [];
 const DESCRIPTION_PREVIEW_LENGTH = 90;
 
 type RolesTableProps = {
+  scopeCenterId?: string | number | null;
   onEdit?: (_role: Role) => void;
   canManageWrite?: boolean;
 };
@@ -77,6 +78,7 @@ function getDescriptionPreview(description: string): string {
 }
 
 export function RolesTable({
+  scopeCenterId = null,
   onEdit,
   canManageWrite = false,
 }: RolesTableProps) {
@@ -107,7 +109,9 @@ export function RolesTable({
     [page, perPage, query],
   );
 
-  const { data, isLoading, isError, isFetching } = useRoles(params);
+  const { data, isLoading, isError, isFetching } = useRoles(params, {
+    centerId: scopeCenterId,
+  });
 
   const items = data?.items ?? EMPTY_ROLES;
   const meta = data?.meta;
@@ -557,6 +561,7 @@ export function RolesTable({
             <div className="max-h-[70vh] overflow-y-auto">
               <RolePermissionsForm
                 roleId={String(permissionsRole.id)}
+                scopeCenterId={scopeCenterId}
                 readOnly={!canManageWrite}
                 onApplied={({ added, removed }) => {
                   setPermissionsRole(null);
@@ -582,6 +587,7 @@ export function RolesTable({
             clearSelection();
           }
         }}
+        scopeCenterId={scopeCenterId}
         roles={selectedRolesList}
         onSuccess={(message) => {
           setPermissionsRole(null);
@@ -597,6 +603,7 @@ export function RolesTable({
         onOpenChange={(open) => {
           if (!open) setDeletingRole(null);
         }}
+        scopeCenterId={scopeCenterId}
         role={
           deletingRole
             ? { id: deletingRole.id, name: deletingRole.name ?? null }

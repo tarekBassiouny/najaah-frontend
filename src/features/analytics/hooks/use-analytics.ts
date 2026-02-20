@@ -7,6 +7,7 @@ import type {
   AnalyticsOverview,
 } from "@/features/analytics/types/analytics";
 import {
+  AnalyticsApiScopeContext,
   getAnalyticsCoursesMedia,
   getAnalyticsDevicesRequests,
   getAnalyticsLearnersEnrollments,
@@ -35,44 +36,63 @@ type UseDevicesRequestsOptions = Omit<
 
 export function useAnalyticsOverview(
   filters?: AnalyticsFilters,
+  context?: AnalyticsApiScopeContext,
   options?: UseOverviewOptions,
 ) {
   return useQuery({
-    queryKey: ["analytics", "overview", filters],
-    queryFn: () => getAnalyticsOverview(filters),
+    queryKey: ["analytics", "overview", filters, context?.centerId ?? null],
+    queryFn: () => getAnalyticsOverview(filters, context),
     ...options,
   });
 }
 
 export function useAnalyticsCoursesMedia(
   filters?: AnalyticsFilters,
+  context?: AnalyticsApiScopeContext,
   options?: UseCoursesMediaOptions,
 ) {
   return useQuery({
-    queryKey: ["analytics", "courses-media", filters],
-    queryFn: () => getAnalyticsCoursesMedia(filters),
+    queryKey: [
+      "analytics",
+      "courses-media",
+      filters,
+      context?.centerId ?? null,
+    ],
+    queryFn: () => getAnalyticsCoursesMedia(filters, context),
     ...options,
   });
 }
 
 export function useAnalyticsLearnersEnrollments(
   filters?: AnalyticsFilters,
+  context?: AnalyticsApiScopeContext,
   options?: UseLearnersEnrollmentsOptions,
 ) {
   return useQuery({
-    queryKey: ["analytics", "learners-enrollments", filters],
-    queryFn: () => getAnalyticsLearnersEnrollments(filters),
+    queryKey: [
+      "analytics",
+      "learners-enrollments",
+      filters,
+      context?.centerId ?? null,
+    ],
+    queryFn: () => getAnalyticsLearnersEnrollments(filters, context),
     ...options,
   });
 }
 
 export function useAnalyticsDevicesRequests(
   filters?: AnalyticsFilters,
+  context?: AnalyticsApiScopeContext,
   options?: UseDevicesRequestsOptions,
 ) {
   return useQuery({
-    queryKey: ["analytics", "devices-requests", filters],
-    queryFn: () => getAnalyticsDevicesRequests(filters),
+    queryKey: [
+      "analytics",
+      "devices-requests",
+      filters,
+      context?.centerId ?? null,
+    ],
+    queryFn: () => getAnalyticsDevicesRequests(filters, context),
     ...options,
   });
 }

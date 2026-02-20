@@ -25,6 +25,7 @@ type ConfirmRoleChangeProps = {
   removedRoles?: string[];
   roleIds?: Array<string | number>;
   userId?: string | number;
+  scopeCenterId?: string | number | null;
   onConfirm?: () => Promise<void> | void;
   errorMessage?: string | null;
 };
@@ -146,7 +147,9 @@ function getErrorMessage(error: unknown) {
 
 function ConfirmRoleChangeContainer(props: ConfirmRoleChangeProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const syncMutation = useSyncAdminUserRoles();
+  const syncMutation = useSyncAdminUserRoles({
+    centerId: props.scopeCenterId ?? null,
+  });
   const handleConfirm = async () => {
     if (!props.userId) return;
     setErrorMessage(null);
@@ -249,6 +252,10 @@ export function ModalHost() {
               (modalProps as { onCreated?: (_user: unknown) => void })
                 ?.onCreated
             }
+            scopeCenterId={
+              (modalProps as { scopeCenterId?: string | number | null })
+                ?.scopeCenterId
+            }
           />
         );
       case "assignRoles":
@@ -257,6 +264,10 @@ export function ModalHost() {
             user={(modalProps as { user?: unknown })?.user as any}
             initialRoleIds={
               (modalProps as { initialRoleIds?: string[] })?.initialRoleIds
+            }
+            scopeCenterId={
+              (modalProps as { scopeCenterId?: string | number | null })
+                ?.scopeCenterId
             }
             onContinue={
               (
@@ -285,6 +296,10 @@ export function ModalHost() {
               (modalProps as { roleIds?: Array<string | number> })?.roleIds
             }
             userId={(modalProps as { userId?: string | number })?.userId}
+            scopeCenterId={
+              (modalProps as { scopeCenterId?: string | number | null })
+                ?.scopeCenterId
+            }
           />
         );
       default:

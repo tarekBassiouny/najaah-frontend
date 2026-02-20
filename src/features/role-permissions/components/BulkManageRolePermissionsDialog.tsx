@@ -27,6 +27,7 @@ type BulkManageRolePermissionsDialogProps = {
   onOpenChange: (_open: boolean) => void;
   roles: Role[];
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 type BackendErrorData = {
@@ -79,6 +80,7 @@ export function BulkManageRolePermissionsDialog({
   onOpenChange,
   roles,
   onSuccess,
+  scopeCenterId,
 }: BulkManageRolePermissionsDialogProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -97,12 +99,15 @@ export function BulkManageRolePermissionsDialog({
       per_page: PERMISSION_PAGE_SIZE,
       search: debouncedSearch || undefined,
     },
+    { centerId: scopeCenterId ?? null },
     {
       enabled: open,
       staleTime: 60_000,
     },
   );
-  const bulkMutation = useBulkAssignRolePermissions();
+  const bulkMutation = useBulkAssignRolePermissions({
+    centerId: scopeCenterId ?? null,
+  });
 
   useEffect(() => {
     const timeout = setTimeout(() => {

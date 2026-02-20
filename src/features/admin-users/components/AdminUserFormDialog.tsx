@@ -83,6 +83,7 @@ type AdminUserFormDialogProps = {
   onSuccess?: (_value: string) => void;
   onClose: () => void;
   onCreated?: (_user: AdminUser) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getFirstValidationMessage(details: unknown): string | null {
@@ -144,18 +145,24 @@ export function AdminUserFormDialog({
   onSuccess,
   onClose,
   onCreated,
+  scopeCenterId,
 }: AdminUserFormDialogProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditMode = Boolean(user);
   const { centerSlug, centerId: tenantCenterId, centerName } = useTenant();
-  const isCenterScoped = Boolean(centerSlug);
+  const isCenterScoped = Boolean(centerSlug) || scopeCenterId != null;
+  const effectiveScopeCenterId = scopeCenterId ?? tenantCenterId ?? null;
 
   const displayName = user?.name ? String(user.name) : "Admin User";
   const displayEmail = user?.email ? String(user.email) : "new.admin@company";
 
-  const createMutation = useCreateAdminUser();
-  const updateMutation = useUpdateAdminUser();
+  const createMutation = useCreateAdminUser({
+    centerId: effectiveScopeCenterId,
+  });
+  const updateMutation = useUpdateAdminUser({
+    centerId: effectiveScopeCenterId,
+  });
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const form = useForm<FormValues>({
@@ -182,8 +189,8 @@ export function AdminUserFormDialog({
       centerId:
         user?.center_id != null
           ? String(user.center_id)
-          : tenantCenterId != null
-            ? String(tenantCenterId)
+          : effectiveScopeCenterId != null
+            ? String(effectiveScopeCenterId)
             : "",
       status:
         user?.status != null && ["0", "1", "2"].includes(String(user.status))
@@ -194,7 +201,7 @@ export function AdminUserFormDialog({
               ? "2"
               : "1",
     });
-  }, [form, tenantCenterId, user]);
+  }, [effectiveScopeCenterId, form, user]);
 
   const onSubmit = (values: FormValues) => {
     setFormError(null);
@@ -231,8 +238,8 @@ export function AdminUserFormDialog({
 
     const selectedCenterId = values.centerId?.trim() || "";
     const resolvedCenterId = isCenterScoped
-      ? tenantCenterId != null
-        ? String(tenantCenterId)
+      ? effectiveScopeCenterId != null
+        ? String(effectiveScopeCenterId)
         : selectedCenterId || null
       : selectedCenterId || null;
 

@@ -29,6 +29,7 @@ type BulkUpdateAdminUserStatusDialogProps = {
   onOpenChange: (_open: boolean) => void;
   users: AdminUser[];
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -60,8 +61,11 @@ export function BulkUpdateAdminUserStatusDialog({
   onOpenChange,
   users,
   onSuccess,
+  scopeCenterId,
 }: BulkUpdateAdminUserStatusDialogProps) {
-  const mutation = useBulkUpdateAdminUserStatus();
+  const mutation = useBulkUpdateAdminUserStatus({
+    centerId: scopeCenterId ?? null,
+  });
   const [status, setStatus] = useState<"0" | "1" | "2">("1");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkUpdateAdminUserStatusResult | null>(

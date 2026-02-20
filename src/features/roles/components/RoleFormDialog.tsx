@@ -58,6 +58,7 @@ type RoleFormDialogProps = {
   onOpenChange: (_open: boolean) => void;
   role?: Role | null;
   onSuccess?: (_message: string) => void;
+  scopeCenterId?: string | number | null;
 };
 
 type BackendErrorData = {
@@ -175,11 +176,12 @@ export function RoleFormDialog({
   onOpenChange,
   role,
   onSuccess,
+  scopeCenterId,
 }: RoleFormDialogProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(role);
-  const createMutation = useCreateRole();
-  const updateMutation = useUpdateRole();
+  const createMutation = useCreateRole({ centerId: scopeCenterId ?? null });
+  const updateMutation = useUpdateRole({ centerId: scopeCenterId ?? null });
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const form = useForm<FormValues>({

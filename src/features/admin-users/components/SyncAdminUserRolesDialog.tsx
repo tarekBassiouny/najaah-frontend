@@ -24,6 +24,7 @@ function getInitials(value: string) {
 type SyncAdminUserRolesDialogProps = {
   user?: AdminUser | null;
   initialRoleIds?: string[];
+  scopeCenterId?: string | number | null;
   onContinue?: (_value: {
     selectedRoleIds: string[];
     addedRoles: string[];
@@ -35,6 +36,7 @@ type SyncAdminUserRolesDialogProps = {
 export function SyncAdminUserRolesDialog({
   user,
   initialRoleIds,
+  scopeCenterId,
   onContinue,
   onClose,
 }: SyncAdminUserRolesDialogProps) {
@@ -47,6 +49,7 @@ export function SyncAdminUserRolesDialog({
 
   const { data: rolesData, isLoading: isRolesLoading } = useRoles(
     { page: 1, per_page: 20 },
+    { centerId: scopeCenterId ?? null },
     { staleTime: 60_000 },
   );
   const roleOptions = useMemo(() => rolesData?.items ?? [], [rolesData]);

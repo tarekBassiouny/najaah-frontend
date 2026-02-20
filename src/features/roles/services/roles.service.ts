@@ -8,6 +8,26 @@ export type ListRolesParams = {
   search?: string;
 };
 
+export type RolesApiScopeContext = {
+  centerId?: string | number | null;
+};
+
+function normalizeScopeCenterId(value?: string | number | null): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function buildRolesBasePath(centerId?: string | number | null) {
+  const normalized = normalizeScopeCenterId(centerId);
+  if (normalized == null) return "/api/v1/admin/roles";
+  return `/api/v1/admin/centers/${normalized}/roles`;
+}
+
 type RawRolesResponse = {
   data?: Role[];
   meta?: {
@@ -23,8 +43,10 @@ type RawRoleResponse = {
 
 export async function listRoles(
   params: ListRolesParams,
+  context?: RolesApiScopeContext,
 ): Promise<PaginatedResponse<Role>> {
-  const { data } = await http.get<RawRolesResponse>("/api/v1/admin/roles", {
+  const basePath = buildRolesBasePath(context?.centerId);
+  const { data } = await http.get<RawRolesResponse>(basePath, {
     params: {
       page: params.page,
       per_page: params.per_page,
@@ -61,34 +83,43 @@ export type UpdateRolePermissionsPayload = {
   permission_ids: (string | number)[];
 };
 
-export async function getRole(roleId: string | number): Promise<Role | null> {
-  const { data } = await http.get<RawRoleResponse>(
-    `/api/v1/admin/roles/${roleId}`,
-  );
+export async function getRole(
+  roleId: string | number,
+  context?: RolesApiScopeContext,
+): Promise<Role | null> {
+  const basePath = buildRolesBasePath(context?.centerId);
+  const { data } = await http.get<RawRoleResponse>(`${basePath}/${roleId}`);
   return data?.data ?? null;
 }
 
-export async function createRole(payload: CreateRolePayload): Promise<Role> {
-  const { data } = await http.post<RawRoleResponse>(
-    "/api/v1/admin/roles",
-    payload,
-  );
+export async function createRole(
+  payload: CreateRolePayload,
+  context?: RolesApiScopeContext,
+): Promise<Role> {
+  const basePath = buildRolesBasePath(context?.centerId);
+  const { data } = await http.post<RawRoleResponse>(basePath, payload);
   return data?.data ?? (data as unknown as Role);
 }
 
 export async function updateRole(
   roleId: string | number,
   payload: UpdateRolePayload,
+  context?: RolesApiScopeContext,
 ): Promise<Role> {
+  const basePath = buildRolesBasePath(context?.centerId);
   const { data } = await http.put<RawRoleResponse>(
-    `/api/v1/admin/roles/${roleId}`,
+    `${basePath}/${roleId}`,
     payload,
   );
   return data?.data ?? (data as unknown as Role);
 }
 
-export async function deleteRole(roleId: string | number): Promise<void> {
-  await http.delete(`/api/v1/admin/roles/${roleId}`);
+export async function deleteRole(
+  roleId: string | number,
+  context?: RolesApiScopeContext,
+): Promise<void> {
+  const basePath = buildRolesBasePath(context?.centerId);
+  await http.delete(`${basePath}/${roleId}`);
 }
 
 type RawRolePermissionsResponse = {
@@ -97,9 +128,11 @@ type RawRolePermissionsResponse = {
 
 export async function getRolePermissions(
   roleId: string | number,
+  context?: RolesApiScopeContext,
 ): Promise<RolePermission[]> {
+  const basePath = buildRolesBasePath(context?.centerId);
   const { data } = await http.get<RawRolePermissionsResponse>(
-    `/api/v1/admin/roles/${roleId}/permissions`,
+    `${basePath}/${roleId}/permissions`,
   );
   return data?.data ?? [];
 }
@@ -107,9 +140,11 @@ export async function getRolePermissions(
 export async function updateRolePermissions(
   roleId: string | number,
   payload: UpdateRolePermissionsPayload,
+  context?: RolesApiScopeContext,
 ): Promise<RolePermission[]> {
+  const basePath = buildRolesBasePath(context?.centerId);
   const { data } = await http.put<RawRolePermissionsResponse>(
-    `/api/v1/admin/roles/${roleId}/permissions`,
+    `${basePath}/${roleId}/permissions`,
     payload,
   );
   return data?.data ?? [];

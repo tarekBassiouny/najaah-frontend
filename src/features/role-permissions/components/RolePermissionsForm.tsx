@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 
 type RolePermissionsFormProps = {
   roleId: string;
+  scopeCenterId?: string | number | null;
   readOnly?: boolean;
   onApplied?: (_summary: { added: number; removed: number }) => void;
 };
@@ -222,10 +223,13 @@ function getDescriptionPreview(value?: string | null): string {
 
 export function RolePermissionsForm({
   roleId,
+  scopeCenterId,
   readOnly = false,
   onApplied,
 }: RolePermissionsFormProps) {
-  const { roleQuery, updateMutation } = useRolePermissions(roleId);
+  const { roleQuery, updateMutation } = useRolePermissions(roleId, {
+    centerId: scopeCenterId ?? null,
+  });
   const { data, isLoading, isError, error } = roleQuery;
 
   const permissions = useMemo(() => data?.permissions ?? [], [data]);

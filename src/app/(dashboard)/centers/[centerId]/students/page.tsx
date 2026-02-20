@@ -33,8 +33,8 @@ export default function CenterStudentsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Center Students"
-        description="Manage students for this center"
+        title="Students"
+        description="Manage students for this center, with optional center assignment"
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
@@ -48,7 +48,7 @@ export default function CenterStudentsPage({ params }: PageProps) {
                 setIsFormOpen(true);
               }}
             >
-              Create Student
+              Add Student
             </Button>
             <Link href={`/centers/${centerId}`}>
               <Button variant="outline">Back to Center</Button>
@@ -85,6 +85,7 @@ export default function CenterStudentsPage({ params }: PageProps) {
           if (!open) setEditingStudent(null);
         }}
         centerId={centerId}
+        scopeCenterId={centerId}
         student={editingStudent}
         onCreated={(student) => {
           setCreatedStudent(student);
@@ -97,6 +98,7 @@ export default function CenterStudentsPage({ params }: PageProps) {
           if (!open) setDeletingStudent(null);
         }}
         student={deletingStudent}
+        scopeCenterId={centerId}
       />
 
       <StudentEnrollmentPromptDialog
@@ -146,6 +148,7 @@ export default function CenterStudentsPage({ params }: PageProps) {
           if (!open) setBulkStatusStudents([]);
         }}
         students={bulkStatusStudents}
+        scopeCenterId={centerId}
       />
     </div>
   );

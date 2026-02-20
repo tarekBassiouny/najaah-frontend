@@ -5,6 +5,7 @@ import {
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import {
+  AdminUsersApiScopeContext,
   bulkAssignAdminCenters,
   bulkAssignAdminRoles,
   bulkUpdateAdminUserStatus,
@@ -35,11 +36,12 @@ type UseAdminUsersOptions = Omit<
 
 export function useAdminUsers(
   params: ListAdminUsersParams,
+  context?: AdminUsersApiScopeContext,
   options?: UseAdminUsersOptions,
 ) {
   return useQuery({
-    queryKey: ["admin-users", params],
-    queryFn: () => listAdminUsers(params),
+    queryKey: ["admin-users", params, context?.centerId ?? null],
+    queryFn: () => listAdminUsers(params, context),
     placeholderData: (previous) => previous,
     ...options,
   });
@@ -52,28 +54,30 @@ type UseAdminUserOptions = Omit<
 
 export function useAdminUser(
   userId: string | number | undefined,
+  context?: AdminUsersApiScopeContext,
   options?: UseAdminUserOptions,
 ) {
   return useQuery({
-    queryKey: ["admin-user", userId],
-    queryFn: () => getAdminUser(userId!),
+    queryKey: ["admin-user", userId, context?.centerId ?? null],
+    queryFn: () => getAdminUser(userId!, context),
     enabled: !!userId,
     ...options,
   });
 }
 
-export function useCreateAdminUser() {
+export function useCreateAdminUser(context?: AdminUsersApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateAdminUserPayload) => createAdminUser(payload),
+    mutationFn: (payload: CreateAdminUserPayload) =>
+      createAdminUser(payload, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });
 }
 
-export function useUpdateAdminUser() {
+export function useUpdateAdminUser(context?: AdminUsersApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -83,7 +87,7 @@ export function useUpdateAdminUser() {
     }: {
       userId: string | number;
       payload: UpdateAdminUserPayload;
-    }) => updateAdminUser(userId, payload),
+    }) => updateAdminUser(userId, payload, context),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
@@ -91,18 +95,18 @@ export function useUpdateAdminUser() {
   });
 }
 
-export function useDeleteAdminUser() {
+export function useDeleteAdminUser(context?: AdminUsersApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: string | number) => deleteAdminUser(userId),
+    mutationFn: (userId: string | number) => deleteAdminUser(userId, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });
 }
 
-export function useSyncAdminUserRoles() {
+export function useSyncAdminUserRoles(context?: AdminUsersApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -112,7 +116,7 @@ export function useSyncAdminUserRoles() {
     }: {
       userId: string | number;
       roleIds: Array<string | number>;
-    }) => syncAdminUserRoles(userId, { role_ids: roleIds }),
+    }) => syncAdminUserRoles(userId, { role_ids: roleIds }, context),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -120,12 +124,12 @@ export function useSyncAdminUserRoles() {
   });
 }
 
-export function useBulkAssignAdminRoles() {
+export function useBulkAssignAdminRoles(context?: AdminUsersApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: BulkAssignRolesPayload) =>
-      bulkAssignAdminRoles(payload),
+      bulkAssignAdminRoles(payload, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
@@ -144,7 +148,7 @@ export function useBulkAssignAdminCenters() {
   });
 }
 
-export function useUpdateAdminUserStatus() {
+export function useUpdateAdminUserStatus(context?: AdminUsersApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -154,7 +158,7 @@ export function useUpdateAdminUserStatus() {
     }: {
       userId: string | number;
       payload: UpdateAdminUserStatusPayload;
-    }) => updateAdminUserStatus(userId, payload),
+    }) => updateAdminUserStatus(userId, payload, context),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
@@ -162,12 +166,14 @@ export function useUpdateAdminUserStatus() {
   });
 }
 
-export function useBulkUpdateAdminUserStatus() {
+export function useBulkUpdateAdminUserStatus(
+  context?: AdminUsersApiScopeContext,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: BulkUpdateAdminUserStatusPayload) =>
-      bulkUpdateAdminUserStatus(payload),
+      bulkUpdateAdminUserStatus(payload, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },

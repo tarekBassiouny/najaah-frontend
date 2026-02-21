@@ -2,6 +2,10 @@ import { http } from "@/lib/http";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import type { PaginatedResponse } from "@/types/pagination";
 
+export type InstructorsApiScopeContext = {
+  centerId?: string | number | null;
+};
+
 export type ListInstructorsParams = {
   page?: number;
   per_page?: number;
@@ -20,22 +24,57 @@ type RawInstructorsResponse = {
   };
 };
 
+function normalizeScopeCenterId(value?: string | number | null): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function requireCenterId(
+  contextCenterId?: string | number | null,
+  paramsCenterId?: string | number | null,
+) {
+  const normalized = normalizeScopeCenterId(contextCenterId ?? paramsCenterId);
+
+  if (normalized == null) {
+    throw new Error("Center selection is required for instructor requests.");
+  }
+
+  return normalized;
+}
+
+function buildInstructorsBasePath(
+  centerId: string | number | null | undefined,
+) {
+  const normalized = normalizeScopeCenterId(centerId);
+
+  if (normalized == null) {
+    throw new Error("Center selection is required for instructor requests.");
+  }
+
+  return `/api/v1/admin/centers/${normalized}/instructors`;
+}
+
 export async function listInstructors(
   params: ListInstructorsParams,
+  context?: InstructorsApiScopeContext,
 ): Promise<PaginatedResponse<Instructor>> {
-  const { data } = await http.get<RawInstructorsResponse>(
-    "/api/v1/admin/instructors",
-    {
-      params: {
-        page: params.page,
-        per_page: params.per_page,
-        search: params.search || undefined,
-        center_id: params.center_id ?? undefined,
-        course_id: params.course_id ?? undefined,
-        status: params.status || undefined,
-      },
+  const scopeCenterId = requireCenterId(context?.centerId, params.center_id);
+  const basePath = buildInstructorsBasePath(scopeCenterId);
+
+  const { data } = await http.get<RawInstructorsResponse>(basePath, {
+    params: {
+      page: params.page,
+      per_page: params.per_page,
+      search: params.search || undefined,
+      course_id: params.course_id ?? undefined,
+      status: params.status || undefined,
     },
-  );
+  });
 
   return {
     items: data?.data ?? [],
@@ -53,15 +92,16 @@ type RawInstructorResponse = {
 
 export async function getInstructor(
   instructorId: string | number,
+  context?: InstructorsApiScopeContext,
 ): Promise<Instructor | null> {
+  const basePath = buildInstructorsBasePath(context?.centerId);
   const { data } = await http.get<RawInstructorResponse>(
-    `/api/v1/admin/instructors/${instructorId}`,
+    `${basePath}/${instructorId}`,
   );
   return data?.data ?? null;
 }
 
 export type CreateInstructorPayload = {
-  center_id?: string | number;
   name_translations: Record<string, string>;
   bio_translations?: Record<string, string>;
   title_translations?: Record<string, string>;
@@ -77,10 +117,6 @@ function buildInstructorFormData(
   avatar?: File | Blob,
 ): FormData {
   const formData = new FormData();
-
-  if (payload.center_id) {
-    formData.append("center_id", String(payload.center_id));
-  }
 
   if (payload.name_translations) {
     Object.entries(payload.name_translations).forEach(([lang, value]) => {
@@ -131,28 +167,30 @@ function buildInstructorFormData(
 
 export async function createInstructor(
   payload: CreateInstructorPayload,
+  context?: InstructorsApiScopeContext,
   avatar?: File | Blob,
 ): Promise<Instructor> {
   const formData = buildInstructorFormData(payload, avatar);
+  const basePath = buildInstructorsBasePath(context?.centerId);
 
-  const { data } = await http.post<RawInstructorResponse>(
-    "/api/v1/admin/instructors",
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } },
-  );
+  const { data } = await http.post<RawInstructorResponse>(basePath, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data?.data ?? (data as unknown as Instructor);
 }
 
 export async function updateInstructor(
   instructorId: string | number,
   payload: CreateInstructorPayload,
+  context?: InstructorsApiScopeContext,
   avatar?: File | Blob,
 ): Promise<Instructor> {
   const formData = buildInstructorFormData(payload, avatar);
   formData.append("_method", "PUT");
+  const basePath = buildInstructorsBasePath(context?.centerId);
 
   const { data } = await http.post<RawInstructorResponse>(
-    `/api/v1/admin/instructors/${instructorId}`,
+    `${basePath}/${instructorId}`,
     formData,
     { headers: { "Content-Type": "multipart/form-data" } },
   );
@@ -161,6 +199,8 @@ export async function updateInstructor(
 
 export async function deleteInstructor(
   instructorId: string | number,
+  context?: InstructorsApiScopeContext,
 ): Promise<void> {
-  await http.delete(`/api/v1/admin/instructors/${instructorId}`);
+  const basePath = buildInstructorsBasePath(context?.centerId);
+  await http.delete(`${basePath}/${instructorId}`);
 }

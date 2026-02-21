@@ -21,9 +21,49 @@ type DeleteRoleDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
+type BackendErrorData = {
+  message?: string;
+  error?: {
+    code?: string;
+    message?: string;
+  };
+};
+
+const ERROR_CODE_MESSAGES: Record<string, string> = {
+  PERMISSION_DENIED: "You do not have permission to delete this role.",
+  SYSTEM_SCOPE_REQUIRED:
+    "This action requires system scope. Please use the platform admin panel.",
+  SYSTEM_API_KEY_REQUIRED:
+    "This action requires a system API key. Please contact your administrator.",
+  API_KEY_CENTER_MISMATCH:
+    "The API key does not match this center. Please refresh and try again.",
+  CENTER_MISMATCH:
+    "This role belongs to a different center and cannot be deleted here.",
+  NOT_FOUND:
+    "The requested role was not found. It may have already been deleted.",
+  VALIDATION_ERROR: "Unable to delete role due to validation constraints.",
+};
+
+function getErrorCodeMessage(code: string | undefined): string | null {
+  if (!code) return null;
+  return ERROR_CODE_MESSAGES[code] ?? null;
+}
+
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
+  if (isAxiosError<BackendErrorData>(error)) {
+    const data = error.response?.data;
+
+    // Check for known error codes first
+    const errorCode = data?.error?.code;
+    const codeMessage = getErrorCodeMessage(errorCode);
+    if (codeMessage) {
+      return codeMessage;
+    }
+
+    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
+      return data.error.message;
+    }
+
     if (data?.message) return data.message;
   }
 

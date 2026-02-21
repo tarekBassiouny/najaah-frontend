@@ -82,6 +82,13 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
+        title: "Instructors",
+        capability: "manage_instructors",
+        icon: iconFromTitle("Instructors"),
+        url: "/instructors",
+        items: [],
+      },
+      {
         title: "Student Requests",
         capability: "manage_enrollments",
         icon: iconFromTitle("Student Requests"),

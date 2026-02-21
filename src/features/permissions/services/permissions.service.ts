@@ -32,20 +32,9 @@ type RawPermissionsResponse = {
 
 export type ListPermissionsResponse = PaginatedResponse<Permission>;
 
-function normalizeScopeCenterId(value?: string | number | null): number | null {
-  if (value == null || value === "") return null;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return null;
-}
-
-function buildPermissionsBasePath(centerId?: string | number | null) {
-  const normalized = normalizeScopeCenterId(centerId);
-  if (normalized == null) return "/api/v1/admin/permissions";
-  return `/api/v1/admin/centers/${normalized}/permissions`;
+function buildPermissionsBasePath() {
+  // Permissions catalog is always shared at system scope per backend contract
+  return "/api/v1/admin/permissions";
 }
 
 function normalizeMeta(
@@ -67,11 +56,11 @@ function normalizeMeta(
 
 export async function listPermissions(
   params: ListPermissionsParams = {},
-  context?: PermissionsApiScopeContext,
+  _context?: PermissionsApiScopeContext,
 ): Promise<ListPermissionsResponse> {
   const page = params.page ?? 1;
   const perPage = params.per_page ?? 20;
-  const basePath = buildPermissionsBasePath(context?.centerId);
+  const basePath = buildPermissionsBasePath();
 
   const { data } = await http.get<RawPermissionsResponse>(basePath, {
     params: {

@@ -51,10 +51,9 @@ function buildRolesBasePath(centerId?: string | number | null) {
   return `/api/v1/admin/centers/${normalized}/roles`;
 }
 
-function buildPermissionsBasePath(centerId?: string | number | null) {
-  const normalized = normalizeScopeCenterId(centerId);
-  if (normalized == null) return "/api/v1/admin/permissions";
-  return `/api/v1/admin/centers/${normalized}/permissions`;
+function buildPermissionsBasePath() {
+  // Permissions catalog is always shared at system scope per backend contract
+  return "/api/v1/admin/permissions";
 }
 
 function normalizePermissions(payload: RawPermissionsResponse | undefined) {
@@ -75,7 +74,7 @@ export async function getRolePermissions(
   roleId: string | number,
   context?: RolesApiScopeContext,
 ): Promise<RolePermissionsResponse> {
-  const permissionsBasePath = buildPermissionsBasePath(context?.centerId);
+  const permissionsBasePath = buildPermissionsBasePath();
   const permissionsResponse = await http.get<RawPermissionsResponse>(
     permissionsBasePath,
     {

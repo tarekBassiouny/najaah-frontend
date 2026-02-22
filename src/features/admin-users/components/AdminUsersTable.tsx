@@ -666,15 +666,17 @@ export function AdminUsersTable({
                               >
                                 Edit profile
                               </button>
-                              <button
-                                className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onManageRoles?.(user);
-                                }}
-                              >
-                                Manage roles
-                              </button>
+                              {onManageRoles ? (
+                                <button
+                                  className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onManageRoles(user);
+                                  }}
+                                >
+                                  Manage roles
+                                </button>
+                              ) : null}
                               <button
                                 className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                 onClick={() => {

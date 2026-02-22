@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useInstructors } from "@/features/instructors/hooks/use-instructors";
 import { useTenant } from "@/app/tenant-provider";
+import { setTenantState } from "@/lib/tenant-store";
+import { cn } from "@/lib/utils";
+import { useInstructors } from "@/features/instructors/hooks/use-instructors";
+import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
+import type { Instructor } from "@/features/instructors/types/instructor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,11 +15,10 @@ import {
   DropdownContent,
   DropdownTrigger,
 } from "@/components/ui/dropdown";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
   Select,
@@ -24,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -32,14 +36,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import type { Instructor } from "@/features/instructors/types/instructor";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
 
 type StatusVariant = "success" | "warning" | "secondary" | "error" | "default";
-
 type InstructorStatus = string | number | null | undefined;
 
 const statusConfig: Record<string, { variant: StatusVariant; label: string }> =
@@ -103,79 +104,74 @@ const StatusIcon = () => (
 );
 
 type InstructorsTableProps = {
-  centerId?: string | number;
+  scopeCenterId?: string | number | null;
+  showCenterFilter?: boolean;
   onEdit?: (_instructor: Instructor) => void;
-  onAssignCenters?: (_instructor: Instructor) => void;
-  onToggleStatus?: (_instructor: Instructor) => void;
   onDelete?: (_instructor: Instructor) => void;
-  onBulkAssignCenters?: (_instructors: Instructor[]) => void;
-  onBulkChangeStatus?: (_instructors: Instructor[]) => void;
 };
 
 export function InstructorsTable({
-  centerId: centerIdProp,
+  scopeCenterId = null,
+  showCenterFilter = true,
   onEdit,
-  onAssignCenters,
-  onToggleStatus,
   onDelete,
-  onBulkAssignCenters,
-  onBulkChangeStatus,
 }: InstructorsTableProps) {
   const tenant = useTenant();
-  const centerId = centerIdProp ?? tenant.centerId ?? undefined;
+  const effectiveScopeCenterId = scopeCenterId ?? null;
+  const selectedCenterId =
+    effectiveScopeCenterId == null
+      ? (tenant.centerId ?? null)
+      : effectiveScopeCenterId;
+  const hasSelectedCenter = selectedCenterId != null;
+
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
-  const [selectedInstructors, setSelectedInstructors] = useState<
-    Record<string, Instructor>
-  >({});
 
   const params = useMemo(
     () => ({
       page,
       per_page: perPage,
       search: query || undefined,
-      center_id: centerId,
+      center_id: selectedCenterId ?? undefined,
       status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
     }),
-    [page, perPage, query, centerId, statusFilter],
+    [page, perPage, query, selectedCenterId, statusFilter],
   );
 
-  const { data, isLoading, isError, isFetching } = useInstructors(params);
+  const { data, isLoading, isError, isFetching, error } = useInstructors(
+    params,
+    { centerId: selectedCenterId },
+    { enabled: hasSelectedCenter },
+  );
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
   const isLoadingState = isLoading;
-  const showEmptyState = !isLoadingState && !isError && items.length === 0;
+  const showCenterSelectionState =
+    !isLoadingState && !isError && !hasSelectedCenter;
+  const showEmptyState =
+    !isLoadingState && !isError && hasSelectedCenter && items.length === 0;
+  const columnCount = onEdit || onDelete ? 5 : 4;
   const hasActiveFilters =
-    search.trim().length > 0 || statusFilter !== ALL_STATUS_VALUE;
+    search.trim().length > 0 ||
+    statusFilter !== ALL_STATUS_VALUE ||
+    (showCenterFilter &&
+      effectiveScopeCenterId == null &&
+      selectedCenterId != null);
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
-    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0);
-  const selectedIds = useMemo(
-    () => Object.keys(selectedInstructors),
-    [selectedInstructors],
-  );
-  const selectedCount = selectedIds.length;
-  const selectedInstructorsList = useMemo(
-    () =>
-      selectedIds
-        .map((id) => selectedInstructors[id])
-        .filter((instructor): instructor is Instructor => Boolean(instructor)),
-    [selectedIds, selectedInstructors],
-  );
-  const pageInstructorIds = useMemo(
-    () => items.map((instructor) => String(instructor.id)),
-    [items],
-  );
-  const isAllPageSelected =
-    pageInstructorIds.length > 0 &&
-    pageInstructorIds.every((id) => selectedInstructors[id]);
+    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (showCenterFilter &&
+    effectiveScopeCenterId == null &&
+    selectedCenterId != null
+      ? 1
+      : 0);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -188,44 +184,12 @@ export function InstructorsTable({
 
   useEffect(() => {
     setPage(1);
-  }, [centerId]);
+  }, [selectedCenterId]);
 
-  useEffect(() => {
-    setSelectedInstructors({});
-  }, [centerId, page, perPage, query, statusFilter]);
-
-  const toggleInstructorSelection = (instructor: Instructor) => {
-    const instructorId = String(instructor.id);
-    setSelectedInstructors((prev) => {
-      if (prev[instructorId]) {
-        const { [instructorId]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [instructorId]: instructor };
-    });
-  };
-
-  const toggleAllSelections = () => {
-    if (isAllPageSelected) {
-      setSelectedInstructors((prev) => {
-        if (pageInstructorIds.length === 0) return prev;
-        const next = { ...prev };
-        pageInstructorIds.forEach((id) => {
-          delete next[id];
-        });
-        return next;
-      });
-      return;
-    }
-
-    setSelectedInstructors((prev) => {
-      const next = { ...prev };
-      items.forEach((instructor) => {
-        next[String(instructor.id)] = instructor;
-      });
-      return next;
-    });
-  };
+  const errorMessage = getInstructorApiErrorMessage(
+    error,
+    "Failed to load instructors. Please try again.",
+  );
 
   return (
     <ListingCard>
@@ -239,13 +203,25 @@ export function InstructorsTable({
           setQuery("");
           setStatusFilter(ALL_STATUS_VALUE);
           setPage(1);
+
+          if (showCenterFilter && effectiveScopeCenterId == null) {
+            setTenantState({ centerId: null, centerName: null });
+          }
         }}
         summary={
-          <>
-            {total} {total === 1 ? "instructor" : "instructors"}
-          </>
+          hasSelectedCenter ? (
+            <>
+              {total} {total === 1 ? "instructor" : "instructors"}
+            </>
+          ) : (
+            <>Select a center</>
+          )
         }
-        gridClassName="grid-cols-1 md:grid-cols-3"
+        gridClassName={
+          showCenterFilter && effectiveScopeCenterId == null
+            ? "grid-cols-1 md:grid-cols-3"
+            : "grid-cols-1 md:grid-cols-2"
+        }
       >
         <div className="relative">
           <svg
@@ -299,11 +275,13 @@ export function InstructorsTable({
           </button>
         </div>
 
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={false}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-        />
+        {showCenterFilter && effectiveScopeCenterId == null ? (
+          <CenterPicker
+            className="w-full min-w-0"
+            hideWhenCenterScoped={false}
+            selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+          />
+        ) : null}
 
         <Select
           value={statusFilter}
@@ -331,7 +309,7 @@ export function InstructorsTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load instructors. Please try again.
+              {errorMessage}
             </p>
             <Button
               variant="outline"
@@ -353,21 +331,11 @@ export function InstructorsTable({
           <Table className="min-w-[880px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                <TableHead className="w-8">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                    checked={isAllPageSelected}
-                    onChange={toggleAllSelections}
-                    disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all instructors on this page"
-                  />
-                </TableHead>
                 <TableHead className="font-medium">Instructor</TableHead>
                 <TableHead className="font-medium">Email</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">Center</TableHead>
-                {(onEdit || onDelete || onAssignCenters || onToggleStatus) && (
+                {(onEdit || onDelete) && (
                   <TableHead className="w-10 text-right font-medium">
                     Actions
                   </TableHead>
@@ -380,9 +348,6 @@ export function InstructorsTable({
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
                       <TableCell>
-                        <Skeleton className="h-4 w-4" />
-                      </TableCell>
-                      <TableCell>
                         <Skeleton className="h-4 w-44" />
                       </TableCell>
                       <TableCell>
@@ -394,10 +359,7 @@ export function InstructorsTable({
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
                       </TableCell>
-                      {(onEdit ||
-                        onDelete ||
-                        onAssignCenters ||
-                        onToggleStatus) && (
+                      {(onEdit || onDelete) && (
                         <TableCell>
                           <Skeleton className="ml-auto h-4 w-16" />
                         </TableCell>
@@ -405,9 +367,19 @@ export function InstructorsTable({
                     </TableRow>
                   ))}
                 </>
+              ) : showCenterSelectionState ? (
+                <TableRow>
+                  <TableCell colSpan={columnCount} className="h-48">
+                    <EmptyState
+                      title="Select a center first"
+                      description="Choose a center to load instructors."
+                      className="border-0 bg-transparent"
+                    />
+                  </TableCell>
+                </TableRow>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48">
+                  <TableCell colSpan={columnCount} className="h-48">
                     <EmptyState
                       title={
                         query ? "No instructors found" : "No instructors yet"
@@ -431,17 +403,6 @@ export function InstructorsTable({
                       key={instructor.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                          checked={Boolean(
-                            selectedInstructors[String(instructor.id)],
-                          )}
-                          onChange={() => toggleInstructorSelection(instructor)}
-                          aria-label={`Select ${instructor.name ?? `instructor ${instructor.id}`}`}
-                        />
-                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold uppercase text-white">
@@ -472,14 +433,13 @@ export function InstructorsTable({
                         )}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {instructor.center_id != null
-                          ? `Center #${instructor.center_id}`
-                          : "—"}
+                        {effectiveScopeCenterId != null
+                          ? "Current Center"
+                          : instructor.center_id != null
+                            ? `Center #${instructor.center_id}`
+                            : "—"}
                       </TableCell>
-                      {(onEdit ||
-                        onDelete ||
-                        onAssignCenters ||
-                        onToggleStatus) && (
+                      {(onEdit || onDelete) && (
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end">
                             <Dropdown
@@ -509,28 +469,6 @@ export function InstructorsTable({
                                     Edit profile
                                   </button>
                                 )}
-                                {onAssignCenters && (
-                                  <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    onClick={() => {
-                                      setOpenMenuId(null);
-                                      onAssignCenters?.(instructor);
-                                    }}
-                                  >
-                                    Assign centers
-                                  </button>
-                                )}
-                                {onToggleStatus && (
-                                  <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    onClick={() => {
-                                      setOpenMenuId(null);
-                                      onToggleStatus?.(instructor);
-                                    }}
-                                  >
-                                    Change status
-                                  </button>
-                                )}
                                 {onDelete && (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -556,33 +494,7 @@ export function InstructorsTable({
         </div>
       )}
 
-      {selectedCount > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
-          <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onBulkAssignCenters?.(selectedInstructorsList)}
-              disabled={isLoadingState}
-            >
-              Assign Centers
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onBulkChangeStatus?.(selectedInstructorsList)}
-              disabled={isLoadingState}
-            >
-              Change Status
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {!isError && maxPage > 1 && (
+      {!isError && hasSelectedCenter && maxPage > 1 && (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
           <PaginationControls
             page={page}

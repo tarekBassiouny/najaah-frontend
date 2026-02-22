@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +29,7 @@ import {
   useUpdateInstructor,
 } from "@/features/instructors/hooks/use-instructors";
 import type { Instructor } from "@/features/instructors/types/instructor";
+import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters."),
@@ -41,7 +41,6 @@ const schema = z.object({
     .or(z.literal("")),
   title: z.string().trim().optional(),
   bio: z.string().trim().optional(),
-  centerId: z.string().trim().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -49,7 +48,7 @@ type FormValues = z.infer<typeof schema>;
 type InstructorFormDialogProps = {
   open: boolean;
   onOpenChange: (_isOpen: boolean) => void;
-  centerId?: string | number | null;
+  scopeCenterId?: string | number | null;
   instructor?: Instructor | null;
   onSuccess?: (_value: string) => void;
 };
@@ -64,39 +63,22 @@ function getInitials(value: string) {
     .slice(0, 2);
 }
 
-function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | { message?: string; errors?: Record<string, string[]> }
-      | undefined;
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const firstEntry = Object.values(data.errors)[0];
-      if (Array.isArray(firstEntry) && firstEntry.length > 0) {
-        return firstEntry[0];
-      }
-    }
-  }
-
-  return "Unable to save instructor. Please try again.";
-}
-
 export function InstructorFormDialog({
   open,
   onOpenChange,
-  centerId,
+  scopeCenterId,
   instructor,
   onSuccess,
 }: InstructorFormDialogProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(instructor);
 
-  const createMutation = useCreateInstructor();
-  const updateMutation = useUpdateInstructor();
+  const createMutation = useCreateInstructor({
+    centerId: scopeCenterId ?? null,
+  });
+  const updateMutation = useUpdateInstructor({
+    centerId: scopeCenterId ?? null,
+  });
   const isPending = createMutation.isPending || updateMutation.isPending;
   const displayName = instructor?.name ? String(instructor.name) : "Instructor";
   const displayEmail = instructor?.email
@@ -110,7 +92,6 @@ export function InstructorFormDialog({
       email: "",
       title: "",
       bio: "",
-      centerId: "",
     },
   });
 
@@ -123,20 +104,18 @@ export function InstructorFormDialog({
       email: instructor?.email ? String(instructor.email) : "",
       title: instructor?.title ? String(instructor.title) : "",
       bio: instructor?.bio ? String(instructor.bio) : "",
-      centerId:
-        instructor?.center_id != null
-          ? String(instructor.center_id)
-          : centerId != null
-            ? String(centerId)
-            : "",
     });
-  }, [centerId, form, instructor, open]);
+  }, [form, instructor, open]);
 
   const onSubmit = (values: FormValues) => {
     setFormError(null);
 
+    if (scopeCenterId == null) {
+      setFormError("Select a center before creating or updating instructors.");
+      return;
+    }
+
     const payload = {
-      center_id: values.centerId || undefined,
       name_translations: {
         en: values.name.trim(),
       },
@@ -160,7 +139,13 @@ export function InstructorFormDialog({
             onOpenChange(false);
             onSuccess?.("Instructor updated successfully.");
           },
-          onError: (error) => setFormError(getErrorMessage(error)),
+          onError: (error) =>
+            setFormError(
+              getInstructorApiErrorMessage(
+                error,
+                "Unable to save instructor. Please try again.",
+              ),
+            ),
         },
       );
       return;
@@ -171,7 +156,13 @@ export function InstructorFormDialog({
         onOpenChange(false);
         onSuccess?.("Instructor created successfully.");
       },
-      onError: (error) => setFormError(getErrorMessage(error)),
+      onError: (error) =>
+        setFormError(
+          getInstructorApiErrorMessage(
+            error,
+            "Unable to save instructor. Please try again.",
+          ),
+        ),
     });
   };
 
@@ -255,20 +246,6 @@ export function InstructorFormDialog({
                   <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Senior Lecturer" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="centerId"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Center ID (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Center ID" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

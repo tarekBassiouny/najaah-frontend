@@ -21,6 +21,7 @@ import {
   publishCourse,
   removeCoursePdf,
   removeCourseVideo,
+  uploadCourseThumbnail,
   type CoursesResponse,
   type ListCoursesParams,
   type ListCenterCoursesParams,
@@ -261,5 +262,27 @@ export function useRemoveCoursePdf() {
       courseId: string | number;
       pdfId: string | number;
     }) => removeCoursePdf(centerId, courseId, pdfId),
+  });
+}
+
+export function useUploadCourseThumbnail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      thumbnailFile,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      thumbnailFile: File | Blob;
+    }) => uploadCourseThumbnail(centerId, courseId, thumbnailFile),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
   });
 }

@@ -16,6 +16,8 @@ export type CategorySummary = {
 export type InstructorSummary = {
   id: string | number;
   name?: string | null;
+  name_translations?: TranslationsRecord | null;
+  avatar_url?: string | null;
   [key: string]: unknown;
 };
 
@@ -73,22 +75,28 @@ export type CourseSummary = {
 
 export type Course = {
   id: string | number;
+  center_id?: string | number | null;
   title?: string | null;
   name?: string | null;
   title_translations?: TranslationsRecord | null;
   description?: string | null;
   description_translations?: TranslationsRecord | null;
+  category_id?: string | number | null;
   difficulty?: string | number | null;
+  difficulty_level?: string | number | null;
   language?: string | null;
   thumbnail?: string | null;
+  thumbnail_url?: string | null;
   price?: number | string | null;
   status?: string | null;
   status_key?: string | null;
   status_label?: string | null;
+  is_published?: boolean | null;
   published_at?: string | null;
   slug?: string | null;
   center?: CenterSummary | null;
   category?: CategorySummary | null;
+  primary_instructor_id?: string | number | null;
   primary_instructor?: InstructorSummary | null;
   instructors?: InstructorSummary[] | null;
   sections?: Array<Record<string, unknown>> | null;
@@ -101,15 +109,29 @@ export type Course = {
 };
 
 export type CreateCoursePayload = {
-  title: string;
-  slug?: string;
-  description?: string;
+  title_translations: TranslationsRecord;
+  description_translations?: TranslationsRecord;
   category_id?: string | number;
+  difficulty?: string;
+  language?: string;
+  price?: number | string;
   instructor_id?: string | number;
+  thumbnail_url?: string;
+  slug?: string;
   status?: string;
   [key: string]: unknown;
 };
 
-export type UpdateCoursePayload = Partial<CreateCoursePayload> & {
+export type UpdateCoursePayload = {
+  title_translations?: TranslationsRecord;
+  description_translations?: TranslationsRecord;
+  category_id?: string | number;
+  difficulty?: string;
+  language?: string;
+  price?: number | string;
+  instructor_id?: string | number;
+  thumbnail_url?: string;
+  slug?: string;
   status?: string;
+  [key: string]: unknown;
 };

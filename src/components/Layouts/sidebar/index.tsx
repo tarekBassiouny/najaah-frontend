@@ -82,7 +82,12 @@ export function Sidebar({ sections }: SidebarProps) {
     const segments = pathname.split("/").filter(Boolean);
     if (segments[0] !== "centers") return null;
     const candidate = segments[1];
-    if (!candidate || candidate === "create" || candidate === "settings") {
+    if (
+      !candidate ||
+      candidate === "create" ||
+      candidate === "list" ||
+      candidate === "settings"
+    ) {
       return null;
     }
     return candidate;

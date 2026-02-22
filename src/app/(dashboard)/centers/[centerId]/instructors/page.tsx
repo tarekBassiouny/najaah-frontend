@@ -1,28 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useTenant } from "@/app/tenant-provider";
-import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
-import { getAdminScope } from "@/lib/user-scope";
 import { InstructorsTable } from "@/features/instructors/components/InstructorsTable";
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import { DeleteInstructorDialog } from "@/features/instructors/components/DeleteInstructorDialog";
 import type { Instructor } from "@/features/instructors/types/instructor";
 
-export default function InstructorsPage() {
-  const tenant = useTenant();
-  const { data: user } = useAdminMe();
-  const userScope = getAdminScope(user);
-  const isCenterAdmin = userScope.isCenterAdmin;
-  const scopeCenterId = isCenterAdmin ? userScope.centerId : null;
-  const selectedCenterId = isCenterAdmin
-    ? userScope.centerId
-    : (tenant.centerId ?? null);
-  const canManageCenterInstructors = selectedCenterId != null;
+type PageProps = {
+  params: Promise<{ centerId: string }>;
+};
 
+export default function CenterInstructorsPage({ params }: PageProps) {
+  const { centerId } = use(params);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(
     null,
@@ -31,46 +24,43 @@ export default function InstructorsPage() {
     useState<Instructor | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const openCreateDialog = () => {
-    if (!canManageCenterInstructors) return;
-    setEditingInstructor(null);
-    setIsFormOpen(true);
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
         title="Instructors"
-        description="Manage instructors by center."
+        description="Manage instructors for this center."
+        breadcrumbs={[
+          { label: "Centers", href: "/centers" },
+          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
+          { label: "Instructors" },
+        ]}
         actions={
-          <Button
-            onClick={openCreateDialog}
-            disabled={!canManageCenterInstructors}
-          >
-            Add Instructor
-          </Button>
+          <>
+            <Button
+              onClick={() => {
+                setEditingInstructor(null);
+                setIsFormOpen(true);
+              }}
+            >
+              Add Instructor
+            </Button>
+            <Link href={`/centers/${centerId}`}>
+              <Button variant="outline">Back to Center</Button>
+            </Link>
+          </>
         }
       />
 
-      {!canManageCenterInstructors ? (
-        <Alert variant="default">
-          <AlertTitle>Select a center</AlertTitle>
-          <AlertDescription>
-            Choose a center to manage instructors.
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
-      {feedback && (
+      {feedback ? (
         <Alert variant="success">
           <AlertTitle>Success</AlertTitle>
           <AlertDescription>{feedback}</AlertDescription>
         </Alert>
-      )}
+      ) : null}
 
       <InstructorsTable
-        scopeCenterId={scopeCenterId}
-        showCenterFilter={!isCenterAdmin}
+        scopeCenterId={centerId}
+        showCenterFilter={false}
         onEdit={(instructor) => {
           setFeedback(null);
           setEditingInstructor(instructor);
@@ -88,7 +78,7 @@ export default function InstructorsPage() {
           setIsFormOpen(open);
           if (!open) setEditingInstructor(null);
         }}
-        scopeCenterId={selectedCenterId}
+        scopeCenterId={centerId}
         instructor={editingInstructor}
         onSuccess={(message) => setFeedback(message)}
       />
@@ -99,7 +89,7 @@ export default function InstructorsPage() {
           if (!open) setDeletingInstructor(null);
         }}
         instructor={deletingInstructor}
-        scopeCenterId={selectedCenterId}
+        scopeCenterId={centerId}
         onSuccess={(message) => setFeedback(message)}
       />
     </div>

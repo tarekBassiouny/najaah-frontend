@@ -31,9 +31,11 @@ export default function CoursesCreatePage() {
 
     createCourse(
       {
-        title: formData.title,
+        title_translations: { en: formData.title },
         slug: formData.slug || undefined,
-        description: formData.description || undefined,
+        description_translations: formData.description
+          ? { en: formData.description }
+          : undefined,
       },
       {
         onSuccess: (course) => {

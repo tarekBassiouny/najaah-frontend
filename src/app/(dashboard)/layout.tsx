@@ -26,6 +26,21 @@ export default function DashboardLayout({ children }: Props) {
   const { data: user } = useAdminMe();
   const userScope = getAdminScope(user);
   const previousPathRef = useRef(pathname);
+  const routeCenterId = useMemo(() => {
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments[0] !== "centers") return null;
+    const candidate = segments[1];
+    if (
+      !candidate ||
+      candidate === "create" ||
+      candidate === "list" ||
+      candidate === "settings"
+    ) {
+      return null;
+    }
+    return candidate;
+  }, [pathname]);
+  const isCenterScopedRoute = routeCenterId != null;
 
   // Determine if user should see platform admin sidebar
   // System admins (center_id = null) see full platform sidebar
@@ -35,6 +50,11 @@ export default function DashboardLayout({ children }: Props) {
 
   // Get sidebar configuration based on user scope
   const sidebarConfig = useMemo(() => {
+    // Keep the same center-scoped sidebar UX regardless of who opened a center route.
+    if (isCenterScopedRoute) {
+      return getSidebarSections(false);
+    }
+
     const sections = getSidebarSections(isPlatformAdmin);
 
     // For center admins, always scope sidebar to their center
@@ -43,7 +63,12 @@ export default function DashboardLayout({ children }: Props) {
     }
 
     return sections;
-  }, [isPlatformAdmin, userScope.isCenterAdmin, userScope.centerId]);
+  }, [
+    isCenterScopedRoute,
+    isPlatformAdmin,
+    userScope.isCenterAdmin,
+    userScope.centerId,
+  ]);
 
   useEffect(() => {
     if (!isPlatformAdmin) {

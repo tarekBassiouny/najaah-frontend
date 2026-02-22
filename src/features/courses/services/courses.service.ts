@@ -261,22 +261,24 @@ export type CourseInstructorPayload = {
 };
 
 export async function assignCourseInstructor(
+  centerId: string | number,
   courseId: string | number,
   payload: CourseInstructorPayload,
 ) {
   const { data } = await http.post(
-    `/api/v1/admin/courses/${courseId}/instructors`,
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/instructors`,
     payload,
   );
   return data;
 }
 
 export async function removeCourseInstructor(
+  centerId: string | number,
   courseId: string | number,
   instructorId: string | number,
 ) {
   const { data } = await http.delete(
-    `/api/v1/admin/courses/${courseId}/instructors/${instructorId}`,
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/instructors/${instructorId}`,
   );
   return data;
 }
@@ -296,4 +298,29 @@ export async function cloneCourseWithOptions(
     { options },
   );
   return (data?.data ?? data) as Course;
+}
+
+export type UploadCourseThumbnailResponse = {
+  success: boolean;
+  message?: string;
+  data?: Course;
+};
+
+export async function uploadCourseThumbnail(
+  centerId: string | number,
+  courseId: string | number,
+  thumbnailFile: File | Blob,
+): Promise<Course> {
+  const formData = new FormData();
+  formData.append("thumbnail", thumbnailFile);
+
+  const { data } = await http.post<UploadCourseThumbnailResponse>(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/thumbnail`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
+
+  return data?.data ?? (data as unknown as Course);
 }

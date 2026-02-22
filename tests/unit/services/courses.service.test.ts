@@ -97,7 +97,9 @@ describe("courses.service", () => {
     mockedHttp.delete.mockResolvedValueOnce({});
 
     await expect(getCourse(2)).resolves.toEqual({ id: 2 });
-    await expect(createCourse({ title: "Course" })).resolves.toEqual({ id: 3 });
+    await expect(
+      createCourse({ title_translations: { en: "Course" } }),
+    ).resolves.toEqual({ id: 3 });
     await expect(updateCourse(3, { status: "draft" })).resolves.toEqual({
       id: 3,
     });

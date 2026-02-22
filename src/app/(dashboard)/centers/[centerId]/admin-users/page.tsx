@@ -5,6 +5,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/ui/modal-store";
+import { useAuth } from "@/features/auth/context/auth-context";
+import { can } from "@/lib/capabilities";
 import { AdminUsersTable } from "@/features/admin-users/components/AdminUsersTable";
 import { BulkAssignRolesDialog } from "@/features/admin-users/components/BulkAssignRolesDialog";
 import { BulkUpdateAdminUserStatusDialog } from "@/features/admin-users/components/BulkUpdateAdminUserStatusDialog";
@@ -19,6 +21,13 @@ type PageProps = {
 export default function CenterAdminUsersPage({ params }: PageProps) {
   const { centerId } = use(params);
   const { openModal } = useModal();
+  const { user: currentUser } = useAuth();
+
+  // Role assignment requires admin.manage + super admin privileges
+  const canManageRoles =
+    can("manage_admin_users") &&
+    (currentUser?.is_system_super_admin === true ||
+      currentUser?.is_center_super_admin === true);
 
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
   const [statusUser, setStatusUser] = useState<AdminUser | null>(null);
@@ -30,32 +39,34 @@ export default function CenterAdminUsersPage({ params }: PageProps) {
   const openCreateAdmin = () => {
     openModal("editAdmin", {
       scopeCenterId: centerId,
-      onCreated: (createdUser: AdminUser) => {
-        openModal("assignRoles", {
-          user: createdUser,
-          scopeCenterId: centerId,
-          initialRoleIds: [],
-          onContinue: ({
-            selectedRoleIds,
-            addedRoles,
-          }: {
-            selectedRoleIds: string[];
-            addedRoles: string[];
-            removedRoles: string[];
-          }) => {
-            if (!createdUser) return;
-            openModal("confirmRoleChange", {
-              userId: createdUser.id,
-              userName: createdUser.name ?? "Admin User",
-              email: createdUser.email ?? "",
-              addedRoles,
-              removedRoles: [],
-              roleIds: selectedRoleIds,
+      onCreated: canManageRoles
+        ? (createdUser: AdminUser) => {
+            openModal("assignRoles", {
+              user: createdUser,
               scopeCenterId: centerId,
+              initialRoleIds: [],
+              onContinue: ({
+                selectedRoleIds,
+                addedRoles,
+              }: {
+                selectedRoleIds: string[];
+                addedRoles: string[];
+                removedRoles: string[];
+              }) => {
+                if (!createdUser) return;
+                openModal("confirmRoleChange", {
+                  userId: createdUser.id,
+                  userName: createdUser.name ?? "Admin User",
+                  email: createdUser.email ?? "",
+                  addedRoles,
+                  removedRoles: [],
+                  roleIds: selectedRoleIds,
+                  scopeCenterId: centerId,
+                });
+              },
             });
-          },
-        });
-      },
+          }
+        : undefined,
     });
   };
 
@@ -111,21 +122,25 @@ export default function CenterAdminUsersPage({ params }: PageProps) {
         onEdit={(user) =>
           openModal("editAdmin", { user, scopeCenterId: centerId })
         }
-        onManageRoles={openManageRoles}
+        onManageRoles={canManageRoles ? openManageRoles : undefined}
         onToggleStatus={(user) => setStatusUser(user)}
         onDelete={(user) => setDeletingUser(user)}
-        onBulkAssignRoles={(users) => setBulkAssignRolesUsers(users)}
+        onBulkAssignRoles={
+          canManageRoles ? (users) => setBulkAssignRolesUsers(users) : undefined
+        }
         onBulkChangeStatus={(users) => setBulkStatusUsers(users)}
       />
 
-      <BulkAssignRolesDialog
-        open={bulkAssignRolesUsers.length > 0}
-        onOpenChange={(open) => {
-          if (!open) setBulkAssignRolesUsers([]);
-        }}
-        users={bulkAssignRolesUsers}
-        scopeCenterId={centerId}
-      />
+      {canManageRoles ? (
+        <BulkAssignRolesDialog
+          open={bulkAssignRolesUsers.length > 0}
+          onOpenChange={(open) => {
+            if (!open) setBulkAssignRolesUsers([]);
+          }}
+          users={bulkAssignRolesUsers}
+          scopeCenterId={centerId}
+        />
+      ) : null}
 
       <UpdateAdminUserStatusDialog
         open={Boolean(statusUser)}

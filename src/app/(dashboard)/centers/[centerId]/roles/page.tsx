@@ -29,7 +29,7 @@ export default function CenterRolesPage({ params }: PageProps) {
         description={
           canManageWrite
             ? "Manage user roles and access levels for this center."
-            : "View roles and permissions. Updates require system-scoped access."
+            : "View roles and permissions. Updates require manage_roles permission."
         }
         breadcrumbs={[
           { label: "Centers", href: "/centers" },

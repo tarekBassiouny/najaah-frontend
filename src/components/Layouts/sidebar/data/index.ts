@@ -45,6 +45,7 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   "/courses": (centerId) => `/centers/${centerId}/courses`,
   "/surveys": (centerId) => `/centers/${centerId}/surveys`,
   "/videos": (centerId) => `/centers/${centerId}/videos`,
+  "/instructors": (centerId) => `/centers/${centerId}/instructors`,
   "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
   "/roles": (centerId) => `/centers/${centerId}/roles`,
   "/admin-users": (centerId) => `/centers/${centerId}/admin-users`,

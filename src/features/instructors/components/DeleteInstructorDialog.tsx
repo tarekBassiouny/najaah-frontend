@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -12,31 +11,27 @@ import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteInstructor } from "@/features/instructors/hooks/use-instructors";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import { useModal } from "@/components/ui/modal-store";
+import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
 
 type DeleteInstructorDialogProps = {
   open: boolean;
   onOpenChange: (_isOpen: boolean) => void;
   instructor?: Instructor | null;
+  scopeCenterId?: string | number | null;
   onSuccess?: (_value: string) => void;
 };
-
-function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
-  }
-
-  return "Unable to delete instructor. Please try again.";
-}
 
 export function DeleteInstructorDialog({
   open,
   onOpenChange,
   instructor,
+  scopeCenterId,
   onSuccess,
 }: DeleteInstructorDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const deleteMutation = useDeleteInstructor();
+  const deleteMutation = useDeleteInstructor({
+    centerId: scopeCenterId ?? null,
+  });
   const { showToast } = useModal();
 
   const handleDelete = () => {
@@ -50,7 +45,12 @@ export function DeleteInstructorDialog({
         showToast("Instructor deleted successfully.", "success");
       },
       onError: (error) => {
-        setErrorMessage(getErrorMessage(error));
+        setErrorMessage(
+          getInstructorApiErrorMessage(
+            error,
+            "Unable to delete instructor. Please try again.",
+          ),
+        );
       },
     });
   };

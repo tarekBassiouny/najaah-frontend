@@ -17,6 +17,12 @@ import {
   getCategory,
   listCategories,
   updateCategory,
+  bulkUpdateCategoryStatus,
+  bulkDeleteCategories,
+  type BulkUpdateCategoryStatusPayload,
+  type BulkUpdateCategoryStatusResult,
+  type BulkDeleteCategoriesPayload,
+  type BulkDeleteCategoriesResult,
 } from "@/features/categories/services/categories.service";
 
 export const categoryKeys = {
@@ -122,6 +128,40 @@ export function useDeleteCategory() {
       categoryId: string | number;
     }) => deleteCategory(centerId, categoryId),
     onSuccess: (_, { centerId }) => {
+      queryClient.invalidateQueries({
+        queryKey: [...categoryKeys.all, centerId],
+      });
+    },
+  });
+}
+
+export function useBulkUpdateCategoryStatus(centerId: string | number) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    BulkUpdateCategoryStatusResult,
+    Error,
+    BulkUpdateCategoryStatusPayload
+  >({
+    mutationFn: (payload) => bulkUpdateCategoryStatus(centerId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...categoryKeys.all, centerId],
+      });
+    },
+  });
+}
+
+export function useBulkDeleteCategories(centerId: string | number) {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    BulkDeleteCategoriesResult,
+    Error,
+    BulkDeleteCategoriesPayload
+  >({
+    mutationFn: (payload) => bulkDeleteCategories(centerId, payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [...categoryKeys.all, centerId],
       });

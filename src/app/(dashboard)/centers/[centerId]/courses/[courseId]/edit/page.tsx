@@ -30,6 +30,7 @@ import {
   useUploadCourseThumbnail,
 } from "@/features/courses/hooks/use-courses";
 import { useInstructors } from "@/features/instructors/hooks/use-instructors";
+import { useCategories } from "@/features/categories/hooks/use-categories";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -126,7 +127,11 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   const { data: instructorsData, isLoading: isLoadingInstructors } =
     useInstructors({ page: 1, per_page: 100 }, { centerId });
 
+  const { data: categoriesData, isLoading: isLoadingCategories } =
+    useCategories(centerId, { page: 1, per_page: 100, is_active: true });
+
   const instructors = instructorsData?.items ?? [];
+  const categories = categoriesData?.items ?? [];
 
   const [formData, setFormData] = useState({
     title: "",
@@ -138,6 +143,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     language: "",
     price: "",
     instructorId: "",
+    categoryId: "",
     thumbnailUrl: "",
     status: "",
   });
@@ -164,6 +170,11 @@ export default function CenterCourseEditPage({ params }: PageProps) {
         ? String(course.primary_instructor_id)
         : course.primary_instructor?.id
           ? String(course.primary_instructor.id)
+          : "",
+      categoryId: course.category_id
+        ? String(course.category_id)
+        : course.category?.id
+          ? String(course.category.id)
           : "",
       thumbnailUrl: course.thumbnail_url ?? course.thumbnail ?? "",
       status: course.status ?? "",
@@ -208,6 +219,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           price: formData.price ? Number(formData.price) : undefined,
           instructor_id: formData.instructorId
             ? Number(formData.instructorId)
+            : undefined,
+          category_id: formData.categoryId
+            ? Number(formData.categoryId)
             : undefined,
           thumbnail_url: formData.thumbnailUrl || undefined,
           status: formData.status || undefined,
@@ -455,33 +469,66 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="instructor">Primary Instructor</Label>
-                  <Select
-                    value={formData.instructorId}
-                    onValueChange={handleSelectChange("instructorId")}
-                    disabled={isLoadingInstructors}
-                  >
-                    <SelectTrigger id="instructor">
-                      <SelectValue
-                        placeholder={
-                          isLoadingInstructors
-                            ? "Loading instructors..."
-                            : "Select instructor"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {instructors.map((instructor) => (
-                        <SelectItem
-                          key={instructor.id}
-                          value={String(instructor.id)}
-                        >
-                          {instructor.name ?? `Instructor #${instructor.id}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.categoryId}
+                      onValueChange={handleSelectChange("categoryId")}
+                      disabled={isLoadingCategories}
+                    >
+                      <SelectTrigger id="category">
+                        <SelectValue
+                          placeholder={
+                            isLoadingCategories
+                              ? "Loading categories..."
+                              : "Select category"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={String(category.id)}
+                          >
+                            {category.title ??
+                              category.name ??
+                              `Category #${category.id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="instructor">Primary Instructor</Label>
+                    <Select
+                      value={formData.instructorId}
+                      onValueChange={handleSelectChange("instructorId")}
+                      disabled={isLoadingInstructors}
+                    >
+                      <SelectTrigger id="instructor">
+                        <SelectValue
+                          placeholder={
+                            isLoadingInstructors
+                              ? "Loading instructors..."
+                              : "Select instructor"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem
+                            key={instructor.id}
+                            value={String(instructor.id)}
+                          >
+                            {instructor.name ?? `Instructor #${instructor.id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardContent>
             </Card>

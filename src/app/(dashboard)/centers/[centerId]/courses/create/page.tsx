@@ -25,6 +25,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
 import { useInstructors } from "@/features/instructors/hooks/use-instructors";
+import { useCategories } from "@/features/categories/hooks/use-categories";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -90,7 +91,11 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
   const { data: instructorsData, isLoading: isLoadingInstructors } =
     useInstructors({ page: 1, per_page: 100 }, { centerId });
 
+  const { data: categoriesData, isLoading: isLoadingCategories } =
+    useCategories(centerId, { page: 1, per_page: 100, is_active: true });
+
   const instructors = instructorsData?.items ?? [];
+  const categories = categoriesData?.items ?? [];
 
   const [formData, setFormData] = useState({
     title: "",
@@ -102,6 +107,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     language: "en",
     price: "",
     instructorId: "",
+    categoryId: "",
     thumbnailUrl: "",
   });
 
@@ -138,6 +144,9 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
           price: formData.price ? Number(formData.price) : undefined,
           instructor_id: formData.instructorId
             ? Number(formData.instructorId)
+            : undefined,
+          category_id: formData.categoryId
+            ? Number(formData.categoryId)
             : undefined,
           thumbnail_url: formData.thumbnailUrl || undefined,
         },
@@ -329,36 +338,72 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="instructor">Primary Instructor</Label>
-                  <Select
-                    value={formData.instructorId}
-                    onValueChange={handleSelectChange("instructorId")}
-                    disabled={isLoadingInstructors}
-                  >
-                    <SelectTrigger id="instructor">
-                      <SelectValue
-                        placeholder={
-                          isLoadingInstructors
-                            ? "Loading instructors..."
-                            : "Select instructor"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {instructors.map((instructor) => (
-                        <SelectItem
-                          key={instructor.id}
-                          value={String(instructor.id)}
-                        >
-                          {instructor.name ?? `Instructor #${instructor.id}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500">
-                    Optional. You can assign an instructor later.
-                  </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.categoryId}
+                      onValueChange={handleSelectChange("categoryId")}
+                      disabled={isLoadingCategories}
+                    >
+                      <SelectTrigger id="category">
+                        <SelectValue
+                          placeholder={
+                            isLoadingCategories
+                              ? "Loading categories..."
+                              : "Select category"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={String(category.id)}
+                          >
+                            {category.title ??
+                              category.name ??
+                              `Category #${category.id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">
+                      Optional. Organize your course in a category.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="instructor">Primary Instructor</Label>
+                    <Select
+                      value={formData.instructorId}
+                      onValueChange={handleSelectChange("instructorId")}
+                      disabled={isLoadingInstructors}
+                    >
+                      <SelectTrigger id="instructor">
+                        <SelectValue
+                          placeholder={
+                            isLoadingInstructors
+                              ? "Loading instructors..."
+                              : "Select instructor"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem
+                            key={instructor.id}
+                            value={String(instructor.id)}
+                          >
+                            {instructor.name ?? `Instructor #${instructor.id}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">
+                      Optional. You can assign an instructor later.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>

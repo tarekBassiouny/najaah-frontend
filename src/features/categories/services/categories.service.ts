@@ -101,3 +101,58 @@ export async function deleteCategory(
 ): Promise<void> {
   await http.delete(`${basePath(centerId)}/${categoryId}`);
 }
+
+export type BulkUpdateCategoryStatusPayload = {
+  category_ids: (string | number)[];
+  is_active: boolean;
+};
+
+export type BulkUpdateCategoryStatusResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  updated?: Array<{ category_id: string | number }>;
+  skipped?: Array<{ category_id: string | number; reason?: string }>;
+  failed?: Array<{ category_id: string | number; reason?: string }>;
+};
+
+export async function bulkUpdateCategoryStatus(
+  centerId: string | number,
+  payload: BulkUpdateCategoryStatusPayload,
+): Promise<BulkUpdateCategoryStatusResult> {
+  const { data } = await http.post<BulkUpdateCategoryStatusResult>(
+    `${basePath(centerId)}/bulk-status`,
+    payload,
+  );
+  return data ?? {};
+}
+
+export type BulkDeleteCategoriesPayload = {
+  category_ids: (string | number)[];
+};
+
+export type BulkDeleteCategoriesResult = {
+  counts?: {
+    total?: number;
+    deleted?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  deleted?: Array<{ category_id: string | number }>;
+  skipped?: Array<{ category_id: string | number; reason?: string }>;
+  failed?: Array<{ category_id: string | number; reason?: string }>;
+};
+
+export async function bulkDeleteCategories(
+  centerId: string | number,
+  payload: BulkDeleteCategoriesPayload,
+): Promise<BulkDeleteCategoriesResult> {
+  const { data } = await http.post<BulkDeleteCategoriesResult>(
+    `${basePath(centerId)}/bulk-delete`,
+    payload,
+  );
+  return data ?? {};
+}

@@ -364,9 +364,11 @@ export function AdminNotificationsDropdown() {
   const deleteNotificationMutation = useDeleteAdminNotification();
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setOpenActionMenuId(null);
+      return;
+    }
     setPage(1);
-    setNotifications([]);
     setOpenActionMenuId(null);
   }, [isOpen, unreadOnly, selectedType]);
 

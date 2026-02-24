@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   useCenterCourse,
   useUpdateCenterCourse,
@@ -222,7 +223,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-6 lg:flex-row">
-        <aside className="w-full lg:max-w-[220px]">
+        <aside className="w-full lg:w-[220px] lg:flex-none">
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-dark">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Course Management
@@ -230,23 +231,25 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
             <h2 className="mt-2 text-base font-semibold text-gray-900 dark:text-white">
               {courseTitle}
             </h2>
-            <nav className="mt-4 space-y-1">
+            <nav className="mt-4 grid gap-1.5">
               {navItems.map((item) => {
                 const isActive = activePanel === item.id;
-                const itemClass = `block w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
-                }`;
 
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setPanel(item.id)}
-                    className={itemClass}
+                    className={cn(
+                      "flex h-10 w-full min-w-0 items-center rounded-lg px-3 text-left text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white",
+                    )}
                   >
-                    {item.label}
+                    <span className="truncate whitespace-nowrap">
+                      {item.label}
+                    </span>
                   </button>
                 );
               })}
@@ -254,7 +257,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
           </div>
         </aside>
 
-        <div className="flex-1 space-y-6">
+        <div className="min-w-0 flex-1 space-y-6">
           <Card>
             <CardContent className="space-y-4 py-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -326,23 +329,24 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               managerHref={`/centers/${centerId}/courses/${courseId}/sections`}
             />
           ) : activePanel === "students" ? (
-            <div className="space-y-3">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                Enrolled Students
-              </p>
-              <EnrollmentsTable
-                centerId={centerId}
-                showCenterFilter={false}
-                initialCourseId={courseId}
-                initialPerPage={15}
-                fixedStatus="ACTIVE"
-                fixedCourseId={courseId}
-                showBulkActions={false}
-                buildStudentHref={(studentId) =>
-                  `/centers/${centerId}/students/${studentId}?from=course&courseId=${courseId}`
-                }
-              />
-            </div>
+            <EnrollmentsTable
+              centerId={centerId}
+              showCenterFilter={false}
+              initialCourseId={courseId}
+              initialPerPage={15}
+              fixedStatus="ACTIVE"
+              fixedCourseId={courseId}
+              showBulkActions={false}
+              showDateFilters={false}
+              showCourseColumn={false}
+              showEnrollmentWindowColumn={false}
+              showActionColumn={false}
+              headerTitle="Enrolled Students"
+              headerDescription="Track active enrollments for this course."
+              buildStudentHref={(studentId) =>
+                `/centers/${centerId}/students/${studentId}?from=course&courseId=${courseId}`
+              }
+            />
           ) : (
             <form onSubmit={handleSettingsSubmit} className="space-y-4">
               <Card>

@@ -407,7 +407,7 @@ export function CoursesTable({
                       <TableCell className="font-medium text-gray-900 dark:text-white">
                         <Link
                           href={viewHref}
-                          className="transition-colors hover:text-primary hover:underline"
+                          className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
                         >
                           {course.title ??
                             course.name ??

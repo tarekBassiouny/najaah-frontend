@@ -130,7 +130,7 @@ export function CategoriesTable({
     staleTime: 1000 * 60,
   });
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const parentOptions = useMemo(() => parentData?.items ?? [], [parentData]);
   const parentLabelMap = useMemo(
     () =>
@@ -436,7 +436,8 @@ export function CategoriesTable({
                 </TableRow>
               ) : (
                 items.map((category, index) => {
-                  const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                  const shouldOpenUp =
+                    items.length > 4 && index >= items.length - 2;
 
                   return (
                     <TableRow

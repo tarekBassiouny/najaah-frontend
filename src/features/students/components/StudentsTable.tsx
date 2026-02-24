@@ -103,6 +103,7 @@ export function StudentsTable({
 }: StudentsTableProps) {
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
+  const isCenterScoped = Boolean(centerIdProp);
   const [page, setPage] = useState(initialPage ?? 1);
   const [perPage, setPerPage] = useState<number>(
     initialPerPage ?? DEFAULT_PER_PAGE,
@@ -125,12 +126,22 @@ export function StudentsTable({
       center_id: centerId,
       course_id: courseId,
       status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      // Center type filter only for system scope
       type:
-        centerTypeFilter === ALL_CENTER_TYPE_VALUE
+        isCenterScoped || centerTypeFilter === ALL_CENTER_TYPE_VALUE
           ? undefined
           : centerTypeFilter,
     }),
-    [page, perPage, query, centerId, courseId, statusFilter, centerTypeFilter],
+    [
+      page,
+      perPage,
+      query,
+      centerId,
+      courseId,
+      statusFilter,
+      centerTypeFilter,
+      isCenterScoped,
+    ],
   );
 
   const { data, isLoading, isError, isFetching } = useStudents(params, {
@@ -146,11 +157,11 @@ export function StudentsTable({
   const hasActiveFilters =
     search.trim().length > 0 ||
     statusFilter !== ALL_STATUS_VALUE ||
-    centerTypeFilter !== ALL_CENTER_TYPE_VALUE;
+    (!isCenterScoped && centerTypeFilter !== ALL_CENTER_TYPE_VALUE);
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
     (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
-    (centerTypeFilter !== ALL_CENTER_TYPE_VALUE ? 1 : 0);
+    (!isCenterScoped && centerTypeFilter !== ALL_CENTER_TYPE_VALUE ? 1 : 0);
   const selectedIds = useMemo(
     () => Object.keys(selectedStudents),
     [selectedStudents],
@@ -253,9 +264,11 @@ export function StudentsTable({
           </>
         }
         gridClassName={
-          showCenterFilter
+          showCenterFilter && !isCenterScoped
             ? "grid-cols-1 md:grid-cols-4"
-            : "grid-cols-1 md:grid-cols-3"
+            : isCenterScoped
+              ? "grid-cols-1 md:grid-cols-2"
+              : "grid-cols-1 md:grid-cols-3"
         }
       >
         <div className="relative">
@@ -310,7 +323,7 @@ export function StudentsTable({
           </button>
         </div>
 
-        {showCenterFilter ? (
+        {showCenterFilter && !isCenterScoped ? (
           <CenterPicker
             className="w-full min-w-0"
             hideWhenCenterScoped={false}
@@ -318,30 +331,32 @@ export function StudentsTable({
           />
         ) : null}
 
-        <Select
-          value={centerTypeFilter}
-          onValueChange={(value) => {
-            setPage(1);
-            if (
-              value === ALL_CENTER_TYPE_VALUE ||
-              value === "branded" ||
-              value === "unbranded"
-            ) {
-              setCenterTypeFilter(value);
-              return;
-            }
-            setCenterTypeFilter(ALL_CENTER_TYPE_VALUE);
-          }}
-        >
-          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Center Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_CENTER_TYPE_VALUE}>Center Type</SelectItem>
-            <SelectItem value="branded">Branded</SelectItem>
-            <SelectItem value="unbranded">Unbranded</SelectItem>
-          </SelectContent>
-        </Select>
+        {!isCenterScoped ? (
+          <Select
+            value={centerTypeFilter}
+            onValueChange={(value) => {
+              setPage(1);
+              if (
+                value === ALL_CENTER_TYPE_VALUE ||
+                value === "branded" ||
+                value === "unbranded"
+              ) {
+                setCenterTypeFilter(value);
+                return;
+              }
+              setCenterTypeFilter(ALL_CENTER_TYPE_VALUE);
+            }}
+          >
+            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+              <SelectValue placeholder="Center Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_CENTER_TYPE_VALUE}>Center Type</SelectItem>
+              <SelectItem value="branded">Branded</SelectItem>
+              <SelectItem value="unbranded">Unbranded</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
 
         <Select
           value={statusFilter}
@@ -477,7 +492,8 @@ export function StudentsTable({
                   const lastActivityLabel = analytics?.last_activity_at
                     ? formatDateTime(analytics.last_activity_at)
                     : "—";
-                  const shouldOpenUp = index >= Math.max(0, items.length - 2);
+                  const shouldOpenUp =
+                    items.length > 4 && index >= items.length - 2;
                   const profileHref = buildProfileHref?.(student) ?? null;
 
                   return (

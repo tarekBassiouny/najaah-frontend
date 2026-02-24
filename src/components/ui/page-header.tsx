@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import type { ReactNode, HTMLAttributes } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-type PageHeaderProps = HTMLAttributes<HTMLDivElement> & {
-  title: string;
+type PageHeaderProps = Omit<HTMLAttributes<HTMLDivElement>, "title"> & {
+  title: ReactNode;
   description?: string;
   actions?: ReactNode;
   breadcrumbs?: Array<{ label: string; href?: string }>;

@@ -11,8 +11,13 @@ export type ListAuditLogsParams = {
   entity_id?: number | string;
   entity_type?: string;
   center_id?: number | string;
+  course_id?: number | string;
   date_from?: string;
   date_to?: string;
+};
+
+export type AuditLogsScope = {
+  centerId?: string | number | null;
 };
 
 type RawAuditLogsResponse = {
@@ -30,24 +35,28 @@ type RawAuditLogResponse = {
 
 export async function listAuditLogs(
   params: ListAuditLogsParams,
+  scope: AuditLogsScope = {},
 ): Promise<PaginatedResponse<AuditLog>> {
-  const { data } = await http.get<RawAuditLogsResponse>(
-    "/api/v1/admin/audit-logs",
-    {
-      params: {
-        page: params.page,
-        per_page: params.per_page,
-        search: params.search || undefined,
-        action: params.action || undefined,
-        user_id: params.user_id ?? undefined,
-        entity_id: params.entity_id ?? undefined,
-        entity_type: params.entity_type || undefined,
-        center_id: params.center_id ?? undefined,
-        date_from: params.date_from || undefined,
-        date_to: params.date_to || undefined,
-      },
+  const basePath = scope.centerId
+    ? `/api/v1/admin/centers/${scope.centerId}/audit-logs`
+    : "/api/v1/admin/audit-logs";
+
+  const { data } = await http.get<RawAuditLogsResponse>(basePath, {
+    params: {
+      page: params.page,
+      per_page: params.per_page,
+      search: params.search || undefined,
+      action: params.action || undefined,
+      user_id: params.user_id ?? undefined,
+      entity_id: params.entity_id ?? undefined,
+      entity_type: params.entity_type || undefined,
+      course_id: params.course_id ?? undefined,
+      // center_id filter only for system scope
+      center_id: scope.centerId ? undefined : (params.center_id ?? undefined),
+      date_from: params.date_from || undefined,
+      date_to: params.date_to || undefined,
     },
-  );
+  });
 
   return {
     items: data?.data ?? [],

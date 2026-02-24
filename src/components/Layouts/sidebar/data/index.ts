@@ -27,13 +27,7 @@ type RouteCapabilityRule = {
   capabilities: Capability[];
 };
 
-const CENTER_SCOPED_OMIT_TITLES = new Set([
-  "Centers",
-  "Agents",
-  "Permissions",
-  "Audit Log",
-  "Audit Logs",
-]);
+const CENTER_SCOPED_OMIT_TITLES = new Set(["Centers", "Agents", "Permissions"]);
 
 const CENTER_SCOPED_URL_OVERRIDES: Record<
   string,
@@ -58,6 +52,7 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
     `/centers/${centerId}/student-requests/extra-view`,
   "/student-requests/device-change": (centerId) =>
     `/centers/${centerId}/student-requests/device-change`,
+  "/audit-logs": (centerId) => `/centers/${centerId}/audit-logs`,
 };
 
 const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [

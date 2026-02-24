@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { useModal } from "@/components/ui/modal-store";
 import {
   Card,
   CardContent,
@@ -20,6 +21,11 @@ import {
   useDeleteCourse,
 } from "@/features/courses/hooks/use-courses";
 import { CoursePublishAction } from "@/features/courses/components/CoursePublishAction";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -28,6 +34,7 @@ type PageProps = {
 export default function CourseDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { showToast } = useModal();
   const { data: course, isLoading, isError } = useCourse(id);
   const { mutate: cloneCourse, isPending: isCloning } = useCloneCourse();
   const { mutate: deleteCourse, isPending: isDeleting } = useDeleteCourse();
@@ -149,8 +156,34 @@ export default function CourseDetailPage({ params }: PageProps) {
               onClick={() => {
                 if (window.confirm("Delete this course?")) {
                   deleteCourse(id, {
-                    onSuccess: () => {
+                    onSuccess: (response) => {
+                      if (!isAdminRequestSuccessful(response)) {
+                        showToast(
+                          getAdminResponseMessage(
+                            response,
+                            "Unable to delete course. Please try again.",
+                          ),
+                          "error",
+                        );
+                        return;
+                      }
+                      showToast(
+                        getAdminResponseMessage(
+                          response,
+                          "Course deleted successfully.",
+                        ),
+                        "success",
+                      );
                       router.push("/courses");
+                    },
+                    onError: (error) => {
+                      showToast(
+                        getAdminApiErrorMessage(
+                          error,
+                          "Unable to delete course. Please try again.",
+                        ),
+                        "error",
+                      );
                     },
                   });
                 }

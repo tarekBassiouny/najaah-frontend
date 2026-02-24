@@ -240,7 +240,10 @@ describe("surveys.service", () => {
       ),
     ).resolves.toEqual({ id: 21 });
     await expect(closeSurvey(21, { centerId: 9 })).resolves.toEqual({ id: 21 });
-    await expect(deleteSurvey(21, { centerId: 9 })).resolves.toBeUndefined();
+    await expect(deleteSurvey(21, { centerId: 9 })).resolves.toMatchObject({
+      success: true,
+      data: null,
+    });
     await expect(getSurveyAnalytics(21, { centerId: 9 })).resolves.toEqual({
       total: 3,
     });

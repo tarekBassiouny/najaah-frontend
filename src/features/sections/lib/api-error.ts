@@ -1,5 +1,5 @@
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
 
-export function getInstructorApiErrorMessage(error: unknown, fallback: string) {
+export function getSectionApiErrorMessage(error: unknown, fallback: string) {
   return getAdminApiErrorMessage(error, fallback);
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAxiosError } from "axios";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -26,6 +25,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { useCreateRole, useUpdateRole } from "@/features/roles/hooks/use-roles";
 import type { Role } from "@/features/roles/types/role";
+import {
+  getAdminApiErrorCode,
+  getAdminApiErrorMessage,
+  getAdminApiFieldErrors,
+  getAdminApiFirstFieldError,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const SLUG_REGEX = /^[a-zA-Z0-9._-]+$/;
 
@@ -61,16 +68,6 @@ type RoleFormDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-type BackendErrorData = {
-  message?: string;
-  errors?: Record<string, string[] | string>;
-  error?: {
-    code?: string;
-    message?: string;
-    details?: Record<string, string[] | string>;
-  };
-};
-
 function toText(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (typeof value === "string") return value;
@@ -88,17 +85,6 @@ function getValidationMessage(value: unknown): string | null {
 
   if (typeof value === "string" && value.trim()) {
     return value;
-  }
-
-  return null;
-}
-
-function getFirstValidationMessage(details: unknown): string | null {
-  if (!details || typeof details !== "object") return null;
-
-  for (const value of Object.values(details as Record<string, unknown>)) {
-    const message = getValidationMessage(value);
-    if (message) return message;
   }
 
   return null;
@@ -163,34 +149,20 @@ function getErrorCodeMessage(code: string | undefined): string | null {
 }
 
 function extractErrorMessage(error: unknown): string {
-  if (isAxiosError<BackendErrorData>(error)) {
-    const data = error.response?.data;
-
-    // Check for known error codes first
-    const errorCode = data?.error?.code;
-    const codeMessage = getErrorCodeMessage(errorCode);
-    if (codeMessage) {
-      return codeMessage;
-    }
-
-    const validationMessage =
-      getFirstValidationMessage(data?.error?.details) ??
-      getFirstValidationMessage(data?.errors);
-
-    if (validationMessage) {
-      return validationMessage;
-    }
-
-    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
-      return data.error.message;
-    }
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
+  const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error));
+  if (codeMessage) {
+    return codeMessage;
   }
 
-  return "Unable to save role. Please try again.";
+  const validationMessage = getAdminApiFirstFieldError(error);
+  if (validationMessage) {
+    return validationMessage;
+  }
+
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to save role. Please try again.",
+  );
 }
 
 function normalizeSlug(slug: string): string {
@@ -262,18 +234,28 @@ export function RoleFormDialog({
           payload,
         },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (!isAdminRequestSuccessful(response)) {
+              setFormError(
+                getAdminResponseMessage(
+                  response,
+                  "Unable to save role. Please try again.",
+                ),
+              );
+              return;
+            }
             onOpenChange(false);
-            onSuccess?.("Role updated successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(response, "Role updated successfully."),
+            );
           },
           onError: (error) => {
-            const data = isAxiosError<BackendErrorData>(error)
-              ? error.response?.data
-              : undefined;
-
-            const hasFieldError =
-              mapFieldErrors(data?.error?.details, form.setError) ||
-              mapFieldErrors(data?.errors, form.setError);
+            const hasFieldError = mapFieldErrors(
+              getAdminApiFieldErrors(error) as
+                | Record<string, string[] | string>
+                | undefined,
+              form.setError,
+            );
 
             if (!hasFieldError) {
               setFormError(extractErrorMessage(error));
@@ -286,18 +268,28 @@ export function RoleFormDialog({
     }
 
     createMutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setFormError(
+            getAdminResponseMessage(
+              response,
+              "Unable to save role. Please try again.",
+            ),
+          );
+          return;
+        }
         onOpenChange(false);
-        onSuccess?.("Role created successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(response, "Role created successfully."),
+        );
       },
       onError: (error) => {
-        const data = isAxiosError<BackendErrorData>(error)
-          ? error.response?.data
-          : undefined;
-
-        const hasFieldError =
-          mapFieldErrors(data?.error?.details, form.setError) ||
-          mapFieldErrors(data?.errors, form.setError);
+        const hasFieldError = mapFieldErrors(
+          getAdminApiFieldErrors(error) as
+            | Record<string, string[] | string>
+            | undefined,
+          form.setError,
+        );
 
         if (!hasFieldError) {
           setFormError(extractErrorMessage(error));

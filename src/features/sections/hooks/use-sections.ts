@@ -321,6 +321,8 @@ export function useSectionVideo(
 }
 
 export function useAttachSectionVideo() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -333,10 +335,23 @@ export function useAttachSectionVideo() {
       sectionId: string | number;
       payload: { video_id: string | number; [key: string]: unknown };
     }) => attachSectionVideo(centerId, courseId, sectionId, payload),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-videos", centerId, courseId, sectionId],
+      });
+    },
   });
 }
 
 export function useDetachSectionVideo() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -349,6 +364,17 @@ export function useDetachSectionVideo() {
       sectionId: string | number;
       videoId: string | number;
     }) => detachSectionVideo(centerId, courseId, sectionId, videoId),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-videos", centerId, courseId, sectionId],
+      });
+    },
   });
 }
 
@@ -382,6 +408,8 @@ export function useSectionPdf(
 }
 
 export function useAttachSectionPdf() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -394,10 +422,23 @@ export function useAttachSectionPdf() {
       sectionId: string | number;
       payload: { pdf_id: string | number; [key: string]: unknown };
     }) => attachSectionPdf(centerId, courseId, sectionId, payload),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-pdfs", centerId, courseId, sectionId],
+      });
+    },
   });
 }
 
 export function useDetachSectionPdf() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -410,6 +451,17 @@ export function useDetachSectionPdf() {
       sectionId: string | number;
       pdfId: string | number;
     }) => detachSectionPdf(centerId, courseId, sectionId, pdfId),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-pdfs", centerId, courseId, sectionId],
+      });
+    },
   });
 }
 

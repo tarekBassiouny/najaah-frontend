@@ -12,6 +12,10 @@ import {
 import { useDeleteEnrollment } from "@/features/enrollments/hooks/use-enrollments";
 import type { Enrollment } from "@/features/enrollments/types/enrollment";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 import { useState } from "react";
 
 type DeleteEnrollmentDialogProps = {
@@ -42,8 +46,14 @@ export function DeleteEnrollmentDialog({
         centerId,
       },
       {
-        onSuccess: () => {
-          onSuccess?.("Enrollment deleted.");
+        onSuccess: (response) => {
+          if (!isAdminRequestSuccessful(response)) {
+            setErrorMessage(
+              getAdminResponseMessage(response, "Unable to delete enrollment."),
+            );
+            return;
+          }
+          onSuccess?.(getAdminResponseMessage(response, "Enrollment deleted."));
           onOpenChange(false);
         },
         onError: (error) => {

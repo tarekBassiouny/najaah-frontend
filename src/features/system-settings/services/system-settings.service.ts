@@ -1,4 +1,9 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type { PaginatedResponse } from "@/types/pagination";
 import type {
   SystemSetting,
@@ -133,7 +138,7 @@ export async function createSystemSetting(
     "/api/v1/admin/settings",
     payload,
   );
-  return normalizeEntityResponse(data);
+  return withResponseMessage(normalizeEntityResponse(data), data);
 }
 
 export async function updateSystemSetting(
@@ -144,11 +149,14 @@ export async function updateSystemSetting(
     `/api/v1/admin/settings/${id}`,
     payload,
   );
-  return normalizeEntityResponse(data);
+  return withResponseMessage(normalizeEntityResponse(data), data);
 }
 
-export async function deleteSystemSetting(id: string | number): Promise<void> {
-  await http.delete(`/api/v1/admin/settings/${id}`);
+export async function deleteSystemSetting(
+  id: string | number,
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(`/api/v1/admin/settings/${id}`);
+  return normalizeAdminActionResult(data);
 }
 
 export async function getSystemSettingsPreview(): Promise<SystemSettingsPreviewResponse> {

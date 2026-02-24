@@ -20,6 +20,10 @@ import {
 import { useUpdateCenterStatus } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type UpdateCenterStatusDialogProps = {
   open: boolean;
@@ -74,8 +78,22 @@ export function UpdateCenterStatusDialog({
         payload: { status: status === "active" ? 1 : 0 },
       },
       {
-        onSuccess: () => {
-          onSuccess?.("Center status updated successfully.");
+        onSuccess: (response) => {
+          if (!isAdminRequestSuccessful(response)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                response,
+                "Unable to update center status. Please try again.",
+              ),
+            );
+            return;
+          }
+          onSuccess?.(
+            getAdminResponseMessage(
+              response,
+              "Center status updated successfully.",
+            ),
+          );
           onOpenChange(false);
         },
         onError: (error) => {

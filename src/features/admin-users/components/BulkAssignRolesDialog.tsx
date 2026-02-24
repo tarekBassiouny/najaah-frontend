@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { isAxiosError } from "axios";
 import { useRoles } from "@/features/roles/hooks/use-roles";
 import {
   Dialog,
@@ -17,6 +16,11 @@ import { cn } from "@/lib/utils";
 import { useBulkAssignAdminRoles } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
 import type { BulkAssignRolesResult } from "@/features/admin-users/types/admin-user";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const ROLES_PAGE_SIZE = 100;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -30,13 +34,10 @@ type BulkAssignRolesDialogProps = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-  }
-  return "Unable to assign roles. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to assign roles. Please try again.",
+  );
 }
 
 function roleName(role: {
@@ -144,16 +145,30 @@ export function BulkAssignRolesDialog({
         role_ids: Array.from(selectedRoleIds),
       });
 
+      if (!isAdminRequestSuccessful(response)) {
+        setErrorMessage(
+          getAdminResponseMessage(response, "Unable to assign roles."),
+        );
+        return;
+      }
+
       setResult(response);
 
       const counts = response.counts;
       if (counts && (counts.failed ?? 0) === 0 && (counts.skipped ?? 0) === 0) {
-        onSuccess?.("All users assigned to roles successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(
+            response,
+            "All users assigned to roles successfully.",
+          ),
+        );
         onOpenChange(false);
         return;
       }
 
-      onSuccess?.("Bulk role assignment processed.");
+      onSuccess?.(
+        getAdminResponseMessage(response, "Bulk role assignment processed."),
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }

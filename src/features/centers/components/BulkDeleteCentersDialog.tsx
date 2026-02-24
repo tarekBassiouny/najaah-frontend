@@ -14,6 +14,10 @@ import { useBulkDeleteCenters } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { BulkCentersActionResult } from "@/features/centers/services/centers.service";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkDeleteCentersDialogProps = {
   open: boolean;
@@ -103,17 +107,33 @@ export function BulkDeleteCentersDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                data,
+                "Unable to delete selected centers. Please try again.",
+              ),
+            );
+            return;
+          }
           setResult(data);
 
           const skipped = readCount(data, "skipped");
           const failed = readCount(data, "failed");
           if (skipped === 0 && failed === 0) {
-            onSuccess?.("Selected centers were deleted successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                data,
+                "Selected centers were deleted successfully.",
+              ),
+            );
             onOpenChange(false);
             return;
           }
 
-          onSuccess?.("Bulk delete action processed.");
+          onSuccess?.(
+            getAdminResponseMessage(data, "Bulk delete action processed."),
+          );
         },
         onError: (error) => {
           setErrorMessage(

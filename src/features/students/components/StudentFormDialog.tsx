@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +36,12 @@ import {
   useUpdateStudent,
 } from "@/features/students/hooks/use-students";
 import type { Student } from "@/features/students/types/student";
+import {
+  getAdminApiErrorMessage,
+  getAdminApiFirstFieldError,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 function getInitials(value: string) {
   const parts = value.trim().split(" ").filter(Boolean);
@@ -99,58 +104,16 @@ type StudentFormDialogProps = {
   onCreated?: (_student: Student) => void;
 };
 
-function getFirstValidationMessage(details: unknown): string | null {
-  if (!details || typeof details !== "object") return null;
-
-  for (const value of Object.values(details as Record<string, unknown>)) {
-    if (Array.isArray(value)) {
-      const first = value.find(
-        (item) => typeof item === "string" && item.trim(),
-      ) as string | undefined;
-      if (first) return first;
-      continue;
-    }
-
-    if (typeof value === "string" && value.trim()) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, string[] | string>;
-          error?: {
-            code?: string;
-            message?: string;
-            details?: Record<string, string[] | string>;
-          };
-        }
-      | undefined;
-
-    const validationMessage =
-      getFirstValidationMessage(data?.error?.details) ??
-      getFirstValidationMessage(data?.errors);
-
-    if (validationMessage) {
-      return validationMessage;
-    }
-
-    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
-      return data.error.message;
-    }
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
+  const fieldMessage = getAdminApiFirstFieldError(error);
+  if (fieldMessage) {
+    return fieldMessage;
   }
 
-  return "Unable to save student. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to save student. Please try again.",
+  );
 }
 
 export function StudentFormDialog({
@@ -262,9 +225,23 @@ export function StudentFormDialog({
           payload,
         },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (!isAdminRequestSuccessful(response)) {
+              setFormError(
+                getAdminResponseMessage(
+                  response,
+                  "Unable to save student. Please try again.",
+                ),
+              );
+              return;
+            }
             onOpenChange(false);
-            onSuccess?.("Student updated successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                response,
+                "Student updated successfully.",
+              ),
+            );
           },
           onError: (error) => setFormError(getErrorMessage(error)),
         },
@@ -274,8 +251,22 @@ export function StudentFormDialog({
 
     createMutation.mutate(payload, {
       onSuccess: (createdStudent) => {
+        if (!isAdminRequestSuccessful(createdStudent)) {
+          setFormError(
+            getAdminResponseMessage(
+              createdStudent,
+              "Unable to save student. Please try again.",
+            ),
+          );
+          return;
+        }
         onOpenChange(false);
-        onSuccess?.("Student created successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(
+            createdStudent,
+            "Student created successfully.",
+          ),
+        );
         onCreated?.(
           createdStudent ??
             ({

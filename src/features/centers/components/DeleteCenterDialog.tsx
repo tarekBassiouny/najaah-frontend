@@ -11,6 +11,10 @@ import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteCenter } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type DeleteCenterDialogProps = {
   open: boolean;
@@ -39,9 +43,20 @@ export function DeleteCenterDialog({
     setErrorMessage(null);
 
     deleteMutation.mutate(center.id, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setErrorMessage(
+            getAdminResponseMessage(
+              response,
+              "Unable to delete center. Please try again.",
+            ),
+          );
+          return;
+        }
         onOpenChange(false);
-        onSuccess?.("Center deleted successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(response, "Center deleted successfully."),
+        );
       },
       onError: (error) => {
         setErrorMessage(

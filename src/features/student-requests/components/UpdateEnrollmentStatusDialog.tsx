@@ -23,6 +23,10 @@ import type {
   Enrollment,
 } from "@/features/enrollments/types/enrollment";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type UpdateEnrollmentStatusDialogProps = {
   open: boolean;
@@ -77,8 +81,19 @@ export function UpdateEnrollmentStatusDialog({
         payload: { status },
       },
       {
-        onSuccess: () => {
-          onSuccess?.("Enrollment status updated.");
+        onSuccess: (response) => {
+          if (!isAdminRequestSuccessful(response)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                response,
+                "Unable to update enrollment status.",
+              ),
+            );
+            return;
+          }
+          onSuccess?.(
+            getAdminResponseMessage(response, "Enrollment status updated."),
+          );
           onOpenChange(false);
         },
         onError: (error) => {

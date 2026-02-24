@@ -412,6 +412,10 @@ export const handlers = [
     notificationRecords = notificationRecords.filter(
       (notification) => notification.id !== id,
     );
-    return new HttpResponse(null, { status: 204 });
+    return HttpResponse.json({
+      success: true,
+      message: "Notification deleted successfully.",
+      data: null,
+    });
   }),
 ];

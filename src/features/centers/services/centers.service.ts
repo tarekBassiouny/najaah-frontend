@@ -1,4 +1,9 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type { Center } from "@/features/centers/types/center";
 import type { PaginatedResponse } from "@/types/pagination";
 
@@ -358,11 +363,14 @@ export async function updateCenterStatus(
     payload,
   );
 
-  return data?.data ?? (data as unknown as Center);
+  return withResponseMessage(data?.data ?? (data as unknown as Center), data);
 }
 
-export async function deleteCenter(centerId: string | number): Promise<void> {
-  await http.delete(`/api/v1/admin/centers/${centerId}`);
+export async function deleteCenter(
+  centerId: string | number,
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(`/api/v1/admin/centers/${centerId}`);
+  return normalizeAdminActionResult(data);
 }
 
 export async function restoreCenter(
@@ -371,7 +379,7 @@ export async function restoreCenter(
   const { data } = await http.post<RawCenterResponse>(
     `/api/v1/admin/centers/${centerId}/restore`,
   );
-  return data?.data ?? (data as unknown as Center);
+  return withResponseMessage(data?.data ?? (data as unknown as Center), data);
 }
 
 export async function retryCenterOnboarding(centerId: string | number) {
@@ -379,7 +387,7 @@ export async function retryCenterOnboarding(centerId: string | number) {
     `/api/v1/admin/centers/${centerId}/onboarding/retry`,
   );
 
-  return unwrapObjectPayload(data) as Center;
+  return withResponseMessage(unwrapObjectPayload(data) as Center, data);
 }
 
 export async function bulkUpdateCenterStatus(
@@ -390,7 +398,10 @@ export async function bulkUpdateCenterStatus(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkCentersActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkCentersActionResult,
+    data,
+  );
 }
 
 export async function bulkUpdateCenterFeatured(
@@ -401,7 +412,10 @@ export async function bulkUpdateCenterFeatured(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkCentersActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkCentersActionResult,
+    data,
+  );
 }
 
 export async function bulkUpdateCenterTier(
@@ -409,7 +423,10 @@ export async function bulkUpdateCenterTier(
 ): Promise<BulkCentersActionResult> {
   const { data } = await http.post("/api/v1/admin/centers/bulk-tier", payload);
 
-  return unwrapObjectPayload(data) as BulkCentersActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkCentersActionResult,
+    data,
+  );
 }
 
 export async function bulkDeleteCenters(
@@ -420,7 +437,10 @@ export async function bulkDeleteCenters(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkCentersActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkCentersActionResult,
+    data,
+  );
 }
 
 export async function bulkRestoreCenters(
@@ -431,7 +451,10 @@ export async function bulkRestoreCenters(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkCentersActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkCentersActionResult,
+    data,
+  );
 }
 
 export async function bulkRetryCenterOnboarding(
@@ -442,7 +465,10 @@ export async function bulkRetryCenterOnboarding(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkCentersActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkCentersActionResult,
+    data,
+  );
 }
 
 export type UploadCenterLogoPayload = {

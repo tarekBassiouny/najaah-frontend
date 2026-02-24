@@ -1,4 +1,10 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  unwrapAdminData,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type {
   Student,
   StudentImportResult,
@@ -141,7 +147,7 @@ export async function createStudent(
 ): Promise<Student> {
   const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.post<RawStudentResponse>(basePath, payload);
-  return data?.data ?? (data as unknown as Student);
+  return withResponseMessage(data?.data ?? (data as unknown as Student), data);
 }
 
 export async function updateStudent(
@@ -154,15 +160,16 @@ export async function updateStudent(
     `${basePath}/${studentId}`,
     payload,
   );
-  return data?.data ?? (data as unknown as Student);
+  return withResponseMessage(data?.data ?? (data as unknown as Student), data);
 }
 
 export async function deleteStudent(
   studentId: string | number,
   context?: StudentsApiScopeContext,
-): Promise<void> {
+): Promise<AdminActionResult> {
   const basePath = buildStudentsBasePath(context?.centerId);
-  await http.delete(`${basePath}/${studentId}`);
+  const { data } = await http.delete(`${basePath}/${studentId}`);
+  return normalizeAdminActionResult(data);
 }
 
 export type UpdateStudentStatusPayload = {
@@ -215,14 +222,20 @@ export async function updateStudentStatus(
     `${basePath}/${studentId}/status`,
     payload,
   );
-  return data?.data ?? (data as unknown as Student);
+  return withResponseMessage(data?.data ?? (data as unknown as Student), data);
 }
 
 export async function bulkEnrollStudents(
   payload: BulkEnrollStudentsPayload,
 ): Promise<BulkEnrollStudentsResult> {
   const { data } = await http.post("/api/v1/admin/enrollments/bulk", payload);
-  return (data?.data ?? data) as BulkEnrollStudentsResult;
+  return withResponseMessage(
+    unwrapAdminData<BulkEnrollStudentsResult>(
+      data,
+      {} as BulkEnrollStudentsResult,
+    ),
+    data,
+  );
 }
 
 export async function bulkUpdateStudentStatus(
@@ -231,7 +244,13 @@ export async function bulkUpdateStudentStatus(
 ): Promise<BulkStudentStatusResult> {
   const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.post(`${basePath}/bulk-status`, payload);
-  return (data?.data ?? data) as BulkStudentStatusResult;
+  return withResponseMessage(
+    unwrapAdminData<BulkStudentStatusResult>(
+      data,
+      {} as BulkStudentStatusResult,
+    ),
+    data,
+  );
 }
 
 export async function resetStudentDevice(

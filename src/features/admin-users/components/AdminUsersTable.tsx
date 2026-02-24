@@ -567,7 +567,8 @@ export function AdminUsersTable({
                       : String(lastActiveValue);
                   })();
 
-                  const shouldOpenUp = items.length > 4 && index >= items.length - 2;
+                  const shouldOpenUp =
+                    items.length > 4 && index >= items.length - 2;
 
                   return (
                     <TableRow

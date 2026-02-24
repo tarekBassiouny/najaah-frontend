@@ -74,7 +74,11 @@ export default function StudentProfilePage({
   const { centerId, studentId } = use(params);
   const { from, courseId } = use(searchParams);
 
-  const { data: profile, isLoading, isError } = useStudentProfile(
+  const {
+    data: profile,
+    isLoading,
+    isError,
+  } = useStudentProfile(
     studentId,
     { centerId },
     { enabled: Boolean(studentId) && Boolean(centerId) },
@@ -213,6 +217,7 @@ export default function StudentProfilePage({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {profile.avatar_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={profile.avatar_url}
                   alt={profile.name}

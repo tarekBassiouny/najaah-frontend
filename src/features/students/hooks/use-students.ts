@@ -20,16 +20,16 @@ import {
   type StudentsApiScopeContext,
 } from "../services/students.service";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { Student, StudentProfile } from "@/features/students/types/student";
+import type {
+  Student,
+  StudentProfile,
+} from "@/features/students/types/student";
 
 export const studentKeys = {
   all: ["students"] as const,
   list: (params: ListStudentsParams, context?: StudentsApiScopeContext) =>
     [...studentKeys.all, params, context?.centerId ?? null] as const,
-  profile: (
-    studentId: string | number,
-    context?: StudentsApiScopeContext,
-  ) =>
+  profile: (studentId: string | number, context?: StudentsApiScopeContext) =>
     [
       ...studentKeys.all,
       "profile",

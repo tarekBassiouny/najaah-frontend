@@ -132,7 +132,16 @@ export function StudentsTable({
           ? undefined
           : centerTypeFilter,
     }),
-    [page, perPage, query, centerId, courseId, statusFilter, centerTypeFilter, isCenterScoped],
+    [
+      page,
+      perPage,
+      query,
+      centerId,
+      courseId,
+      statusFilter,
+      centerTypeFilter,
+      isCenterScoped,
+    ],
   );
 
   const { data, isLoading, isError, isFetching } = useStudents(params, {
@@ -483,7 +492,8 @@ export function StudentsTable({
                   const lastActivityLabel = analytics?.last_activity_at
                     ? formatDateTime(analytics.last_activity_at)
                     : "—";
-                  const shouldOpenUp = items.length > 4 && index >= items.length - 2;
+                  const shouldOpenUp =
+                    items.length > 4 && index >= items.length - 2;
                   const profileHref = buildProfileHref?.(student) ?? null;
 
                   return (

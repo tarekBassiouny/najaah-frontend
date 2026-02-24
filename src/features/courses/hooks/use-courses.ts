@@ -19,6 +19,7 @@ import {
   deleteCourse,
   deleteCenterCourse,
   publishCourse,
+  unpublishCourse,
   removeCoursePdf,
   removeCourseVideo,
   uploadCourseThumbnail,
@@ -26,6 +27,7 @@ import {
   type ListCoursesParams,
   type ListCenterCoursesParams,
   type CourseMediaAssignmentPayload,
+  type CloneCourseOptions,
 } from "../services/courses.service";
 import type {
   Course,
@@ -189,8 +191,20 @@ export function useCloneCourse() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (courseId: string | number) => cloneCourse(courseId),
-    onSuccess: (_, courseId) => {
+    mutationFn: ({
+      centerId,
+      courseId,
+      options,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      options?: CloneCourseOptions;
+    }) => cloneCourse(centerId, courseId, options),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       queryClient.invalidateQueries({ queryKey: ["course", courseId] });
     },
@@ -201,8 +215,52 @@ export function usePublishCourse() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (courseId: string | number) => publishCourse(courseId),
-    onSuccess: (_, courseId) => {
+    mutationFn: ({
+      centerId,
+      courseId,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+    }) => publishCourse(centerId, courseId),
+    onSuccess: (publishedCourse, { centerId, courseId }) => {
+      queryClient.setQueryData(
+        ["center-course", centerId, courseId],
+        publishedCourse,
+      );
+      queryClient.setQueryData(["course", courseId], publishedCourse);
+
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      queryClient.invalidateQueries({ queryKey: ["course", courseId] });
+    },
+  });
+}
+
+export function useUnpublishCourse() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+    }) => unpublishCourse(centerId, courseId),
+    onSuccess: (unpublishedCourse, { centerId, courseId }) => {
+      queryClient.setQueryData(
+        ["center-course", centerId, courseId],
+        unpublishedCourse,
+      );
+      queryClient.setQueryData(["course", courseId], unpublishedCourse);
+
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       queryClient.invalidateQueries({ queryKey: ["course", courseId] });
     },
@@ -210,6 +268,8 @@ export function usePublishCourse() {
 }
 
 export function useAssignCourseVideo() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -220,10 +280,18 @@ export function useAssignCourseVideo() {
       courseId: string | number;
       payload: CourseMediaAssignmentPayload;
     }) => assignCourseVideo(centerId, courseId, payload),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
   });
 }
 
 export function useRemoveCourseVideo() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -234,10 +302,18 @@ export function useRemoveCourseVideo() {
       courseId: string | number;
       videoId: string | number;
     }) => removeCourseVideo(centerId, courseId, videoId),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
   });
 }
 
 export function useAssignCoursePdf() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -248,10 +324,18 @@ export function useAssignCoursePdf() {
       courseId: string | number;
       payload: CourseMediaAssignmentPayload;
     }) => assignCoursePdf(centerId, courseId, payload),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
   });
 }
 
 export function useRemoveCoursePdf() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -262,6 +346,12 @@ export function useRemoveCoursePdf() {
       courseId: string | number;
       pdfId: string | number;
     }) => removeCoursePdf(centerId, courseId, pdfId),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
   });
 }
 

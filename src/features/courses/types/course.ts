@@ -68,6 +68,7 @@ export type CourseSummary = {
   status?: string | null;
   status_key?: string | null;
   status_label?: string | null;
+  is_published?: boolean | null;
   published_at?: string | null;
   slug?: string | null;
   [key: string]: unknown;

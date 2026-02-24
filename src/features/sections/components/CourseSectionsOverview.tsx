@@ -17,12 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useAttachSectionPdf,
-  useAttachSectionVideo,
   useCreateSection,
   useReorderSections,
   useSections,
 } from "@/features/sections/hooks/use-sections";
+import { SectionMediaManagerDialog } from "@/features/sections/components/SectionMediaManagerDialog";
 import { getSectionApiErrorMessage } from "@/features/sections/lib/api-error";
 import type { Section } from "@/features/sections/types/section";
 import { cn } from "@/lib/utils";
@@ -38,13 +37,12 @@ type Feedback = {
   message: string;
 };
 
-type MediaDialogState = {
-  type: "video" | "pdf";
-  sectionId: string | number;
-  sectionTitle: string;
+type MediaManagerState = {
+  mode: "video" | "pdf";
+  section: Section;
 } | null;
 
-const OVERVIEW_SECTIONS_LIMIT = 200;
+const OVERVIEW_SECTIONS_LIMIT = 100;
 
 function getSectionTitle(section: Section) {
   return section.title ?? section.name ?? `Section #${section.id}`;
@@ -114,9 +112,8 @@ export function CourseSectionsOverview({
   const [expandedSections, setExpandedSections] = useState<
     Array<string | number>
   >([]);
-  const [mediaDialog, setMediaDialog] = useState<MediaDialogState>(null);
-  const [mediaId, setMediaId] = useState("");
-  const [mediaIdError, setMediaIdError] = useState<string | null>(null);
+  const [mediaManagerState, setMediaManagerState] =
+    useState<MediaManagerState>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
   const [createSortOrder, setCreateSortOrder] = useState("");
@@ -130,10 +127,6 @@ export function CourseSectionsOverview({
     useReorderSections();
   const { mutate: createSection, isPending: isCreatingSection } =
     useCreateSection();
-  const { mutate: attachVideo, isPending: isAttachingVideo } =
-    useAttachSectionVideo();
-  const { mutate: attachPdf, isPending: isAttachingPdf } =
-    useAttachSectionPdf();
 
   const sortedSections = useMemo(
     () =>
@@ -147,8 +140,7 @@ export function CourseSectionsOverview({
     setOrderedSections(sortedSections);
   }, [sortedSections]);
 
-  const isBusy =
-    isReordering || isCreatingSection || isAttachingVideo || isAttachingPdf;
+  const isBusy = isReordering || isCreatingSection;
   const canReorder =
     orderedSections.length > 0 &&
     orderedSections.every((section) => section.id != null);
@@ -215,7 +207,7 @@ export function CourseSectionsOverview({
       {
         centerId,
         courseId,
-        payload: { ordered_ids: nextOrderedIds },
+        payload: { sections: nextOrderedIds },
       },
       {
         onSuccess: () => {
@@ -313,77 +305,8 @@ export function CourseSectionsOverview({
     );
   };
 
-  const openMediaDialog = (type: "video" | "pdf", section: Section) => {
-    setMediaDialog({
-      type,
-      sectionId: section.id,
-      sectionTitle: getSectionTitle(section),
-    });
-    setMediaId("");
-    setMediaIdError(null);
-  };
-
-  const closeMediaDialog = () => {
-    if (isBusy) return;
-    setMediaDialog(null);
-    setMediaId("");
-    setMediaIdError(null);
-  };
-
-  const handleAttachMedia = () => {
-    if (!mediaDialog) return;
-
-    const value = mediaId.trim();
-    const parsedId = Number(value);
-    const isValid = Number.isInteger(parsedId) && parsedId > 0;
-
-    if (!isValid) {
-      setMediaIdError("Enter a valid positive numeric ID.");
-      return;
-    }
-
-    setMediaIdError(null);
-
-    const onSuccess = () => {
-      closeMediaDialog();
-      setFeedback({
-        type: "success",
-        message:
-          mediaDialog.type === "video"
-            ? "Video attached successfully."
-            : "PDF attached successfully.",
-      });
-    };
-
-    const onError = (error: unknown) => {
-      setFeedback({
-        type: "error",
-        message: getSectionApiErrorMessage(error, "Failed to attach media."),
-      });
-    };
-
-    if (mediaDialog.type === "video") {
-      attachVideo(
-        {
-          centerId,
-          courseId,
-          sectionId: mediaDialog.sectionId,
-          payload: { video_id: parsedId },
-        },
-        { onSuccess, onError },
-      );
-      return;
-    }
-
-    attachPdf(
-      {
-        centerId,
-        courseId,
-        sectionId: mediaDialog.sectionId,
-        payload: { pdf_id: parsedId },
-      },
-      { onSuccess, onError },
-    );
+  const openMediaManager = (mode: "video" | "pdf", section: Section) => {
+    setMediaManagerState({ mode, section });
   };
 
   return (
@@ -396,16 +319,11 @@ export function CourseSectionsOverview({
                 Course Content
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Drag sections to reorder. Quickly attach videos or PDFs by ID.
+                Drag sections to reorder. Quickly manage videos or PDFs.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                className="gap-2"
-                onClick={() => setIsCreateDialogOpen(true)}
-              >
-                <span className="text-lg leading-none">+</span>
+              <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
                 Add Section
               </Button>
               <Link href={managerHref}>
@@ -547,7 +465,7 @@ export function CourseSectionsOverview({
                         variant="ghost"
                         size="sm"
                         className="gap-2"
-                        onClick={() => openMediaDialog("video", section)}
+                        onClick={() => openMediaManager("video", section)}
                         disabled={isBusy}
                       >
                         <span className="text-lg leading-none">+</span>
@@ -557,7 +475,7 @@ export function CourseSectionsOverview({
                         variant="ghost"
                         size="sm"
                         className="gap-2"
-                        onClick={() => openMediaDialog("pdf", section)}
+                        onClick={() => openMediaManager("pdf", section)}
                         disabled={isBusy}
                       >
                         <span className="text-lg leading-none">+</span>
@@ -675,49 +593,24 @@ export function CourseSectionsOverview({
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={!!mediaDialog}
-        onOpenChange={(open) => (!open ? closeMediaDialog() : null)}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {mediaDialog?.type === "video" ? "Attach Video" : "Attach PDF"}
-            </DialogTitle>
-            <DialogDescription>
-              {mediaDialog
-                ? `Provide the ${mediaDialog.type.toUpperCase()} ID for ${mediaDialog.sectionTitle}.`
-                : ""}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="overview-media-id">Media ID</Label>
-            <Input
-              id="overview-media-id"
-              value={mediaId}
-              onChange={(event) => setMediaId(event.target.value)}
-              placeholder="e.g., 123"
-            />
-            {mediaIdError ? (
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {mediaIdError}
-              </p>
-            ) : null}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={closeMediaDialog}
-              disabled={isBusy}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleAttachMedia} disabled={isBusy}>
-              {isAttachingVideo || isAttachingPdf ? "Saving..." : "Attach"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SectionMediaManagerDialog
+        open={Boolean(mediaManagerState)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMediaManagerState(null);
+          }
+        }}
+        mode={mediaManagerState?.mode ?? "video"}
+        section={mediaManagerState?.section ?? null}
+        centerId={centerId}
+        courseId={courseId}
+        onSuccess={(message) => {
+          setFeedback({
+            type: "success",
+            message,
+          });
+        }}
+      />
     </>
   );
 }

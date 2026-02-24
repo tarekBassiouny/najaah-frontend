@@ -25,6 +25,7 @@ import { CoursePublishAction } from "@/features/courses/components/CoursePublish
 import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsTable";
 import { useCategories } from "@/features/categories/hooks/use-categories";
 import { CourseSectionsOverview } from "@/features/sections/components/CourseSectionsOverview";
+import { formatDateTime } from "@/lib/format-date-time";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -315,7 +316,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                 {course.created_at ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-                    <span>Created: {String(course.created_at)}</span>
+                    <span>
+                      Created: {formatDateTime(String(course.created_at))}
+                    </span>
                   </div>
                 ) : null}
               </div>

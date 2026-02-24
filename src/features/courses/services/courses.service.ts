@@ -1,6 +1,7 @@
 import { http } from "@/lib/http";
 import {
   normalizeAdminActionResult,
+  withResponseMessage,
   type AdminActionResult,
 } from "@/lib/admin-response";
 
@@ -54,7 +55,12 @@ function normalizeCoursesResponse(
 
   const page =
     Number(
-      meta.current_page ?? dataNode?.current_page ?? container.current_page,
+      meta.page ??
+        meta.current_page ??
+        dataNode?.page ??
+        dataNode?.current_page ??
+        container.page ??
+        container.current_page,
     ) || fallback.page;
   const perPage =
     Number(meta.per_page ?? dataNode?.per_page ?? container.per_page) ||
@@ -135,7 +141,6 @@ export async function listCenterCourses(params: ListCenterCoursesParams) {
         page: params.page,
         per_page: params.per_page,
         search: params.search || undefined,
-        center_id: params.center_id ?? undefined,
         category_id: params.category_id ?? undefined,
         primary_instructor_id: params.primary_instructor_id ?? undefined,
       },
@@ -196,20 +201,36 @@ export async function deleteCenterCourse(
   return normalizeAdminActionResult(data);
 }
 
-export async function cloneCourse(courseId: string | number): Promise<Course> {
+export async function cloneCourse(
+  centerId: string | number,
+  courseId: string | number,
+  options?: CloneCourseOptions,
+): Promise<Course> {
   const { data } = await http.post<RawResponse>(
-    `/api/v1/admin/courses/${courseId}/clone`,
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/clone`,
+    { options: options ?? {} },
   );
-  return (data?.data ?? data) as Course;
+  return withResponseMessage((data?.data ?? data) as Course, data);
 }
 
 export async function publishCourse(
+  centerId: string | number,
   courseId: string | number,
 ): Promise<Course> {
   const { data } = await http.post<RawResponse>(
-    `/api/v1/admin/courses/${courseId}/publish`,
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/publish`,
   );
-  return (data?.data ?? data) as Course;
+  return withResponseMessage((data?.data ?? data) as Course, data);
+}
+
+export async function unpublishCourse(
+  centerId: string | number,
+  courseId: string | number,
+): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}/unpublish`,
+  );
+  return withResponseMessage((data?.data ?? data) as Course, data);
 }
 
 export type CourseMediaAssignmentPayload = {
@@ -300,14 +321,11 @@ export type CloneCourseOptions = {
 };
 
 export async function cloneCourseWithOptions(
+  centerId: string | number,
   courseId: string | number,
   options?: CloneCourseOptions,
 ): Promise<Course> {
-  const { data } = await http.post<RawResponse>(
-    `/api/v1/admin/courses/${courseId}/clone`,
-    { options },
-  );
-  return (data?.data ?? data) as Course;
+  return cloneCourse(centerId, courseId, options);
 }
 
 export type UploadCourseThumbnailResponse = {

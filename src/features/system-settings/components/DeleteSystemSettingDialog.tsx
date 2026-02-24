@@ -1,6 +1,5 @@
 "use client";
 
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,11 @@ import {
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteSystemSetting } from "@/features/system-settings/hooks/use-system-settings";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type DeleteSystemSettingDialogProps = {
   open: boolean;
@@ -20,14 +24,10 @@ type DeleteSystemSettingDialogProps = {
 };
 
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-  }
-
-  return "Unable to delete setting. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to delete setting. Please try again.",
+  );
 }
 
 export function DeleteSystemSettingDialog({
@@ -46,9 +46,14 @@ export function DeleteSystemSettingDialog({
     if (!setting) return;
 
     deleteMutation.mutate(setting.id, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          return;
+        }
         onOpenChange(false);
-        onSuccess?.("Setting deleted successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(response, "Setting deleted successfully."),
+        );
       },
     });
   };

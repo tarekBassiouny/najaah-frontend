@@ -1,4 +1,10 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  unwrapAdminData,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type {
   AdminUser,
   AdminUserRole,
@@ -126,7 +132,7 @@ export async function createAdminUser(
 ): Promise<AdminUser> {
   const basePath = buildAdminUsersBasePath(context?.centerId);
   const { data } = await http.post<RawAdminUserResponse>(basePath, payload);
-  return data?.data ?? (data as unknown as AdminUser);
+  return withResponseMessage(data?.data ?? (data as unknown as AdminUser), data);
 }
 
 export async function updateAdminUser(
@@ -139,15 +145,16 @@ export async function updateAdminUser(
     `${basePath}/${userId}`,
     payload,
   );
-  return data?.data ?? (data as unknown as AdminUser);
+  return withResponseMessage(data?.data ?? (data as unknown as AdminUser), data);
 }
 
 export async function deleteAdminUser(
   userId: string | number,
   context?: AdminUsersApiScopeContext,
-): Promise<void> {
+): Promise<AdminActionResult> {
   const basePath = buildAdminUsersBasePath(context?.centerId);
-  await http.delete(`${basePath}/${userId}`);
+  const { data } = await http.delete(`${basePath}/${userId}`);
+  return normalizeAdminActionResult(data);
 }
 
 type RawAdminUserRolesResponse = {
@@ -184,7 +191,10 @@ export async function bulkAssignAdminRoles(
 ): Promise<BulkAssignRolesResult> {
   const basePath = buildAdminUsersBasePath(context?.centerId);
   const { data } = await http.post(`${basePath}/roles/bulk`, payload);
-  return (data?.data ?? data) as BulkAssignRolesResult;
+  return withResponseMessage(
+    unwrapAdminData<BulkAssignRolesResult>(data, {} as BulkAssignRolesResult),
+    data,
+  );
 }
 
 export async function bulkAssignAdminCenters(
@@ -194,7 +204,13 @@ export async function bulkAssignAdminCenters(
     "/api/v1/admin/users/bulk-assign-centers",
     payload,
   );
-  return (data?.data ?? data) as BulkAssignCentersResult;
+  return withResponseMessage(
+    unwrapAdminData<BulkAssignCentersResult>(
+      data,
+      {} as BulkAssignCentersResult,
+    ),
+    data,
+  );
 }
 
 export async function updateAdminUserStatus(
@@ -207,7 +223,10 @@ export async function updateAdminUserStatus(
     `${basePath}/${userId}/status`,
     payload,
   );
-  return data?.data ?? (data as unknown as AdminUser);
+  return withResponseMessage(
+    data?.data ?? (data as unknown as AdminUser),
+    data,
+  );
 }
 
 export async function bulkUpdateAdminUserStatus(
@@ -216,5 +235,11 @@ export async function bulkUpdateAdminUserStatus(
 ): Promise<BulkUpdateAdminUserStatusResult> {
   const basePath = buildAdminUsersBasePath(context?.centerId);
   const { data } = await http.post(`${basePath}/bulk-status`, payload);
-  return (data?.data ?? data) as BulkUpdateAdminUserStatusResult;
+  return withResponseMessage(
+    unwrapAdminData<BulkUpdateAdminUserStatusResult>(
+      data,
+      {} as BulkUpdateAdminUserStatusResult,
+    ),
+    data,
+  );
 }

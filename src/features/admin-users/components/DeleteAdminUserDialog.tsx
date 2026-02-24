@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import {
   Dialog,
@@ -11,6 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { useDeleteAdminUser } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type DeleteAdminUserDialogProps = {
   user?: AdminUser | null;
@@ -21,12 +25,10 @@ type DeleteAdminUserDialogProps = {
 };
 
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
-  }
-
-  return "Unable to delete admin user. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to delete admin user. Please try again.",
+  );
 }
 
 export function DeleteAdminUserDialog({
@@ -45,9 +47,20 @@ export function DeleteAdminUserDialog({
     setErrorMessage(null);
 
     deleteMutation.mutate(user.id, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setErrorMessage(
+            getAdminResponseMessage(
+              response,
+              "Unable to delete admin user. Please try again.",
+            ),
+          );
+          return;
+        }
         onOpenChange(false);
-        onSuccess?.("Admin user deleted successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(response, "Admin user deleted successfully."),
+        );
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error));

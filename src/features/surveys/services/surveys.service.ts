@@ -1,4 +1,9 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type {
   AssignSurveyPayload,
   BulkSurveyActionPayload,
@@ -649,7 +654,10 @@ export async function bulkUpdateSurveyStatus(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkUpdateSurveyStatusResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkUpdateSurveyStatusResult,
+    data,
+  );
 }
 
 export async function bulkCloseSurveys(
@@ -661,7 +669,10 @@ export async function bulkCloseSurveys(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkSurveyActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkSurveyActionResult,
+    data,
+  );
 }
 
 export async function bulkDeleteSurveys(
@@ -673,14 +684,20 @@ export async function bulkDeleteSurveys(
     payload,
   );
 
-  return unwrapObjectPayload(data) as BulkSurveyActionResult;
+  return withResponseMessage(
+    unwrapObjectPayload(data) as BulkSurveyActionResult,
+    data,
+  );
 }
 
 export async function deleteSurvey(
   surveyId: string | number,
   context?: SurveyApiScopeContext,
-): Promise<void> {
-  await http.delete(`${buildSurveyBasePath(context)}/${surveyId}`);
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(
+    `${buildSurveyBasePath(context)}/${surveyId}`,
+  );
+  return normalizeAdminActionResult(data);
 }
 
 export async function getSurveyAnalytics(

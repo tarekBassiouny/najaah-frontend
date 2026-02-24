@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { getApiLocale } from "@/lib/runtime-config";
 import { useEffect, useMemo, useState } from "react";
 import { BellIcon } from "@/components/Layouts/header/notification/icons";
+import { isAdminRequestSuccessful } from "@/lib/admin-response";
 import {
   useAdminNotifications,
   useAdminNotificationsUnreadCount,
@@ -417,7 +418,10 @@ export function AdminNotificationsDropdown() {
   };
 
   const handleDelete = async (notificationId: string | number) => {
-    await deleteNotificationMutation.mutateAsync(notificationId);
+    const response = await deleteNotificationMutation.mutateAsync(notificationId);
+    if (!isAdminRequestSuccessful(response)) {
+      return;
+    }
     setNotifications((current) =>
       current.filter((item) => item.id !== notificationId),
     );

@@ -21,6 +21,10 @@ import { useBulkUpdateCenterStatus } from "@/features/centers/hooks/use-centers"
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { BulkCentersActionResult } from "@/features/centers/services/centers.service";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkUpdateCenterStatusDialogProps = {
   open: boolean;
@@ -71,17 +75,33 @@ export function BulkUpdateCenterStatusDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                data,
+                "Unable to update status for selected centers. Please try again.",
+              ),
+            );
+            return;
+          }
           setResult(data);
 
           const skipped = readCount(data, "skipped");
           const failed = readCount(data, "failed");
           if (skipped === 0 && failed === 0) {
-            onSuccess?.("Centers status updated successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                data,
+                "Centers status updated successfully.",
+              ),
+            );
             onOpenChange(false);
             return;
           }
 
-          onSuccess?.("Bulk status update processed.");
+          onSuccess?.(
+            getAdminResponseMessage(data, "Bulk status update processed."),
+          );
         },
         onError: (error) => {
           setErrorMessage(

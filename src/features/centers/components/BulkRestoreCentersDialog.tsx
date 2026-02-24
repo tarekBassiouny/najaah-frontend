@@ -14,6 +14,10 @@ import { useBulkRestoreCenters } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { BulkCentersActionResult } from "@/features/centers/services/centers.service";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkRestoreCentersDialogProps = {
   open: boolean;
@@ -90,17 +94,33 @@ export function BulkRestoreCentersDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                data,
+                "Unable to restore selected centers. Please try again.",
+              ),
+            );
+            return;
+          }
           setResult(data);
 
           const skipped = readCount(data, "skipped");
           const failed = readCount(data, "failed");
           if (skipped === 0 && failed === 0) {
-            onSuccess?.("Selected centers were restored successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                data,
+                "Selected centers were restored successfully.",
+              ),
+            );
             onOpenChange(false);
             return;
           }
 
-          onSuccess?.("Bulk restore action processed.");
+          onSuccess?.(
+            getAdminResponseMessage(data, "Bulk restore action processed."),
+          );
         },
         onError: (error) => {
           setErrorMessage(

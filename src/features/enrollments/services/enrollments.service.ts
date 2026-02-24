@@ -1,4 +1,10 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  unwrapAdminData,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type { PaginatedResponse } from "@/types/pagination";
 import type {
   BulkEnrollmentsPayload,
@@ -95,7 +101,7 @@ export async function createEnrollment(
 ): Promise<Enrollment> {
   const basePath = buildEnrollmentsBasePath(centerId);
   const { data } = await http.post<RawEnrollmentResponse>(basePath, payload);
-  return data?.data ?? (data as unknown as Enrollment);
+  return withResponseMessage(data?.data ?? (data as unknown as Enrollment), data);
 }
 
 export async function createCenterEnrollment(
@@ -107,7 +113,7 @@ export async function createCenterEnrollment(
     payload,
   );
 
-  return data?.data ?? (data as unknown as Enrollment);
+  return withResponseMessage(data?.data ?? (data as unknown as Enrollment), data);
 }
 
 export async function updateEnrollment(
@@ -120,15 +126,16 @@ export async function updateEnrollment(
     `${basePath}/${enrollmentId}`,
     payload,
   );
-  return data?.data ?? (data as unknown as Enrollment);
+  return withResponseMessage(data?.data ?? (data as unknown as Enrollment), data);
 }
 
 export async function deleteEnrollment(
   enrollmentId: string | number,
   centerId?: string | number | null,
-): Promise<void> {
+): Promise<AdminActionResult> {
   const basePath = buildEnrollmentsBasePath(centerId);
-  await http.delete(`${basePath}/${enrollmentId}`);
+  const { data } = await http.delete(`${basePath}/${enrollmentId}`);
+  return normalizeAdminActionResult(data);
 }
 
 export async function bulkEnrollments(
@@ -140,7 +147,10 @@ export async function bulkEnrollments(
     `${basePath}/bulk`,
     payload,
   );
-  return data?.data ?? (data as unknown as BulkEnrollmentResult);
+  return withResponseMessage(
+    unwrapAdminData<BulkEnrollmentResult>(data, {} as BulkEnrollmentResult),
+    data,
+  );
 }
 
 export async function bulkUpdateEnrollmentStatus(
@@ -152,5 +162,8 @@ export async function bulkUpdateEnrollmentStatus(
     `${basePath}/bulk-status`,
     payload,
   );
-  return data?.data ?? (data as unknown as BulkEnrollmentResult);
+  return withResponseMessage(
+    unwrapAdminData<BulkEnrollmentResult>(data, {} as BulkEnrollmentResult),
+    data,
+  );
 }

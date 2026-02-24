@@ -13,6 +13,10 @@ import {
 import { useRetryCenterOnboarding } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type RetryCenterOnboardingDialogProps = {
   open: boolean;
@@ -44,8 +48,22 @@ export function RetryCenterOnboardingDialog({
 
     setErrorMessage(null);
     mutation.mutate(center.id, {
-      onSuccess: () => {
-        onSuccess?.("Center onboarding retry triggered.");
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setErrorMessage(
+            getAdminResponseMessage(
+              response,
+              "Unable to retry center onboarding. Please try again.",
+            ),
+          );
+          return;
+        }
+        onSuccess?.(
+          getAdminResponseMessage(
+            response,
+            "Center onboarding retry triggered.",
+          ),
+        );
         onOpenChange(false);
       },
       onError: (error) => {

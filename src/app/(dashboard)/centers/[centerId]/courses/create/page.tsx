@@ -3,7 +3,6 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isAxiosError } from "axios";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,19 +25,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
 import { useInstructors } from "@/features/instructors/hooks/use-instructors";
 import { useCategories } from "@/features/categories/hooks/use-categories";
+import {
+  getAdminApiErrorMessage,
+  getAdminApiFirstFieldError,
+} from "@/lib/admin-response";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
-};
-
-type BackendErrorData = {
-  message?: string;
-  errors?: Record<string, string[] | string>;
-  error?: {
-    code?: string;
-    message?: string;
-    details?: Record<string, string[] | string>;
-  };
 };
 
 const DIFFICULTY_OPTIONS = [
@@ -53,29 +46,15 @@ const LANGUAGE_OPTIONS = [
 ];
 
 function extractErrorMessage(error: unknown): string {
-  if (isAxiosError<BackendErrorData>(error)) {
-    const data = error.response?.data;
-
-    if (data?.error?.details) {
-      const firstDetail = Object.values(data.error.details)[0];
-      if (Array.isArray(firstDetail) && firstDetail[0]) {
-        return firstDetail[0];
-      }
-      if (typeof firstDetail === "string") {
-        return firstDetail;
-      }
-    }
-
-    if (data?.error?.message) {
-      return data.error.message;
-    }
-
-    if (data?.message) {
-      return data.message;
-    }
+  const firstFieldError = getAdminApiFirstFieldError(error);
+  if (firstFieldError) {
+    return firstFieldError;
   }
 
-  return "Failed to create course. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Failed to create course. Please try again.",
+  );
 }
 
 export default function CenterCoursesCreatePage({ params }: PageProps) {

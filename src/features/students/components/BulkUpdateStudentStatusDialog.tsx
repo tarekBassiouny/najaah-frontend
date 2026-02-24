@@ -19,6 +19,11 @@ import {
 } from "@/components/ui/select";
 import { useBulkUpdateStudentStatus } from "@/features/students/hooks/use-students";
 import type { Student } from "@/features/students/types/student";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkUpdateStudentStatusDialogProps = {
   open: boolean;
@@ -67,15 +72,28 @@ export function BulkUpdateStudentStatusDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(data, "Unable to update status."),
+            );
+            return;
+          }
           setResult({
             counts: data?.counts,
             skipped: data?.skipped,
             failed: data?.failed,
           });
-          onSuccess?.("Bulk status update processed.");
+          onSuccess?.(
+            getAdminResponseMessage(data, "Bulk status update processed."),
+          );
         },
-        onError: () => {
-          setErrorMessage("Unable to update status. Please try again.");
+        onError: (error) => {
+          setErrorMessage(
+            getAdminApiErrorMessage(
+              error,
+              "Unable to update status. Please try again.",
+            ),
+          );
         },
       },
     );

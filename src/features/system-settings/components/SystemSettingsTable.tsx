@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,8 +31,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useModal } from "@/components/ui/modal-store";
 import { useSystemSettings } from "@/features/system-settings/hooks/use-system-settings";
+import { deleteSystemSetting } from "@/features/system-settings/services/system-settings.service";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_VISIBILITY = "all";
@@ -116,6 +123,8 @@ export function SystemSettingsTable({
   onEdit,
   onDelete,
 }: SystemSettingsTableProps) {
+  const queryClient = useQueryClient();
+  const { showToast } = useModal();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -123,6 +132,10 @@ export function SystemSettingsTable({
   const [visibilityFilter, setVisibilityFilter] =
     useState<string>(ALL_VISIBILITY);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const [selectedSettings, setSelectedSettings] = useState<
+    Record<string, SystemSetting>
+  >({});
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -145,6 +158,26 @@ export function SystemSettingsTable({
   const maxPage = Math.max(1, Math.ceil(total / perPage));
   const isLoadingState = isLoading;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
+  const selectedIds = useMemo(
+    () => Object.keys(selectedSettings),
+    [selectedSettings],
+  );
+  const selectedCount = selectedIds.length;
+  const selectedSettingsList = useMemo(
+    () =>
+      selectedIds
+        .map((id) => selectedSettings[id])
+        .filter((setting): setting is SystemSetting => Boolean(setting)),
+    [selectedIds, selectedSettings],
+  );
+  const pageSettingIds = useMemo(
+    () => items.map((setting) => String(setting.id)),
+    [items],
+  );
+  const isAllPageSelected =
+    pageSettingIds.length > 0 &&
+    pageSettingIds.every((id) => Boolean(selectedSettings[id]));
+  const enableBulkSelection = true;
   const hasActiveFilters =
     search.trim().length > 0 || visibilityFilter !== ALL_VISIBILITY;
   const activeFilterCount =
@@ -160,6 +193,93 @@ export function SystemSettingsTable({
 
     return () => clearTimeout(timeout);
   }, [search]);
+
+  useEffect(() => {
+    setSelectedSettings({});
+  }, [page, perPage, query, visibilityFilter]);
+
+  const toggleSettingSelection = (setting: SystemSetting) => {
+    const id = String(setting.id);
+    setSelectedSettings((prev) => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = setting;
+      }
+      return next;
+    });
+  };
+
+  const toggleAllSelections = () => {
+    if (isAllPageSelected) {
+      setSelectedSettings((prev) => {
+        const next = { ...prev };
+        pageSettingIds.forEach((id) => {
+          delete next[id];
+        });
+        return next;
+      });
+      return;
+    }
+
+    setSelectedSettings((prev) => {
+      const next = { ...prev };
+      items.forEach((setting) => {
+        next[String(setting.id)] = setting;
+      });
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSettingsList.length === 0 || isBulkDeleting) return;
+
+    const confirmed = window.confirm(
+      `Delete ${selectedSettingsList.length} selected setting${
+        selectedSettingsList.length === 1 ? "" : "s"
+      }?`,
+    );
+    if (!confirmed) return;
+
+    setIsBulkDeleting(true);
+
+    let deletedCount = 0;
+    let lastSuccessMessage = "";
+    for (const setting of selectedSettingsList) {
+      try {
+        const response = await deleteSystemSetting(setting.id);
+        if (!isAdminRequestSuccessful(response)) {
+          continue;
+        }
+        deletedCount += 1;
+        lastSuccessMessage = getAdminResponseMessage(response, lastSuccessMessage);
+      } catch {
+        // Continue deleting remaining selections even if one fails.
+      }
+    }
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["system-settings"] }),
+      queryClient.invalidateQueries({ queryKey: ["system-settings-preview"] }),
+    ]);
+    setSelectedSettings({});
+    setIsBulkDeleting(false);
+
+    if (deletedCount === selectedSettingsList.length) {
+      showToast(
+        lastSuccessMessage ||
+          `Deleted ${deletedCount} setting${deletedCount === 1 ? "" : "s"} successfully.`,
+        "success",
+      );
+      return;
+    }
+
+    showToast(
+      `Deleted ${deletedCount} of ${selectedSettingsList.length} selected settings.`,
+      "error",
+    );
+  };
 
   return (
     <ListingCard>
@@ -277,6 +397,18 @@ export function SystemSettingsTable({
           <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
+                {enableBulkSelection ? (
+                  <TableHead className="w-8">
+                    <input
+                      type="checkbox"
+                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                      checked={isAllPageSelected}
+                      onChange={toggleAllSelections}
+                      disabled={isLoadingState || items.length === 0}
+                      aria-label="Select all settings on this page"
+                    />
+                  </TableHead>
+                ) : null}
                 <TableHead className="font-medium">Key</TableHead>
                 <TableHead className="font-medium">Value</TableHead>
                 <TableHead className="font-medium">Visibility</TableHead>
@@ -291,6 +423,11 @@ export function SystemSettingsTable({
                 <>
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
+                      {enableBulkSelection ? (
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <Skeleton className="h-4 w-48" />
                       </TableCell>
@@ -311,7 +448,10 @@ export function SystemSettingsTable({
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48">
+                  <TableCell
+                    colSpan={enableBulkSelection ? 6 : 5}
+                    className="h-48"
+                  >
                     <EmptyState
                       title={query ? "No settings found" : "No settings yet"}
                       description={
@@ -344,6 +484,20 @@ export function SystemSettingsTable({
                       key={setting.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
+                      {enableBulkSelection ? (
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                            checked={Boolean(
+                              selectedSettings[String(setting.id)],
+                            )}
+                            onChange={() => toggleSettingSelection(setting)}
+                            aria-label={`Select setting ${setting.key}`}
+                            disabled={isBulkDeleting}
+                          />
+                        </TableCell>
+                      ) : null}
                       <TableCell className="font-medium text-gray-900 dark:text-white">
                         <span className="font-mono">{setting.key}</span>
                       </TableCell>
@@ -435,6 +589,24 @@ export function SystemSettingsTable({
           </Table>
         </div>
       )}
+
+      {selectedCount > 0 && enableBulkSelection ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
+          <div className="text-gray-500 dark:text-gray-400">
+            {selectedCount} selected
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleBulkDelete}
+              disabled={isLoadingState || isBulkDeleting}
+            >
+              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {!isError && maxPage > 1 && (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">

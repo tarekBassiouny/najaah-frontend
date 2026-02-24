@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +19,11 @@ import {
 } from "@/components/ui/select";
 import { useUpdateAdminUserStatus } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type UpdateAdminUserStatusDialogProps = {
   open: boolean;
@@ -30,27 +34,10 @@ type UpdateAdminUserStatusDialogProps = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, string[]>;
-        }
-      | undefined;
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const first = Object.values(data.errors)[0];
-      if (Array.isArray(first) && first.length > 0) {
-        return first[0];
-      }
-    }
-  }
-
-  return "Unable to update admin user status. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to update admin user status. Please try again.",
+  );
 }
 
 function getInitialStatus(user?: AdminUser | null): "0" | "1" | "2" {
@@ -107,8 +94,22 @@ export function UpdateAdminUserStatusDialog({
         payload: { status: Number(status) },
       },
       {
-        onSuccess: () => {
-          onSuccess?.("Admin user status updated successfully.");
+        onSuccess: (response) => {
+          if (!isAdminRequestSuccessful(response)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                response,
+                "Unable to update admin user status. Please try again.",
+              ),
+            );
+            return;
+          }
+          onSuccess?.(
+            getAdminResponseMessage(
+              response,
+              "Admin user status updated successfully.",
+            ),
+          );
           onOpenChange(false);
         },
         onError: (error) => {

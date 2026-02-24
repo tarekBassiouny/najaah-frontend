@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { z } from "zod";
 import {
   Dialog,
@@ -37,6 +36,11 @@ import {
   useUpdateSystemSetting,
 } from "@/features/system-settings/hooks/use-system-settings";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const keyPattern = /^[a-zA-Z0-9._-]+$/;
 
@@ -63,24 +67,10 @@ type SystemSettingFormDialogProps = {
 };
 
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | { message?: string; errors?: Record<string, string[]> }
-      | undefined;
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const firstEntry = Object.values(data.errors)[0];
-      if (Array.isArray(firstEntry) && firstEntry.length > 0) {
-        return firstEntry[0];
-      }
-    }
-  }
-
-  return "Unable to save setting. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to save setting. Please try again.",
+  );
 }
 
 function formatValueForInput(value: unknown) {
@@ -181,9 +171,23 @@ export function SystemSettingFormDialog({
           },
         },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (!isAdminRequestSuccessful(response)) {
+              setFormError(
+                getAdminResponseMessage(
+                  response,
+                  "Unable to save setting. Please try again.",
+                ),
+              );
+              return;
+            }
             onOpenChange(false);
-            onSuccess?.("Setting updated successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                response,
+                "Setting updated successfully.",
+              ),
+            );
           },
           onError: (error) => setFormError(getErrorMessage(error)),
         },
@@ -198,9 +202,20 @@ export function SystemSettingFormDialog({
         is_public: isPublic,
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
+          if (!isAdminRequestSuccessful(response)) {
+            setFormError(
+              getAdminResponseMessage(
+                response,
+                "Unable to save setting. Please try again.",
+              ),
+            );
+            return;
+          }
           onOpenChange(false);
-          onSuccess?.("Setting created successfully.");
+          onSuccess?.(
+            getAdminResponseMessage(response, "Setting created successfully."),
+          );
         },
         onError: (error) => setFormError(getErrorMessage(error)),
       },

@@ -14,6 +14,10 @@ import { useBulkRetryCenterOnboarding } from "@/features/centers/hooks/use-cente
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { BulkCentersActionResult } from "@/features/centers/services/centers.service";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkRetryCenterOnboardingDialogProps = {
   open: boolean;
@@ -90,17 +94,33 @@ export function BulkRetryCenterOnboardingDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                data,
+                "Unable to retry onboarding for selected centers. Please try again.",
+              ),
+            );
+            return;
+          }
           setResult(data);
 
           const skipped = readCount(data, "skipped");
           const failed = readCount(data, "failed");
           if (skipped === 0 && failed === 0) {
-            onSuccess?.("Onboarding retry queued for selected centers.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                data,
+                "Onboarding retry queued for selected centers.",
+              ),
+            );
             onOpenChange(false);
             return;
           }
 
-          onSuccess?.("Bulk onboarding retry processed.");
+          onSuccess?.(
+            getAdminResponseMessage(data, "Bulk onboarding retry processed."),
+          );
         },
         onError: (error) => {
           setErrorMessage(

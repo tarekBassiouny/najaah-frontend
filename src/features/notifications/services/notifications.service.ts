@@ -1,4 +1,8 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type {
   AdminNotification,
   AdminNotificationType,
@@ -158,6 +162,7 @@ export async function markAllAdminNotificationsAsRead(): Promise<number> {
 
 export async function deleteAdminNotification(
   id: string | number,
-): Promise<void> {
-  await http.delete(`${BASE_PATH}/${id}`);
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(`${BASE_PATH}/${id}`);
+  return normalizeAdminActionResult(data);
 }

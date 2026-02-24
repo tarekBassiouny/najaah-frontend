@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePdfs } from "@/features/pdfs/hooks/use-pdfs";
+import { deletePdf } from "@/features/pdfs/services/pdfs.service";
 import { useTenant } from "@/app/tenant-provider";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
+import type { Pdf } from "@/features/pdfs/types/pdf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
@@ -66,6 +70,8 @@ type PdfsTableProps = {
 };
 
 export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
+  const queryClient = useQueryClient();
+  const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
   const [page, setPage] = useState(1);
@@ -73,6 +79,8 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const [selectedPdfs, setSelectedPdfs] = useState<Record<string, Pdf>>({});
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -86,11 +94,25 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
 
   const { data, isLoading, isError, isFetching } = usePdfs(params);
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
   const isLoadingState = isLoading || isFetching;
+  const enableBulkSelection = Boolean(centerId);
+  const selectedIds = useMemo(() => Object.keys(selectedPdfs), [selectedPdfs]);
+  const selectedCount = selectedIds.length;
+  const selectedPdfsList = useMemo(
+    () =>
+      selectedIds
+        .map((id) => selectedPdfs[id])
+        .filter((pdf): pdf is Pdf => Boolean(pdf)),
+    [selectedIds, selectedPdfs],
+  );
+  const pagePdfIds = useMemo(() => items.map((pdf) => String(pdf.id)), [items]);
+  const isAllPageSelected =
+    pagePdfIds.length > 0 &&
+    pagePdfIds.every((id) => Boolean(selectedPdfs[id]));
   const showEmptyState =
     !isLoadingState && !isError && items.length === 0 && Boolean(centerId);
   const hasActiveFilters = search.trim().length > 0;
@@ -104,6 +126,86 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
     }, 400);
     return () => clearTimeout(timeout);
   }, [search]);
+
+  useEffect(() => {
+    setSelectedPdfs({});
+  }, [centerId, page, perPage, query]);
+
+  const togglePdfSelection = (pdf: Pdf) => {
+    const id = String(pdf.id);
+    setSelectedPdfs((prev) => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = pdf;
+      }
+      return next;
+    });
+  };
+
+  const toggleAllSelections = () => {
+    if (isAllPageSelected) {
+      setSelectedPdfs((prev) => {
+        const next = { ...prev };
+        pagePdfIds.forEach((id) => {
+          delete next[id];
+        });
+        return next;
+      });
+      return;
+    }
+
+    setSelectedPdfs((prev) => {
+      const next = { ...prev };
+      items.forEach((pdf) => {
+        next[String(pdf.id)] = pdf;
+      });
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedPdfsList.length === 0 || centerId == null || isBulkDeleting) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${selectedPdfsList.length} selected PDF${
+        selectedPdfsList.length === 1 ? "" : "s"
+      }?`,
+    );
+    if (!confirmed) return;
+
+    setIsBulkDeleting(true);
+
+    let deletedCount = 0;
+    for (const pdf of selectedPdfsList) {
+      try {
+        await deletePdf(centerId, pdf.id);
+        deletedCount += 1;
+      } catch {
+        // Continue deleting remaining selections even if one fails.
+      }
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ["pdfs", centerId] });
+    setSelectedPdfs({});
+    setIsBulkDeleting(false);
+
+    if (deletedCount === selectedPdfsList.length) {
+      showToast(
+        `Deleted ${deletedCount} PDF${deletedCount === 1 ? "" : "s"} successfully.`,
+        "success",
+      );
+      return;
+    }
+
+    showToast(
+      `Deleted ${deletedCount} of ${selectedPdfsList.length} selected PDFs.`,
+      "error",
+    );
+  };
 
   return (
     <ListingCard>
@@ -217,6 +319,18 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
           <Table className="min-w-[760px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
+                {enableBulkSelection ? (
+                  <TableHead className="w-8">
+                    <input
+                      type="checkbox"
+                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                      checked={isAllPageSelected}
+                      onChange={toggleAllSelections}
+                      disabled={isLoadingState || items.length === 0}
+                      aria-label="Select all PDFs on this page"
+                    />
+                  </TableHead>
+                ) : null}
                 <TableHead className="font-medium">Title</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">File Size</TableHead>
@@ -230,6 +344,11 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                 <>
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
+                      {enableBulkSelection ? (
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <Skeleton className="h-4 w-48" />
                       </TableCell>
@@ -247,7 +366,10 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-48">
+                  <TableCell
+                    colSpan={enableBulkSelection ? 5 : 4}
+                    className="h-48"
+                  >
                     <EmptyState
                       title={query ? "No PDFs found" : "No PDFs yet"}
                       description={
@@ -269,6 +391,18 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                       key={pdf.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
+                      {enableBulkSelection ? (
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                            checked={Boolean(selectedPdfs[String(pdf.id)])}
+                            onChange={() => togglePdfSelection(pdf)}
+                            aria-label={`Select ${pdf.title ?? `pdf ${pdf.id}`}`}
+                            disabled={isBulkDeleting}
+                          />
+                        </TableCell>
+                      ) : null}
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {pdf.title ?? "—"}
                       </TableCell>
@@ -336,6 +470,24 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
           </Table>
         </div>
       )}
+
+      {selectedCount > 0 && enableBulkSelection ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
+          <div className="text-gray-500 dark:text-gray-400">
+            {selectedCount} selected
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleBulkDelete}
+              disabled={isLoadingState || isBulkDeleting}
+            >
+              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {!isError && maxPage > 1 && (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">

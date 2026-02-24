@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,12 @@ import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteRole } from "@/features/roles/hooks/use-roles";
 import type { Role } from "@/features/roles/types/role";
 import { useModal } from "@/components/ui/modal-store";
+import {
+  getAdminApiErrorCode,
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type DeleteRoleDialogProps = {
   open: boolean;
@@ -19,14 +24,6 @@ type DeleteRoleDialogProps = {
   role?: Role | null;
   onSuccess?: (_message: string) => void;
   scopeCenterId?: string | number | null;
-};
-
-type BackendErrorData = {
-  message?: string;
-  error?: {
-    code?: string;
-    message?: string;
-  };
 };
 
 const ERROR_CODE_MESSAGES: Record<string, string> = {
@@ -50,24 +47,15 @@ function getErrorCodeMessage(code: string | undefined): string | null {
 }
 
 function getErrorMessage(error: unknown) {
-  if (isAxiosError<BackendErrorData>(error)) {
-    const data = error.response?.data;
-
-    // Check for known error codes first
-    const errorCode = data?.error?.code;
-    const codeMessage = getErrorCodeMessage(errorCode);
-    if (codeMessage) {
-      return codeMessage;
-    }
-
-    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
-      return data.error.message;
-    }
-
-    if (data?.message) return data.message;
+  const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error));
+  if (codeMessage) {
+    return codeMessage;
   }
 
-  return "Unable to delete role. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to delete role. Please try again.",
+  );
 }
 
 export function DeleteRoleDialog({
@@ -88,10 +76,23 @@ export function DeleteRoleDialog({
     setErrorMessage(null);
 
     deleteRole(role.id, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setErrorMessage(
+            getAdminResponseMessage(
+              response,
+              "Unable to delete role. Please try again.",
+            ),
+          );
+          return;
+        }
+        const message = getAdminResponseMessage(
+          response,
+          "Role deleted successfully.",
+        );
         onOpenChange(false);
-        onSuccess?.("Role deleted successfully.");
-        showToast("Role deleted successfully.", "success");
+        onSuccess?.(message);
+        showToast(message, "success");
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error));

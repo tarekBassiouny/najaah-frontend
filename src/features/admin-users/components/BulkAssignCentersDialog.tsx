@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,11 @@ import { listCenters } from "@/features/centers/services/centers.service";
 import { useBulkAssignAdminCenters } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
 import type { BulkAssignCentersResult } from "@/features/admin-users/types/admin-user";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const CENTERS_PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -30,13 +34,10 @@ type BulkAssignCentersDialogProps = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-  }
-  return "Unable to assign centers. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to assign centers. Please try again.",
+  );
 }
 
 function normalizeCenterId(centerId: string): string | number {
@@ -137,16 +138,30 @@ export function BulkAssignCentersDialog({
         })),
       });
 
+      if (!isAdminRequestSuccessful(response)) {
+        setErrorMessage(
+          getAdminResponseMessage(response, "Unable to assign centers."),
+        );
+        return;
+      }
+
       setResult(response);
 
       const counts = response.counts;
       if (counts && (counts.failed ?? 0) === 0 && (counts.skipped ?? 0) === 0) {
-        onSuccess?.("All users assigned to centers successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(
+            response,
+            "All users assigned to centers successfully.",
+          ),
+        );
         onOpenChange(false);
         return;
       }
 
-      onSuccess?.("Bulk center assignment processed.");
+      onSuccess?.(
+        getAdminResponseMessage(response, "Bulk center assignment processed."),
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }

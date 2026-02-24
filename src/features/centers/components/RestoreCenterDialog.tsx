@@ -13,6 +13,10 @@ import {
 import { useRestoreCenter } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type RestoreCenterDialogProps = {
   open: boolean;
@@ -44,8 +48,19 @@ export function RestoreCenterDialog({
 
     setErrorMessage(null);
     mutation.mutate(center.id, {
-      onSuccess: () => {
-        onSuccess?.("Center restored successfully.");
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setErrorMessage(
+            getAdminResponseMessage(
+              response,
+              "Unable to restore center. Please try again.",
+            ),
+          );
+          return;
+        }
+        onSuccess?.(
+          getAdminResponseMessage(response, "Center restored successfully."),
+        );
         onOpenChange(false);
       },
       onError: (error) => {

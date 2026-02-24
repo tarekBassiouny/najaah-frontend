@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { isAxiosError } from "axios";
 import { z } from "zod";
 import { useTenant } from "@/app/tenant-provider";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,12 @@ import {
   useUpdateAdminUser,
 } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
+import {
+  getAdminApiErrorMessage,
+  getAdminApiFirstFieldError,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
 const COUNTRY_CODE_REGEX = /^\+[1-9]\d{0,3}$/;
@@ -86,58 +91,16 @@ type AdminUserFormDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getFirstValidationMessage(details: unknown): string | null {
-  if (!details || typeof details !== "object") return null;
-
-  for (const value of Object.values(details as Record<string, unknown>)) {
-    if (Array.isArray(value)) {
-      const first = value.find(
-        (item) => typeof item === "string" && item.trim(),
-      ) as string | undefined;
-      if (first) return first;
-      continue;
-    }
-
-    if (typeof value === "string" && value.trim()) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, string[] | string>;
-          error?: {
-            code?: string;
-            message?: string;
-            details?: Record<string, string[] | string>;
-          };
-        }
-      | undefined;
-
-    const validationMessage =
-      getFirstValidationMessage(data?.error?.details) ??
-      getFirstValidationMessage(data?.errors);
-
-    if (validationMessage) {
-      return validationMessage;
-    }
-
-    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
-      return data.error.message;
-    }
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
+  const fieldMessage = getAdminApiFirstFieldError(error);
+  if (fieldMessage) {
+    return fieldMessage;
   }
 
-  return "Unable to save admin user. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to save admin user. Please try again.",
+  );
 }
 
 export function AdminUserFormDialog({
@@ -259,9 +222,23 @@ export function AdminUserFormDialog({
           payload,
         },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (!isAdminRequestSuccessful(response)) {
+              setFormError(
+                getAdminResponseMessage(
+                  response,
+                  "Unable to save admin user. Please try again.",
+                ),
+              );
+              return;
+            }
             onClose();
-            onSuccess?.("Admin user updated successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                response,
+                "Admin user updated successfully.",
+              ),
+            );
           },
           onError: (error) => setFormError(getErrorMessage(error)),
         },
@@ -271,8 +248,22 @@ export function AdminUserFormDialog({
 
     createMutation.mutate(payload, {
       onSuccess: (createdUser) => {
+        if (!isAdminRequestSuccessful(createdUser)) {
+          setFormError(
+            getAdminResponseMessage(
+              createdUser,
+              "Unable to save admin user. Please try again.",
+            ),
+          );
+          return;
+        }
         onClose();
-        onSuccess?.("Admin invitation sent successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(
+            createdUser,
+            "Admin invitation sent successfully.",
+          ),
+        );
         if (createdUser) {
           onCreated?.(createdUser);
         }

@@ -1,4 +1,8 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 
 import type {
   Course,
@@ -112,8 +116,11 @@ export async function updateCourse(
   return (data?.data ?? data) as Course;
 }
 
-export async function deleteCourse(id: string | number): Promise<void> {
-  await http.delete(`/api/v1/admin/courses/${id}`);
+export async function deleteCourse(
+  id: string | number,
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(`/api/v1/admin/courses/${id}`);
+  return normalizeAdminActionResult(data);
 }
 
 export type ListCenterCoursesParams = Omit<ListCoursesParams, "center_id"> & {
@@ -182,8 +189,11 @@ export async function updateCenterCourse(
 export async function deleteCenterCourse(
   centerId: string | number,
   courseId: string | number,
-): Promise<void> {
-  await http.delete(`/api/v1/admin/centers/${centerId}/courses/${courseId}`);
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(
+    `/api/v1/admin/centers/${centerId}/courses/${courseId}`,
+  );
+  return normalizeAdminActionResult(data);
 }
 
 export async function cloneCourse(courseId: string | number): Promise<Course> {

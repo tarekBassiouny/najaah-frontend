@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +22,11 @@ import type {
   AdminUser,
   BulkUpdateAdminUserStatusResult,
 } from "@/features/admin-users/types/admin-user";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkUpdateAdminUserStatusDialogProps = {
   open: boolean;
@@ -33,27 +37,10 @@ type BulkUpdateAdminUserStatusDialogProps = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, string[]>;
-        }
-      | undefined;
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (data?.errors && typeof data.errors === "object") {
-      const first = Object.values(data.errors)[0];
-      if (Array.isArray(first) && first.length > 0) {
-        return first[0];
-      }
-    }
-  }
-
-  return "Unable to update status for selected admin users. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to update status for selected admin users. Please try again.",
+  );
 }
 
 export function BulkUpdateAdminUserStatusDialog({
@@ -86,17 +73,33 @@ export function BulkUpdateAdminUserStatusDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                data,
+                "Unable to update status for selected admin users.",
+              ),
+            );
+            return;
+          }
           setResult(data);
 
           const skipped = data?.counts?.skipped ?? 0;
           const failed = data?.counts?.failed ?? 0;
           if (skipped === 0 && failed === 0) {
-            onSuccess?.("Admin users status updated successfully.");
+            onSuccess?.(
+              getAdminResponseMessage(
+                data,
+                "Admin users status updated successfully.",
+              ),
+            );
             onOpenChange(false);
             return;
           }
 
-          onSuccess?.("Bulk status update processed.");
+          onSuccess?.(
+            getAdminResponseMessage(data, "Bulk status update processed."),
+          );
         },
         onError: (error) => {
           setErrorMessage(getErrorMessage(error));

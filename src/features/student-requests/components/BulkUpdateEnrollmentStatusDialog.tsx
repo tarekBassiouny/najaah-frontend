@@ -24,6 +24,10 @@ import type {
   EnrollmentStatus,
 } from "@/features/enrollments/types/enrollment";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type BulkUpdateEnrollmentStatusDialogProps = {
   open: boolean;
@@ -96,8 +100,22 @@ export function BulkUpdateEnrollmentStatusDialog({
       },
       {
         onSuccess: (data) => {
+          if (!isAdminRequestSuccessful(data)) {
+            setErrorMessage(
+              getAdminResponseMessage(
+                data,
+                "Unable to update status for selected enrollment requests.",
+              ),
+            );
+            return;
+          }
           setResult(data);
-          onSuccess?.("Bulk enrollment status update processed.");
+          onSuccess?.(
+            getAdminResponseMessage(
+              data,
+              "Bulk enrollment status update processed.",
+            ),
+          );
         },
         onError: (error) => {
           setErrorMessage(

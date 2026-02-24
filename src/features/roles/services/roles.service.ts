@@ -1,4 +1,9 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type { Role, RolePermission } from "@/features/roles/types/role";
 import type { PaginatedResponse } from "@/types/pagination";
 
@@ -98,7 +103,7 @@ export async function createRole(
 ): Promise<Role> {
   const basePath = buildRolesBasePath(context?.centerId);
   const { data } = await http.post<RawRoleResponse>(basePath, payload);
-  return data?.data ?? (data as unknown as Role);
+  return withResponseMessage(data?.data ?? (data as unknown as Role), data);
 }
 
 export async function updateRole(
@@ -111,15 +116,16 @@ export async function updateRole(
     `${basePath}/${roleId}`,
     payload,
   );
-  return data?.data ?? (data as unknown as Role);
+  return withResponseMessage(data?.data ?? (data as unknown as Role), data);
 }
 
 export async function deleteRole(
   roleId: string | number,
   context?: RolesApiScopeContext,
-): Promise<void> {
+): Promise<AdminActionResult> {
   const basePath = buildRolesBasePath(context?.centerId);
-  await http.delete(`${basePath}/${roleId}`);
+  const { data } = await http.delete(`${basePath}/${roleId}`);
+  return normalizeAdminActionResult(data);
 }
 
 type RawRolePermissionsResponse = {

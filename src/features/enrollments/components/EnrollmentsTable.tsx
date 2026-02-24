@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -66,6 +67,20 @@ type EnrollmentsTableProps = {
   showCenterFilter?: boolean;
   initialCourseId?: string | number | null;
   initialUserId?: string | number | null;
+  initialPerPage?: number;
+  fixedStatus?: string | null;
+  fixedCourseId?: string | number | null;
+  showBulkActions?: boolean;
+  showDateFilters?: boolean;
+  showCourseColumn?: boolean;
+  showEnrollmentWindowColumn?: boolean;
+  showActionColumn?: boolean;
+  headerTitle?: string;
+  headerDescription?: string;
+  buildStudentHref?: (
+    _studentId: string | number,
+    _enrollment: Enrollment,
+  ) => string | null;
 };
 
 type EnrollmentStatusVariant =
@@ -216,6 +231,36 @@ function resolveStudent(enrollment: Enrollment): StudentCellData {
   return { primary, phone, email };
 }
 
+function resolveStudentId(enrollment: Enrollment): string | number | null {
+  const student = asRecord(enrollment.student) ?? asRecord(enrollment.user);
+  const nestedId = student?.id;
+  if (
+    (typeof nestedId === "string" && nestedId.trim().length > 0) ||
+    typeof nestedId === "number"
+  ) {
+    return nestedId as string | number;
+  }
+
+  const directStudentId = enrollment.student_id;
+  if (
+    (typeof directStudentId === "string" &&
+      directStudentId.trim().length > 0) ||
+    typeof directStudentId === "number"
+  ) {
+    return directStudentId;
+  }
+
+  const directUserId = enrollment.user_id;
+  if (
+    (typeof directUserId === "string" && directUserId.trim().length > 0) ||
+    typeof directUserId === "number"
+  ) {
+    return directUserId;
+  }
+
+  return null;
+}
+
 function resolveCourse(enrollment: Enrollment): string {
   const course = asRecord(enrollment.course);
   return (
@@ -224,6 +269,50 @@ function resolveCourse(enrollment: Enrollment): string {
     asString(enrollment.course_title) ??
     "Unknown Course"
   );
+}
+
+function resolveCourseId(enrollment: Enrollment): string | number | null {
+  const course = asRecord(enrollment.course);
+  const nestedId = course?.id;
+  if (
+    (typeof nestedId === "string" && nestedId.trim().length > 0) ||
+    typeof nestedId === "number"
+  ) {
+    return nestedId as string | number;
+  }
+
+  const directCourseId = enrollment.course_id;
+  if (
+    (typeof directCourseId === "string" && directCourseId.trim().length > 0) ||
+    typeof directCourseId === "number"
+  ) {
+    return directCourseId;
+  }
+
+  return null;
+}
+
+function resolveEnrollmentCenterId(
+  enrollment: Enrollment,
+): string | number | null {
+  const center = asRecord(enrollment.center);
+  const nestedId = center?.id;
+  if (
+    (typeof nestedId === "string" && nestedId.trim().length > 0) ||
+    typeof nestedId === "number"
+  ) {
+    return nestedId as string | number;
+  }
+
+  const directCenterId = enrollment.center_id;
+  if (
+    (typeof directCenterId === "string" && directCenterId.trim().length > 0) ||
+    typeof directCenterId === "number"
+  ) {
+    return directCenterId;
+  }
+
+  return null;
 }
 
 function resolveCenter(enrollment: Enrollment): string {
@@ -276,6 +365,17 @@ export function EnrollmentsTable({
   showCenterFilter = true,
   initialCourseId,
   initialUserId,
+  initialPerPage,
+  fixedStatus = null,
+  fixedCourseId = null,
+  showBulkActions = true,
+  showDateFilters = true,
+  showCourseColumn = true,
+  showEnrollmentWindowColumn = true,
+  showActionColumn = true,
+  headerTitle,
+  headerDescription,
+  buildStudentHref,
 }: EnrollmentsTableProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -290,6 +390,23 @@ export function EnrollmentsTable({
 
   const updateEnrollmentMutation = useUpdateEnrollment();
   const bulkUpdateStatusMutation = useBulkUpdateEnrollmentStatus();
+  const normalizedFixedStatus =
+    typeof fixedStatus === "string" && fixedStatus.trim().length > 0
+      ? fixedStatus.trim()
+      : null;
+  const normalizedFixedCourseId =
+    fixedCourseId != null && String(fixedCourseId).trim().length > 0
+      ? String(fixedCourseId)
+      : null;
+  const defaultStatusValue = normalizedFixedStatus ?? DEFAULT_REQUEST_STATUS;
+  const isStatusLocked = normalizedFixedStatus != null;
+  const isCourseLocked = normalizedFixedCourseId != null;
+  const isActiveEnrollmentsMode =
+    normalizedFixedStatus?.toUpperCase() === "ACTIVE";
+  const shouldShowDateFilters = showDateFilters;
+  const shouldShowCourseColumn = showCourseColumn;
+  const shouldShowEnrollmentWindowColumn = showEnrollmentWindowColumn;
+  const shouldShowActionColumn = showActionColumn;
 
   const [page, setPage] = useState(() =>
     getPositiveIntParam(searchParams, ENROLLMENTS_PAGE_KEY, 1),
@@ -298,15 +415,17 @@ export function EnrollmentsTable({
     getPositiveIntParam(
       searchParams,
       ENROLLMENTS_PER_PAGE_KEY,
-      DEFAULT_PER_PAGE,
+      initialPerPage ?? DEFAULT_PER_PAGE,
     ),
   );
-  const [statusFilter, setStatusFilter] = useState<string>(() =>
-    getStringParam(
-      searchParams,
-      ENROLLMENTS_STATUS_KEY,
-      DEFAULT_REQUEST_STATUS,
-    ),
+  const [statusFilter, setStatusFilter] = useState<string>(
+    () =>
+      normalizedFixedStatus ??
+      getStringParam(
+        searchParams,
+        ENROLLMENTS_STATUS_KEY,
+        DEFAULT_REQUEST_STATUS,
+      ),
   );
   const [studentSearch, setStudentSearch] = useState(() => {
     const fromCurrent = getStringParam(
@@ -336,6 +455,7 @@ export function EnrollmentsTable({
     return initialUserId != null ? String(initialUserId) : "";
   });
   const [selectedCourse, setSelectedCourse] = useState(() => {
+    if (normalizedFixedCourseId != null) return normalizedFixedCourseId;
     const fromUrl = searchParams.get(ENROLLMENTS_COURSE_KEY);
     if (fromUrl && fromUrl.trim().length > 0) return fromUrl.trim();
     return initialCourseId != null
@@ -345,10 +465,14 @@ export function EnrollmentsTable({
   const [courseSearch, setCourseSearch] = useState("");
   const [debouncedCourseSearch, setDebouncedCourseSearch] = useState("");
   const [dateFrom, setDateFrom] = useState(() =>
-    getStringParam(searchParams, ENROLLMENTS_FROM_KEY, ""),
+    shouldShowDateFilters
+      ? getStringParam(searchParams, ENROLLMENTS_FROM_KEY, "")
+      : "",
   );
   const [dateTo, setDateTo] = useState(() =>
-    getStringParam(searchParams, ENROLLMENTS_TO_KEY, ""),
+    shouldShowDateFilters
+      ? getStringParam(searchParams, ENROLLMENTS_TO_KEY, "")
+      : "",
   );
   const [selectedEnrollments, setSelectedEnrollments] = useState<
     Record<string, Enrollment>
@@ -358,9 +482,21 @@ export function EnrollmentsTable({
   );
   const hasInitializedFilterSyncRef = useRef(false);
   const queryCenterId = centerScopeId ?? tenantCenterId ?? undefined;
+  const effectiveStatusFilter = normalizedFixedStatus ?? statusFilter;
+  const effectiveSelectedCourse = normalizedFixedCourseId ?? selectedCourse;
   const cachedCoursesRef = useRef<
     Map<string, { id: string | number; title?: string | null }>
   >(new Map());
+
+  useEffect(() => {
+    if (normalizedFixedStatus == null) return;
+    setStatusFilter(normalizedFixedStatus);
+  }, [normalizedFixedStatus]);
+
+  useEffect(() => {
+    if (normalizedFixedCourseId == null) return;
+    setSelectedCourse(normalizedFixedCourseId);
+  }, [normalizedFixedCourseId]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -449,14 +585,17 @@ export function EnrollmentsTable({
       per_page: perPage,
       centerScopeId,
       center_id: shouldShowCenterFilter ? tenantCenterId : undefined,
-      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      status:
+        effectiveStatusFilter === ALL_STATUS_VALUE
+          ? undefined
+          : effectiveStatusFilter,
       course_id:
-        selectedCourse && selectedCourse !== ALL_COURSES_VALUE
-          ? selectedCourse
+        effectiveSelectedCourse && effectiveSelectedCourse !== ALL_COURSES_VALUE
+          ? effectiveSelectedCourse
           : undefined,
       search: studentSearch.trim() || undefined,
-      date_from: dateFrom || undefined,
-      date_to: dateTo || undefined,
+      date_from: shouldShowDateFilters ? dateFrom || undefined : undefined,
+      date_to: shouldShowDateFilters ? dateTo || undefined : undefined,
     }),
     [
       centerScopeId,
@@ -464,10 +603,11 @@ export function EnrollmentsTable({
       dateTo,
       page,
       perPage,
-      selectedCourse,
+      effectiveSelectedCourse,
       studentSearch,
       shouldShowCenterFilter,
-      statusFilter,
+      effectiveStatusFilter,
+      shouldShowDateFilters,
       tenantCenterId,
     ],
   );
@@ -481,19 +621,48 @@ export function EnrollmentsTable({
   const isLoadingState = isLoading;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
   const hasActiveFilters =
-    statusFilter !== DEFAULT_REQUEST_STATUS ||
-    selectedCourse !== ALL_COURSES_VALUE ||
+    (!isStatusLocked && statusFilter !== defaultStatusValue) ||
+    (!isCourseLocked && selectedCourse !== ALL_COURSES_VALUE) ||
     studentSearch.trim().length > 0 ||
-    dateFrom.trim().length > 0 ||
-    dateTo.trim().length > 0 ||
+    (shouldShowDateFilters && dateFrom.trim().length > 0) ||
+    (shouldShowDateFilters && dateTo.trim().length > 0) ||
     (shouldShowCenterFilter && tenantCenterId != null);
   const activeFilterCount =
-    (statusFilter !== DEFAULT_REQUEST_STATUS ? 1 : 0) +
-    (selectedCourse !== ALL_COURSES_VALUE ? 1 : 0) +
+    (!isStatusLocked && statusFilter !== defaultStatusValue ? 1 : 0) +
+    (!isCourseLocked && selectedCourse !== ALL_COURSES_VALUE ? 1 : 0) +
     (studentSearch.trim().length > 0 ? 1 : 0) +
-    (dateFrom.trim().length > 0 ? 1 : 0) +
-    (dateTo.trim().length > 0 ? 1 : 0) +
+    (shouldShowDateFilters && dateFrom.trim().length > 0 ? 1 : 0) +
+    (shouldShowDateFilters && dateTo.trim().length > 0 ? 1 : 0) +
     (shouldShowCenterFilter && tenantCenterId != null ? 1 : 0);
+  const visibleFilterControls =
+    1 +
+    (shouldShowCenterFilter ? 1 : 0) +
+    (!isCourseLocked ? 1 : 0) +
+    (!isStatusLocked ? 1 : 0) +
+    (shouldShowDateFilters ? 2 : 0);
+  const filtersGridClassName =
+    visibleFilterControls <= 1
+      ? "grid-cols-1"
+      : visibleFilterControls === 2
+        ? "grid-cols-1 md:grid-cols-2"
+        : visibleFilterControls <= 4
+          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+          : "grid-cols-1 md:grid-cols-3 lg:grid-cols-4";
+  const tableColumnCount =
+    (showBulkActions ? 1 : 0) +
+    1 +
+    (shouldShowCourseColumn ? 1 : 0) +
+    (showCenterColumn ? 1 : 0) +
+    1 +
+    1 +
+    (shouldShowEnrollmentWindowColumn ? 1 : 0) +
+    (shouldShowActionColumn ? 1 : 0);
+  const tableMinWidthClassName =
+    tableColumnCount <= 4
+      ? "min-w-[680px]"
+      : tableColumnCount <= 6
+        ? "min-w-[860px]"
+        : "min-w-[1100px]";
 
   const selectedIds = useMemo(
     () => Object.keys(selectedEnrollments),
@@ -524,8 +693,8 @@ export function EnrollmentsTable({
   }, [
     centerScopeId,
     tenantCenterId,
-    statusFilter,
-    selectedCourse,
+    effectiveStatusFilter,
+    effectiveSelectedCourse,
     studentSearch,
     dateFrom,
     dateTo,
@@ -534,14 +703,18 @@ export function EnrollmentsTable({
   useEffect(() => {
     const expectedPage = page > 1 ? String(page) : null;
     const expectedPerPage =
-      perPage !== DEFAULT_PER_PAGE ? String(perPage) : null;
+      perPage !== (initialPerPage ?? DEFAULT_PER_PAGE) ? String(perPage) : null;
     const expectedStatus =
-      statusFilter !== DEFAULT_REQUEST_STATUS ? statusFilter : null;
+      !isStatusLocked && statusFilter !== DEFAULT_REQUEST_STATUS
+        ? statusFilter
+        : null;
     const expectedCourse =
-      selectedCourse !== ALL_COURSES_VALUE ? selectedCourse : null;
+      !isCourseLocked && selectedCourse !== ALL_COURSES_VALUE
+        ? selectedCourse
+        : null;
     const expectedStudentSearch = studentSearch || null;
-    const expectedFrom = dateFrom || null;
-    const expectedTo = dateTo || null;
+    const expectedFrom = shouldShowDateFilters ? dateFrom || null : null;
+    const expectedTo = shouldShowDateFilters ? dateTo || null : null;
 
     const hasDiff =
       searchParams.get(ENROLLMENTS_PAGE_KEY) !== expectedPage ||
@@ -581,11 +754,15 @@ export function EnrollmentsTable({
     page,
     pathname,
     perPage,
+    initialPerPage,
+    isCourseLocked,
+    isStatusLocked,
     router,
     searchParams,
     selectedCourse,
     studentSearch,
     statusFilter,
+    shouldShowDateFilters,
   ]);
 
   useEffect(() => {
@@ -595,12 +772,23 @@ export function EnrollmentsTable({
     page,
     perPage,
     tenantCenterId,
-    statusFilter,
-    selectedCourse,
+    effectiveStatusFilter,
+    effectiveSelectedCourse,
     studentSearch,
     dateFrom,
     dateTo,
   ]);
+
+  useEffect(() => {
+    if (showBulkActions) return;
+    setSelectedEnrollments({});
+  }, [showBulkActions]);
+
+  useEffect(() => {
+    if (shouldShowDateFilters) return;
+    setDateFrom("");
+    setDateTo("");
+  }, [shouldShowDateFilters]);
 
   const toggleEnrollmentSelection = (enrollment: Enrollment) => {
     const enrollmentId = String(enrollment.id);
@@ -694,14 +882,27 @@ export function EnrollmentsTable({
 
   return (
     <ListingCard>
+      {headerTitle ? (
+        <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {headerTitle}
+          </h2>
+          {headerDescription ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {headerDescription}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <ListingFilters
         activeCount={activeFilterCount}
         isFetching={isFetching}
         isLoading={isLoading}
         hasActiveFilters={hasActiveFilters}
         onClear={() => {
-          setStatusFilter(DEFAULT_REQUEST_STATUS);
-          setSelectedCourse(ALL_COURSES_VALUE);
+          setStatusFilter(defaultStatusValue);
+          setSelectedCourse(normalizedFixedCourseId ?? ALL_COURSES_VALUE);
           setCourseSearch("");
           setStudentSearch("");
           setDateFrom("");
@@ -713,14 +914,17 @@ export function EnrollmentsTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "enrollment request" : "enrollment requests"}
+            {total}{" "}
+            {isActiveEnrollmentsMode
+              ? total === 1
+                ? "enrolled student"
+                : "enrolled students"
+              : total === 1
+                ? "enrollment request"
+                : "enrollment requests"}
           </>
         }
-        gridClassName={
-          shouldShowCenterFilter
-            ? "grid-cols-1 md:grid-cols-3 lg:grid-cols-4"
-            : "grid-cols-1 md:grid-cols-3"
-        }
+        gridClassName={filtersGridClassName}
       >
         <div className="relative">
           <svg
@@ -781,69 +985,79 @@ export function EnrollmentsTable({
           />
         ) : null}
 
-        <SearchableSelect
-          value={selectedCourse}
-          onValueChange={(value) =>
-            setSelectedCourse(value ?? ALL_COURSES_VALUE)
-          }
-          options={courseOptions}
-          searchValue={courseSearch}
-          onSearchValueChange={setCourseSearch}
-          placeholder={queryCenterId ? "Course" : "Select center first"}
-          searchPlaceholder="Search courses..."
-          emptyMessage={
-            queryCenterId ? "No courses found" : "Select a center first"
-          }
-          isLoading={coursesQuery.isLoading}
-          filterOptions={false}
-          disabled={!queryCenterId}
-          hasMore={Boolean(coursesQuery.hasNextPage)}
-          isLoadingMore={coursesQuery.isFetchingNextPage}
-          onReachEnd={() => {
-            if (coursesQuery.hasNextPage) {
-              void coursesQuery.fetchNextPage();
+        {!isCourseLocked ? (
+          <SearchableSelect
+            value={selectedCourse}
+            onValueChange={(value) =>
+              setSelectedCourse(value ?? ALL_COURSES_VALUE)
             }
-          }}
-          triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-        />
+            options={courseOptions}
+            searchValue={courseSearch}
+            onSearchValueChange={setCourseSearch}
+            placeholder={queryCenterId ? "Course" : "Select center first"}
+            searchPlaceholder="Search courses..."
+            emptyMessage={
+              queryCenterId ? "No courses found" : "Select a center first"
+            }
+            isLoading={coursesQuery.isLoading}
+            filterOptions={false}
+            disabled={!queryCenterId}
+            hasMore={Boolean(coursesQuery.hasNextPage)}
+            isLoadingMore={coursesQuery.isFetchingNextPage}
+            onReachEnd={() => {
+              if (coursesQuery.hasNextPage) {
+                void coursesQuery.fetchNextPage();
+              }
+            }}
+            triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+          />
+        ) : null}
 
-        <Select
-          value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value)}
-        >
-          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="DEACTIVATED">Deactivated</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
-          </SelectContent>
-        </Select>
+        {!isStatusLocked ? (
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value)}
+          >
+            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="DEACTIVATED">Deactivated</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
 
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(event) => setDateFrom(event.target.value)}
-          title="From date"
-        />
+        {shouldShowDateFilters ? (
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(event) => setDateFrom(event.target.value)}
+            title="From date"
+          />
+        ) : null}
 
-        <Input
-          type="date"
-          value={dateTo}
-          min={dateFrom || undefined}
-          onChange={(event) => setDateTo(event.target.value)}
-          title="To date"
-        />
+        {shouldShowDateFilters ? (
+          <Input
+            type="date"
+            value={dateTo}
+            min={dateFrom || undefined}
+            onChange={(event) => setDateTo(event.target.value)}
+            title="To date"
+          />
+        ) : null}
       </ListingFilters>
 
       {isError ? (
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load enrollment requests. Please try again.
+              {isActiveEnrollmentsMode
+                ? "Failed to load enrolled students. Please try again."
+                : "Failed to load enrollment requests. Please try again."}
             </p>
             <Button
               variant="outline"
@@ -862,30 +1076,42 @@ export function EnrollmentsTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[1100px]">
+          <Table className={cn("w-full", tableMinWidthClassName)}>
             <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-gray-50/95 [&_th]:backdrop-blur dark:[&_th]:bg-gray-800/95">
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                <TableHead className="w-8">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                    checked={isAllPageSelected}
-                    onChange={toggleAllSelections}
-                    disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all enrollment requests on this page"
-                  />
-                </TableHead>
+                {showBulkActions ? (
+                  <TableHead className="w-8">
+                    <input
+                      type="checkbox"
+                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                      checked={isAllPageSelected}
+                      onChange={toggleAllSelections}
+                      disabled={isLoadingState || items.length === 0}
+                      aria-label="Select all enrollments on this page"
+                    />
+                  </TableHead>
+                ) : null}
                 <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Course</TableHead>
+                {shouldShowCourseColumn ? (
+                  <TableHead className="font-medium">Course</TableHead>
+                ) : null}
                 {showCenterColumn ? (
                   <TableHead className="font-medium">Center</TableHead>
                 ) : null}
                 <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Requested At</TableHead>
-                <TableHead className="font-medium">Enrollment Window</TableHead>
-                <TableHead className="w-10 text-right font-medium">
-                  Actions
+                <TableHead className="font-medium">
+                  {isActiveEnrollmentsMode ? "Enrolled At" : "Requested At"}
                 </TableHead>
+                {shouldShowEnrollmentWindowColumn ? (
+                  <TableHead className="font-medium">
+                    Enrollment Window
+                  </TableHead>
+                ) : null}
+                {shouldShowActionColumn ? (
+                  <TableHead className="w-10 text-right font-medium">
+                    Actions
+                  </TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -893,15 +1119,19 @@ export function EnrollmentsTable({
                 <>
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
-                      <TableCell>
-                        <Skeleton className="h-4 w-4" />
-                      </TableCell>
+                      {showBulkActions ? (
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <Skeleton className="h-4 w-36" />
                       </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-32" />
-                      </TableCell>
+                      {shouldShowCourseColumn ? (
+                        <TableCell>
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                      ) : null}
                       {showCenterColumn ? (
                         <TableCell>
                           <Skeleton className="h-4 w-28" />
@@ -913,23 +1143,28 @@ export function EnrollmentsTable({
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
                       </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-8 w-40" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="ml-auto h-7 w-32" />
-                      </TableCell>
+                      {shouldShowEnrollmentWindowColumn ? (
+                        <TableCell>
+                          <Skeleton className="h-8 w-40" />
+                        </TableCell>
+                      ) : null}
+                      {shouldShowActionColumn ? (
+                        <TableCell>
+                          <Skeleton className="ml-auto h-7 w-32" />
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   ))}
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={showCenterColumn ? 8 : 7}
-                    className="h-48"
-                  >
+                  <TableCell colSpan={tableColumnCount} className="h-48">
                     <EmptyState
-                      title="No enrollment requests found"
+                      title={
+                        isActiveEnrollmentsMode
+                          ? "No enrolled students found"
+                          : "No enrollment requests found"
+                      }
                       description="Try adjusting your filters."
                       className="border-0 bg-transparent"
                     />
@@ -939,7 +1174,37 @@ export function EnrollmentsTable({
                 items.map((enrollment) => {
                   const status = resolveStatus(enrollment);
                   const student = resolveStudent(enrollment);
-                  const course = resolveCourse(enrollment);
+                  const course = shouldShowCourseColumn
+                    ? resolveCourse(enrollment)
+                    : null;
+                  const courseId = shouldShowCourseColumn
+                    ? resolveCourseId(enrollment)
+                    : null;
+                  const studentId = resolveStudentId(enrollment);
+                  const studentHref =
+                    studentId != null
+                      ? buildStudentHref?.(studentId, enrollment)
+                      : null;
+                  const courseHref =
+                    courseId != null
+                      ? (() => {
+                          const enrollmentCenterId =
+                            resolveEnrollmentCenterId(enrollment);
+                          const targetCenterId =
+                            centerScopeId ??
+                            enrollmentCenterId ??
+                            tenantCenterId ??
+                            null;
+                          if (targetCenterId != null) {
+                            return `/centers/${encodeURIComponent(
+                              String(targetCenterId),
+                            )}/courses/${encodeURIComponent(String(courseId))}`;
+                          }
+                          return `/courses/${encodeURIComponent(
+                            String(courseId),
+                          )}`;
+                        })()
+                      : null;
                   const center = resolveCenter(enrollment);
                   const decidedByName = resolveDecidedBy(enrollment);
                   const decidedAt = resolveDecisionTimestamp(
@@ -947,32 +1212,51 @@ export function EnrollmentsTable({
                     status.key,
                   );
                   const isProcessing = processingId === enrollment.id;
+                  const rowTimestamp = isActiveEnrollmentsMode
+                    ? formatDateTime(
+                        asString(enrollment.enrolled_at) ??
+                          asString(enrollment.created_at),
+                      )
+                    : formatDateTime(enrollment.created_at);
 
                   return (
                     <TableRow
                       key={enrollment.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                          checked={Boolean(
-                            selectedEnrollments[String(enrollment.id)],
-                          )}
-                          onChange={() => toggleEnrollmentSelection(enrollment)}
-                          aria-label={`Select enrollment for ${student.primary}`}
-                        />
-                      </TableCell>
+                      {showBulkActions ? (
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                            checked={Boolean(
+                              selectedEnrollments[String(enrollment.id)],
+                            )}
+                            onChange={() =>
+                              toggleEnrollmentSelection(enrollment)
+                            }
+                            aria-label={`Select enrollment for ${student.primary}`}
+                          />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold uppercase text-white">
                             {getInitials(student.primary)}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-medium text-gray-900 dark:text-white">
-                              {student.primary}
-                            </span>
+                            {studentHref ? (
+                              <Link
+                                href={studentHref}
+                                className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
+                              >
+                                {student.primary}
+                              </Link>
+                            ) : (
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                {student.primary}
+                              </span>
+                            )}
                             <span className="text-sm text-gray-500 dark:text-gray-400">
                               {student.phone ?? "—"}
                             </span>
@@ -984,9 +1268,20 @@ export function EnrollmentsTable({
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-300">
-                        {course}
-                      </TableCell>
+                      {shouldShowCourseColumn ? (
+                        <TableCell className="text-gray-600 dark:text-gray-300">
+                          {courseHref ? (
+                            <Link
+                              href={courseHref}
+                              className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
+                            >
+                              {course}
+                            </Link>
+                          ) : (
+                            course
+                          )}
+                        </TableCell>
+                      ) : null}
                       {showCenterColumn ? (
                         <TableCell className="text-gray-500 dark:text-gray-400">
                           {center}
@@ -996,46 +1291,50 @@ export function EnrollmentsTable({
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {formatDateTime(enrollment.created_at)}
+                        {rowTimestamp}
                       </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400">
-                        <div className="flex flex-col text-xs">
-                          <span>
-                            Enrolled:{" "}
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {formatDateTime(enrollment.enrolled_at)}
+                      {shouldShowEnrollmentWindowColumn ? (
+                        <TableCell className="text-gray-500 dark:text-gray-400">
+                          <div className="flex flex-col text-xs">
+                            <span>
+                              Enrolled:{" "}
+                              <span className="font-medium text-gray-700 dark:text-gray-300">
+                                {formatDateTime(enrollment.enrolled_at)}
+                              </span>
                             </span>
-                          </span>
-                          <span>
-                            Expires:{" "}
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {formatDateTime(enrollment.expires_at)}
+                            <span>
+                              Expires:{" "}
+                              <span className="font-medium text-gray-700 dark:text-gray-300">
+                                {formatDateTime(enrollment.expires_at)}
+                              </span>
                             </span>
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <RequestActionButtons
-                          status={status.key}
-                          decidedByName={decidedByName}
-                          decidedAt={decidedAt}
-                          onApprove={() => handleApprove(enrollment)}
-                          onReject={() => handleReject(enrollment)}
-                          isApproving={
-                            isProcessing &&
-                            updateEnrollmentMutation.isPending &&
-                            updateEnrollmentMutation.variables?.payload
-                              .status === "ACTIVE"
-                          }
-                          isRejecting={
-                            isProcessing &&
-                            updateEnrollmentMutation.isPending &&
-                            updateEnrollmentMutation.variables?.payload
-                              .status === "CANCELLED"
-                          }
-                          className="justify-end"
-                        />
-                      </TableCell>
+                          </div>
+                        </TableCell>
+                      ) : null}
+                      {shouldShowActionColumn ? (
+                        <TableCell className="text-right">
+                          <RequestActionButtons
+                            status={status.key}
+                            decidedByName={decidedByName}
+                            decidedAt={decidedAt}
+                            onApprove={() => handleApprove(enrollment)}
+                            onReject={() => handleReject(enrollment)}
+                            isApproving={
+                              isProcessing &&
+                              updateEnrollmentMutation.isPending &&
+                              updateEnrollmentMutation.variables?.payload
+                                .status === "ACTIVE"
+                            }
+                            isRejecting={
+                              isProcessing &&
+                              updateEnrollmentMutation.isPending &&
+                              updateEnrollmentMutation.variables?.payload
+                                .status === "CANCELLED"
+                            }
+                            className="justify-end"
+                          />
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   );
                 })
@@ -1045,7 +1344,7 @@ export function EnrollmentsTable({
         </div>
       )}
 
-      {selectedCount > 0 ? (
+      {showBulkActions && selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
             {selectedCount} selected

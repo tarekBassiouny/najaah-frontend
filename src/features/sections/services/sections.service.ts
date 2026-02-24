@@ -1,4 +1,9 @@
 import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 import type {
   ListSectionsParams,
   ReorderSectionsPayload,
@@ -54,6 +59,32 @@ function basePath(centerId: string | number, courseId: string | number) {
   return `/api/v1/admin/centers/${centerId}/courses/${courseId}/sections`;
 }
 
+function normalizeSectionPayload(payload: SectionPayload) {
+  const { order_index, sort_order, ...rest } = payload;
+  return {
+    ...rest,
+    order_index:
+      typeof order_index === "number"
+        ? order_index
+        : typeof sort_order === "number"
+          ? sort_order
+          : undefined,
+  };
+}
+
+function normalizeSectionStructurePayload(payload: SectionStructurePayload) {
+  const { order_index, sort_order, ...rest } = payload;
+  return {
+    ...rest,
+    sort_order:
+      typeof sort_order === "number"
+        ? sort_order
+        : typeof order_index === "number"
+          ? order_index
+          : undefined,
+  };
+}
+
 export async function listSections(
   centerId: string | number,
   courseId: string | number,
@@ -88,9 +119,9 @@ export async function createSection(
 ): Promise<Section> {
   const { data } = await http.post<RawResponse>(
     basePath(centerId, courseId),
-    payload,
+    normalizeSectionPayload(payload),
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function updateSection(
@@ -101,17 +132,20 @@ export async function updateSection(
 ): Promise<Section> {
   const { data } = await http.put<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}`,
-    payload,
+    normalizeSectionPayload(payload),
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function deleteSection(
   centerId: string | number,
   courseId: string | number,
   sectionId: string | number,
-): Promise<void> {
-  await http.delete(`${basePath(centerId, courseId)}/${sectionId}`);
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(
+    `${basePath(centerId, courseId)}/${sectionId}`,
+  );
+  return normalizeAdminActionResult(data);
 }
 
 export async function restoreSection(
@@ -122,7 +156,7 @@ export async function restoreSection(
   const { data } = await http.post<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}/restore`,
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function toggleSectionVisibility(
@@ -133,7 +167,7 @@ export async function toggleSectionVisibility(
   const { data } = await http.patch<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}/visibility`,
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function reorderSections(
@@ -155,9 +189,9 @@ export async function createSectionWithStructure(
 ): Promise<Section> {
   const { data } = await http.post<RawResponse>(
     `${basePath(centerId, courseId)}/structure`,
-    payload,
+    normalizeSectionStructurePayload(payload),
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function updateSectionWithStructure(
@@ -168,17 +202,20 @@ export async function updateSectionWithStructure(
 ): Promise<Section> {
   const { data } = await http.put<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}/structure`,
-    payload,
+    normalizeSectionStructurePayload(payload),
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function deleteSectionWithStructure(
   centerId: string | number,
   courseId: string | number,
   sectionId: string | number,
-): Promise<void> {
-  await http.delete(`${basePath(centerId, courseId)}/${sectionId}/structure`);
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(
+    `${basePath(centerId, courseId)}/${sectionId}/structure`,
+  );
+  return normalizeAdminActionResult(data);
 }
 
 export async function listSectionVideos(
@@ -285,7 +322,7 @@ export async function publishSection(
   const { data } = await http.post<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}/publish`,
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }
 
 export async function unpublishSection(
@@ -296,5 +333,5 @@ export async function unpublishSection(
   const { data } = await http.post<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}/unpublish`,
   );
-  return (data?.data ?? data) as Section;
+  return withResponseMessage((data?.data ?? data) as Section, data);
 }

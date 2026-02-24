@@ -3,6 +3,7 @@ import {
   attachSectionPdf,
   attachSectionVideo,
   createSection,
+  createSectionWithStructure,
   deleteSection,
   detachSectionPdf,
   detachSectionVideo,
@@ -17,6 +18,7 @@ import {
   toggleSectionVisibility,
   unpublishSection,
   updateSection,
+  updateSectionWithStructure,
 } from "@/features/sections/services/sections.service";
 import { http } from "@/lib/http";
 
@@ -99,16 +101,78 @@ describe("sections.service", () => {
     mockedHttp.delete.mockResolvedValueOnce({});
 
     await expect(getSection(1, 2, 3)).resolves.toEqual({ id: 3 });
-    await expect(createSection(1, 2, { title: "S1" })).resolves.toEqual({
-      id: 3,
-    });
-    await expect(updateSection(1, 2, 3, { title: "S2" })).resolves.toEqual({
-      id: 3,
-    });
+    await expect(
+      createSection(1, 2, { title_translations: { en: "S1" } }),
+    ).resolves.toEqual({ id: 3 });
+    await expect(
+      updateSection(1, 2, 3, { title_translations: { en: "S2" } }),
+    ).resolves.toEqual({ id: 3 });
     await deleteSection(1, 2, 3);
 
     expect(mockedHttp.delete).toHaveBeenCalledWith(
       "/api/v1/admin/centers/1/courses/2/sections/3",
+    );
+  });
+
+  it("maps sort_order alias to order_index for simple create/update payloads", async () => {
+    mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 5 } } });
+    mockedHttp.put.mockResolvedValueOnce({ data: { data: { id: 5 } } });
+
+    await createSection(1, 2, {
+      title_translations: { en: "S1" },
+      sort_order: 4,
+    });
+    await updateSection(1, 2, 5, {
+      title_translations: { en: "S1" },
+      sort_order: 6,
+    });
+
+    expect(mockedHttp.post).toHaveBeenCalledWith(
+      "/api/v1/admin/centers/1/courses/2/sections",
+      {
+        title_translations: { en: "S1" },
+        order_index: 4,
+      },
+    );
+    expect(mockedHttp.put).toHaveBeenCalledWith(
+      "/api/v1/admin/centers/1/courses/2/sections/5",
+      {
+        title_translations: { en: "S1" },
+        order_index: 6,
+      },
+    );
+  });
+
+  it("maps order_index alias to sort_order for structure payloads", async () => {
+    mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 7 } } });
+    mockedHttp.put.mockResolvedValueOnce({ data: { data: { id: 7 } } });
+
+    await createSectionWithStructure(1, 2, {
+      title_translations: { en: "With Structure" },
+      order_index: 2,
+      videos: [10],
+    });
+    await updateSectionWithStructure(1, 2, 7, {
+      title_translations: { en: "With Structure" },
+      order_index: 3,
+      pdfs: [20],
+    });
+
+    expect(mockedHttp.post).toHaveBeenCalledWith(
+      "/api/v1/admin/centers/1/courses/2/sections/structure",
+      {
+        title_translations: { en: "With Structure" },
+        sort_order: 2,
+        videos: [10],
+      },
+    );
+    expect(mockedHttp.put).toHaveBeenCalledWith(
+      "/api/v1/admin/centers/1/courses/2/sections/7/structure",
+      {
+        title_translations: { en: "With Structure" },
+        sort_order: 3,
+        pdfs: [20],
+      },
     );
   });
 

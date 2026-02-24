@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTenant } from "@/app/tenant-provider";
 import { setTenantState } from "@/lib/tenant-store";
 import { cn } from "@/lib/utils";
 import { useInstructors } from "@/features/instructors/hooks/use-instructors";
+import { deleteInstructor } from "@/features/instructors/services/instructors.service";
 import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import type { Instructor } from "@/features/instructors/types/instructor";
@@ -36,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useModal } from "@/components/ui/modal-store";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -116,6 +119,8 @@ export function InstructorsTable({
   onEdit,
   onDelete,
 }: InstructorsTableProps) {
+  const queryClient = useQueryClient();
+  const { showToast } = useModal();
   const tenant = useTenant();
   const effectiveScopeCenterId = scopeCenterId ?? null;
   const selectedCenterId =
@@ -130,6 +135,10 @@ export function InstructorsTable({
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const [selectedInstructors, setSelectedInstructors] = useState<
+    Record<string, Instructor>
+  >({});
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -157,7 +166,28 @@ export function InstructorsTable({
     !isLoadingState && !isError && !hasSelectedCenter;
   const showEmptyState =
     !isLoadingState && !isError && hasSelectedCenter && items.length === 0;
-  const columnCount = onEdit || onDelete ? 5 : 4;
+  const hasActions = Boolean(onEdit || onDelete);
+  const enableBulkSelection = hasSelectedCenter && Boolean(onDelete);
+  const selectedIds = useMemo(
+    () => Object.keys(selectedInstructors),
+    [selectedInstructors],
+  );
+  const selectedCount = selectedIds.length;
+  const selectedInstructorsList = useMemo(
+    () =>
+      selectedIds
+        .map((id) => selectedInstructors[id])
+        .filter((instructor): instructor is Instructor => Boolean(instructor)),
+    [selectedIds, selectedInstructors],
+  );
+  const pageInstructorIds = useMemo(
+    () => items.map((instructor) => String(instructor.id)),
+    [items],
+  );
+  const isAllPageSelected =
+    pageInstructorIds.length > 0 &&
+    pageInstructorIds.every((id) => Boolean(selectedInstructors[id]));
+  const columnCount = 4 + (enableBulkSelection ? 1 : 0) + (hasActions ? 1 : 0);
   const hasActiveFilters =
     search.trim().length > 0 ||
     statusFilter !== ALL_STATUS_VALUE ||
@@ -186,10 +216,96 @@ export function InstructorsTable({
     setPage(1);
   }, [selectedCenterId]);
 
+  useEffect(() => {
+    setSelectedInstructors({});
+  }, [selectedCenterId, page, perPage, query, statusFilter]);
+
   const errorMessage = getInstructorApiErrorMessage(
     error,
     "Failed to load instructors. Please try again.",
   );
+
+  const toggleInstructorSelection = (instructor: Instructor) => {
+    const id = String(instructor.id);
+    setSelectedInstructors((prev) => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = instructor;
+      }
+      return next;
+    });
+  };
+
+  const toggleAllSelections = () => {
+    if (isAllPageSelected) {
+      setSelectedInstructors((prev) => {
+        const next = { ...prev };
+        pageInstructorIds.forEach((id) => {
+          delete next[id];
+        });
+        return next;
+      });
+      return;
+    }
+
+    setSelectedInstructors((prev) => {
+      const next = { ...prev };
+      items.forEach((instructor) => {
+        next[String(instructor.id)] = instructor;
+      });
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (
+      selectedInstructorsList.length === 0 ||
+      selectedCenterId == null ||
+      isBulkDeleting
+    ) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${selectedInstructorsList.length} selected instructor${
+        selectedInstructorsList.length === 1 ? "" : "s"
+      }?`,
+    );
+    if (!confirmed) return;
+
+    setIsBulkDeleting(true);
+
+    let deletedCount = 0;
+    for (const instructor of selectedInstructorsList) {
+      try {
+        await deleteInstructor(instructor.id, { centerId: selectedCenterId });
+        deletedCount += 1;
+      } catch {
+        // Continue deleting remaining selections even if one fails.
+      }
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ["instructors"] });
+    setSelectedInstructors({});
+    setIsBulkDeleting(false);
+
+    if (deletedCount === selectedInstructorsList.length) {
+      showToast(
+        `Deleted ${deletedCount} instructor${
+          deletedCount === 1 ? "" : "s"
+        } successfully.`,
+        "success",
+      );
+      return;
+    }
+
+    showToast(
+      `Deleted ${deletedCount} of ${selectedInstructorsList.length} selected instructors.`,
+      "error",
+    );
+  };
 
   return (
     <ListingCard>
@@ -331,15 +447,27 @@ export function InstructorsTable({
           <Table className="min-w-[880px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
+                {enableBulkSelection ? (
+                  <TableHead className="w-8">
+                    <input
+                      type="checkbox"
+                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                      checked={isAllPageSelected}
+                      onChange={toggleAllSelections}
+                      disabled={isLoadingState || items.length === 0}
+                      aria-label="Select all instructors on this page"
+                    />
+                  </TableHead>
+                ) : null}
                 <TableHead className="font-medium">Instructor</TableHead>
                 <TableHead className="font-medium">Email</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">Center</TableHead>
-                {(onEdit || onDelete) && (
+                {hasActions ? (
                   <TableHead className="w-10 text-right font-medium">
                     Actions
                   </TableHead>
-                )}
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -347,6 +475,11 @@ export function InstructorsTable({
                 <>
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
+                      {enableBulkSelection ? (
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <Skeleton className="h-4 w-44" />
                       </TableCell>
@@ -359,11 +492,11 @@ export function InstructorsTable({
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
                       </TableCell>
-                      {(onEdit || onDelete) && (
+                      {hasActions ? (
                         <TableCell>
                           <Skeleton className="ml-auto h-4 w-16" />
                         </TableCell>
-                      )}
+                      ) : null}
                     </TableRow>
                   ))}
                 </>
@@ -404,6 +537,22 @@ export function InstructorsTable({
                       key={instructor.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
+                      {enableBulkSelection ? (
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                            checked={Boolean(
+                              selectedInstructors[String(instructor.id)],
+                            )}
+                            onChange={() =>
+                              toggleInstructorSelection(instructor)
+                            }
+                            aria-label={`Select ${instructor.name ?? `instructor ${instructor.id}`}`}
+                            disabled={isBulkDeleting}
+                          />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold uppercase text-white">
@@ -440,7 +589,7 @@ export function InstructorsTable({
                             ? `Center #${instructor.center_id}`
                             : "—"}
                       </TableCell>
-                      {(onEdit || onDelete) && (
+                      {hasActions ? (
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end">
                             <Dropdown
@@ -485,7 +634,7 @@ export function InstructorsTable({
                             </Dropdown>
                           </div>
                         </TableCell>
-                      )}
+                      ) : null}
                     </TableRow>
                   );
                 })
@@ -494,6 +643,24 @@ export function InstructorsTable({
           </Table>
         </div>
       )}
+
+      {selectedCount > 0 && enableBulkSelection ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
+          <div className="text-gray-500 dark:text-gray-400">
+            {selectedCount} selected
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleBulkDelete}
+              disabled={isLoadingState || isBulkDeleting}
+            >
+              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {!isError && hasSelectedCenter && maxPage > 1 && (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">

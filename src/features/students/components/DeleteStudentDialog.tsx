@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +11,11 @@ import {
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteStudent } from "@/features/students/hooks/use-students";
 import type { Student } from "@/features/students/types/student";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 type DeleteStudentDialogProps = {
   open: boolean;
@@ -22,12 +26,10 @@ type DeleteStudentDialogProps = {
 };
 
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
-  }
-
-  return "Unable to delete student. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to delete student. Please try again.",
+  );
 }
 
 export function DeleteStudentDialog({
@@ -45,9 +47,20 @@ export function DeleteStudentDialog({
     setErrorMessage(null);
 
     deleteMutation.mutate(student.id, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        if (!isAdminRequestSuccessful(response)) {
+          setErrorMessage(
+            getAdminResponseMessage(
+              response,
+              "Unable to delete student. Please try again.",
+            ),
+          );
+          return;
+        }
         onOpenChange(false);
-        onSuccess?.("Student deleted successfully.");
+        onSuccess?.(
+          getAdminResponseMessage(response, "Student deleted successfully."),
+        );
       },
       onError: (error) => {
         setErrorMessage(getErrorMessage(error));

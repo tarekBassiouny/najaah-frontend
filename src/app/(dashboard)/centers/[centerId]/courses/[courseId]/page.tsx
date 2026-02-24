@@ -21,7 +21,7 @@ import {
   useUpdateCenterCourse,
 } from "@/features/courses/hooks/use-courses";
 import { CoursePublishAction } from "@/features/courses/components/CoursePublishAction";
-import { StudentsTable } from "@/features/students/components/StudentsTable";
+import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsTable";
 import { useCategories } from "@/features/categories/hooks/use-categories";
 import { CourseSectionsOverview } from "@/features/sections/components/CourseSectionsOverview";
 
@@ -330,13 +330,16 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
                 Enrolled Students
               </p>
-              <StudentsTable
+              <EnrollmentsTable
                 centerId={centerId}
-                courseId={courseId}
-                initialPage={1}
+                showCenterFilter={false}
+                initialCourseId={courseId}
                 initialPerPage={15}
-                buildProfileHref={(student) =>
-                  `/centers/${centerId}/students/${student.id}?from=course&courseId=${courseId}`
+                fixedStatus="ACTIVE"
+                fixedCourseId={courseId}
+                showBulkActions={false}
+                buildStudentHref={(studentId) =>
+                  `/centers/${centerId}/students/${studentId}?from=course&courseId=${courseId}`
                 }
               />
             </div>

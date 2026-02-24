@@ -9,6 +9,7 @@ import {
   bulkUpdateStudentStatus,
   createStudent,
   deleteStudent,
+  getStudentProfile,
   listStudents,
   updateStudent,
   type CreateStudentPayload,
@@ -19,12 +20,22 @@ import {
   type StudentsApiScopeContext,
 } from "../services/students.service";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { Student } from "@/features/students/types/student";
+import type {
+  Student,
+  StudentProfile,
+} from "@/features/students/types/student";
 
 export const studentKeys = {
   all: ["students"] as const,
   list: (params: ListStudentsParams, context?: StudentsApiScopeContext) =>
     [...studentKeys.all, params, context?.centerId ?? null] as const,
+  profile: (studentId: string | number, context?: StudentsApiScopeContext) =>
+    [
+      ...studentKeys.all,
+      "profile",
+      studentId,
+      context?.centerId ?? null,
+    ] as const,
 };
 
 type UseStudentsOptions = Omit<
@@ -102,5 +113,22 @@ export function useBulkUpdateStudentStatus(context?: StudentsApiScopeContext) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: studentKeys.all });
     },
+  });
+}
+
+type UseStudentProfileOptions = Omit<
+  UseQueryOptions<StudentProfile | null>,
+  "queryKey" | "queryFn"
+>;
+
+export function useStudentProfile(
+  studentId: string | number,
+  context?: StudentsApiScopeContext,
+  options?: UseStudentProfileOptions,
+) {
+  return useQuery({
+    queryKey: studentKeys.profile(studentId, context),
+    queryFn: () => getStudentProfile(studentId, context),
+    ...options,
   });
 }

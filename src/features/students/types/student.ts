@@ -58,3 +58,65 @@ export type StudentImportResult = {
   }>;
   [key: string]: unknown;
 };
+
+// Student Profile Types
+
+export type DeviceChangeLog = {
+  device_name: string;
+  device_id: string;
+  changed_at: string;
+  reason: string | null;
+};
+
+export type ProfileCourseVideo = {
+  id: number;
+  title: string;
+  watch_count: number;
+  watch_limit: number | null;
+  watch_progress_percentage: number;
+};
+
+export type ProfileEnrollmentCourse = {
+  id: number;
+  title: string;
+  thumbnail_url: string | null;
+  video_count: number;
+  videos: ProfileCourseVideo[];
+};
+
+export type StudentEnrollment = {
+  id: number;
+  enrolled_at: string;
+  expires_at: string | null;
+  status: string;
+  status_label: string;
+  progress_percentage: number;
+  course: ProfileEnrollmentCourse;
+};
+
+export type StudentProfile = {
+  id: number;
+  name: string;
+  username: string | null;
+  email: string | null;
+  phone: string;
+  country_code: string;
+  avatar_url: string | null;
+  status: number;
+  status_label: "Active" | "Inactive" | "Banned";
+
+  last_activity_at: string | null;
+  active_device: {
+    model: string;
+    device_id: string;
+  } | null;
+  total_enrollments: number;
+  device_changes_count: number;
+
+  device_change_log: DeviceChangeLog[];
+  center: {
+    id: number;
+    name: string;
+  } | null;
+  enrollments: StudentEnrollment[];
+};

@@ -204,8 +204,10 @@ export function SectionManager({
   );
 
   const { mutate: createSection, isPending: isCreating } = useCreateSection();
-  const { mutate: createSectionWithStructure, isPending: isCreatingWithStructure } =
-    useCreateSectionWithStructure();
+  const {
+    mutate: createSectionWithStructure,
+    isPending: isCreatingWithStructure,
+  } = useCreateSectionWithStructure();
   const {
     mutate: deleteSection,
     mutateAsync: deleteSectionAsync,
@@ -225,8 +227,10 @@ export function SectionManager({
     useAttachSectionVideo();
   const { mutate: detachVideo, isPending: isDetachingVideo } =
     useDetachSectionVideo();
-  const { mutate: attachPdf, isPending: isAttachingPdf } = useAttachSectionPdf();
-  const { mutate: detachPdf, isPending: isDetachingPdf } = useDetachSectionPdf();
+  const { mutate: attachPdf, isPending: isAttachingPdf } =
+    useAttachSectionPdf();
+  const { mutate: detachPdf, isPending: isDetachingPdf } =
+    useDetachSectionPdf();
 
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const total = data?.total ?? 0;
@@ -375,9 +379,7 @@ export function SectionManager({
 
     const basePayload = {
       title_translations: { en: title },
-      ...(description
-        ? { description_translations: { en: description } }
-        : {}),
+      ...(description ? { description_translations: { en: description } } : {}),
       ...(typeof sortOrder === "number" ? { sort_order: sortOrder } : {}),
     };
 
@@ -388,7 +390,9 @@ export function SectionManager({
           courseId,
           payload: {
             ...basePayload,
-            ...(parsedVideos.ids.length > 0 ? { videos: parsedVideos.ids } : {}),
+            ...(parsedVideos.ids.length > 0
+              ? { videos: parsedVideos.ids }
+              : {}),
             ...(parsedPdfs.ids.length > 0 ? { pdfs: parsedPdfs.ids } : {}),
           },
         },
@@ -427,7 +431,8 @@ export function SectionManager({
         onSuccess: (createdSection) => {
           form.reset();
           const backendMessage =
-            getResponseMessage(createdSection) ?? "Section created successfully.";
+            getResponseMessage(createdSection) ??
+            "Section created successfully.";
           setFeedback({
             type: "success",
             message: backendMessage,
@@ -436,7 +441,10 @@ export function SectionManager({
         onError: (error) => {
           setFeedback({
             type: "error",
-            message: getSectionApiErrorMessage(error, "Failed to create section."),
+            message: getSectionApiErrorMessage(
+              error,
+              "Failed to create section.",
+            ),
           });
         },
       },
@@ -487,12 +495,18 @@ export function SectionManager({
       },
       {
         onSuccess: () => {
-          setFeedback({ type: "success", message: "Section deleted successfully." });
+          setFeedback({
+            type: "success",
+            message: "Section deleted successfully.",
+          });
         },
         onError: (error) => {
           setFeedback({
             type: "error",
-            message: getSectionApiErrorMessage(error, "Failed to delete section."),
+            message: getSectionApiErrorMessage(
+              error,
+              "Failed to delete section.",
+            ),
           });
         },
       },
@@ -543,7 +557,9 @@ export function SectionManager({
     });
 
     const results = await Promise.allSettled(actionPromises);
-    const successCount = results.filter((result) => result.status === "fulfilled").length;
+    const successCount = results.filter(
+      (result) => result.status === "fulfilled",
+    ).length;
 
     setIsBulkActing(false);
     setSelectedSections({});
@@ -597,7 +613,10 @@ export function SectionManager({
     const onError = (error: unknown) => {
       setFeedback({
         type: "error",
-        message: getSectionApiErrorMessage(error, "Failed to update section media."),
+        message: getSectionApiErrorMessage(
+          error,
+          "Failed to update section media.",
+        ),
       });
     };
 
@@ -772,7 +791,9 @@ export function SectionManager({
                           className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
                           checked={isAllPageSelected}
                           onChange={toggleAllSelections}
-                          disabled={isLoadingState || items.length === 0 || isBusy}
+                          disabled={
+                            isLoadingState || items.length === 0 || isBusy
+                          }
                           aria-label="Select all sections on this page"
                         />
                       </TableHead>
@@ -815,7 +836,9 @@ export function SectionManager({
                       <TableRow>
                         <TableCell colSpan={6} className="h-48">
                           <EmptyState
-                            title={query ? "No sections found" : "No sections yet"}
+                            title={
+                              query ? "No sections found" : "No sections yet"
+                            }
                             description={
                               query
                                 ? "Try adjusting your search terms"
@@ -828,8 +851,12 @@ export function SectionManager({
                     ) : (
                       items.map((section, index) => {
                         const status = getStatusBadge(section.status);
-                        const visibility = getVisibilityBadge(section.is_visible);
-                        const normalizedStatus = String(section.status ?? "draft")
+                        const visibility = getVisibilityBadge(
+                          section.is_visible,
+                        );
+                        const normalizedStatus = String(
+                          section.status ?? "draft",
+                        )
                           .trim()
                           .toLowerCase();
                         const isPublished = normalizedStatus === "published";
@@ -845,7 +872,9 @@ export function SectionManager({
                               <input
                                 type="checkbox"
                                 className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                                checked={Boolean(selectedSections[String(section.id)])}
+                                checked={Boolean(
+                                  selectedSections[String(section.id)],
+                                )}
                                 onChange={() => toggleSectionSelection(section)}
                                 aria-label={`Select ${getSectionTitle(section)}`}
                               />
@@ -857,7 +886,9 @@ export function SectionManager({
                               {section.sort_order ?? section.order_index ?? "—"}
                             </TableCell>
                             <TableCell>
-                              <Badge variant={status.variant}>{status.label}</Badge>
+                              <Badge variant={status.variant}>
+                                {status.label}
+                              </Badge>
                             </TableCell>
                             <TableCell>
                               <Badge variant={visibility.variant}>
@@ -896,7 +927,10 @@ export function SectionManager({
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                       onClick={() => {
                                         setOpenMenuId(null);
-                                        openMediaDialog("attach-video", section.id);
+                                        openMediaDialog(
+                                          "attach-video",
+                                          section.id,
+                                        );
                                       }}
                                       disabled={isBusy}
                                     >
@@ -906,7 +940,10 @@ export function SectionManager({
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                       onClick={() => {
                                         setOpenMenuId(null);
-                                        openMediaDialog("detach-video", section.id);
+                                        openMediaDialog(
+                                          "detach-video",
+                                          section.id,
+                                        );
                                       }}
                                       disabled={isBusy}
                                     >
@@ -916,7 +953,10 @@ export function SectionManager({
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                       onClick={() => {
                                         setOpenMenuId(null);
-                                        openMediaDialog("attach-pdf", section.id);
+                                        openMediaDialog(
+                                          "attach-pdf",
+                                          section.id,
+                                        );
                                       }}
                                       disabled={isBusy}
                                     >
@@ -926,7 +966,10 @@ export function SectionManager({
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                       onClick={() => {
                                         setOpenMenuId(null);
-                                        openMediaDialog("detach-pdf", section.id);
+                                        openMediaDialog(
+                                          "detach-pdf",
+                                          section.id,
+                                        );
                                       }}
                                       disabled={isBusy}
                                     >
@@ -1123,11 +1166,17 @@ export function SectionManager({
               placeholder="e.g., 123"
             />
             {mediaError ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{mediaError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {mediaError}
+              </p>
             ) : null}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeMediaDialog} disabled={isBusy}>
+            <Button
+              variant="outline"
+              onClick={closeMediaDialog}
+              disabled={isBusy}
+            >
               Cancel
             </Button>
             <Button onClick={handleMediaSubmit} disabled={isBusy}>

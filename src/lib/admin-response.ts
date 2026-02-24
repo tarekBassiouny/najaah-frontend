@@ -178,7 +178,9 @@ export function getAdminApiErrorCode(error: unknown): string | undefined {
   if (!data) return undefined;
 
   const legacyErrorNode = asRecord(data.error);
-  return readString(data.code) ?? readString(legacyErrorNode?.code) ?? undefined;
+  return (
+    readString(data.code) ?? readString(legacyErrorNode?.code) ?? undefined
+  );
 }
 
 export function getAdminApiFieldErrors(

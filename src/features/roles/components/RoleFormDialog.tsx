@@ -159,7 +159,10 @@ function extractErrorMessage(error: unknown): string {
     return validationMessage;
   }
 
-  return getAdminApiErrorMessage(error, "Unable to save role. Please try again.");
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to save role. Please try again.",
+  );
 }
 
 function normalizeSlug(slug: string): string {
@@ -276,7 +279,9 @@ export function RoleFormDialog({
           return;
         }
         onOpenChange(false);
-        onSuccess?.(getAdminResponseMessage(response, "Role created successfully."));
+        onSuccess?.(
+          getAdminResponseMessage(response, "Role created successfully."),
+        );
       },
       onError: (error) => {
         const hasFieldError = mapFieldErrors(

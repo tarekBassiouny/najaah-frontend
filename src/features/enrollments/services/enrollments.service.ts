@@ -101,7 +101,10 @@ export async function createEnrollment(
 ): Promise<Enrollment> {
   const basePath = buildEnrollmentsBasePath(centerId);
   const { data } = await http.post<RawEnrollmentResponse>(basePath, payload);
-  return withResponseMessage(data?.data ?? (data as unknown as Enrollment), data);
+  return withResponseMessage(
+    data?.data ?? (data as unknown as Enrollment),
+    data,
+  );
 }
 
 export async function createCenterEnrollment(
@@ -113,7 +116,10 @@ export async function createCenterEnrollment(
     payload,
   );
 
-  return withResponseMessage(data?.data ?? (data as unknown as Enrollment), data);
+  return withResponseMessage(
+    data?.data ?? (data as unknown as Enrollment),
+    data,
+  );
 }
 
 export async function updateEnrollment(
@@ -126,7 +132,10 @@ export async function updateEnrollment(
     `${basePath}/${enrollmentId}`,
     payload,
   );
-  return withResponseMessage(data?.data ?? (data as unknown as Enrollment), data);
+  return withResponseMessage(
+    data?.data ?? (data as unknown as Enrollment),
+    data,
+  );
 }
 
 export async function deleteEnrollment(

@@ -132,7 +132,10 @@ export async function createAdminUser(
 ): Promise<AdminUser> {
   const basePath = buildAdminUsersBasePath(context?.centerId);
   const { data } = await http.post<RawAdminUserResponse>(basePath, payload);
-  return withResponseMessage(data?.data ?? (data as unknown as AdminUser), data);
+  return withResponseMessage(
+    data?.data ?? (data as unknown as AdminUser),
+    data,
+  );
 }
 
 export async function updateAdminUser(
@@ -145,7 +148,10 @@ export async function updateAdminUser(
     `${basePath}/${userId}`,
     payload,
   );
-  return withResponseMessage(data?.data ?? (data as unknown as AdminUser), data);
+  return withResponseMessage(
+    data?.data ?? (data as unknown as AdminUser),
+    data,
+  );
 }
 
 export async function deleteAdminUser(

@@ -215,7 +215,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         ? "secondary"
         : "default";
 
-  const courseTitle = String(course.title ?? course.name ?? `Course #${course.id}`);
+  const courseTitle = String(
+    course.title ?? course.name ?? `Course #${course.id}`,
+  );
 
   return (
     <div className="space-y-6">
@@ -262,7 +264,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       {courseTitle}
                     </h1>
                     {course.status ? (
-                      <Badge variant={statusVariant} className="text-[11px] uppercase">
+                      <Badge
+                        variant={statusVariant}
+                        className="text-[11px] uppercase"
+                      >
                         {String(course.status)}
                       </Badge>
                     ) : null}
@@ -294,11 +299,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
-                      Instructor: {" "}
+                      Instructor:{" "}
                       {typeof course.instructor === "object"
                         ? String(
-                            (course.instructor as Record<string, unknown>).name ??
-                              "",
+                            (course.instructor as Record<string, unknown>)
+                              .name ?? "",
                           )
                         : String(course.instructor)}
                     </span>
@@ -398,7 +403,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                         <SelectContent>
                           <SelectItem value="none">No category</SelectItem>
                           {(categoriesResponse?.items ?? []).map((category) => (
-                            <SelectItem key={category.id} value={String(category.id)}>
+                            <SelectItem
+                              key={category.id}
+                              value={String(category.id)}
+                            >
                               {category.title_translations?.en ||
                                 category.title ||
                                 category.name ||
@@ -422,7 +430,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button type="submit" disabled={isSavingSettings || !settingsForm.title}>
+                    <Button
+                      type="submit"
+                      disabled={isSavingSettings || !settingsForm.title}
+                    >
                       {isSavingSettings ? "Saving..." : "Save Changes"}
                     </Button>
                     <Button

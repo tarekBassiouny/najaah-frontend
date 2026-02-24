@@ -253,7 +253,10 @@ export function SystemSettingsTable({
           continue;
         }
         deletedCount += 1;
-        lastSuccessMessage = getAdminResponseMessage(response, lastSuccessMessage);
+        lastSuccessMessage = getAdminResponseMessage(
+          response,
+          lastSuccessMessage,
+        );
       } catch {
         // Continue deleting remaining selections even if one fails.
       }

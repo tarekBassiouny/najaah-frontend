@@ -132,10 +132,14 @@ export function CourseSectionsOverview({
     useCreateSection();
   const { mutate: attachVideo, isPending: isAttachingVideo } =
     useAttachSectionVideo();
-  const { mutate: attachPdf, isPending: isAttachingPdf } = useAttachSectionPdf();
+  const { mutate: attachPdf, isPending: isAttachingPdf } =
+    useAttachSectionPdf();
 
   const sortedSections = useMemo(
-    () => [...(data?.items ?? [])].sort((a, b) => getSectionOrder(a) - getSectionOrder(b)),
+    () =>
+      [...(data?.items ?? [])].sort(
+        (a, b) => getSectionOrder(a) - getSectionOrder(b),
+      ),
     [data?.items],
   );
 
@@ -299,7 +303,10 @@ export function CourseSectionsOverview({
         onError: (error) => {
           setFeedback({
             type: "error",
-            message: getSectionApiErrorMessage(error, "Failed to create section."),
+            message: getSectionApiErrorMessage(
+              error,
+              "Failed to create section.",
+            ),
           });
         },
       },
@@ -454,7 +461,9 @@ export function CourseSectionsOverview({
                 const sectionKey = String(section.id ?? `section-${index}`);
                 const sectionId = section.id ?? sectionKey;
                 const isExpanded = expandedSections.includes(sectionId);
-                const videos = Array.isArray(section.videos) ? section.videos : [];
+                const videos = Array.isArray(section.videos)
+                  ? section.videos
+                  : [];
                 const pdfs = Array.isArray(section.pdfs) ? section.pdfs : [];
                 const videoCount = getSectionMediaCount(section, "videos");
                 const pdfCount = getSectionMediaCount(section, "pdfs");
@@ -573,7 +582,9 @@ export function CourseSectionsOverview({
                                   <Badge variant="secondary">Video</Badge>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {video.title ?? video.name ?? "Untitled video"}
+                                      {video.title ??
+                                        video.name ??
+                                        "Untitled video"}
                                     </p>
                                   </div>
                                   <span className="text-xs text-gray-400">
@@ -664,7 +675,10 @@ export function CourseSectionsOverview({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!mediaDialog} onOpenChange={(open) => (!open ? closeMediaDialog() : null)}>
+      <Dialog
+        open={!!mediaDialog}
+        onOpenChange={(open) => (!open ? closeMediaDialog() : null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -685,11 +699,17 @@ export function CourseSectionsOverview({
               placeholder="e.g., 123"
             />
             {mediaIdError ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{mediaIdError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {mediaIdError}
+              </p>
             ) : null}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeMediaDialog} disabled={isBusy}>
+            <Button
+              variant="outline"
+              onClick={closeMediaDialog}
+              disabled={isBusy}
+            >
               Cancel
             </Button>
             <Button onClick={handleAttachMedia} disabled={isBusy}>

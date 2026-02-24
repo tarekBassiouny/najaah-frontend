@@ -142,7 +142,9 @@ export async function deleteSection(
   courseId: string | number,
   sectionId: string | number,
 ): Promise<AdminActionResult> {
-  const { data } = await http.delete(`${basePath(centerId, courseId)}/${sectionId}`);
+  const { data } = await http.delete(
+    `${basePath(centerId, courseId)}/${sectionId}`,
+  );
   return normalizeAdminActionResult(data);
 }
 

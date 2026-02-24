@@ -34,7 +34,10 @@ type BulkAssignRolesDialogProps = {
 };
 
 function getErrorMessage(error: unknown): string {
-  return getAdminApiErrorMessage(error, "Unable to assign roles. Please try again.");
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to assign roles. Please try again.",
+  );
 }
 
 function roleName(role: {

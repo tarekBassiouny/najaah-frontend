@@ -67,7 +67,10 @@ type SystemSettingFormDialogProps = {
 };
 
 function getErrorMessage(error: unknown) {
-  return getAdminApiErrorMessage(error, "Unable to save setting. Please try again.");
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to save setting. Please try again.",
+  );
 }
 
 function formatValueForInput(value: unknown) {
@@ -180,7 +183,10 @@ export function SystemSettingFormDialog({
             }
             onOpenChange(false);
             onSuccess?.(
-              getAdminResponseMessage(response, "Setting updated successfully."),
+              getAdminResponseMessage(
+                response,
+                "Setting updated successfully.",
+              ),
             );
           },
           onError: (error) => setFormError(getErrorMessage(error)),

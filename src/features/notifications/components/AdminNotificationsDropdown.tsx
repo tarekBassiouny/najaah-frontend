@@ -418,7 +418,8 @@ export function AdminNotificationsDropdown() {
   };
 
   const handleDelete = async (notificationId: string | number) => {
-    const response = await deleteNotificationMutation.mutateAsync(notificationId);
+    const response =
+      await deleteNotificationMutation.mutateAsync(notificationId);
     if (!isAdminRequestSuccessful(response)) {
       return;
     }

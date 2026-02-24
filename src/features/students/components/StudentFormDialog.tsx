@@ -237,7 +237,10 @@ export function StudentFormDialog({
             }
             onOpenChange(false);
             onSuccess?.(
-              getAdminResponseMessage(response, "Student updated successfully."),
+              getAdminResponseMessage(
+                response,
+                "Student updated successfully.",
+              ),
             );
           },
           onError: (error) => setFormError(getErrorMessage(error)),
@@ -259,7 +262,10 @@ export function StudentFormDialog({
         }
         onOpenChange(false);
         onSuccess?.(
-          getAdminResponseMessage(createdStudent, "Student created successfully."),
+          getAdminResponseMessage(
+            createdStudent,
+            "Student created successfully.",
+          ),
         );
         onCreated?.(
           createdStudent ??

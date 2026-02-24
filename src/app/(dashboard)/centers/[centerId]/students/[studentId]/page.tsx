@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, use, useEffect, useMemo, useState } from "react";
+import { Fragment, use, useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -24,8 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getMockStudentProfile } from "@/features/students/lib/mock-student-profile";
-import type { MockStudentProfile } from "@/features/students/lib/mock-student-profile";
+import { useStudentProfile } from "@/features/students/hooks/use-students";
 
 type PageProps = {
   params: Promise<{ centerId: string; studentId: string }>;
@@ -33,10 +33,38 @@ type PageProps = {
 };
 
 function resolveStatusVariant(status: string) {
-  if (status === "active") return "success";
-  if (status === "inactive") return "secondary";
-  if (status === "banned") return "error";
+  const normalized = status.toLowerCase();
+  if (normalized === "active") return "success";
+  if (normalized === "inactive") return "secondary";
+  if (normalized === "banned") return "error";
   return "default";
+}
+
+function formatDateTime(isoString: string | null): string {
+  if (!isoString) return "—";
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+function formatActiveDevice(
+  device: { model: string; device_id: string } | null,
+): string {
+  if (!device) return "No active device";
+  return `${device.model} (${device.device_id})`;
+}
+
+function formatPhone(countryCode: string, phone: string): string {
+  return `${countryCode} ${phone}`;
 }
 
 export default function StudentProfilePage({
@@ -45,23 +73,26 @@ export default function StudentProfilePage({
 }: PageProps) {
   const { centerId, studentId } = use(params);
   const { from, courseId } = use(searchParams);
-  const [profile, setProfile] = useState<MockStudentProfile | null>(null);
-  const [expandedCourseIds, setExpandedCourseIds] = useState<string[]>([]);
+
+  const { data: profile, isLoading, isError } = useStudentProfile(
+    studentId,
+    { centerId },
+    { enabled: Boolean(studentId) && Boolean(centerId) },
+  );
+
+  const [expandedCourseIds, setExpandedCourseIds] = useState<number[]>([]);
   const [selectedCourseCategory, setSelectedCourseCategory] = useState<
     "all" | "active" | "completed" | "paused"
   >("all");
   const [videoSearchByCourse, setVideoSearchByCourse] = useState<
-    Record<string, string>
+    Record<number, string>
   >({});
   const [grantTarget, setGrantTarget] = useState<{
-    courseId: string;
-    videoId: string;
+    courseId: number;
+    videoId: number;
     videoName: string;
   } | null>(null);
   const [extraViews, setExtraViews] = useState<number>(1);
-  const [grantedDeltas, setGrantedDeltas] = useState<Record<string, number>>(
-    {},
-  );
 
   const canOpenFromCenter = from === "center";
   const canOpenFromCourse = from === "course" && Boolean(courseId);
@@ -70,15 +101,6 @@ export default function StudentProfilePage({
   const backHref = canOpenFromCourse
     ? `/centers/${centerId}/courses/${courseId}?panel=students`
     : `/centers/${centerId}/students`;
-
-  useEffect(() => {
-    setProfile(getMockStudentProfile(studentId, centerId));
-    setExpandedCourseIds([]);
-    setVideoSearchByCourse({});
-    setGrantTarget(null);
-    setExtraViews(1);
-    setGrantedDeltas({});
-  }, [studentId, centerId]);
 
   const profileInitials = useMemo(() => {
     const value = profile?.name ?? "Student";
@@ -91,39 +113,17 @@ export default function StudentProfilePage({
       .toUpperCase();
   }, [profile?.name]);
 
-  const filteredCourses = useMemo(() => {
-    if (!profile) return [];
-    if (selectedCourseCategory === "all") return profile.enrolledCourses;
-    return profile.enrolledCourses.filter(
-      (course) => course.status === selectedCourseCategory,
+  const filteredEnrollments = useMemo(() => {
+    if (!profile?.enrollments) return [];
+    if (selectedCourseCategory === "all") return profile.enrollments;
+    return profile.enrollments.filter(
+      (enrollment) => enrollment.status === selectedCourseCategory,
     );
-  }, [profile, selectedCourseCategory]);
-
-  if (!profile) return null;
+  }, [profile?.enrollments, selectedCourseCategory]);
 
   const handleGrantViews = () => {
     if (!grantTarget || extraViews < 1) return;
-    setProfile((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        enrolledCourses: prev.enrolledCourses.map((course) => {
-          if (course.id !== grantTarget.courseId) return course;
-          return {
-            ...course,
-            videos: course.videos.map((video) =>
-              video.id === grantTarget.videoId
-                ? { ...video, watchLimit: video.watchLimit + extraViews }
-                : video,
-            ),
-          };
-        }),
-      };
-    });
-    setGrantedDeltas((prev) => ({
-      ...prev,
-      [`${grantTarget.courseId}:${grantTarget.videoId}`]: extraViews,
-    }));
+    // TODO: Implement grant extra views API call
     setGrantTarget(null);
     setExtraViews(1);
   };
@@ -144,11 +144,57 @@ export default function StudentProfilePage({
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title={<Skeleton className="h-8 w-48" />}
+          breadcrumbs={[
+            { label: "Centers", href: "/centers" },
+            { label: `Center ${centerId}`, href: `/centers/${centerId}` },
+            { label: "Students", href: `/centers/${centerId}/students` },
+            { label: "Profile" },
+          ]}
+        />
+        <Card>
+          <CardContent className="space-y-5 p-6">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-14 w-14 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-lg" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isError || !profile) {
+    return (
+      <Card>
+        <CardContent className="space-y-4 py-8 text-center">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Failed to load student profile. Please try again.
+          </p>
+          <Link href={`/centers/${centerId}/students`}>
+            <Button variant="outline">Back to Students</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={profile.name}
-        description="Mocked profile data until student profile API is ready."
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
@@ -166,20 +212,28 @@ export default function StudentProfilePage({
         <CardContent className="space-y-5 bg-gradient-to-br from-primary/10 via-transparent to-transparent p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary font-semibold text-white">
-                {profileInitials}
-              </div>
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.name}
+                  className="h-14 w-14 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary font-semibold text-white">
+                  {profileInitials}
+                </div>
+              )}
               <div>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {profile.name}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {profile.phone}
+                  {formatPhone(profile.country_code, profile.phone)}
                 </p>
               </div>
             </div>
-            <Badge variant={resolveStatusVariant(profile.status)}>
-              {profile.status}
+            <Badge variant={resolveStatusVariant(profile.status_label)}>
+              {profile.status_label}
             </Badge>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -188,7 +242,7 @@ export default function StudentProfilePage({
                 Last Activity
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {profile.lastActivity}
+                {formatDateTime(profile.last_activity_at)}
               </p>
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -196,7 +250,7 @@ export default function StudentProfilePage({
                 Active Device
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {profile.activeDevice}
+                {formatActiveDevice(profile.active_device)}
               </p>
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -204,7 +258,7 @@ export default function StudentProfilePage({
                 Total Enrollments
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {profile.totalEnrollments}
+                {profile.total_enrollments}
               </p>
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -212,7 +266,7 @@ export default function StudentProfilePage({
                 Device Changes
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {profile.deviceChangeLog.length}
+                {profile.device_changes_count}
               </p>
             </div>
           </div>
@@ -224,28 +278,34 @@ export default function StudentProfilePage({
           <CardTitle className="text-base">Device Change Log</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table className="min-w-[700px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Device</TableHead>
-                <TableHead>Device ID</TableHead>
-                <TableHead>Changed At</TableHead>
-                <TableHead>Reason</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profile.deviceChangeLog.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-medium">
-                    {log.deviceName}
-                  </TableCell>
-                  <TableCell>{log.deviceId}</TableCell>
-                  <TableCell>{log.changedAt}</TableCell>
-                  <TableCell>{log.reason}</TableCell>
+          {profile.device_change_log.length === 0 ? (
+            <p className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+              No device changes recorded.
+            </p>
+          ) : (
+            <Table className="min-w-[700px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Device</TableHead>
+                  <TableHead>Device ID</TableHead>
+                  <TableHead>Changed At</TableHead>
+                  <TableHead>Reason</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {profile.device_change_log.map((log, index) => (
+                  <TableRow key={`${log.device_id}-${index}`}>
+                    <TableCell className="font-medium">
+                      {log.device_name}
+                    </TableCell>
+                    <TableCell>{log.device_id}</TableCell>
+                    <TableCell>{formatDateTime(log.changed_at)}</TableCell>
+                    <TableCell>{log.reason ?? "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -273,189 +333,192 @@ export default function StudentProfilePage({
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table className="min-w-[860px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Course</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Enrolled At</TableHead>
-                <TableHead className="text-right">Content</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCourses.map((course) => {
-                const isExpanded = expandedCourseIds.includes(course.id);
-                const videoQuery = (
-                  videoSearchByCourse[course.id] ?? ""
-                ).trim();
-                // Keep video search purely local over the already-loaded list.
-                const visibleVideos = videoQuery
-                  ? course.videos.filter((video) =>
-                      video.name
-                        .toLowerCase()
-                        .includes(videoQuery.toLowerCase()),
-                    )
-                  : course.videos;
-                return (
-                  <Fragment key={course.id}>
-                    <TableRow id={`course-row-${course.id}`}>
-                      <TableCell className="font-medium">
-                        {course.title}
-                      </TableCell>
-                      <TableCell className="capitalize">
-                        <Badge
-                          variant={
-                            course.status === "active"
-                              ? "success"
-                              : course.status === "completed"
-                                ? "secondary"
-                                : "default"
-                          }
-                        >
-                          {course.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="w-40">
-                          <div className="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>Progress</span>
-                            <span>{course.progress}%</span>
+          {profile.enrollments.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+              No enrollments found.
+            </p>
+          ) : (
+            <Table className="min-w-[860px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Course</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Enrolled At</TableHead>
+                  <TableHead className="text-right">Content</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEnrollments.map((enrollment) => {
+                  const isExpanded = expandedCourseIds.includes(
+                    enrollment.course.id,
+                  );
+                  const videoQuery = (
+                    videoSearchByCourse[enrollment.course.id] ?? ""
+                  ).trim();
+                  const visibleVideos = videoQuery
+                    ? enrollment.course.videos.filter((video) =>
+                        video.title
+                          .toLowerCase()
+                          .includes(videoQuery.toLowerCase()),
+                      )
+                    : enrollment.course.videos;
+
+                  return (
+                    <Fragment key={enrollment.id}>
+                      <TableRow id={`course-row-${enrollment.course.id}`}>
+                        <TableCell className="font-medium">
+                          {enrollment.course.title}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          <Badge
+                            variant={
+                              enrollment.status === "active"
+                                ? "success"
+                                : enrollment.status === "completed"
+                                  ? "secondary"
+                                  : "default"
+                            }
+                          >
+                            {enrollment.status_label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="w-40">
+                            <div className="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                              <span>Progress</span>
+                              <span>{enrollment.progress_percentage}%</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                              <div
+                                className="h-2 rounded-full bg-primary transition-all"
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, enrollment.progress_percentage))}%`,
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
-                            <div
-                              className="h-2 rounded-full bg-primary transition-all"
-                              style={{
-                                width: `${Math.min(100, Math.max(0, course.progress))}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{course.enrolledAt}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setExpandedCourseIds((prev) =>
-                              prev.includes(course.id)
-                                ? prev.filter((id) => id !== course.id)
-                                : [...prev, course.id],
-                            );
-                          }}
-                        >
-                          {isExpanded
-                            ? "Hide videos"
-                            : `Show videos (${course.videos.length})`}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    {isExpanded ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="bg-gray-50 dark:bg-gray-900/30"
-                        >
-                          <div className="mb-3 max-w-sm">
-                            <Input
-                              value={videoSearchByCourse[course.id] ?? ""}
-                              onChange={(event) => {
-                                const value = event.target.value;
-                                setVideoSearchByCourse((prev) => ({
-                                  ...prev,
-                                  [course.id]: value,
-                                }));
-                              }}
-                              placeholder="Search videos in this course"
-                            />
-                          </div>
-                          <Table className="min-w-[720px]">
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Video Name</TableHead>
-                                <TableHead className="text-center">
-                                  Watch Count / Limit
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  Actions
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {visibleVideos.length === 0 ? (
-                                <TableRow>
-                                  <TableCell
-                                    colSpan={3}
-                                    className="py-5 text-center text-sm text-gray-500 dark:text-gray-400"
-                                  >
-                                    No videos match your search.
-                                  </TableCell>
-                                </TableRow>
-                              ) : null}
-                              {visibleVideos.map((video) => (
-                                <TableRow key={video.id}>
-                                  <TableCell>{video.name}</TableCell>
-                                  <TableCell className="text-center font-medium">
-                                    <span>
-                                      {video.watchCount}/{video.watchLimit}
-                                    </span>
-                                    {grantedDeltas[
-                                      `${course.id}:${video.id}`
-                                    ] ? (
-                                      <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                        +
-                                        {
-                                          grantedDeltas[
-                                            `${course.id}:${video.id}`
-                                          ]
-                                        }{" "}
-                                        views
-                                      </span>
-                                    ) : null}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <div className="inline-flex items-center gap-2">
-                                      <Button variant="outline" size="sm">
-                                        Statistics
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        onClick={() => {
-                                          setGrantTarget({
-                                            courseId: course.id,
-                                            videoId: video.id,
-                                            videoName: video.name,
-                                          });
-                                          setExtraViews(1);
-                                        }}
-                                      >
-                                        Grant extra views
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+                        </TableCell>
+                        <TableCell>
+                          {formatDateTime(enrollment.enrolled_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setExpandedCourseIds((prev) =>
+                                prev.includes(enrollment.course.id)
+                                  ? prev.filter(
+                                      (id) => id !== enrollment.course.id,
+                                    )
+                                  : [...prev, enrollment.course.id],
+                              );
+                            }}
+                          >
+                            {isExpanded
+                              ? "Hide videos"
+                              : `Show videos (${enrollment.course.video_count})`}
+                          </Button>
                         </TableCell>
                       </TableRow>
-                    ) : null}
-                  </Fragment>
-                );
-              })}
-              {filteredCourses.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    No courses in this category.
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
+                      {isExpanded ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={5}
+                            className="bg-gray-50 dark:bg-gray-900/30"
+                          >
+                            <div className="mb-3 max-w-sm">
+                              <Input
+                                value={
+                                  videoSearchByCourse[enrollment.course.id] ??
+                                  ""
+                                }
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setVideoSearchByCourse((prev) => ({
+                                    ...prev,
+                                    [enrollment.course.id]: value,
+                                  }));
+                                }}
+                                placeholder="Search videos in this course"
+                              />
+                            </div>
+                            <Table className="min-w-[720px]">
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Video Name</TableHead>
+                                  <TableHead className="text-center">
+                                    Watch Count / Limit
+                                  </TableHead>
+                                  <TableHead className="text-right">
+                                    Actions
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {visibleVideos.length === 0 ? (
+                                  <TableRow>
+                                    <TableCell
+                                      colSpan={3}
+                                      className="py-5 text-center text-sm text-gray-500 dark:text-gray-400"
+                                    >
+                                      No videos match your search.
+                                    </TableCell>
+                                  </TableRow>
+                                ) : null}
+                                {visibleVideos.map((video) => (
+                                  <TableRow key={video.id}>
+                                    <TableCell>{video.title}</TableCell>
+                                    <TableCell className="text-center font-medium">
+                                      <span>
+                                        {video.watch_count}/
+                                        {video.watch_limit ?? "∞"}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="inline-flex items-center gap-2">
+                                        <Button variant="outline" size="sm">
+                                          Statistics
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => {
+                                            setGrantTarget({
+                                              courseId: enrollment.course.id,
+                                              videoId: video.id,
+                                              videoName: video.title,
+                                            });
+                                            setExtraViews(1);
+                                          }}
+                                        >
+                                          Grant extra views
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
+                {filteredEnrollments.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      No courses in this category.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

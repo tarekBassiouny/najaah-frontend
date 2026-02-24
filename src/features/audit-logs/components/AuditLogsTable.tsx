@@ -165,9 +165,15 @@ function buildEventSummary(log: AuditLog) {
   return `${actor} ${formatActionLabel(log.action).toLowerCase()} ${entityPart}`;
 }
 
-export function AuditLogsTable() {
-  const { centerSlug, centerId } = useTenant();
-  const isPlatformAdmin = !centerSlug;
+type AuditLogsTableProps = {
+  scopeCenterId?: string | number | null;
+};
+
+export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
+  const { centerSlug, centerId: tenantCenterId } = useTenant();
+  const isCenterScoped = Boolean(scopeCenterId);
+  const centerId = scopeCenterId ?? tenantCenterId;
+  const isPlatformAdmin = !centerSlug && !isCenterScoped;
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
 
@@ -383,7 +389,13 @@ export function AuditLogsTable() {
         selectedUser && selectedUser !== ALL_USERS_VALUE
           ? selectedUser
           : undefined,
-      center_id: centerId ?? undefined,
+      // center_id filter only for system scope (when not center-scoped)
+      center_id: isCenterScoped ? undefined : (centerId ?? undefined),
+      // course_id filter for center-scoped
+      course_id:
+        selectedCourse && selectedCourse !== ALL_COURSES_VALUE
+          ? selectedCourse
+          : undefined,
       entity_type:
         selectedCourse && selectedCourse !== ALL_COURSES_VALUE
           ? COURSE_ENTITY_TYPE
@@ -400,6 +412,7 @@ export function AuditLogsTable() {
       centerId,
       dateFrom,
       dateTo,
+      isCenterScoped,
       page,
       perPage,
       selectedCourse,
@@ -407,7 +420,9 @@ export function AuditLogsTable() {
     ],
   );
 
-  const { data, isLoading, isError, isFetching } = useAuditLogs(params);
+  const { data, isLoading, isError, isFetching } = useAuditLogs(params, {
+    centerId: isCenterScoped ? scopeCenterId : undefined,
+  });
 
   const items = data?.items ?? [];
   const meta = data?.meta;
@@ -455,14 +470,14 @@ export function AuditLogsTable() {
     selectedCourse !== ALL_COURSES_VALUE ||
     Boolean(dateFrom) ||
     Boolean(dateTo) ||
-    Boolean(centerId);
+    (!isCenterScoped && Boolean(centerId));
   const activeFilterCount =
     (action !== ALL_ACTIONS_VALUE ? 1 : 0) +
     (selectedUser !== ALL_USERS_VALUE ? 1 : 0) +
     (selectedCourse !== ALL_COURSES_VALUE ? 1 : 0) +
     (dateFrom ? 1 : 0) +
     (dateTo ? 1 : 0) +
-    (centerId ? 1 : 0);
+    (!isCenterScoped && centerId ? 1 : 0);
 
   const openDetails = (log: AuditLog) => {
     setSelectedLog(log);
@@ -514,7 +529,7 @@ export function AuditLogsTable() {
           }
           gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-6"
         >
-          {isPlatformAdmin ? (
+          {isPlatformAdmin && !isCenterScoped ? (
             <div className="lg:col-span-2">
               <CenterPicker
                 className="w-full min-w-0"

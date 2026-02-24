@@ -2,6 +2,7 @@ import { http } from "@/lib/http";
 import type {
   Student,
   StudentImportResult,
+  StudentProfile,
 } from "@/features/students/types/student";
 import type { PaginatedResponse } from "@/types/pagination";
 
@@ -52,6 +53,10 @@ type RawImportResponse = {
   data?: StudentImportResult;
 };
 
+type RawStudentProfileResponse = {
+  data?: StudentProfile;
+};
+
 export async function listStudents(
   params: ListStudentsParams,
   context?: StudentsApiScopeContext,
@@ -93,6 +98,17 @@ export async function getStudent(
   const basePath = buildStudentsBasePath(context?.centerId);
   const { data } = await http.get<RawStudentResponse>(
     `${basePath}/${studentId}`,
+  );
+  return data?.data ?? null;
+}
+
+export async function getStudentProfile(
+  studentId: string | number,
+  context?: StudentsApiScopeContext,
+): Promise<StudentProfile | null> {
+  const basePath = buildStudentsBasePath(context?.centerId);
+  const { data } = await http.get<RawStudentProfileResponse>(
+    `${basePath}/${studentId}/profile`,
   );
   return data?.data ?? null;
 }

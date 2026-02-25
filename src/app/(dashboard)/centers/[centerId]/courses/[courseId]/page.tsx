@@ -9,23 +9,33 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useModal } from "@/components/ui/modal-store";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import {
+  useAssignCourseInstructor,
   useCenterCourse,
+  useRemoveCourseInstructor,
   useUpdateCenterCourse,
 } from "@/features/courses/hooks/use-courses";
 import { CoursePublishAction } from "@/features/courses/components/CoursePublishAction";
 import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsTable";
-import { useCategories } from "@/features/categories/hooks/use-categories";
+import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
+import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { CourseSectionsOverview } from "@/features/sections/components/CourseSectionsOverview";
 import { formatDateTime } from "@/lib/format-date-time";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+} from "@/lib/admin-response";
+import type { InstructorSummary } from "@/features/courses/types/course";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -50,13 +60,44 @@ function resolveCategoryId(course: Record<string, unknown>) {
   return "none";
 }
 
+function normalizeEntityId(value: string): string | number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : value;
+}
+
+function getInstructorLabel(
+  instructor: InstructorSummary | null | undefined,
+): string {
+  if (!instructor) return "Unknown instructor";
+
+  if (typeof instructor.name === "string" && instructor.name.trim()) {
+    return instructor.name.trim();
+  }
+
+  const translatedName = instructor.name_translations?.en;
+  if (typeof translatedName === "string" && translatedName.trim()) {
+    return translatedName.trim();
+  }
+
+  return `Instructor #${instructor.id}`;
+}
+
 export default function CenterCourseDetailPage({ params }: PageProps) {
   const { centerId, courseId } = use(params);
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useModal();
 
   const [activePanel, setActivePanel] = useState<ActivePanel>("overview");
+  const [selectedInstructorId, setSelectedInstructorId] = useState<
+    string | null
+  >(null);
+  const [instructorActionError, setInstructorActionError] = useState<
+    string | null
+  >(null);
+  const [pendingRemoveInstructor, setPendingRemoveInstructor] =
+    useState<InstructorSummary | null>(null);
 
   const {
     data: course,
@@ -70,16 +111,44 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     isError: isSettingsError,
     error: settingsError,
   } = useUpdateCenterCourse();
-
-  const { data: categoriesResponse, isLoading: isCategoriesLoading } =
-    useCategories(centerId, { page: 1, per_page: 100 });
+  const { mutate: assignInstructor, isPending: isAssigningInstructor } =
+    useAssignCourseInstructor();
+  const { mutate: removeInstructor, isPending: isRemovingInstructor } =
+    useRemoveCourseInstructor();
 
   const [settingsForm, setSettingsForm] = useState({
     title: "",
     slug: "",
     description: "",
-    status: "",
     category_id: "none",
+  });
+  const {
+    options: categoryOptions,
+    search: categorySearch,
+    setSearch: setCategorySearch,
+    isLoading: isLoadingCategories,
+    hasMore: hasMoreCategories,
+    isLoadingMore: isLoadingMoreCategories,
+    onReachEnd: loadMoreCategories,
+  } = useCategoryOptions({
+    centerId,
+    selectedValue: settingsForm.category_id,
+    includeNoneOption: true,
+    noneOptionValue: "none",
+    noneOptionLabel: "No category",
+  });
+  const {
+    options: instructorOptionItems,
+    search: instructorSearch,
+    setSearch: setInstructorSearch,
+    isLoading: isInstructorsLoading,
+    hasMore: hasMoreInstructors,
+    isLoadingMore: isLoadingMoreInstructors,
+    onReachEnd: loadMoreInstructors,
+  } = useInstructorOptions({
+    centerId,
+    selectedValue: selectedInstructorId,
+    enabled: Boolean(centerId),
   });
 
   useEffect(() => {
@@ -91,7 +160,6 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       title: String(record.title ?? record.name ?? ""),
       slug: String(record.slug ?? ""),
       description: String(record.description ?? ""),
-      status: String(record.status ?? ""),
       category_id: resolveCategoryId(record),
     });
   }, [course]);
@@ -104,6 +172,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     }
     setActivePanel("overview");
   }, [searchParams]);
+
+  useEffect(() => {
+    setInstructorActionError(null);
+    setSelectedInstructorId(null);
+    setPendingRemoveInstructor(null);
+    setInstructorSearch("");
+  }, [courseId, setInstructorSearch]);
 
   const navItems = useMemo(
     () => [
@@ -148,7 +223,6 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         title: settingsForm.title || undefined,
         slug: settingsForm.slug || undefined,
         description: settingsForm.description || undefined,
-        status: settingsForm.status || undefined,
         category_id:
           settingsForm.category_id !== "none"
             ? settingsForm.category_id
@@ -158,10 +232,129 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   };
 
   const handleSettingsChange =
-    (field: "title" | "slug" | "description" | "status") =>
+    (field: "title" | "slug" | "description") =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setSettingsForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
+
+  const primaryInstructorId = useMemo(() => {
+    const primaryId =
+      course?.primary_instructor?.id ?? course?.primary_instructor_id;
+    if (primaryId == null || primaryId === "") return null;
+    return String(primaryId);
+  }, [course?.primary_instructor?.id, course?.primary_instructor_id]);
+
+  const assignedInstructors = useMemo(() => {
+    const dedupe = new Map<string, InstructorSummary>();
+    const addInstructor = (
+      instructor: InstructorSummary | null | undefined,
+    ) => {
+      if (!instructor?.id) return;
+      dedupe.set(String(instructor.id), instructor);
+    };
+
+    if (Array.isArray(course?.instructors)) {
+      course.instructors.forEach((instructor) => addInstructor(instructor));
+    }
+
+    addInstructor(course?.primary_instructor ?? null);
+    const list = Array.from(dedupe.values());
+
+    if (!primaryInstructorId) {
+      return list;
+    }
+
+    return list.sort((a, b) => {
+      const aPrimary = String(a.id) === primaryInstructorId;
+      const bPrimary = String(b.id) === primaryInstructorId;
+      if (aPrimary && !bPrimary) return -1;
+      if (!aPrimary && bPrimary) return 1;
+      return getInstructorLabel(a).localeCompare(getInstructorLabel(b));
+    });
+  }, [course?.instructors, course?.primary_instructor, primaryInstructorId]);
+
+  const instructorOptions = useMemo(() => {
+    const assignedIds = new Set(
+      assignedInstructors.map((item) => String(item.id)),
+    );
+    return instructorOptionItems.map((option) => ({
+      ...option,
+      disabled: assignedIds.has(String(option.value)),
+    }));
+  }, [assignedInstructors, instructorOptionItems]);
+
+  const isInstructorActionPending =
+    isAssigningInstructor || isRemovingInstructor;
+
+  const handleAssignInstructor = () => {
+    if (!selectedInstructorId) {
+      setInstructorActionError("Select an instructor to assign.");
+      return;
+    }
+
+    setInstructorActionError(null);
+
+    assignInstructor(
+      {
+        centerId,
+        courseId,
+        payload: { instructor_id: normalizeEntityId(selectedInstructorId) },
+      },
+      {
+        onSuccess: (updatedCourse) => {
+          showToast(
+            getAdminResponseMessage(
+              updatedCourse,
+              "Instructor assigned successfully.",
+            ),
+            "success",
+          );
+          setSelectedInstructorId(null);
+        },
+        onError: (error) => {
+          const message = getAdminApiErrorMessage(
+            error,
+            "Failed to assign instructor.",
+          );
+          setInstructorActionError(message);
+          showToast(message, "error");
+        },
+      },
+    );
+  };
+
+  const handleConfirmRemoveInstructor = () => {
+    if (!pendingRemoveInstructor?.id) return;
+    setInstructorActionError(null);
+
+    removeInstructor(
+      {
+        centerId,
+        courseId,
+        instructorId: pendingRemoveInstructor.id,
+      },
+      {
+        onSuccess: (updatedCourse) => {
+          showToast(
+            getAdminResponseMessage(
+              updatedCourse,
+              "Instructor removed successfully.",
+            ),
+            "success",
+          );
+          setPendingRemoveInstructor(null);
+        },
+        onError: (error) => {
+          const message = getAdminApiErrorMessage(
+            error,
+            "Failed to remove instructor.",
+          );
+          setInstructorActionError(message);
+          showToast(message, "error");
+        },
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -209,13 +402,36 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     );
   }
 
-  const status = String(course.status ?? "").toLowerCase();
+  const statusSource = course.status_key ?? course.status;
+  const status = String(statusSource ?? "").toLowerCase();
+  const statusLabel = String(
+    course.status_label ?? statusSource ?? course.status ?? "",
+  ).trim();
   const statusVariant =
     status === "published" || status === "active"
       ? "success"
       : status === "draft"
         ? "secondary"
         : "default";
+  const categoryLabel = (() => {
+    const category = course.category;
+    if (category && typeof category === "object") {
+      const label =
+        (typeof category.title === "string" && category.title.trim()) ||
+        (typeof category.name === "string" && category.name.trim()) ||
+        "";
+      if (label) return label;
+      if (category.id != null && category.id !== "") {
+        return `Category #${category.id}`;
+      }
+    }
+
+    if (course.category_id != null && course.category_id !== "") {
+      return `Category #${course.category_id}`;
+    }
+
+    return "";
+  })();
 
   const courseTitle = String(
     course.title ?? course.name ?? `Course #${course.id}`,
@@ -267,12 +483,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                       {courseTitle}
                     </h1>
-                    {course.status ? (
-                      <Badge
-                        variant={statusVariant}
-                        className="text-[11px] uppercase"
-                      >
-                        {String(course.status)}
+                    {statusLabel ? (
+                      <Badge variant={statusVariant} className="text-[11px]">
+                        {statusLabel}
+                      </Badge>
+                    ) : null}
+                    {categoryLabel ? (
+                      <Badge variant="secondary" className="text-[11px]">
+                        {categoryLabel}
                       </Badge>
                     ) : null}
                   </div>
@@ -283,13 +501,6 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPanel("settings")}
-                  >
-                    Settings
-                  </Button>
                   <CoursePublishAction course={course} />
                 </div>
               </div>
@@ -299,17 +510,15 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   <span className="h-2 w-2 rounded-full bg-primary" />
                   <span>{course.center?.name ?? `Center ${centerId}`}</span>
                 </div>
-                {course.instructor ? (
+                {primaryInstructorId ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
-                      Instructor:{" "}
-                      {typeof course.instructor === "object"
-                        ? String(
-                            (course.instructor as Record<string, unknown>)
-                              .name ?? "",
-                          )
-                        : String(course.instructor)}
+                      Primary Instructor:{" "}
+                      {getInstructorLabel(course.primary_instructor)}
+                      {assignedInstructors.length > 1
+                        ? ` (+${assignedInstructors.length - 1} more)`
+                        : ""}
                     </span>
                   </div>
                 ) : null}
@@ -330,6 +539,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               centerId={centerId}
               courseId={courseId}
               managerHref={`/centers/${centerId}/courses/${courseId}/sections`}
+              initialSections={course.sections}
             />
           ) : activePanel === "students" ? (
             <EnrollmentsTable
@@ -351,138 +561,265 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               }
             />
           ) : (
-            <form onSubmit={handleSettingsSubmit} className="space-y-4">
+            <div className="space-y-4">
+              <form onSubmit={handleSettingsSubmit} className="space-y-4">
+                <Card>
+                  <CardContent className="space-y-4 py-5">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Course Settings
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Update course metadata without leaving this page.
+                      </p>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="settings-title">Title</Label>
+                        <Input
+                          id="settings-title"
+                          value={settingsForm.title}
+                          onChange={handleSettingsChange("title")}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="settings-slug">Slug</Label>
+                        <Input
+                          id="settings-slug"
+                          value={settingsForm.slug}
+                          onChange={handleSettingsChange("slug")}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="settings-category">Category</Label>
+                        <SearchableSelect
+                          value={settingsForm.category_id}
+                          onValueChange={(value) =>
+                            setSettingsForm((prev) => ({
+                              ...prev,
+                              category_id: value ?? "none",
+                            }))
+                          }
+                          options={categoryOptions}
+                          placeholder="Select category"
+                          searchPlaceholder="Search categories..."
+                          searchValue={categorySearch}
+                          onSearchValueChange={setCategorySearch}
+                          filterOptions={false}
+                          isLoading={isLoadingCategories}
+                          hasMore={hasMoreCategories}
+                          isLoadingMore={isLoadingMoreCategories}
+                          onReachEnd={loadMoreCategories}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-description">Description</Label>
+                      <textarea
+                        id="settings-description"
+                        value={settingsForm.description}
+                        onChange={handleSettingsChange("description")}
+                        rows={4}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="submit"
+                        disabled={isSavingSettings || !settingsForm.title}
+                      >
+                        {isSavingSettings ? "Saving..." : "Save Changes"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          if (!course) return;
+
+                          const record = course as Record<string, unknown>;
+
+                          setSettingsForm({
+                            title: String(record.title ?? record.name ?? ""),
+                            slug: String(record.slug ?? ""),
+                            description: String(record.description ?? ""),
+                            category_id: resolveCategoryId(record),
+                          });
+                        }}
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {isSettingsError ? (
+                  <Card className="border-red-200 dark:border-red-900">
+                    <CardContent className="py-4">
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        {(settingsError as Error)?.message ||
+                          "Failed to update course. Please try again."}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : null}
+              </form>
+
               <Card>
                 <CardContent className="space-y-4 py-5">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Course Settings
+                      Manage Instructors
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Update course metadata without leaving this page.
+                      Assign additional instructors and remove existing ones.
                     </p>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                     <div className="space-y-2">
-                      <Label htmlFor="settings-title">Title</Label>
-                      <Input
-                        id="settings-title"
-                        value={settingsForm.title}
-                        onChange={handleSettingsChange("title")}
-                        required
+                      <Label htmlFor="assign-instructor">
+                        Assign Instructor
+                      </Label>
+                      <SearchableSelect
+                        value={selectedInstructorId}
+                        onValueChange={setSelectedInstructorId}
+                        options={instructorOptions}
+                        placeholder="Select instructor"
+                        searchPlaceholder="Search instructors..."
+                        searchValue={instructorSearch}
+                        onSearchValueChange={setInstructorSearch}
+                        filterOptions={false}
+                        disabled={isInstructorActionPending}
+                        isLoading={isInstructorsLoading}
+                        hasMore={hasMoreInstructors}
+                        isLoadingMore={isLoadingMoreInstructors}
+                        onReachEnd={loadMoreInstructors}
+                        allowClear
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="settings-slug">Slug</Label>
-                      <Input
-                        id="settings-slug"
-                        value={settingsForm.slug}
-                        onChange={handleSettingsChange("slug")}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="settings-status">Status</Label>
-                      <Input
-                        id="settings-status"
-                        value={settingsForm.status}
-                        onChange={handleSettingsChange("status")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="settings-category">Category</Label>
-                      <Select
-                        value={settingsForm.category_id}
-                        onValueChange={(value) =>
-                          setSettingsForm((prev) => ({
-                            ...prev,
-                            category_id: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger
-                          id="settings-category"
-                          className="h-10 w-full"
-                          disabled={isCategoriesLoading}
-                        >
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No category</SelectItem>
-                          {(categoriesResponse?.items ?? []).map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={String(category.id)}
-                            >
-                              {category.title_translations?.en ||
-                                category.title ||
-                                category.name ||
-                                `Category #${category.id}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="settings-description">Description</Label>
-                    <textarea
-                      id="settings-description"
-                      value={settingsForm.description}
-                      onChange={handleSettingsChange("description")}
-                      rows={4}
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="submit"
-                      disabled={isSavingSettings || !settingsForm.title}
-                    >
-                      {isSavingSettings ? "Saving..." : "Save Changes"}
-                    </Button>
                     <Button
                       type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        if (!course) return;
-
-                        const record = course as Record<string, unknown>;
-
-                        setSettingsForm({
-                          title: String(record.title ?? record.name ?? ""),
-                          slug: String(record.slug ?? ""),
-                          description: String(record.description ?? ""),
-                          status: String(record.status ?? ""),
-                          category_id: resolveCategoryId(record),
-                        });
-                      }}
+                      onClick={handleAssignInstructor}
+                      disabled={
+                        isInstructorActionPending ||
+                        !selectedInstructorId ||
+                        isInstructorsLoading
+                      }
                     >
-                      Reset
+                      {isAssigningInstructor ? "Assigning..." : "Assign"}
                     </Button>
+                  </div>
+
+                  {instructorActionError ? (
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      {instructorActionError}
+                    </p>
+                  ) : null}
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Assigned Instructors</Label>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {assignedInstructors.length} total
+                      </span>
+                    </div>
+
+                    {assignedInstructors.length === 0 ? (
+                      <p className="rounded-lg border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                        No instructors assigned yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {assignedInstructors.map((instructor) => {
+                          const isPrimary =
+                            primaryInstructorId != null &&
+                            String(instructor.id) === primaryInstructorId;
+
+                          return (
+                            <div
+                              key={instructor.id}
+                              className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/30"
+                            >
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                                    {getInstructorLabel(instructor)}
+                                  </p>
+                                  {isPrimary ? (
+                                    <Badge variant="info">Primary</Badge>
+                                  ) : null}
+                                </div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  ID: {instructor.id}
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-600"
+                                onClick={() =>
+                                  setPendingRemoveInstructor(instructor)
+                                }
+                                disabled={isInstructorActionPending}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-
-              {isSettingsError ? (
-                <Card className="border-red-200 dark:border-red-900">
-                  <CardContent className="py-4">
-                    <p className="text-sm text-red-600 dark:text-red-400">
-                      {(settingsError as Error)?.message ||
-                        "Failed to update course. Please try again."}
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : null}
-            </form>
+            </div>
           )}
         </div>
       </div>
+
+      <Dialog
+        open={Boolean(pendingRemoveInstructor)}
+        onOpenChange={(nextOpen) => {
+          if (isInstructorActionPending) return;
+          if (!nextOpen) setPendingRemoveInstructor(null);
+        }}
+      >
+        <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
+          <DialogHeader className="space-y-2">
+            <DialogTitle>Remove Instructor</DialogTitle>
+            <DialogDescription>
+              {pendingRemoveInstructor
+                ? `Are you sure you want to remove "${getInstructorLabel(pendingRemoveInstructor)}" from this course?`
+                : "Are you sure you want to remove this instructor?"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => setPendingRemoveInstructor(null)}
+              disabled={isInstructorActionPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmRemoveInstructor}
+              disabled={isInstructorActionPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isRemovingInstructor ? "Removing..." : "Remove"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

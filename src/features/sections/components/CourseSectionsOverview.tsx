@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +31,7 @@ type CourseSectionsOverviewProps = {
   centerId: string | number;
   courseId: string | number;
   managerHref: string;
+  initialSections?: unknown;
 };
 
 type Feedback = {
@@ -43,6 +45,22 @@ type MediaManagerState = {
 } | null;
 
 const OVERVIEW_SECTIONS_LIMIT = 100;
+
+function normalizeSectionsValue(value: unknown): Section[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((entry) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+        return null;
+      }
+
+      const section = entry as Section;
+      if (section.id == null || section.id === "") return null;
+      return section;
+    })
+    .filter((section): section is Section => section != null);
+}
 
 function getSectionTitle(section: Section) {
   return section.title ?? section.name ?? `Section #${section.id}`;
@@ -102,7 +120,9 @@ export function CourseSectionsOverview({
   centerId,
   courseId,
   managerHref,
+  initialSections,
 }: CourseSectionsOverviewProps) {
+  const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [orderedSections, setOrderedSections] = useState<Section[]>([]);
   const [draggingId, setDraggingId] = useState<string | number | null>(null);
@@ -117,23 +137,42 @@ export function CourseSectionsOverview({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
   const [createSortOrder, setCreateSortOrder] = useState("");
+  const hasInitialSections = initialSections !== undefined;
+  const normalizedInitialSections = useMemo(
+    () => normalizeSectionsValue(initialSections),
+    [initialSections],
+  );
+  const shouldQuerySections = !hasInitialSections;
 
   const { data, isLoading, isError, isFetching } = useSections(
     centerId,
     courseId,
     { page: 1, per_page: OVERVIEW_SECTIONS_LIMIT },
+    { enabled: shouldQuerySections },
   );
   const { mutate: reorderSections, isPending: isReordering } =
     useReorderSections();
   const { mutate: createSection, isPending: isCreatingSection } =
     useCreateSection();
 
+  const invalidateCourseDetails = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: ["center-course", centerId, courseId],
+    });
+  }, [centerId, courseId, queryClient]);
+
+  const sourceSections = useMemo(
+    () =>
+      hasInitialSections ? normalizedInitialSections : (data?.items ?? []),
+    [hasInitialSections, normalizedInitialSections, data?.items],
+  );
+
   const sortedSections = useMemo(
     () =>
-      [...(data?.items ?? [])].sort(
+      [...sourceSections].sort(
         (a, b) => getSectionOrder(a) - getSectionOrder(b),
       ),
-    [data?.items],
+    [sourceSections],
   );
 
   useEffect(() => {
@@ -211,6 +250,7 @@ export function CourseSectionsOverview({
       },
       {
         onSuccess: () => {
+          invalidateCourseDetails();
           setFeedback({
             type: "success",
             message: "Sections reordered successfully.",
@@ -281,6 +321,7 @@ export function CourseSectionsOverview({
       },
       {
         onSuccess: (createdSection) => {
+          invalidateCourseDetails();
           setCreateTitle("");
           setCreateSortOrder("");
           setIsCreateDialogOpen(false);
@@ -347,7 +388,7 @@ export function CourseSectionsOverview({
             </div>
           ) : null}
 
-          {isLoading ? (
+          {shouldQuerySections && isLoading ? (
             <div className="space-y-2">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
@@ -360,7 +401,7 @@ export function CourseSectionsOverview({
                 </div>
               ))}
             </div>
-          ) : isError ? (
+          ) : shouldQuerySections && isError ? (
             <p className="text-sm text-red-600 dark:text-red-400">
               Failed to load sections.
             </p>
@@ -372,7 +413,9 @@ export function CourseSectionsOverview({
             <div
               className={cn(
                 "space-y-2 transition-opacity",
-                isFetching && !isLoading ? "opacity-60" : "opacity-100",
+                shouldQuerySections && isFetching && !isLoading
+                  ? "opacity-60"
+                  : "opacity-100",
               )}
             >
               {orderedSections.map((section, index) => {
@@ -605,6 +648,7 @@ export function CourseSectionsOverview({
         centerId={centerId}
         courseId={courseId}
         onSuccess={(message) => {
+          invalidateCourseDetails();
           setFeedback({
             type: "success",
             message,

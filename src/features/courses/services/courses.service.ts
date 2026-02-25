@@ -35,6 +35,64 @@ type RawResponse = {
   [key: string]: unknown;
 };
 
+function extractCourseFromResponse(raw: unknown): Course {
+  const payload = raw as Record<string, unknown> | undefined;
+  const nestedData = payload?.data as Record<string, unknown> | undefined;
+  const course =
+    (payload?.course as Course | undefined) ??
+    (nestedData?.course as Course | undefined) ??
+    (payload?.data as Course | undefined) ??
+    (payload as Course);
+  return course;
+}
+
+function isBlobLike(value: unknown): value is Blob {
+  return typeof Blob !== "undefined" && value instanceof Blob;
+}
+
+function appendIfPresent(
+  formData: FormData,
+  key: string,
+  value: string | number | undefined,
+) {
+  if (value === undefined) return;
+  formData.append(key, String(value));
+}
+
+function toCreateCourseFormData(payload: CreateCoursePayload): FormData {
+  const formData = new FormData();
+
+  const titleTranslations = payload.title_translations ?? {};
+  Object.entries(titleTranslations).forEach(([lang, value]) => {
+    if (!value) return;
+    formData.append(`title_translations[${lang}]`, value);
+  });
+
+  const descriptionTranslations = payload.description_translations ?? {};
+  Object.entries(descriptionTranslations).forEach(([lang, value]) => {
+    if (!value) return;
+    formData.append(`description_translations[${lang}]`, value);
+  });
+
+  appendIfPresent(formData, "category_id", payload.category_id);
+  appendIfPresent(formData, "difficulty", payload.difficulty);
+  appendIfPresent(formData, "language", payload.language);
+  appendIfPresent(formData, "price", payload.price);
+  appendIfPresent(
+    formData,
+    "instructor_id",
+    payload.instructor_id ?? payload.primary_instructor_id,
+  );
+  appendIfPresent(formData, "slug", payload.slug);
+  appendIfPresent(formData, "status", payload.status);
+
+  if (isBlobLike(payload.thumbnail)) {
+    formData.append("thumbnail", payload.thumbnail);
+  }
+
+  return formData;
+}
+
 function normalizeCoursesResponse(
   raw: RawResponse | undefined,
   fallback: ListCoursesParams,
@@ -157,24 +215,23 @@ export async function getCenterCourse(
   const { data } = await http.get<RawResponse>(
     `/api/v1/admin/centers/${centerId}/courses/${courseId}`,
   );
-  const payload = data as Record<string, unknown> | undefined;
-  const course =
-    (payload?.course as Course | undefined) ??
-    ((payload?.data as Record<string, unknown> | undefined)?.course as
-      | Course
-      | undefined) ??
-    (payload?.data as Course | undefined) ??
-    (payload as Course);
-  return course;
+  return extractCourseFromResponse(data);
 }
 
 export async function createCenterCourse(
   centerId: string | number,
   payload: CreateCoursePayload,
 ): Promise<Course> {
+  const requestData = isBlobLike(payload.thumbnail)
+    ? toCreateCourseFormData(payload)
+    : payload;
+
   const { data } = await http.post<RawResponse>(
     `/api/v1/admin/centers/${centerId}/courses`,
-    payload,
+    requestData,
+    isBlobLike(payload.thumbnail)
+      ? { headers: { "Content-Type": "multipart/form-data" } }
+      : undefined,
   );
   return (data?.data ?? data) as Course;
 }
@@ -295,23 +352,23 @@ export async function assignCourseInstructor(
   centerId: string | number,
   courseId: string | number,
   payload: CourseInstructorPayload,
-) {
-  const { data } = await http.post(
+): Promise<Course> {
+  const { data } = await http.post<RawResponse>(
     `/api/v1/admin/centers/${centerId}/courses/${courseId}/instructors`,
     payload,
   );
-  return data;
+  return withResponseMessage(extractCourseFromResponse(data), data);
 }
 
 export async function removeCourseInstructor(
   centerId: string | number,
   courseId: string | number,
   instructorId: string | number,
-) {
-  const { data } = await http.delete(
+): Promise<Course> {
+  const { data } = await http.delete<RawResponse>(
     `/api/v1/admin/centers/${centerId}/courses/${courseId}/instructors/${instructorId}`,
   );
-  return data;
+  return withResponseMessage(extractCourseFromResponse(data), data);
 }
 
 export type CloneCourseOptions = {
@@ -350,5 +407,5 @@ export async function uploadCourseThumbnail(
     },
   );
 
-  return data?.data ?? (data as unknown as Course);
+  return extractCourseFromResponse(data);
 }

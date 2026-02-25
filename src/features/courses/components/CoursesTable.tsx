@@ -10,8 +10,8 @@ import {
   usePublishCourse,
   useUnpublishCourse,
 } from "@/features/courses/hooks/use-courses";
-import { useCategories } from "@/features/categories/hooks/use-categories";
-import { useInstructors } from "@/features/instructors/hooks/use-instructors";
+import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
+import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { useTenant } from "@/app/tenant-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,16 +25,10 @@ import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Input } from "@/components/ui/input";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -222,24 +216,38 @@ export function CoursesTable({
     centerParams as NonNullable<typeof centerParams>,
     { enabled: !!centerParams },
   );
-  const { data: categoriesData, isLoading: isCategoriesLoading } =
-    useCategories(
-      centerId,
-      {
-        page: 1,
-        per_page: 100,
-      },
-      { enabled: Boolean(centerId) },
-    );
-  const { data: instructorsData, isLoading: isInstructorsLoading } =
-    useInstructors(
-      {
-        page: 1,
-        per_page: 100,
-      },
-      { centerId },
-      { enabled: Boolean(centerId) },
-    );
+  const {
+    options: categoryOptions,
+    search: categorySearch,
+    setSearch: setCategorySearch,
+    isLoading: isLoadingCategories,
+    hasMore: hasMoreCategories,
+    isLoadingMore: isLoadingMoreCategories,
+    onReachEnd: loadMoreCategories,
+  } = useCategoryOptions({
+    centerId,
+    selectedValue: categoryFilter,
+    includeAllOption: true,
+    allOptionValue: FILTER_ALL_CATEGORIES,
+    allOptionLabel: "All categories",
+    enabled: Boolean(centerId),
+  });
+  const {
+    options: instructorOptions,
+    search: instructorSearch,
+    setSearch: setInstructorSearch,
+    isLoading: isLoadingInstructors,
+    hasMore: hasMoreInstructors,
+    isLoadingMore: isLoadingMoreInstructors,
+    onReachEnd: loadMoreInstructors,
+  } = useInstructorOptions({
+    centerId,
+    selectedValue: instructorFilter,
+    includeAllOption: true,
+    allOptionValue: FILTER_ALL_INSTRUCTORS,
+    allOptionLabel: "All instructors",
+    enabled: Boolean(centerId),
+  });
   const { mutate: publishCourse, isPending: isPublishing } = usePublishCourse();
   const { mutate: unpublishCourse, isPending: isUnpublishing } =
     useUnpublishCourse();
@@ -300,21 +308,14 @@ export function CoursesTable({
   useEffect(() => {
     setPage(1);
     setCategoryFilter(FILTER_ALL_CATEGORIES);
+    setCategorySearch("");
     setInstructorFilter(FILTER_ALL_INSTRUCTORS);
-  }, [centerId]);
+    setInstructorSearch("");
+  }, [centerId, setCategorySearch, setInstructorSearch]);
 
   useEffect(() => {
     setSelectedCourses({});
   }, [centerId, page, perPage, query, categoryFilter, instructorFilter]);
-
-  const categoryOptions = useMemo(
-    () => categoriesData?.items ?? [],
-    [categoriesData?.items],
-  );
-  const instructorOptions = useMemo(
-    () => instructorsData?.items ?? [],
-    [instructorsData?.items],
-  );
 
   const toggleCourseSelection = (course: CourseRecord) => {
     const id = String(course.id);
@@ -517,7 +518,9 @@ export function CoursesTable({
           setSearch("");
           setQuery("");
           setCategoryFilter(FILTER_ALL_CATEGORIES);
+          setCategorySearch("");
           setInstructorFilter(FILTER_ALL_INSTRUCTORS);
+          setInstructorSearch("");
           setPage(1);
         }}
         summary={
@@ -581,63 +584,42 @@ export function CoursesTable({
           </button>
         </div>
         {centerId ? (
-          <Select
+          <SearchableSelect
             value={categoryFilter}
             onValueChange={(value) => {
-              setCategoryFilter(value);
+              setCategoryFilter(value ?? FILTER_ALL_CATEGORIES);
               setPage(1);
             }}
-            disabled={isCategoriesLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FILTER_ALL_CATEGORIES}>
-                All categories
-              </SelectItem>
-              {categoryOptions.map((category) => {
-                const label =
-                  (typeof category.title === "string" && category.title) ||
-                  (typeof category.name === "string" && category.name) ||
-                  `Category #${category.id}`;
-                return (
-                  <SelectItem key={category.id} value={String(category.id)}>
-                    {label}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+            options={categoryOptions}
+            placeholder="Category"
+            searchPlaceholder="Search categories..."
+            searchValue={categorySearch}
+            onSearchValueChange={setCategorySearch}
+            filterOptions={false}
+            isLoading={isLoadingCategories}
+            hasMore={hasMoreCategories}
+            isLoadingMore={isLoadingMoreCategories}
+            onReachEnd={loadMoreCategories}
+          />
         ) : null}
         {centerId ? (
-          <Select
+          <SearchableSelect
             value={instructorFilter}
             onValueChange={(value) => {
-              setInstructorFilter(value);
+              setInstructorFilter(value ?? FILTER_ALL_INSTRUCTORS);
               setPage(1);
             }}
-            disabled={isInstructorsLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Instructor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={FILTER_ALL_INSTRUCTORS}>
-                All instructors
-              </SelectItem>
-              {instructorOptions.map((instructor) => {
-                const label =
-                  (typeof instructor.name === "string" && instructor.name) ||
-                  `Instructor #${instructor.id}`;
-                return (
-                  <SelectItem key={instructor.id} value={String(instructor.id)}>
-                    {label}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+            options={instructorOptions}
+            placeholder="Instructor"
+            searchPlaceholder="Search instructors..."
+            searchValue={instructorSearch}
+            onSearchValueChange={setInstructorSearch}
+            filterOptions={false}
+            isLoading={isLoadingInstructors}
+            hasMore={hasMoreInstructors}
+            isLoadingMore={isLoadingMoreInstructors}
+            onReachEnd={loadMoreInstructors}
+          />
         ) : null}
       </ListingFilters>
 

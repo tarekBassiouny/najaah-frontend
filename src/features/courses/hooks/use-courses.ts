@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import {
   assignCoursePdf,
+  assignCourseInstructor,
   assignCourseVideo,
   cloneCourse,
   createCenterCourse,
@@ -21,12 +22,14 @@ import {
   publishCourse,
   unpublishCourse,
   removeCoursePdf,
+  removeCourseInstructor,
   removeCourseVideo,
   uploadCourseThumbnail,
   type CoursesResponse,
   type ListCoursesParams,
   type ListCenterCoursesParams,
   type CourseMediaAssignmentPayload,
+  type CourseInstructorPayload,
   type CloneCourseOptions,
 } from "../services/courses.service";
 import type {
@@ -347,6 +350,58 @@ export function useRemoveCoursePdf() {
       pdfId: string | number;
     }) => removeCoursePdf(centerId, courseId, pdfId),
     onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
+  });
+}
+
+export function useAssignCourseInstructor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      payload,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      payload: CourseInstructorPayload;
+    }) => assignCourseInstructor(centerId, courseId, payload),
+    onSuccess: (updatedCourse, { centerId, courseId }) => {
+      queryClient.setQueryData(
+        ["center-course", centerId, courseId],
+        updatedCourse,
+      );
+      queryClient.invalidateQueries({ queryKey: ["center-courses"] });
+      queryClient.invalidateQueries({
+        queryKey: ["center-course", centerId, courseId],
+      });
+    },
+  });
+}
+
+export function useRemoveCourseInstructor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      instructorId,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      instructorId: string | number;
+    }) => removeCourseInstructor(centerId, courseId, instructorId),
+    onSuccess: (updatedCourse, { centerId, courseId }) => {
+      queryClient.setQueryData(
+        ["center-course", centerId, courseId],
+        updatedCourse,
+      );
       queryClient.invalidateQueries({ queryKey: ["center-courses"] });
       queryClient.invalidateQueries({
         queryKey: ["center-course", centerId, courseId],

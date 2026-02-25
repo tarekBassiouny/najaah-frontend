@@ -68,6 +68,7 @@ export type CourseSummary = {
   status?: string | null;
   status_key?: string | null;
   status_label?: string | null;
+  is_published?: boolean | null;
   published_at?: string | null;
   slug?: string | null;
   [key: string]: unknown;
@@ -116,7 +117,8 @@ export type CreateCoursePayload = {
   language?: string;
   price?: number | string;
   instructor_id?: string | number;
-  thumbnail_url?: string;
+  primary_instructor_id?: string | number;
+  thumbnail?: File | Blob;
   slug?: string;
   status?: string;
   [key: string]: unknown;
@@ -130,8 +132,7 @@ export type UpdateCoursePayload = {
   language?: string;
   price?: number | string;
   instructor_id?: string | number;
-  thumbnail_url?: string;
+  primary_instructor_id?: string | number;
   slug?: string;
-  status?: string;
   [key: string]: unknown;
 };

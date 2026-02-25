@@ -10,6 +10,7 @@ import {
   listCenterCourses,
   listCourses,
   publishCourse,
+  unpublishCourse,
   removeCoursePdf,
   removeCourseVideo,
   updateCourse,
@@ -69,6 +70,25 @@ describe("courses.service", () => {
     expect(result.lastPage).toBe(1);
   });
 
+  it("normalizes listCourses from meta.page shape", async () => {
+    mockedHttp.get.mockResolvedValueOnce({
+      data: {
+        data: [{ id: 6 }],
+        meta: { page: 4, per_page: 15, total: 50, last_page: 4 },
+      },
+    });
+
+    const result = await listCourses({ page: 1, per_page: 10 });
+
+    expect(result).toEqual({
+      items: [{ id: 6 }],
+      page: 4,
+      perPage: 15,
+      total: 50,
+      lastPage: 4,
+    });
+  });
+
   it("lists center courses with scoped endpoint", async () => {
     mockedHttp.get.mockResolvedValueOnce({ data: { data: [] } });
 
@@ -81,7 +101,6 @@ describe("courses.service", () => {
           page: 1,
           per_page: 10,
           search: undefined,
-          center_id: 9,
           category_id: undefined,
           primary_instructor_id: undefined,
         },
@@ -94,6 +113,7 @@ describe("courses.service", () => {
     mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 3 } } });
     mockedHttp.put.mockResolvedValueOnce({ data: { data: { id: 3 } } });
     mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 3 } } });
+    mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 3 } } });
     mockedHttp.delete.mockResolvedValueOnce({});
 
     await expect(getCourse(2)).resolves.toEqual({ id: 2 });
@@ -103,10 +123,36 @@ describe("courses.service", () => {
     await expect(updateCourse(3, { status: "draft" })).resolves.toEqual({
       id: 3,
     });
-    await expect(publishCourse(3)).resolves.toEqual({ id: 3 });
+    await expect(publishCourse(9, 3)).resolves.toEqual({ id: 3 });
+    await expect(unpublishCourse(9, 3)).resolves.toEqual({ id: 3 });
     await deleteCourse(3);
 
+    expect(mockedHttp.post).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/admin/centers/9/courses/3/publish",
+    );
+    expect(mockedHttp.post).toHaveBeenNthCalledWith(
+      3,
+      "/api/v1/admin/centers/9/courses/3/unpublish",
+    );
     expect(mockedHttp.delete).toHaveBeenCalledWith("/api/v1/admin/courses/3");
+  });
+
+  it("keeps publish response message and success flags from admin contract", async () => {
+    mockedHttp.post.mockResolvedValueOnce({
+      data: {
+        success: true,
+        message: "Course published successfully",
+        data: { id: 4, is_published: true },
+      },
+    });
+
+    await expect(publishCourse(9, 4)).resolves.toEqual({
+      id: 4,
+      is_published: true,
+      _response_message: "Course published successfully",
+      success: true,
+    });
   });
 
   it("assigns and removes media", async () => {
@@ -131,16 +177,22 @@ describe("courses.service", () => {
     mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 10 } } });
     mockedHttp.post.mockResolvedValueOnce({ data: { data: { id: 11 } } });
 
-    await expect(cloneCourse(7)).resolves.toEqual({ id: 10 });
+    await expect(cloneCourse(9, 7)).resolves.toEqual({ id: 10 });
     await expect(
-      cloneCourseWithOptions(8, {
+      cloneCourseWithOptions(9, 8, {
         include_sections: true,
         include_videos: false,
       }),
     ).resolves.toEqual({ id: 11 });
 
-    expect(mockedHttp.post).toHaveBeenLastCalledWith(
-      "/api/v1/admin/courses/8/clone",
+    expect(mockedHttp.post).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/admin/centers/9/courses/7/clone",
+      { options: {} },
+    );
+    expect(mockedHttp.post).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/admin/centers/9/courses/8/clone",
       { options: { include_sections: true, include_videos: false } },
     );
   });

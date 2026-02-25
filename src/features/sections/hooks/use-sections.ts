@@ -7,6 +7,8 @@ import {
 import {
   attachSectionPdf,
   attachSectionVideo,
+  bulkPublishSections,
+  bulkUnpublishSections,
   createSection,
   createSectionWithStructure,
   deleteSection,
@@ -33,6 +35,7 @@ import type {
   Section,
   SectionMediaItem,
   SectionPayload,
+  SectionUpdatePayload,
   SectionStructurePayload,
   SectionsResponse,
 } from "@/features/sections/types/section";
@@ -117,7 +120,7 @@ export function useUpdateSection() {
       centerId: string | number;
       courseId: string | number;
       sectionId: string | number;
-      payload: SectionPayload;
+      payload: SectionUpdatePayload;
     }) => updateSection(centerId, courseId, sectionId, payload),
     onSuccess: (_, { centerId, courseId, sectionId }) => {
       queryClient.invalidateQueries({
@@ -508,6 +511,48 @@ export function useUnpublishSection() {
       });
       queryClient.invalidateQueries({
         queryKey: ["section", centerId, courseId, sectionId],
+      });
+    },
+  });
+}
+
+export function useBulkPublishSections() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      sectionIds,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      sectionIds: Array<string | number>;
+    }) => bulkPublishSections(centerId, courseId, sectionIds),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+    },
+  });
+}
+
+export function useBulkUnpublishSections() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      sectionIds,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      sectionIds: Array<string | number>;
+    }) => bulkUnpublishSections(centerId, courseId, sectionIds),
+    onSuccess: (_, { centerId, courseId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
       });
     },
   });

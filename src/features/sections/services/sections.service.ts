@@ -10,9 +10,23 @@ import type {
   Section,
   SectionMediaItem,
   SectionPayload,
+  SectionUpdatePayload,
   SectionStructurePayload,
   SectionsResponse,
 } from "@/features/sections/types/section";
+
+type BulkSectionActionResult = {
+  counts?: {
+    total?: number;
+    updated?: number;
+    skipped?: number;
+    failed?: number;
+  };
+  updated?: Section[];
+  skipped?: Section[];
+  failed?: Array<{ section_id?: string | number; reason?: string }>;
+  [key: string]: unknown;
+};
 
 type RawResponse = {
   data?: unknown;
@@ -38,7 +52,14 @@ function normalizeSectionsResponse(
     (container.meta as Record<string, unknown> | undefined) ??
     {};
 
-  const page = Number(meta.current_page ?? dataNode?.current_page ?? 1) || 1;
+  const page =
+    Number(
+      meta.page ??
+        meta.current_page ??
+        dataNode?.page ??
+        dataNode?.current_page ??
+        1,
+    ) || 1;
   const perPage =
     Number(meta.per_page ?? dataNode?.per_page ?? fallback.per_page ?? 10) ||
     10;
@@ -59,16 +80,26 @@ function basePath(centerId: string | number, courseId: string | number) {
   return `/api/v1/admin/centers/${centerId}/courses/${courseId}/sections`;
 }
 
-function normalizeSectionPayload(payload: SectionPayload) {
+function normalizeSectionPayload<
+  T extends {
+    order_index?: number;
+    sort_order?: number;
+    [key: string]: unknown;
+  },
+>(payload: T) {
   const { order_index, sort_order, ...rest } = payload;
+  const mappedOrderIndex =
+    typeof order_index === "number"
+      ? order_index
+      : typeof sort_order === "number"
+        ? sort_order
+        : undefined;
+
   return {
     ...rest,
-    order_index:
-      typeof order_index === "number"
-        ? order_index
-        : typeof sort_order === "number"
-          ? sort_order
-          : undefined,
+    ...(typeof mappedOrderIndex === "number"
+      ? { order_index: mappedOrderIndex }
+      : {}),
   };
 }
 
@@ -85,6 +116,16 @@ function normalizeSectionStructurePayload(payload: SectionStructurePayload) {
   };
 }
 
+function normalizeReorderPayload(payload: ReorderSectionsPayload) {
+  const sectionIds = Array.isArray(payload.sections)
+    ? payload.sections
+    : Array.isArray(payload.ordered_ids)
+      ? payload.ordered_ids
+      : [];
+
+  return { sections: sectionIds };
+}
+
 export async function listSections(
   centerId: string | number,
   courseId: string | number,
@@ -95,6 +136,12 @@ export async function listSections(
       page: params.page,
       per_page: params.per_page,
       search: params.search || undefined,
+      is_published:
+        typeof params.is_published === "boolean"
+          ? params.is_published
+            ? 1
+            : 0
+          : params.is_published,
     },
   });
 
@@ -128,7 +175,7 @@ export async function updateSection(
   centerId: string | number,
   courseId: string | number,
   sectionId: string | number,
-  payload: SectionPayload,
+  payload: SectionUpdatePayload,
 ): Promise<Section> {
   const { data } = await http.put<RawResponse>(
     `${basePath(centerId, courseId)}/${sectionId}`,
@@ -177,7 +224,7 @@ export async function reorderSections(
 ) {
   const { data } = await http.put(
     `${basePath(centerId, courseId)}/reorder`,
-    payload,
+    normalizeReorderPayload(payload),
   );
   return data;
 }
@@ -334,4 +381,28 @@ export async function unpublishSection(
     `${basePath(centerId, courseId)}/${sectionId}/unpublish`,
   );
   return withResponseMessage((data?.data ?? data) as Section, data);
+}
+
+export async function bulkPublishSections(
+  centerId: string | number,
+  courseId: string | number,
+  sectionIds: Array<string | number>,
+): Promise<AdminActionResult<BulkSectionActionResult>> {
+  const { data } = await http.post(
+    `${basePath(centerId, courseId)}/bulk-publish`,
+    { section_ids: sectionIds },
+  );
+  return normalizeAdminActionResult<BulkSectionActionResult>(data);
+}
+
+export async function bulkUnpublishSections(
+  centerId: string | number,
+  courseId: string | number,
+  sectionIds: Array<string | number>,
+): Promise<AdminActionResult<BulkSectionActionResult>> {
+  const { data } = await http.post(
+    `${basePath(centerId, courseId)}/bulk-unpublish`,
+    { section_ids: sectionIds },
+  );
+  return normalizeAdminActionResult<BulkSectionActionResult>(data);
 }

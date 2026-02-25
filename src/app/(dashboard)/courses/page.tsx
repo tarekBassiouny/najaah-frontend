@@ -1,43 +1,48 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
-import { CoursesTable } from "@/features/courses/components/CoursesTable";
+import { Card, CardContent } from "@/components/ui/card";
+import { useTenant } from "@/app/tenant-provider";
 
 export default function CoursesPage() {
+  const router = useRouter();
+  const tenant = useTenant();
+  const centerId = tenant.centerId;
+
+  useEffect(() => {
+    if (!centerId) return;
+    router.replace(`/centers/${centerId}/courses`);
+  }, [centerId, router]);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Courses"
-        description="Manage your learning center's course catalog"
+        description="Select a center to manage center-scoped courses."
         actions={
           <>
             <CenterPicker className="hidden md:block" />
-            <Link href="/courses/create">
-              <Button>
-                <svg
-                  className="mr-2 h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Create Course
-              </Button>
-            </Link>
+            {centerId ? (
+              <Link href={`/centers/${centerId}/courses/create`}>
+                <Button>Create Course</Button>
+              </Link>
+            ) : null}
           </>
         }
       />
 
-      <CoursesTable />
+      {!centerId ? (
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+            Center context is required to manage courses.
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

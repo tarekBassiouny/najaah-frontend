@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
@@ -21,10 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
-import { useInstructors } from "@/features/instructors/hooks/use-instructors";
-import { useCategories } from "@/features/categories/hooks/use-categories";
+import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
+import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
@@ -45,6 +46,14 @@ const LANGUAGE_OPTIONS = [
   { value: "ar", label: "Arabic" },
 ];
 
+const MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
 function extractErrorMessage(error: unknown): string {
   const firstFieldError = getAdminApiFirstFieldError(error);
   if (firstFieldError) {
@@ -60,21 +69,13 @@ function extractErrorMessage(error: unknown): string {
 export default function CenterCoursesCreatePage({ params }: PageProps) {
   const { centerId } = use(params);
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     mutate: createCourse,
     isPending,
     isError,
     error,
   } = useCreateCenterCourse();
-
-  const { data: instructorsData, isLoading: isLoadingInstructors } =
-    useInstructors({ page: 1, per_page: 100 }, { centerId });
-
-  const { data: categoriesData, isLoading: isLoadingCategories } =
-    useCategories(centerId, { page: 1, per_page: 100, is_active: true });
-
-  const instructors = instructorsData?.items ?? [];
-  const categories = categoriesData?.items ?? [];
 
   const [formData, setFormData] = useState({
     title: "",
@@ -87,8 +88,38 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     price: "",
     instructorId: "",
     categoryId: "",
-    thumbnailUrl: "",
   });
+
+  const {
+    options: categoryOptions,
+    search: categorySearch,
+    setSearch: setCategorySearch,
+    isLoading: isLoadingCategories,
+    hasMore: hasMoreCategories,
+    isLoadingMore: isLoadingMoreCategories,
+    onReachEnd: loadMoreCategories,
+  } = useCategoryOptions({
+    centerId,
+    selectedValue: formData.categoryId || null,
+    isActive: true,
+  });
+
+  const {
+    options: instructorOptions,
+    search: instructorSearch,
+    setSearch: setInstructorSearch,
+    isLoading: isLoadingInstructors,
+    hasMore: hasMoreInstructors,
+    isLoadingMore: isLoadingMoreInstructors,
+    onReachEnd: loadMoreInstructors,
+  } = useInstructorOptions({
+    centerId,
+    selectedValue: formData.instructorId || null,
+  });
+
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +158,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
           category_id: formData.categoryId
             ? Number(formData.categoryId)
             : undefined,
-          thumbnail_url: formData.thumbnailUrl || undefined,
+          thumbnail: thumbnailFile ?? undefined,
         },
       },
       {
@@ -146,6 +177,51 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
   const handleSelectChange = (field: string) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setThumbnailError(null);
+
+    if (!file) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+      return;
+    }
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+      setThumbnailError(
+        "Please select a valid image file (JPG, PNG, GIF, or WebP).",
+      );
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_THUMBNAIL_SIZE) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+      setThumbnailError("File size must be less than 5MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setThumbnailFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setThumbnailPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearSelectedThumbnail = () => {
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    setThumbnailError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const generateSlug = () => {
@@ -320,33 +396,26 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Select
-                      value={formData.categoryId}
-                      onValueChange={handleSelectChange("categoryId")}
-                      disabled={isLoadingCategories}
-                    >
-                      <SelectTrigger id="category">
-                        <SelectValue
-                          placeholder={
-                            isLoadingCategories
-                              ? "Loading categories..."
-                              : "Select category"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={String(category.id)}
-                          >
-                            {category.title ??
-                              category.name ??
-                              `Category #${category.id}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={formData.categoryId || null}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          categoryId: value ?? "",
+                        }))
+                      }
+                      options={categoryOptions}
+                      placeholder="Select category"
+                      searchPlaceholder="Search categories..."
+                      searchValue={categorySearch}
+                      onSearchValueChange={setCategorySearch}
+                      filterOptions={false}
+                      isLoading={isLoadingCategories}
+                      hasMore={hasMoreCategories}
+                      isLoadingMore={isLoadingMoreCategories}
+                      onReachEnd={loadMoreCategories}
+                      allowClear
+                    />
                     <p className="text-xs text-gray-500">
                       Optional. Organize your course in a category.
                     </p>
@@ -354,31 +423,26 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="instructor">Primary Instructor</Label>
-                    <Select
-                      value={formData.instructorId}
-                      onValueChange={handleSelectChange("instructorId")}
-                      disabled={isLoadingInstructors}
-                    >
-                      <SelectTrigger id="instructor">
-                        <SelectValue
-                          placeholder={
-                            isLoadingInstructors
-                              ? "Loading instructors..."
-                              : "Select instructor"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {instructors.map((instructor) => (
-                          <SelectItem
-                            key={instructor.id}
-                            value={String(instructor.id)}
-                          >
-                            {instructor.name ?? `Instructor #${instructor.id}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={formData.instructorId || null}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          instructorId: value ?? "",
+                        }))
+                      }
+                      options={instructorOptions}
+                      placeholder="Select instructor"
+                      searchPlaceholder="Search instructors..."
+                      searchValue={instructorSearch}
+                      onSearchValueChange={setInstructorSearch}
+                      filterOptions={false}
+                      isLoading={isLoadingInstructors}
+                      hasMore={hasMoreInstructors}
+                      isLoadingMore={isLoadingMoreInstructors}
+                      onReachEnd={loadMoreInstructors}
+                      allowClear
+                    />
                     <p className="text-xs text-gray-500">
                       Optional. You can assign an instructor later.
                     </p>
@@ -391,32 +455,45 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
               <CardHeader>
                 <CardTitle>Thumbnail</CardTitle>
                 <CardDescription>
-                  Course cover image URL. You can upload an image file after
-                  creating the course.
+                  Upload a thumbnail image for this course.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="thumbnailUrl">Thumbnail URL</Label>
+                <div className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Upload Thumbnail</p>
+                    {thumbnailFile ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearSelectedThumbnail}
+                      >
+                        Clear
+                      </Button>
+                    ) : null}
+                  </div>
                   <Input
-                    id="thumbnailUrl"
-                    type="url"
-                    value={formData.thumbnailUrl}
-                    onChange={handleChange("thumbnailUrl")}
-                    placeholder="https://example.com/image.jpg"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleFileChange}
+                    className="max-w-xs"
                   />
                   <p className="text-xs text-gray-500">
-                    Optional. Enter a direct URL to an image (max 2048
-                    characters).
+                    Max 5MB. Supported formats: JPG, PNG, GIF, WebP.
                   </p>
+                  {thumbnailError ? (
+                    <p className="text-sm text-red-600">{thumbnailError}</p>
+                  ) : null}
                 </div>
 
-                {formData.thumbnailUrl && (
+                {thumbnailPreview && (
                   <div className="mt-2">
                     <p className="mb-2 text-sm text-gray-600">Preview:</p>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={formData.thumbnailUrl}
+                      src={thumbnailPreview}
                       alt="Thumbnail preview"
                       className="h-32 w-auto rounded-lg border object-cover"
                       onError={(e) => {

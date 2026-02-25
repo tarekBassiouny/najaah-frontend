@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -28,12 +29,12 @@ import {
   useUpdateCenterCourse,
   useUploadCourseThumbnail,
 } from "@/features/courses/hooks/use-courses";
-import { useInstructors } from "@/features/instructors/hooks/use-instructors";
-import { useCategories } from "@/features/categories/hooks/use-categories";
 import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
+import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
+import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -103,15 +104,6 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     error: uploadError,
   } = useUploadCourseThumbnail();
 
-  const { data: instructorsData, isLoading: isLoadingInstructors } =
-    useInstructors({ page: 1, per_page: 100 }, { centerId });
-
-  const { data: categoriesData, isLoading: isLoadingCategories } =
-    useCategories(centerId, { page: 1, per_page: 100, is_active: true });
-
-  const instructors = instructorsData?.items ?? [];
-  const categories = categoriesData?.items ?? [];
-
   const [formData, setFormData] = useState({
     title: "",
     titleAr: "",
@@ -123,13 +115,38 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     price: "",
     instructorId: "",
     categoryId: "",
-    thumbnailUrl: "",
-    status: "",
+  });
+  const {
+    options: categoryOptions,
+    search: categorySearch,
+    setSearch: setCategorySearch,
+    isLoading: isLoadingCategories,
+    hasMore: hasMoreCategories,
+    isLoadingMore: isLoadingMoreCategories,
+    onReachEnd: loadMoreCategories,
+  } = useCategoryOptions({
+    centerId,
+    selectedValue: formData.categoryId || null,
+    isActive: true,
+  });
+  const {
+    options: instructorOptions,
+    search: instructorSearch,
+    setSearch: setInstructorSearch,
+    isLoading: isLoadingInstructors,
+    hasMore: hasMoreInstructors,
+    isLoadingMore: isLoadingMoreInstructors,
+    onReachEnd: loadMoreInstructors,
+  } = useInstructorOptions({
+    centerId,
+    selectedValue: formData.instructorId || null,
   });
 
+  const [currentThumbnailUrl, setCurrentThumbnailUrl] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+  const [currentThumbnailFailed, setCurrentThumbnailFailed] = useState(false);
 
   useEffect(() => {
     if (!course) return;
@@ -155,10 +172,14 @@ export default function CenterCourseEditPage({ params }: PageProps) {
         : course.category?.id
           ? String(course.category.id)
           : "",
-      thumbnailUrl: course.thumbnail_url ?? course.thumbnail ?? "",
-      status: course.status ?? "",
     });
+    setCurrentThumbnailUrl(course.thumbnail_url ?? course.thumbnail ?? "");
+    setCurrentThumbnailFailed(false);
   }, [course]);
+
+  useEffect(() => {
+    setCurrentThumbnailFailed(false);
+  }, [currentThumbnailUrl]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,8 +223,6 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           category_id: formData.categoryId
             ? Number(formData.categoryId)
             : undefined,
-          thumbnail_url: formData.thumbnailUrl || undefined,
-          status: formData.status || undefined,
         },
       },
       {
@@ -235,14 +254,20 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     }
 
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
       setThumbnailError(
         "Please select a valid image file (JPG, PNG, GIF, or WebP).",
       );
+      e.target.value = "";
       return;
     }
 
     if (file.size > MAX_THUMBNAIL_SIZE) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
       setThumbnailError("File size must be less than 5MB.");
+      e.target.value = "";
       return;
     }
 
@@ -252,6 +277,15 @@ export default function CenterCourseEditPage({ params }: PageProps) {
       setThumbnailPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleClearSelectedThumbnail = () => {
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    setThumbnailError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleUploadThumbnail = () => {
@@ -267,21 +301,20 @@ export default function CenterCourseEditPage({ params }: PageProps) {
         onSuccess: (updatedCourse) => {
           setThumbnailFile(null);
           setThumbnailPreview(null);
+          setCurrentThumbnailFailed(false);
           if (fileInputRef.current) {
             fileInputRef.current.value = "";
           }
-          setFormData((prev) => ({
-            ...prev,
-            thumbnailUrl:
-              updatedCourse.thumbnail_url ?? updatedCourse.thumbnail ?? "",
-          }));
+          setCurrentThumbnailUrl(
+            updatedCourse.thumbnail_url ?? updatedCourse.thumbnail ?? "",
+          );
         },
       },
     );
   };
 
   const isPending = isUpdating || isUploadingThumbnail;
-  const currentThumbnail = thumbnailPreview || formData.thumbnailUrl;
+  const currentThumbnail = currentThumbnailUrl;
 
   if (isLoadingCourse) {
     return (
@@ -376,15 +409,6 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Input
-                    id="status"
-                    value={formData.status}
-                    onChange={handleChange("status")}
-                  />
-                </div>
               </CardContent>
             </Card>
 
@@ -451,62 +475,50 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Select
-                      value={formData.categoryId}
-                      onValueChange={handleSelectChange("categoryId")}
-                      disabled={isLoadingCategories}
-                    >
-                      <SelectTrigger id="category">
-                        <SelectValue
-                          placeholder={
-                            isLoadingCategories
-                              ? "Loading categories..."
-                              : "Select category"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem
-                            key={category.id}
-                            value={String(category.id)}
-                          >
-                            {category.title ??
-                              category.name ??
-                              `Category #${category.id}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={formData.categoryId || null}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          categoryId: value ?? "",
+                        }))
+                      }
+                      options={categoryOptions}
+                      placeholder="Select category"
+                      searchPlaceholder="Search categories..."
+                      searchValue={categorySearch}
+                      onSearchValueChange={setCategorySearch}
+                      filterOptions={false}
+                      isLoading={isLoadingCategories}
+                      hasMore={hasMoreCategories}
+                      isLoadingMore={isLoadingMoreCategories}
+                      onReachEnd={loadMoreCategories}
+                      allowClear
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="instructor">Primary Instructor</Label>
-                    <Select
-                      value={formData.instructorId}
-                      onValueChange={handleSelectChange("instructorId")}
-                      disabled={isLoadingInstructors}
-                    >
-                      <SelectTrigger id="instructor">
-                        <SelectValue
-                          placeholder={
-                            isLoadingInstructors
-                              ? "Loading instructors..."
-                              : "Select instructor"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {instructors.map((instructor) => (
-                          <SelectItem
-                            key={instructor.id}
-                            value={String(instructor.id)}
-                          >
-                            {instructor.name ?? `Instructor #${instructor.id}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={formData.instructorId || null}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          instructorId: value ?? "",
+                        }))
+                      }
+                      options={instructorOptions}
+                      placeholder="Select instructor"
+                      searchPlaceholder="Search instructors..."
+                      searchValue={instructorSearch}
+                      onSearchValueChange={setInstructorSearch}
+                      filterOptions={false}
+                      isLoading={isLoadingInstructors}
+                      hasMore={hasMoreInstructors}
+                      isLoadingMore={isLoadingMoreInstructors}
+                      onReachEnd={loadMoreInstructors}
+                      allowClear
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -516,24 +528,65 @@ export default function CenterCourseEditPage({ params }: PageProps) {
               <CardHeader>
                 <CardTitle>Thumbnail</CardTitle>
                 <CardDescription>
-                  Upload an image or provide a URL for the course thumbnail
+                  Upload a new thumbnail image for this course.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {currentThumbnail && (
-                  <div className="mb-4">
-                    <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Current Thumbnail:
-                    </p>
+                <div className="mb-4 space-y-2">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Uploaded Thumbnail:
+                  </p>
+                  {currentThumbnail && !currentThumbnailFailed ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={currentThumbnail}
+                        alt="Course thumbnail"
+                        className="h-40 w-auto rounded-lg border object-cover"
+                        onError={() => setCurrentThumbnailFailed(true)}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        This image reflects the currently uploaded thumbnail.
+                      </p>
+                    </>
+                  ) : currentThumbnailFailed ? (
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
+                      Unable to load the uploaded thumbnail.
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
+                      No thumbnail uploaded yet.
+                    </div>
+                  )}
+                </div>
+
+                {thumbnailPreview && (
+                  <div className="space-y-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-primary">
+                        New thumbnail (to be uploaded)
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearSelectedThumbnail}
+                      >
+                        Clear
+                      </Button>
+                    </div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={currentThumbnail}
-                      alt="Course thumbnail"
+                      src={thumbnailPreview}
+                      alt="New course thumbnail preview"
                       className="h-40 w-auto rounded-lg border object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
+                    <p className="truncate text-xs text-gray-500">
+                      {thumbnailFile?.name}
+                    </p>
                   </div>
                 )}
 
@@ -567,20 +620,6 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                       {extractErrorMessage(uploadError)}
                     </p>
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="thumbnailUrl">Or Enter URL</Label>
-                  <Input
-                    id="thumbnailUrl"
-                    type="url"
-                    value={formData.thumbnailUrl}
-                    onChange={handleChange("thumbnailUrl")}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Direct URL to an image (max 2048 characters).
-                  </p>
                 </div>
               </CardContent>
             </Card>

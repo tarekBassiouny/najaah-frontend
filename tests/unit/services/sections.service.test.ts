@@ -186,11 +186,13 @@ describe("sections.service", () => {
       id: 3,
       is_visible: true,
     });
-    await expect(
-      reorderSections(1, 2, { ordered_ids: [3, 4] }),
-    ).resolves.toEqual({
+    await expect(reorderSections(1, 2, { sections: [3, 4] })).resolves.toEqual({
       ok: true,
     });
+    expect(mockedHttp.put).toHaveBeenCalledWith(
+      "/api/v1/admin/centers/1/courses/2/sections/reorder",
+      { sections: [3, 4] },
+    );
   });
 
   it("lists and gets section media", async () => {

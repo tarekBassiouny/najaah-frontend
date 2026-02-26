@@ -39,6 +39,21 @@ type SidebarProps = {
   sections: SidebarSection[];
 };
 
+function isUnbrandedCenterType(type: unknown) {
+  if (type == null) return false;
+
+  if (typeof type === "number") {
+    return type === 0;
+  }
+
+  if (typeof type === "string") {
+    const normalized = type.trim().toLowerCase();
+    return normalized === "0" || normalized === "unbranded";
+  }
+
+  return false;
+}
+
 function normalizePath(path: string) {
   if (!path) return "/";
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
@@ -92,7 +107,12 @@ export function Sidebar({ sections }: SidebarProps) {
     }
     return candidate;
   }, [pathname]);
-  const { data: center } = useCenter(centerId ?? undefined);
+  const scopedCenterIdForRestrictions =
+    centerId ?? (userScope.isCenterAdmin ? userScope.centerId : null);
+  const { data: center } = useCenter(
+    scopedCenterIdForRestrictions ?? undefined,
+  );
+  const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
   const centerName = center?.name ?? (centerId ? `Center ${centerId}` : null);
   const isTenantSubdomainCenter = Boolean(tenantCenterSlug);
   const subdomainCenterName = tenantCenterName || tenantCenterSlug || "Center";
@@ -107,6 +127,7 @@ export function Sidebar({ sections }: SidebarProps) {
     return resolvedSections
       .map((section) => {
         const items = section.items
+          .filter((item) => !(isUnbrandedCenter && item.title === "Surveys"))
           .map((item) => {
             if (item.items?.length) {
               const subItems = item.items.filter((subItem) =>
@@ -137,7 +158,7 @@ export function Sidebar({ sections }: SidebarProps) {
         return items.length ? { ...section, items } : null;
       })
       .filter(Boolean) as SidebarSection[];
-  }, [permissions, resolvedSections]);
+  }, [isUnbrandedCenter, permissions, resolvedSections]);
 
   const activeGroupTitles = useMemo(() => {
     return filteredSections

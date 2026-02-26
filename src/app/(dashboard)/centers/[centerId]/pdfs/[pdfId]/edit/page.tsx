@@ -20,33 +20,41 @@ export default function CenterPdfEditPage({ params }: PageProps) {
   const { data: pdf } = usePdf(centerId, pdfId);
   const { mutate: updatePdf, isPending } = useUpdatePdf();
 
-  const [title, setTitle] = useState("");
-  const [fileSize, setFileSize] = useState("");
-  const [status, setStatus] = useState("");
+  const [titleEn, setTitleEn] = useState("");
+  const [titleAr, setTitleAr] = useState("");
+  const [descriptionEn, setDescriptionEn] = useState("");
+  const [descriptionAr, setDescriptionAr] = useState("");
 
   useEffect(() => {
     if (!pdf) return;
-    setTitle(String(pdf.title ?? ""));
-    setFileSize(String(pdf.file_size ?? ""));
-    setStatus(String(pdf.status ?? ""));
+    setTitleEn(String(pdf.title_translations?.en ?? pdf.title ?? ""));
+    setTitleAr(String(pdf.title_translations?.ar ?? ""));
+    setDescriptionEn(
+      String(pdf.description_translations?.en ?? pdf.description ?? ""),
+    );
+    setDescriptionAr(String(pdf.description_translations?.ar ?? ""));
   }, [pdf]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const parsedFileSize = Number(fileSize);
-    const fileSizeKb =
-      fileSize.trim() === "" || Number.isNaN(parsedFileSize)
-        ? undefined
-        : parsedFileSize;
+    const normalizedTitleEn = titleEn.trim();
+    const normalizedTitleAr = titleAr.trim();
+    const normalizedDescriptionEn = descriptionEn.trim();
+    const normalizedDescriptionAr = descriptionAr.trim();
 
     updatePdf(
       {
         centerId,
         pdfId,
         payload: {
-          title_translations: title.trim() ? { en: title.trim() } : undefined,
-          file_size_kb: fileSizeKb,
-          status: status || undefined,
+          title_translations: {
+            ...(normalizedTitleEn ? { en: normalizedTitleEn } : {}),
+            ...(normalizedTitleAr ? { ar: normalizedTitleAr } : {}),
+          },
+          description_translations: {
+            ...(normalizedDescriptionEn ? { en: normalizedDescriptionEn } : {}),
+            ...(normalizedDescriptionAr ? { ar: normalizedDescriptionAr } : {}),
+          },
         },
       },
       {
@@ -83,30 +91,44 @@ export default function CenterPdfEditPage({ params }: PageProps) {
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="titleEn">Title (English)</Label>
               <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                id="titleEn"
+                value={titleEn}
+                onChange={(e) => setTitleEn(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fileSize">File Size</Label>
+              <Label htmlFor="titleAr">Title (Arabic)</Label>
               <Input
-                id="fileSize"
-                value={fileSize}
-                onChange={(e) => setFileSize(e.target.value)}
+                id="titleAr"
+                value={titleAr}
+                onChange={(e) => setTitleAr(e.target.value)}
+                dir="rtl"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Input
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
+              <Label htmlFor="descriptionEn">Description (English)</Label>
+              <textarea
+                id="descriptionEn"
+                value={descriptionEn}
+                onChange={(e) => setDescriptionEn(e.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
-            <Button type="submit" disabled={isPending}>
+            <div className="space-y-2">
+              <Label htmlFor="descriptionAr">Description (Arabic)</Label>
+              <textarea
+                id="descriptionAr"
+                value={descriptionAr}
+                onChange={(e) => setDescriptionAr(e.target.value)}
+                rows={3}
+                dir="rtl"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+            <Button type="submit" disabled={isPending || !titleEn.trim()}>
               {isPending ? "Saving..." : "Save"}
             </Button>
           </form>

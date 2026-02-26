@@ -56,11 +56,38 @@ function formatDateTime(isoString: string | null): string {
   }
 }
 
-function formatActiveDevice(
-  device: { model: string; device_id: string } | null,
-): string {
+type ProfileDevice = {
+  device_name?: string | null;
+  device_type?: string | null;
+  model?: string | null;
+  device_id?: string | null;
+  os_version?: string | null;
+  status_label?: string | null;
+  status_key?: string | null;
+  last_used_at?: string | null;
+} | null;
+
+function formatActiveDevice(device: ProfileDevice): string {
   if (!device) return "No active device";
-  return `${device.model} (${device.device_id})`;
+
+  const name = device.device_name?.trim() || device.model?.trim() || null;
+  const type = device.device_type?.trim() || null;
+  const deviceId = device.device_id?.trim() || null;
+
+  return [name, type, deviceId].filter(Boolean).join(" • ") || "Active device";
+}
+
+function formatActiveDeviceMeta(device: ProfileDevice): string {
+  if (!device) return "";
+
+  const osVersion = device.os_version?.trim() || null;
+  const status =
+    device.status_label?.trim() || device.status_key?.trim() || null;
+  const lastUsed = device.last_used_at
+    ? `Last used: ${formatDateTime(device.last_used_at)}`
+    : null;
+
+  return [osVersion, status, lastUsed].filter(Boolean).join(" • ");
 }
 
 function formatPhone(countryCode: string, phone: string): string {
@@ -124,6 +151,8 @@ export default function StudentProfilePage({
       (enrollment) => enrollment.status === selectedCourseCategory,
     );
   }, [profile?.enrollments, selectedCourseCategory]);
+  const activeDevice = profile?.device ?? profile?.active_device ?? null;
+  const activeDeviceMeta = formatActiveDeviceMeta(activeDevice);
 
   const handleGrantViews = () => {
     if (!grantTarget || extraViews < 1) return;
@@ -255,8 +284,13 @@ export default function StudentProfilePage({
                 Active Device
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {formatActiveDevice(profile.active_device)}
+                {formatActiveDevice(activeDevice)}
               </p>
+              {activeDeviceMeta ? (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {activeDeviceMeta}
+                </p>
+              ) : null}
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">

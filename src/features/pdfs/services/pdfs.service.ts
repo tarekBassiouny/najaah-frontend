@@ -1,12 +1,19 @@
-import { http } from "@/lib/http";
+import axios from "axios";
 import type { Pdf, PdfUploadSession } from "@/features/pdfs/types/pdf";
 import type { PaginatedResponse } from "@/types/pagination";
+import { http } from "@/lib/http";
+import {
+  normalizeAdminActionResult,
+  withResponseMessage,
+  type AdminActionResult,
+} from "@/lib/admin-response";
 
 export type ListPdfsParams = {
   centerId?: string | number;
   page?: number;
   per_page?: number;
   search?: string;
+  course_id?: string | number;
 };
 
 export type CreatePdfPayload = {
@@ -24,7 +31,6 @@ export type UpdatePdfPayload = {
   title_translations?: Record<string, string>;
   description_translations?: Record<string, string>;
   file_size_kb?: number;
-  status?: string;
 };
 
 type RawPdfsResponse = {
@@ -59,6 +65,7 @@ export async function listPdfs(
       page: params.page,
       per_page: params.per_page,
       search: params.search || undefined,
+      course_id: params.course_id ?? undefined,
     },
   });
 
@@ -105,13 +112,14 @@ export async function updatePdf(
 export async function deletePdf(
   centerId: string | number,
   pdfId: string | number,
-): Promise<void> {
-  await http.delete(`${basePath(centerId)}/${pdfId}`);
+): Promise<AdminActionResult> {
+  const { data } = await http.delete(`${basePath(centerId)}/${pdfId}`);
+  return normalizeAdminActionResult(data);
 }
 
 export type CreatePdfUploadSessionPayload = {
   original_filename: string;
-  file_size_kb?: number;
+  file_size_kb: number;
 };
 
 export async function createPdfUploadSession(
@@ -122,7 +130,7 @@ export async function createPdfUploadSession(
     `${basePath(centerId)}/upload-sessions`,
     payload,
   );
-  return data?.data ?? (data as unknown as PdfUploadSession);
+  return withResponseMessage((data?.data ?? data) as PdfUploadSession, data);
 }
 
 export type FinalizePdfUploadSessionPayload = {
@@ -141,5 +149,27 @@ export async function finalizePdfUploadSession(
     `${basePath(centerId)}/upload-sessions/${uploadSessionId}/finalize`,
     payload,
   );
-  return data?.data ?? (data as unknown as PdfUploadSession);
+  return withResponseMessage((data?.data ?? data) as PdfUploadSession, data);
+}
+
+export async function uploadPdfToStorage(
+  uploadEndpoint: string,
+  file: File | Blob,
+  requiredHeaders?: Record<string, string> | null,
+): Promise<void> {
+  const headers: Record<string, string> = {
+    ...(requiredHeaders ?? {}),
+  };
+
+  const hasContentTypeHeader = Object.keys(headers).some(
+    (key) => key.toLowerCase() === "content-type",
+  );
+  if (!hasContentTypeHeader) {
+    headers["Content-Type"] = "application/pdf";
+  }
+
+  await axios.put(uploadEndpoint, file, {
+    headers,
+    withCredentials: false,
+  });
 }

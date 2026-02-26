@@ -223,6 +223,14 @@ describe("sections.service", () => {
       ok: true,
     });
     await expect(detachSectionPdf(1, 2, 3, 7)).resolves.toEqual({ ok: true });
+
+    expect(mockedHttp.delete).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/admin/centers/1/courses/2/sections/3/pdfs/7",
+      {
+        data: { pdf_id: 7 },
+      },
+    );
   });
 
   it("publishes and unpublishes section", async () => {

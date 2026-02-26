@@ -18,6 +18,7 @@ import type { SurveyResultsTab } from "@/features/surveys/components/SurveyResul
 import { SurveysTable } from "@/features/surveys/components/SurveysTable";
 import { UpdateSurveyStatusDialog } from "@/features/surveys/components/UpdateSurveyStatusDialog";
 import type { Survey } from "@/features/surveys/types/survey";
+import { useCenter } from "@/features/centers/hooks/use-centers";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -31,6 +32,21 @@ function parseResultsTab(value: string | null): SurveyResultsTab | undefined {
   return undefined;
 }
 
+function isUnbrandedCenterType(type: unknown) {
+  if (type == null) return false;
+
+  if (typeof type === "number") {
+    return type === 0;
+  }
+
+  if (typeof type === "string") {
+    const normalized = type.trim().toLowerCase();
+    return normalized === "0" || normalized === "unbranded";
+  }
+
+  return false;
+}
+
 export default function CenterSurveysPage({ params }: PageProps) {
   const searchParams = useSearchParams();
   const { centerId } = use(params);
@@ -38,6 +54,8 @@ export default function CenterSurveysPage({ params }: PageProps) {
   const centerIdForApis = Number.isFinite(parsedCenterId)
     ? parsedCenterId
     : undefined;
+  const { data: center } = useCenter(centerIdForApis);
+  const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null);
   const [assigningSurvey, setAssigningSurvey] = useState<Survey | null>(null);
@@ -80,7 +98,11 @@ export default function CenterSurveysPage({ params }: PageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Center Surveys"
-        description="Manage surveys for this center"
+        description={
+          isUnbrandedCenter
+            ? "Surveys are not available for unbranded centers."
+            : "Manage surveys for this center"
+        }
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
@@ -88,20 +110,31 @@ export default function CenterSurveysPage({ params }: PageProps) {
         ]}
         actions={
           <>
-            <Button
-              onClick={() => {
-                setFeedback(null);
-                setIsFormOpen(true);
-              }}
-            >
-              Create Center Survey
-            </Button>
+            {!isUnbrandedCenter ? (
+              <Button
+                onClick={() => {
+                  setFeedback(null);
+                  setIsFormOpen(true);
+                }}
+              >
+                Create Center Survey
+              </Button>
+            ) : null}
             <Link href={`/centers/${centerId}`}>
               <Button variant="outline">Back to Center</Button>
             </Link>
           </>
         }
       />
+
+      {isUnbrandedCenter ? (
+        <Alert>
+          <AlertTitle>Surveys disabled</AlertTitle>
+          <AlertDescription>
+            Unbranded centers cannot create or manage surveys.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       {feedback ? (
         <Alert variant="success">
@@ -110,146 +143,168 @@ export default function CenterSurveysPage({ params }: PageProps) {
         </Alert>
       ) : null}
 
-      <SurveysTable
-        centerId={centerIdForApis}
-        onEdit={(survey) => {
-          setFeedback(null);
-          setEditingSurvey(survey);
-        }}
-        onAssign={(survey) => {
-          setFeedback(null);
-          setAssigningSurvey(survey);
-        }}
-        onChangeStatus={(survey) => {
-          setFeedback(null);
-          setStatusSurvey(survey);
-        }}
-        onClose={(survey) => {
-          setFeedback(null);
-          setClosingSurvey(survey);
-        }}
-        onBulkChangeStatus={(surveys) => {
-          setFeedback(null);
-          setBulkStatusSurveys(surveys);
-        }}
-        onBulkClose={(surveys) => {
-          setFeedback(null);
-          setBulkCloseSurveys(surveys);
-        }}
-        onBulkDelete={(surveys) => {
-          setFeedback(null);
-          setBulkDeleteSurveys(surveys);
-        }}
-        onDelete={(survey) => {
-          setFeedback(null);
-          setDeletingSurvey(survey);
-        }}
-        onViewResults={(survey) => {
-          setResultsInitialTab(undefined);
-          setViewingResultsSurvey(survey);
-        }}
-      />
-
-      <SurveyFormDialog
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        centerId={centerIdForApis}
-        onSuccess={(message) => setFeedback(message)}
-      />
-      <SurveyFormDialog
-        open={Boolean(editingSurvey)}
-        onOpenChange={(open) => {
-          if (!open) setEditingSurvey(null);
-        }}
-        centerId={centerIdForApis}
-        survey={editingSurvey}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <AssignSurveyDialog
-        open={Boolean(assigningSurvey)}
-        onOpenChange={(open) => {
-          if (!open) setAssigningSurvey(null);
-        }}
-        centerId={centerIdForApis}
-        survey={assigningSurvey}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <UpdateSurveyStatusDialog
-        open={Boolean(statusSurvey)}
-        onOpenChange={(open) => {
-          if (!open) setStatusSurvey(null);
-        }}
-        centerId={statusSurvey?.center_id ?? centerIdForApis}
-        survey={statusSurvey}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <CloseSurveyDialog
-        open={Boolean(closingSurvey)}
-        onOpenChange={(open) => {
-          if (!open) setClosingSurvey(null);
-        }}
-        centerId={centerIdForApis}
-        survey={closingSurvey}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <BulkUpdateSurveyStatusDialog
-        open={bulkStatusSurveys.length > 0}
-        onOpenChange={(open) => {
-          if (!open) setBulkStatusSurveys([]);
-        }}
-        centerId={centerIdForApis}
-        surveys={bulkStatusSurveys}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <BulkCloseSurveysDialog
-        open={bulkCloseSurveys.length > 0}
-        onOpenChange={(open) => {
-          if (!open) setBulkCloseSurveys([]);
-        }}
-        centerId={centerIdForApis}
-        surveys={bulkCloseSurveys}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <BulkDeleteSurveysDialog
-        open={bulkDeleteSurveys.length > 0}
-        onOpenChange={(open) => {
-          if (!open) setBulkDeleteSurveys([]);
-        }}
-        centerId={centerIdForApis}
-        surveys={bulkDeleteSurveys}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <DeleteSurveyDialog
-        open={Boolean(deletingSurvey)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeletingSurvey(null);
-          }
-        }}
-        survey={deletingSurvey}
-        centerId={centerIdForApis}
-        onSuccess={(message) => setFeedback(message)}
-      />
-
-      <SurveyResultsDrawer
-        open={Boolean(viewingResultsSurvey)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setViewingResultsSurvey(null);
+      {!isUnbrandedCenter ? (
+        <SurveysTable
+          centerId={centerIdForApis}
+          onEdit={(survey) => {
+            setFeedback(null);
+            setEditingSurvey(survey);
+          }}
+          onAssign={(survey) => {
+            setFeedback(null);
+            setAssigningSurvey(survey);
+          }}
+          onChangeStatus={(survey) => {
+            setFeedback(null);
+            setStatusSurvey(survey);
+          }}
+          onClose={(survey) => {
+            setFeedback(null);
+            setClosingSurvey(survey);
+          }}
+          onBulkChangeStatus={(surveys) => {
+            setFeedback(null);
+            setBulkStatusSurveys(surveys);
+          }}
+          onBulkClose={(surveys) => {
+            setFeedback(null);
+            setBulkCloseSurveys(surveys);
+          }}
+          onBulkDelete={(surveys) => {
+            setFeedback(null);
+            setBulkDeleteSurveys(surveys);
+          }}
+          onDelete={(survey) => {
+            setFeedback(null);
+            setDeletingSurvey(survey);
+          }}
+          onViewResults={(survey) => {
             setResultsInitialTab(undefined);
-          }
-        }}
-        survey={viewingResultsSurvey}
-        centerId={centerIdForApis}
-        initialTab={resultsInitialTab}
-      />
+            setViewingResultsSurvey(survey);
+          }}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <>
+          <SurveyFormDialog
+            open={isFormOpen}
+            onOpenChange={setIsFormOpen}
+            centerId={centerIdForApis}
+            onSuccess={(message) => setFeedback(message)}
+          />
+          <SurveyFormDialog
+            open={Boolean(editingSurvey)}
+            onOpenChange={(open) => {
+              if (!open) setEditingSurvey(null);
+            }}
+            centerId={centerIdForApis}
+            survey={editingSurvey}
+            onSuccess={(message) => setFeedback(message)}
+          />
+        </>
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <AssignSurveyDialog
+          open={Boolean(assigningSurvey)}
+          onOpenChange={(open) => {
+            if (!open) setAssigningSurvey(null);
+          }}
+          centerId={centerIdForApis}
+          survey={assigningSurvey}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <UpdateSurveyStatusDialog
+          open={Boolean(statusSurvey)}
+          onOpenChange={(open) => {
+            if (!open) setStatusSurvey(null);
+          }}
+          centerId={statusSurvey?.center_id ?? centerIdForApis}
+          survey={statusSurvey}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <CloseSurveyDialog
+          open={Boolean(closingSurvey)}
+          onOpenChange={(open) => {
+            if (!open) setClosingSurvey(null);
+          }}
+          centerId={centerIdForApis}
+          survey={closingSurvey}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <BulkUpdateSurveyStatusDialog
+          open={bulkStatusSurveys.length > 0}
+          onOpenChange={(open) => {
+            if (!open) setBulkStatusSurveys([]);
+          }}
+          centerId={centerIdForApis}
+          surveys={bulkStatusSurveys}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <BulkCloseSurveysDialog
+          open={bulkCloseSurveys.length > 0}
+          onOpenChange={(open) => {
+            if (!open) setBulkCloseSurveys([]);
+          }}
+          centerId={centerIdForApis}
+          surveys={bulkCloseSurveys}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <BulkDeleteSurveysDialog
+          open={bulkDeleteSurveys.length > 0}
+          onOpenChange={(open) => {
+            if (!open) setBulkDeleteSurveys([]);
+          }}
+          centerId={centerIdForApis}
+          surveys={bulkDeleteSurveys}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <DeleteSurveyDialog
+          open={Boolean(deletingSurvey)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeletingSurvey(null);
+            }
+          }}
+          survey={deletingSurvey}
+          centerId={centerIdForApis}
+          onSuccess={(message) => setFeedback(message)}
+        />
+      ) : null}
+
+      {!isUnbrandedCenter ? (
+        <SurveyResultsDrawer
+          open={Boolean(viewingResultsSurvey)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setViewingResultsSurvey(null);
+              setResultsInitialTab(undefined);
+            }
+          }}
+          survey={viewingResultsSurvey}
+          centerId={centerIdForApis}
+          initialTab={resultsInitialTab}
+        />
+      ) : null}
     </div>
   );
 }

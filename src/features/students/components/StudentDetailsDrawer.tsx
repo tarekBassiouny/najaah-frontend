@@ -149,6 +149,22 @@ export function StudentDetailsDrawer({
                 <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-gray-800 dark:bg-gray-900">
                   <p>
                     <span className="font-medium text-gray-500">
+                      Device Name:
+                    </span>{" "}
+                    <span className="break-words">
+                      {device.device_name ?? "—"}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-500">
+                      Device Type:
+                    </span>{" "}
+                    <span className="break-words">
+                      {device.device_type ?? "—"}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-500">
                       Device ID:
                     </span>{" "}
                     <span className="break-all">{device.device_id ?? "—"}</span>
@@ -161,6 +177,12 @@ export function StudentDetailsDrawer({
                     <span className="font-medium text-gray-500">OS:</span>{" "}
                     <span className="break-words">
                       {device.os_version ?? "—"}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-500">Status:</span>{" "}
+                    <span className="break-words">
+                      {device.status_label ?? device.status_key ?? "—"}
                     </span>
                   </p>
                   <p>

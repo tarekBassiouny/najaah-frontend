@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +42,16 @@ export function CloseSurveyDialog({
   const mutation = useCloseSurvey({ centerId });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmationText, setConfirmationText] = useState("");
+  const resetLocalState = () => {
+    setErrorMessage(null);
+    setConfirmationText("");
+  };
+
+  useEffect(() => {
+    if (!open) {
+      resetLocalState();
+    }
+  }, [open]);
 
   const handleCloseSurvey = () => {
     if (!survey) {
@@ -57,6 +67,7 @@ export function CloseSurveyDialog({
     mutation.mutate(survey.id, {
       onSuccess: () => {
         onSuccess?.("Survey closed successfully.");
+        resetLocalState();
         onOpenChange(false);
       },
       onError: (error) => {
@@ -76,8 +87,7 @@ export function CloseSurveyDialog({
       onOpenChange={(nextOpen) => {
         if (mutation.isPending) return;
         if (!nextOpen) {
-          setErrorMessage(null);
-          setConfirmationText("");
+          resetLocalState();
         }
         onOpenChange(nextOpen);
       }}
@@ -116,7 +126,13 @@ export function CloseSurveyDialog({
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              resetLocalState();
+              onOpenChange(false);
+            }}
+          >
             Cancel
           </Button>
           <Button

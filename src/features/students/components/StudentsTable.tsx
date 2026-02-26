@@ -488,9 +488,11 @@ export function StudentsTable({
                   const deviceName =
                     device?.device_name ?? device?.model ?? null;
                   const deviceType = device?.device_type ?? null;
-                  const deviceSummary = [deviceName, deviceType]
+                  const deviceMeta = [deviceType, device?.os_version]
                     .filter(Boolean)
                     .join(" · ");
+                  const deviceStatusLabel =
+                    device?.status_label ?? device?.status_key ?? "Active";
                   const activityLabel = analytics
                     ? `${analytics.total_enrollments ?? 0} enrollments · ${
                         analytics.total_sessions ?? 0
@@ -573,22 +575,41 @@ export function StudentsTable({
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {device ? (
-                          <div className="space-y-1">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
-                              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                              Device Active
-                            </span>
-                            {deviceSummary ? (
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {deviceSummary}
+                          <div className="min-w-[170px] space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                              </span>
+                              <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {deviceName ?? "Connected Device"}
                               </p>
-                            ) : null}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="success">
+                                {deviceStatusLabel}
+                              </Badge>
+                              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                                {deviceMeta || "Device connected"}
+                              </p>
+                            </div>
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                            <span className="h-2 w-2 rounded-full bg-gray-400" />
-                            No Device
-                          </span>
+                          <div className="min-w-[170px] space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                              </span>
+                              <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
+                                No Device
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">None</Badge>
+                              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                                Not linked yet
+                              </p>
+                            </div>
+                          </div>
                         )}
                       </TableCell>
                       {hasActions && (

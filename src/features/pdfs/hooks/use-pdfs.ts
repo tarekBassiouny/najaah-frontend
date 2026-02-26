@@ -14,6 +14,7 @@ import {
   updatePdf,
   type CreatePdfPayload,
   type CreatePdfUploadSessionPayload,
+  type FinalizePdfUploadSessionPayload,
   type ListPdfsParams,
   type UpdatePdfPayload,
 } from "../services/pdfs.service";
@@ -105,6 +106,8 @@ export function useDeletePdf() {
 }
 
 export function useCreatePdfUploadSession() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -113,17 +116,27 @@ export function useCreatePdfUploadSession() {
       centerId: string | number;
       payload: CreatePdfUploadSessionPayload;
     }) => createPdfUploadSession(centerId, payload),
+    onSuccess: (_, { centerId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pdfs", centerId] });
+    },
   });
 }
 
 export function useFinalizePdfUploadSession() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
       uploadSessionId,
+      payload,
     }: {
       centerId: string | number;
       uploadSessionId: string | number;
-    }) => finalizePdfUploadSession(centerId, uploadSessionId),
+      payload?: FinalizePdfUploadSessionPayload;
+    }) => finalizePdfUploadSession(centerId, uploadSessionId, payload),
+    onSuccess: (_, { centerId }) => {
+      queryClient.invalidateQueries({ queryKey: ["pdfs", centerId] });
+    },
   });
 }

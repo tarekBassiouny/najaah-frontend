@@ -484,6 +484,13 @@ export function StudentsTable({
                     student.status_label,
                   );
                   const analytics = student.analytics ?? null;
+                  const device = student.device ?? null;
+                  const deviceName =
+                    device?.device_name ?? device?.model ?? null;
+                  const deviceType = device?.device_type ?? null;
+                  const deviceSummary = [deviceName, deviceType]
+                    .filter(Boolean)
+                    .join(" · ");
                   const activityLabel = analytics
                     ? `${analytics.total_enrollments ?? 0} enrollments · ${
                         analytics.total_sessions ?? 0
@@ -565,11 +572,18 @@ export function StudentsTable({
                         {lastActivityLabel}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {student.device ? (
-                          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                            Device Active
-                          </span>
+                        {device ? (
+                          <div className="space-y-1">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                              Device Active
+                            </span>
+                            {deviceSummary ? (
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {deviceSummary}
+                              </p>
+                            ) : null}
+                          </div>
                         ) : (
                           <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                             <span className="h-2 w-2 rounded-full bg-gray-400" />

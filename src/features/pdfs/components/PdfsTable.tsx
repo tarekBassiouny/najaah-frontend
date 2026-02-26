@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
 
-type PdfStatus = "active" | "processing" | "failed" | string;
+type PdfStatus = "active" | "processing" | "failed" | string | number;
 
 const statusConfig: Record<
   string,
@@ -56,6 +56,15 @@ const statusConfig: Record<
 };
 
 function getStatusConfig(status: PdfStatus) {
+  if (typeof status === "number") {
+    if (status === 0) return { variant: "warning" as const, label: "Pending" };
+    if (status === 1)
+      return { variant: "warning" as const, label: "Uploading" };
+    if (status === 2) return { variant: "success" as const, label: "Ready" };
+    if (status === 3) return { variant: "error" as const, label: "Failed" };
+    return { variant: "default" as const, label: String(status) };
+  }
+
   const normalized = status.toLowerCase();
   return (
     statusConfig[normalized] || {
@@ -67,9 +76,17 @@ function getStatusConfig(status: PdfStatus) {
 
 type PdfsTableProps = {
   centerId?: string | number;
+  onView?: (_pdf: Pdf) => void;
+  onEdit?: (_pdf: Pdf) => void;
+  onDelete?: (_pdf: Pdf) => void;
 };
 
-export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
+export function PdfsTable({
+  centerId: centerIdProp,
+  onView,
+  onEdit,
+  onDelete,
+}: PdfsTableProps) {
   const queryClient = useQueryClient();
   const { showToast } = useModal();
   const tenant = useTenant();
@@ -407,9 +424,19 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                         {pdf.title ?? "—"}
                       </TableCell>
                       <TableCell>
-                        {pdf.status ? (
-                          <Badge variant={getStatusConfig(pdf.status).variant}>
-                            {getStatusConfig(pdf.status).label}
+                        {pdf.status != null || pdf.upload_status != null ? (
+                          <Badge
+                            variant={
+                              getStatusConfig(
+                                pdf.upload_status ?? pdf.status ?? "",
+                              ).variant
+                            }
+                          >
+                            {
+                              getStatusConfig(
+                                pdf.upload_status ?? pdf.status ?? "",
+                              ).label
+                            }
                           </Badge>
                         ) : (
                           "—"
@@ -444,20 +471,58 @@ export function PdfsTable({ centerId: centerIdProp }: PdfsTableProps) {
                                 shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
-                              <Link
-                                href={`/centers/${centerId}/pdfs/${pdf.id}`}
-                                className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                View
-                              </Link>
-                              <Link
-                                href={`/centers/${centerId}/pdfs/${pdf.id}/edit`}
-                                className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                Edit
-                              </Link>
+                              {onView ? (
+                                <button
+                                  type="button"
+                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => {
+                                    onView(pdf);
+                                    setOpenMenuId(null);
+                                  }}
+                                >
+                                  View details
+                                </button>
+                              ) : centerId ? (
+                                <Link
+                                  href={`/centers/${centerId}/pdfs/${pdf.id}`}
+                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => setOpenMenuId(null)}
+                                >
+                                  View details
+                                </Link>
+                              ) : null}
+                              {onEdit ? (
+                                <button
+                                  type="button"
+                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => {
+                                    onEdit(pdf);
+                                    setOpenMenuId(null);
+                                  }}
+                                >
+                                  Edit PDF
+                                </button>
+                              ) : centerId ? (
+                                <Link
+                                  href={`/centers/${centerId}/pdfs/${pdf.id}/edit`}
+                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  onClick={() => setOpenMenuId(null)}
+                                >
+                                  Edit PDF
+                                </Link>
+                              ) : null}
+                              {onDelete ? (
+                                <button
+                                  type="button"
+                                  className="block w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                                  onClick={() => {
+                                    onDelete(pdf);
+                                    setOpenMenuId(null);
+                                  }}
+                                >
+                                  Delete PDF
+                                </button>
+                              ) : null}
                             </DropdownContent>
                           </Dropdown>
                         </div>

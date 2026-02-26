@@ -122,10 +122,11 @@ export function SearchableMultiSelect<T = string>({
 }: SearchableMultiSelectProps<T>) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [internalSearch, setInternalSearch] = React.useState("");
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const triggerRef = React.useRef<HTMLDivElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const search = searchValue ?? internalSearch;
+  const isTriggerDisabled = disabled || isLoading;
 
   const selectedKeys = React.useMemo(
     () => new Set(values.map((value) => toKey(value))),
@@ -241,14 +242,35 @@ export function SearchableMultiSelect<T = string>({
 
   return (
     <div className={cn("relative", className)}>
-      <button
+      <div
         ref={triggerRef}
-        type="button"
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        disabled={disabled || isLoading}
-        onClick={() => !disabled && !isLoading && setIsOpen(!isOpen)}
+        aria-disabled={isTriggerDisabled}
+        tabIndex={isTriggerDisabled ? -1 : 0}
+        onClick={() => !isTriggerDisabled && setIsOpen(!isOpen)}
+        onKeyDown={(event) => {
+          if (isTriggerDisabled) return;
+
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setIsOpen(true);
+            return;
+          }
+
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setIsOpen((prev) => !prev);
+            return;
+          }
+
+          if (event.key === "Escape" && isOpen) {
+            event.preventDefault();
+            setIsOpen(false);
+            updateSearch("");
+          }
+        }}
         className={cn(
           "group flex h-10 w-full items-center justify-between gap-2 rounded-lg border px-3 text-sm outline-none transition-all duration-200",
           "border-gray-200 bg-white text-gray-900 shadow-sm",
@@ -256,7 +278,7 @@ export function SearchableMultiSelect<T = string>({
           "hover:border-gray-300 hover:shadow-md dark:hover:border-gray-600",
           "focus:border-primary focus:ring-2 focus:ring-primary/20",
           isOpen && "border-primary ring-2 ring-primary/20",
-          "disabled:cursor-not-allowed disabled:opacity-50",
+          isTriggerDisabled && "cursor-not-allowed opacity-50",
           triggerClassName,
         )}
       >
@@ -280,6 +302,10 @@ export function SearchableMultiSelect<T = string>({
           {values.length > 0 && !isLoading ? (
             <button
               type="button"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
               onClick={clearSelections}
               className="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
               aria-label="Clear selections"
@@ -306,7 +332,7 @@ export function SearchableMultiSelect<T = string>({
             )}
           />
         </span>
-      </button>
+      </div>
 
       {isOpen ? (
         <div

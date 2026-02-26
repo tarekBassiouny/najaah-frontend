@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,6 +89,17 @@ export function BulkCloseSurveysDialog({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkSurveyActionResult | null>(null);
   const [confirmationText, setConfirmationText] = useState("");
+  const resetLocalState = () => {
+    setErrorMessage(null);
+    setResult(null);
+    setConfirmationText("");
+  };
+
+  useEffect(() => {
+    if (!open) {
+      resetLocalState();
+    }
+  }, [open]);
 
   const handleCloseSurveys = () => {
     if (surveys.length === 0) {
@@ -113,6 +124,7 @@ export function BulkCloseSurveysDialog({
           const failed = readCount(data, "failed");
           if (skipped === 0 && failed === 0) {
             onSuccess?.("Selected surveys were closed successfully.");
+            resetLocalState();
             onOpenChange(false);
             return;
           }
@@ -137,9 +149,7 @@ export function BulkCloseSurveysDialog({
       onOpenChange={(nextOpen) => {
         if (mutation.isPending) return;
         if (!nextOpen) {
-          setErrorMessage(null);
-          setResult(null);
-          setConfirmationText("");
+          resetLocalState();
         }
         onOpenChange(nextOpen);
       }}
@@ -242,7 +252,13 @@ export function BulkCloseSurveysDialog({
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              resetLocalState();
+              onOpenChange(false);
+            }}
+          >
             Cancel
           </Button>
           <Button

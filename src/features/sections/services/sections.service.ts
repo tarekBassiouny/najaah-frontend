@@ -357,6 +357,9 @@ export async function detachSectionPdf(
 ) {
   const { data } = await http.delete(
     `${basePath(centerId, courseId)}/${sectionId}/pdfs/${pdfId}`,
+    {
+      data: { pdf_id: pdfId },
+    },
   );
   return data;
 }

@@ -86,9 +86,15 @@ export default function CenterPdfDetailPage({ params }: PageProps) {
               <p>
                 <span className="font-medium">Status:</span> {pdf.status ?? "—"}
               </p>
+              {pdf.upload_status != null ? (
+                <p>
+                  <span className="font-medium">Upload Status:</span>{" "}
+                  {String(pdf.upload_status)}
+                </p>
+              ) : null}
               <p>
                 <span className="font-medium">File Size:</span>{" "}
-                {String(pdf.file_size ?? "—")}
+                {pdf.file_size_kb != null ? `${pdf.file_size_kb} KB` : "—"}
               </p>
               <p>
                 <span className="font-medium">Created:</span>{" "}

@@ -1,6 +1,8 @@
 export type StudentDevice = {
   id?: number | string | null;
   device_id?: string | null;
+  device_name?: string | null;
+  device_type?: string | null;
   model?: string | null;
   os_version?: string | null;
   status?: number | string | null;
@@ -106,10 +108,8 @@ export type StudentProfile = {
   status_label: "Active" | "Inactive" | "Banned";
 
   last_activity_at: string | null;
-  active_device: {
-    model: string;
-    device_id: string;
-  } | null;
+  active_device?: StudentDevice | null;
+  device?: StudentDevice | null;
   total_enrollments: number;
   device_changes_count: number;
 

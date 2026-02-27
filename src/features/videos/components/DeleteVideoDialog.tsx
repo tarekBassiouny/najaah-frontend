@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { isAxiosError } from "axios";
+import {
+  getAdminApiErrorMessage,
+  getAdminResponseMessage,
+} from "@/lib/admin-response";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +25,10 @@ type DeleteVideoDialogProps = {
 };
 
 function getErrorMessage(error: unknown) {
-  if (isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    if (data?.message) return data.message;
-  }
-
-  return "Unable to delete video. Please try again.";
+  return getAdminApiErrorMessage(
+    error,
+    "Unable to delete video. Please try again.",
+  );
 }
 
 export function DeleteVideoDialog({
@@ -48,10 +49,14 @@ export function DeleteVideoDialog({
     deleteMutation.mutate(
       { centerId, videoId: video.id },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
           onOpenChange(false);
-          onSuccess?.("Video deleted successfully.");
-          showToast("Video deleted successfully.", "success");
+          const successMessage = getAdminResponseMessage(
+            response,
+            "Video deleted successfully.",
+          );
+          onSuccess?.(successMessage);
+          showToast(successMessage, "success");
         },
         onError: (error) => {
           setErrorMessage(getErrorMessage(error));

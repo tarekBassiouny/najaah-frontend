@@ -87,6 +87,9 @@ export default function PdfsPage() {
       <PdfDetailsDrawer
         open={Boolean(viewingPdf)}
         pdf={viewingPdf}
+        centerId={centerId ?? undefined}
+        onEdit={(pdf) => setEditingPdf(pdf)}
+        onDelete={(pdf) => setDeletingPdf(pdf)}
         onOpenChange={(open) => {
           if (!open) setViewingPdf(null);
         }}

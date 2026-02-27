@@ -409,3 +409,68 @@ export async function bulkUnpublishSections(
   );
   return normalizeAdminActionResult<BulkSectionActionResult>(data);
 }
+
+export type BulkMediaActionResult = {
+  attached?: number;
+  detached?: number;
+  skipped?: number;
+  failed?: number;
+  details?: {
+    attached_ids?: Array<string | number>;
+    detached_ids?: Array<string | number>;
+    skipped?: Array<{ id: string | number; reason: string }>;
+    failed?: Array<{ id: string | number; reason: string }>;
+  };
+};
+
+export async function bulkAttachSectionPdfs(
+  centerId: string | number,
+  courseId: string | number,
+  sectionId: string | number,
+  pdfIds: Array<string | number>,
+): Promise<AdminActionResult<BulkMediaActionResult>> {
+  const { data } = await http.post(
+    `${basePath(centerId, courseId)}/${sectionId}/pdfs/bulk-attach`,
+    { pdf_ids: pdfIds },
+  );
+  return normalizeAdminActionResult<BulkMediaActionResult>(data);
+}
+
+export async function bulkDetachSectionPdfs(
+  centerId: string | number,
+  courseId: string | number,
+  sectionId: string | number,
+  pdfIds: Array<string | number>,
+): Promise<AdminActionResult<BulkMediaActionResult>> {
+  const { data } = await http.post(
+    `${basePath(centerId, courseId)}/${sectionId}/pdfs/bulk-detach`,
+    { pdf_ids: pdfIds },
+  );
+  return normalizeAdminActionResult<BulkMediaActionResult>(data);
+}
+
+export async function bulkAttachSectionVideos(
+  centerId: string | number,
+  courseId: string | number,
+  sectionId: string | number,
+  videoIds: Array<string | number>,
+): Promise<AdminActionResult<BulkMediaActionResult>> {
+  const { data } = await http.post(
+    `${basePath(centerId, courseId)}/${sectionId}/videos/bulk-attach`,
+    { video_ids: videoIds },
+  );
+  return normalizeAdminActionResult<BulkMediaActionResult>(data);
+}
+
+export async function bulkDetachSectionVideos(
+  centerId: string | number,
+  courseId: string | number,
+  sectionId: string | number,
+  videoIds: Array<string | number>,
+): Promise<AdminActionResult<BulkMediaActionResult>> {
+  const { data } = await http.post(
+    `${basePath(centerId, courseId)}/${sectionId}/videos/bulk-detach`,
+    { video_ids: videoIds },
+  );
+  return normalizeAdminActionResult<BulkMediaActionResult>(data);
+}

@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { usePdfs } from "@/features/pdfs/hooks/use-pdfs";
-import { deletePdf } from "@/features/pdfs/services/pdfs.service";
+import { getPdfSignedUrl } from "@/features/pdfs/services/pdfs.service";
+import { BulkDeletePdfsDialog } from "@/features/pdfs/components/BulkDeletePdfsDialog";
 import { useTenant } from "@/app/tenant-provider";
-import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import type { Pdf } from "@/features/pdfs/types/pdf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +20,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,6 +38,23 @@ import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
+const ALL_STATUS_VALUE = "all";
+const ALL_SOURCE_TYPE_VALUE = "all";
+const ALL_SOURCE_PROVIDER_VALUE = "all";
+
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return "—";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
 
 type PdfStatus = "active" | "processing" | "failed" | string | number;
 
@@ -74,6 +96,49 @@ function getStatusConfig(status: PdfStatus) {
   );
 }
 
+function resolvePdfSourceTypeLabel(pdf: Pdf) {
+  const rawType = String(pdf.source_type ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (rawType === "1" || rawType === "upload") {
+    return "Upload";
+  }
+
+  if (rawType === "0" || rawType === "url") {
+    return "URL";
+  }
+
+  return pdf.source_url ? "URL" : "Upload";
+}
+
+function resolvePdfProviderLabel(pdf: Pdf) {
+  const rawProvider = String(pdf.source_provider ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (rawProvider === "spaces") {
+    return "Najaah App";
+  }
+
+  if (rawProvider === "custom") {
+    return "Custom";
+  }
+
+  if (rawProvider) {
+    return rawProvider.charAt(0).toUpperCase() + rawProvider.slice(1);
+  }
+
+  return resolvePdfSourceTypeLabel(pdf) === "Upload" ? "Najaah App" : "Custom";
+}
+
+function resolvePdfTags(pdf: Pdf) {
+  if (!Array.isArray(pdf.tags)) return [];
+  return pdf.tags
+    .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
+    .filter(Boolean);
+}
+
 type PdfsTableProps = {
   centerId?: string | number;
   onView?: (_pdf: Pdf) => void;
@@ -87,7 +152,6 @@ export function PdfsTable({
   onEdit,
   onDelete,
 }: PdfsTableProps) {
-  const queryClient = useQueryClient();
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -95,18 +159,48 @@ export function PdfsTable({
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<string>(
+    ALL_SOURCE_TYPE_VALUE,
+  );
+  const [sourceProviderFilter, setSourceProviderFilter] = useState<string>(
+    ALL_SOURCE_PROVIDER_VALUE,
+  );
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedPdfs, setSelectedPdfs] = useState<Record<string, Pdf>>({});
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
 
   const params = useMemo(
     () => ({
       centerId: centerId ?? undefined,
       page,
       per_page: perPage,
-      search: query || undefined,
+      q: query || undefined,
+      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      source_type:
+        sourceTypeFilter === ALL_SOURCE_TYPE_VALUE
+          ? undefined
+          : sourceTypeFilter,
+      source_provider:
+        sourceProviderFilter === ALL_SOURCE_PROVIDER_VALUE
+          ? undefined
+          : sourceProviderFilter,
+      created_from: createdFrom || undefined,
+      created_to: createdTo || undefined,
     }),
-    [centerId, page, perPage, query],
+    [
+      centerId,
+      page,
+      perPage,
+      query,
+      statusFilter,
+      sourceTypeFilter,
+      sourceProviderFilter,
+      createdFrom,
+      createdTo,
+    ],
   );
 
   const { data, isLoading, isError, isFetching } = usePdfs(params);
@@ -132,8 +226,20 @@ export function PdfsTable({
     pagePdfIds.every((id) => Boolean(selectedPdfs[id]));
   const showEmptyState =
     !isLoadingState && !isError && items.length === 0 && Boolean(centerId);
-  const hasActiveFilters = search.trim().length > 0;
-  const activeFilterCount = search.trim().length > 0 ? 1 : 0;
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== ALL_STATUS_VALUE ||
+    sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ||
+    sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ||
+    createdFrom.trim().length > 0 ||
+    createdTo.trim().length > 0;
+  const activeFilterCount =
+    (search.trim().length > 0 ? 1 : 0) +
+    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ? 1 : 0) +
+    (sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ? 1 : 0) +
+    (createdFrom.trim().length > 0 ? 1 : 0) +
+    (createdTo.trim().length > 0 ? 1 : 0);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -146,7 +252,17 @@ export function PdfsTable({
 
   useEffect(() => {
     setSelectedPdfs({});
-  }, [centerId, page, perPage, query]);
+  }, [
+    centerId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    sourceTypeFilter,
+    sourceProviderFilter,
+    createdFrom,
+    createdTo,
+  ]);
 
   const togglePdfSelection = (pdf: Pdf) => {
     const id = String(pdf.id);
@@ -182,46 +298,16 @@ export function PdfsTable({
     });
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedPdfsList.length === 0 || centerId == null || isBulkDeleting) {
+  const handleBulkDelete = () => {
+    if (selectedPdfsList.length === 0 || centerId == null) {
       return;
     }
+    setIsBulkDeleteDialogOpen(true);
+  };
 
-    const confirmed = window.confirm(
-      `Delete ${selectedPdfsList.length} selected PDF${
-        selectedPdfsList.length === 1 ? "" : "s"
-      }?`,
-    );
-    if (!confirmed) return;
-
-    setIsBulkDeleting(true);
-
-    let deletedCount = 0;
-    for (const pdf of selectedPdfsList) {
-      try {
-        await deletePdf(centerId, pdf.id);
-        deletedCount += 1;
-      } catch {
-        // Continue deleting remaining selections even if one fails.
-      }
-    }
-
-    await queryClient.invalidateQueries({ queryKey: ["pdfs", centerId] });
+  const handleBulkDeleteSuccess = (message: string) => {
+    showToast(message, "success");
     setSelectedPdfs({});
-    setIsBulkDeleting(false);
-
-    if (deletedCount === selectedPdfsList.length) {
-      showToast(
-        `Deleted ${deletedCount} PDF${deletedCount === 1 ? "" : "s"} successfully.`,
-        "success",
-      );
-      return;
-    }
-
-    showToast(
-      `Deleted ${deletedCount} of ${selectedPdfsList.length} selected PDFs.`,
-      "error",
-    );
   };
 
   return (
@@ -234,6 +320,11 @@ export function PdfsTable({
         onClear={() => {
           setSearch("");
           setQuery("");
+          setStatusFilter(ALL_STATUS_VALUE);
+          setSourceTypeFilter(ALL_SOURCE_TYPE_VALUE);
+          setSourceProviderFilter(ALL_SOURCE_PROVIDER_VALUE);
+          setCreatedFrom("");
+          setCreatedTo("");
           setPage(1);
         }}
         summary={
@@ -245,7 +336,7 @@ export function PdfsTable({
             <>Select a center to view PDFs.</>
           )
         }
-        gridClassName="grid-cols-1 md:grid-cols-2"
+        gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
       >
         <div className="relative">
           <svg
@@ -264,7 +355,7 @@ export function PdfsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search PDFs..."
+            placeholder="Search title, description, source ID..."
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             disabled={!centerId}
           />
@@ -299,10 +390,88 @@ export function PdfsTable({
             </svg>
           </button>
         </div>
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={true}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            setStatusFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="uploading">Uploading</SelectItem>
+            <SelectItem value="ready">Ready</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceTypeFilter}
+          onValueChange={(value) => {
+            setSourceTypeFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Source Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_TYPE_VALUE}>
+              All source types
+            </SelectItem>
+            <SelectItem value="upload">Upload</SelectItem>
+            <SelectItem value="url">URL</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceProviderFilter}
+          onValueChange={(value) => {
+            setSourceProviderFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Provider" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
+              All providers
+            </SelectItem>
+            <SelectItem value="spaces">Najaah App</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Input
+          type="date"
+          value={createdFrom}
+          max={createdTo || undefined}
+          onChange={(event) => {
+            setCreatedFrom(event.target.value);
+            setPage(1);
+          }}
+          title="Created from date"
+          disabled={!centerId}
+        />
+
+        <Input
+          type="date"
+          value={createdTo}
+          min={createdFrom || undefined}
+          onChange={(event) => {
+            setCreatedTo(event.target.value);
+            setPage(1);
+          }}
+          title="Created to date"
+          disabled={!centerId}
         />
       </ListingFilters>
 
@@ -333,7 +502,7 @@ export function PdfsTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[760px]">
+          <Table className="min-w-[960px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
                 {enableBulkSelection ? (
@@ -349,8 +518,12 @@ export function PdfsTable({
                   </TableHead>
                 ) : null}
                 <TableHead className="font-medium">Title</TableHead>
+                <TableHead className="font-medium">Tags</TableHead>
+                <TableHead className="font-medium">Provider</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">File Size</TableHead>
+                <TableHead className="font-medium">Size</TableHead>
+                <TableHead className="font-medium">Created</TableHead>
+                <TableHead className="font-medium">Used In</TableHead>
                 <TableHead className="w-10 text-right font-medium">
                   Actions
                 </TableHead>
@@ -370,10 +543,22 @@ export function PdfsTable({
                         <Skeleton className="h-4 w-48" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-5 w-20 rounded-full" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-16 rounded-full" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="ml-auto h-8 w-12" />
@@ -384,7 +569,7 @@ export function PdfsTable({
               ) : showEmptyState ? (
                 <TableRow>
                   <TableCell
-                    colSpan={enableBulkSelection ? 5 : 4}
+                    colSpan={enableBulkSelection ? 9 : 8}
                     className="h-48"
                   >
                     <EmptyState
@@ -402,6 +587,9 @@ export function PdfsTable({
                 items.map((pdf, index) => {
                   const shouldOpenUp =
                     items.length > 4 && index >= items.length - 2;
+                  const sourceTypeLabel = resolvePdfSourceTypeLabel(pdf);
+                  const providerLabel = resolvePdfProviderLabel(pdf);
+                  const tags = resolvePdfTags(pdf);
 
                   return (
                     <TableRow
@@ -416,12 +604,67 @@ export function PdfsTable({
                             checked={Boolean(selectedPdfs[String(pdf.id)])}
                             onChange={() => togglePdfSelection(pdf)}
                             aria-label={`Select ${pdf.title ?? `pdf ${pdf.id}`}`}
-                            disabled={isBulkDeleting}
+                            disabled={isBulkDeleteDialogOpen}
                           />
                         </TableCell>
                       ) : null}
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {pdf.title ?? "—"}
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                            {pdf.title ?? "—"}
+                          </p>
+                          <p
+                            className="line-clamp-2 max-w-sm text-xs text-gray-500 dark:text-gray-400"
+                            title={
+                              pdf.description ??
+                              pdf.description_translations?.en ??
+                              pdf.description_translations?.ar ??
+                              undefined
+                            }
+                          >
+                            {pdf.description ??
+                              pdf.description_translations?.en ??
+                              pdf.description_translations?.ar ??
+                              "No description"}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {tags.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1">
+                            {tags.slice(0, 2).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="max-w-[120px] truncate text-[10px]"
+                                title={tag}
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                            {tags.length > 2 ? (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px]"
+                                title={tags.slice(2).join(", ")}
+                              >
+                                +{tags.length - 2}
+                              </Badge>
+                            ) : null}
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                            {providerLabel}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {sourceTypeLabel}
+                          </p>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {pdf.status != null || pdf.upload_status != null ? (
@@ -453,6 +696,19 @@ export function PdfsTable({
                                 ? String(pdf.file_size)
                                 : "—"}
                       </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {formatDate(pdf.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {typeof pdf.courses_count === "number" ? (
+                          <Badge variant="secondary">
+                            {pdf.courses_count}{" "}
+                            {pdf.courses_count === 1 ? "course" : "courses"}
+                          </Badge>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end">
                           <Dropdown
@@ -471,6 +727,59 @@ export function PdfsTable({
                                 shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
+                              {centerId && pdf.source_id ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={async () => {
+                                      try {
+                                        const { url } = await getPdfSignedUrl(
+                                          centerId,
+                                          pdf.id,
+                                          "inline",
+                                        );
+                                        window.open(url, "_blank");
+                                      } catch {
+                                        showToast(
+                                          "Failed to get preview URL",
+                                          "error",
+                                        );
+                                      }
+                                      setOpenMenuId(null);
+                                    }}
+                                  >
+                                    Preview
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={async () => {
+                                      try {
+                                        const { url } = await getPdfSignedUrl(
+                                          centerId,
+                                          pdf.id,
+                                          "attachment",
+                                        );
+                                        const link =
+                                          document.createElement("a");
+                                        link.href = url;
+                                        link.download =
+                                          pdf.title ?? "document.pdf";
+                                        link.click();
+                                      } catch {
+                                        showToast(
+                                          "Failed to get download URL",
+                                          "error",
+                                        );
+                                      }
+                                      setOpenMenuId(null);
+                                    }}
+                                  >
+                                    Download
+                                  </button>
+                                </>
+                              ) : null}
                               {onView ? (
                                 <button
                                   type="button"
@@ -482,14 +791,6 @@ export function PdfsTable({
                                 >
                                   View details
                                 </button>
-                              ) : centerId ? (
-                                <Link
-                                  href={`/centers/${centerId}/pdfs/${pdf.id}`}
-                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                  onClick={() => setOpenMenuId(null)}
-                                >
-                                  View details
-                                </Link>
                               ) : null}
                               {onEdit ? (
                                 <button
@@ -502,14 +803,6 @@ export function PdfsTable({
                                 >
                                   Edit PDF
                                 </button>
-                              ) : centerId ? (
-                                <Link
-                                  href={`/centers/${centerId}/pdfs/${pdf.id}/edit`}
-                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                  onClick={() => setOpenMenuId(null)}
-                                >
-                                  Edit PDF
-                                </Link>
                               ) : null}
                               {onDelete ? (
                                 <button
@@ -546,9 +839,9 @@ export function PdfsTable({
               size="sm"
               variant="outline"
               onClick={handleBulkDelete}
-              disabled={isLoadingState || isBulkDeleting}
+              disabled={isLoadingState}
             >
-              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+              Delete Selected
             </Button>
           </div>
         </div>
@@ -570,6 +863,16 @@ export function PdfsTable({
           />
         </div>
       )}
+
+      {centerId ? (
+        <BulkDeletePdfsDialog
+          open={isBulkDeleteDialogOpen}
+          onOpenChange={setIsBulkDeleteDialogOpen}
+          pdfs={selectedPdfsList}
+          centerId={centerId}
+          onSuccess={handleBulkDeleteSuccess}
+        />
+      ) : null}
     </ListingCard>
   );
 }

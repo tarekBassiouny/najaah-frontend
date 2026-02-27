@@ -6,18 +6,30 @@ import {
 } from "@tanstack/react-query";
 import {
   createVideo,
+  createVideoUpload,
   createVideoUploadSession,
   deleteVideo,
   getVideo,
+  getVideoUploadSession,
+  listVideoUploadSessions,
   listVideos,
+  previewVideo,
   updateVideo,
-  type CreateVideoPayload,
+  type CreateVideoFromUrlPayload,
+  type CreateVideoUploadPayload,
   type CreateVideoUploadSessionPayload,
+  type ListVideoUploadSessionsParams,
   type ListVideosParams,
   type UpdateVideoPayload,
 } from "../services/videos.service";
 import type { PaginatedResponse } from "@/types/pagination";
-import type { Video } from "@/features/videos/types/video";
+import type {
+  Video,
+  VideoCreateUploadResult,
+  VideoPreviewResponse,
+  VideoUploadSession,
+} from "@/features/videos/types/video";
+import type { AdminActionResult } from "@/lib/admin-response";
 
 type UseVideosOptions = Omit<
   UseQueryOptions<PaginatedResponse<Video>>,
@@ -52,6 +64,42 @@ export function useVideo(
   });
 }
 
+type UseVideoUploadSessionsOptions = Omit<
+  UseQueryOptions<PaginatedResponse<VideoUploadSession>>,
+  "queryKey" | "queryFn"
+>;
+
+export function useVideoUploadSessions(
+  params: ListVideoUploadSessionsParams,
+  options?: UseVideoUploadSessionsOptions,
+) {
+  return useQuery({
+    queryKey: ["video-upload-sessions", params.centerId, params],
+    queryFn: () => listVideoUploadSessions(params),
+    enabled: !!params.centerId,
+    placeholderData: (previous) => previous,
+    ...options,
+  });
+}
+
+type UseVideoUploadSessionOptions = Omit<
+  UseQueryOptions<VideoUploadSession>,
+  "queryKey" | "queryFn"
+>;
+
+export function useVideoUploadSession(
+  centerId: string | number | undefined,
+  uploadSessionId: string | number | undefined,
+  options?: UseVideoUploadSessionOptions,
+) {
+  return useQuery({
+    queryKey: ["video-upload-session", centerId, uploadSessionId],
+    queryFn: () => getVideoUploadSession(centerId!, uploadSessionId!),
+    enabled: !!centerId && !!uploadSessionId,
+    ...options,
+  });
+}
+
 export function useCreateVideo() {
   const queryClient = useQueryClient();
 
@@ -61,10 +109,33 @@ export function useCreateVideo() {
       payload,
     }: {
       centerId: string | number;
-      payload: CreateVideoPayload;
-    }) => createVideo(centerId, payload),
+      payload: CreateVideoFromUrlPayload;
+    }): Promise<Video> => createVideo(centerId, payload),
     onSuccess: (_, { centerId }) => {
       queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
+    },
+  });
+}
+
+export function useCreateVideoUpload() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      payload,
+    }: {
+      centerId: string | number;
+      payload: CreateVideoUploadPayload;
+    }): Promise<VideoCreateUploadResult> =>
+      createVideoUpload(centerId, payload),
+    onSuccess: (result, { centerId }) => {
+      queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
+      if (result.video?.id != null) {
+        queryClient.invalidateQueries({
+          queryKey: ["video", centerId, result.video.id],
+        });
+      }
     },
   });
 }
@@ -99,7 +170,7 @@ export function useDeleteVideo() {
     }: {
       centerId: string | number;
       videoId: string | number;
-    }) => deleteVideo(centerId, videoId),
+    }): Promise<AdminActionResult> => deleteVideo(centerId, videoId),
     onSuccess: (_, { centerId }) => {
       queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
     },
@@ -107,6 +178,8 @@ export function useDeleteVideo() {
 }
 
 export function useCreateVideoUploadSession() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       centerId,
@@ -114,6 +187,27 @@ export function useCreateVideoUploadSession() {
     }: {
       centerId: string | number;
       payload: CreateVideoUploadSessionPayload;
-    }) => createVideoUploadSession(centerId, payload),
+    }): Promise<VideoUploadSession> =>
+      createVideoUploadSession(centerId, payload),
+    onSuccess: (_, { centerId, payload }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["video-upload-sessions", centerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["video", centerId, payload.video_id],
+      });
+    },
+  });
+}
+
+export function usePreviewVideo() {
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      videoId,
+    }: {
+      centerId: string | number;
+      videoId: string | number;
+    }): Promise<VideoPreviewResponse> => previewVideo(centerId, videoId),
   });
 }

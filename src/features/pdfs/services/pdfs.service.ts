@@ -173,3 +173,24 @@ export async function uploadPdfToStorage(
     withCredentials: false,
   });
 }
+
+export type PdfSignedUrlResponse = {
+  url: string;
+  disposition?: string;
+  expires_at: string;
+  expires_in: number;
+};
+
+export async function getPdfSignedUrl(
+  centerId: string | number,
+  pdfId: string | number,
+  disposition: "inline" | "attachment" = "inline",
+): Promise<PdfSignedUrlResponse> {
+  const { data } = await http.get<{ data?: PdfSignedUrlResponse }>(
+    `${basePath(centerId)}/${pdfId}/signed-url`,
+    {
+      params: { disposition },
+    },
+  );
+  return (data?.data ?? data) as PdfSignedUrlResponse;
+}

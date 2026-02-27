@@ -8,13 +8,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Pdf } from "@/features/pdfs/types/pdf";
 import { formatDateTime } from "@/lib/format-date-time";
+import { getPdfSignedUrl } from "@/features/pdfs/services/pdfs.service";
+import { useModal } from "@/components/ui/modal-store";
 
 type PdfDetailsDrawerProps = {
   open: boolean;
   onOpenChange: (_open: boolean) => void;
   pdf?: Pdf | null;
+  centerId?: string | number;
+  onEdit?: (_pdf: Pdf) => void;
+  onDelete?: (_pdf: Pdf) => void;
 };
 
 function resolveStatus(status: string | number | null | undefined) {
@@ -60,7 +66,11 @@ export function PdfDetailsDrawer({
   open,
   onOpenChange,
   pdf,
+  centerId,
+  onEdit,
+  onDelete,
 }: PdfDetailsDrawerProps) {
+  const { showToast } = useModal();
   const title =
     pdf?.title ??
     pdf?.title_translations?.en ??
@@ -72,6 +82,30 @@ export function PdfDetailsDrawer({
     pdf?.description_translations?.ar ??
     "No description";
   const status = resolveStatus(pdf?.upload_status ?? pdf?.status);
+  const canUseSignedUrl = Boolean(centerId && pdf?.source_id);
+
+  const handlePreview = async () => {
+    if (!centerId || !pdf) return;
+    try {
+      const { url } = await getPdfSignedUrl(centerId, pdf.id, "inline");
+      window.open(url, "_blank");
+    } catch {
+      showToast("Failed to get preview URL", "error");
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!centerId || !pdf) return;
+    try {
+      const { url } = await getPdfSignedUrl(centerId, pdf.id, "attachment");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = pdf.title ?? "document.pdf";
+      link.click();
+    } catch {
+      showToast("Failed to get download URL", "error");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,6 +116,49 @@ export function PdfDetailsDrawer({
               {title}
             </DialogTitle>
             <DialogDescription>{description}</DialogDescription>
+            {canUseSignedUrl || onEdit || onDelete ? (
+              <div className="flex flex-wrap gap-2 pt-3">
+                {canUseSignedUrl ? (
+                  <>
+                    <Button size="sm" variant="outline" onClick={handlePreview}>
+                      Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleDownload}
+                    >
+                      Download
+                    </Button>
+                  </>
+                ) : null}
+                {onEdit && pdf ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      onEdit(pdf);
+                      onOpenChange(false);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                ) : null}
+                {onDelete && pdf ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 hover:text-red-600"
+                    onClick={() => {
+                      onDelete(pdf);
+                      onOpenChange(false);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
           </DialogHeader>
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
@@ -119,6 +196,35 @@ export function PdfDetailsDrawer({
                 </div>
               </div>
             </section>
+
+            {typeof pdf?.courses_count === "number" ||
+            typeof pdf?.sections_count === "number" ? (
+              <section className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Usage
+                </h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {typeof pdf?.courses_count === "number" ? (
+                    <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                      <p className="text-xs text-gray-500">Courses</p>
+                      <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                        {pdf.courses_count}{" "}
+                        {pdf.courses_count === 1 ? "course" : "courses"}
+                      </p>
+                    </div>
+                  ) : null}
+                  {typeof pdf?.sections_count === "number" ? (
+                    <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                      <p className="text-xs text-gray-500">Sections</p>
+                      <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                        {pdf.sections_count}{" "}
+                        {pdf.sections_count === 1 ? "section" : "sections"}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">

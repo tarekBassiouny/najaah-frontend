@@ -20,10 +20,14 @@ export type Pdf = {
   file_size_kb?: number | null;
   status?: string | number | null;
   upload_status?: number | null;
+  upload_status_label?: string | null;
   error_message?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   course_id?: string | number | null;
+  courses_count?: number | null;
+  sections_count?: number | null;
+  can_delete?: boolean | null;
   [key: string]: unknown;
 };
 

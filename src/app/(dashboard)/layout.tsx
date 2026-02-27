@@ -15,6 +15,8 @@ import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { getAdminScope } from "@/lib/user-scope";
+import { VideoUploadProvider } from "@/features/videos/context/video-upload-context";
+import { VideoUploadDock } from "@/features/videos/components/VideoUploadDock";
 
 type Props = {
   children: ReactNode;
@@ -85,23 +87,26 @@ export default function DashboardLayout({ children }: Props) {
 
   return (
     <AuthProvider>
-      <SidebarProvider>
-        <div className="relative flex h-screen overflow-hidden">
-          <Sidebar sections={sidebarConfig} />
+      <VideoUploadProvider>
+        <SidebarProvider>
+          <div className="relative flex h-screen overflow-hidden">
+            <Sidebar sections={sidebarConfig} />
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-gray-2 dark:bg-[#020d1a]">
-            <Header />
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-gray-2 dark:bg-[#020d1a]">
+              <Header />
 
-            <main className="isolate flex-1 overflow-y-auto overflow-x-hidden">
-              <div className="mx-auto w-full max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-                <AdminRouteGuard fallback={<PageLoading />}>
-                  {children}
-                </AdminRouteGuard>
-              </div>
-            </main>
+              <main className="isolate flex-1 overflow-y-auto overflow-x-hidden">
+                <div className="mx-auto w-full max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+                  <AdminRouteGuard fallback={<PageLoading />}>
+                    {children}
+                  </AdminRouteGuard>
+                </div>
+              </main>
+            </div>
+            <VideoUploadDock />
           </div>
-        </div>
-      </SidebarProvider>
+        </SidebarProvider>
+      </VideoUploadProvider>
     </AuthProvider>
   );
 }

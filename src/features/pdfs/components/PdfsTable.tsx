@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { usePdfs } from "@/features/pdfs/hooks/use-pdfs";
-import { deletePdf } from "@/features/pdfs/services/pdfs.service";
+import { getPdfSignedUrl } from "@/features/pdfs/services/pdfs.service";
+import { BulkDeletePdfsDialog } from "@/features/pdfs/components/BulkDeletePdfsDialog";
 import { useTenant } from "@/app/tenant-provider";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import type { Pdf } from "@/features/pdfs/types/pdf";
@@ -33,6 +32,20 @@ import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
+
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return "—";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
 
 type PdfStatus = "active" | "processing" | "failed" | string | number;
 
@@ -87,7 +100,6 @@ export function PdfsTable({
   onEdit,
   onDelete,
 }: PdfsTableProps) {
-  const queryClient = useQueryClient();
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -97,7 +109,7 @@ export function PdfsTable({
   const [query, setQuery] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedPdfs, setSelectedPdfs] = useState<Record<string, Pdf>>({});
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -182,46 +194,16 @@ export function PdfsTable({
     });
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedPdfsList.length === 0 || centerId == null || isBulkDeleting) {
+  const handleBulkDelete = () => {
+    if (selectedPdfsList.length === 0 || centerId == null) {
       return;
     }
+    setIsBulkDeleteDialogOpen(true);
+  };
 
-    const confirmed = window.confirm(
-      `Delete ${selectedPdfsList.length} selected PDF${
-        selectedPdfsList.length === 1 ? "" : "s"
-      }?`,
-    );
-    if (!confirmed) return;
-
-    setIsBulkDeleting(true);
-
-    let deletedCount = 0;
-    for (const pdf of selectedPdfsList) {
-      try {
-        await deletePdf(centerId, pdf.id);
-        deletedCount += 1;
-      } catch {
-        // Continue deleting remaining selections even if one fails.
-      }
-    }
-
-    await queryClient.invalidateQueries({ queryKey: ["pdfs", centerId] });
+  const handleBulkDeleteSuccess = (message: string) => {
+    showToast(message, "success");
     setSelectedPdfs({});
-    setIsBulkDeleting(false);
-
-    if (deletedCount === selectedPdfsList.length) {
-      showToast(
-        `Deleted ${deletedCount} PDF${deletedCount === 1 ? "" : "s"} successfully.`,
-        "success",
-      );
-      return;
-    }
-
-    showToast(
-      `Deleted ${deletedCount} of ${selectedPdfsList.length} selected PDFs.`,
-      "error",
-    );
   };
 
   return (
@@ -333,7 +315,7 @@ export function PdfsTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[760px]">
+          <Table className="min-w-[960px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
                 {enableBulkSelection ? (
@@ -350,7 +332,10 @@ export function PdfsTable({
                 ) : null}
                 <TableHead className="font-medium">Title</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">File Size</TableHead>
+                <TableHead className="font-medium">Size</TableHead>
+                <TableHead className="font-medium">Uploaded By</TableHead>
+                <TableHead className="font-medium">Created</TableHead>
+                <TableHead className="font-medium">Used In</TableHead>
                 <TableHead className="w-10 text-right font-medium">
                   Actions
                 </TableHead>
@@ -373,7 +358,16 @@ export function PdfsTable({
                         <Skeleton className="h-5 w-20 rounded-full" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-16 rounded-full" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="ml-auto h-8 w-12" />
@@ -384,7 +378,7 @@ export function PdfsTable({
               ) : showEmptyState ? (
                 <TableRow>
                   <TableCell
-                    colSpan={enableBulkSelection ? 5 : 4}
+                    colSpan={enableBulkSelection ? 8 : 7}
                     className="h-48"
                   >
                     <EmptyState
@@ -416,7 +410,7 @@ export function PdfsTable({
                             checked={Boolean(selectedPdfs[String(pdf.id)])}
                             onChange={() => togglePdfSelection(pdf)}
                             aria-label={`Select ${pdf.title ?? `pdf ${pdf.id}`}`}
-                            disabled={isBulkDeleting}
+                            disabled={isBulkDeleteDialogOpen}
                           />
                         </TableCell>
                       ) : null}
@@ -453,6 +447,22 @@ export function PdfsTable({
                                 ? String(pdf.file_size)
                                 : "—"}
                       </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {pdf.creator?.name ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {formatDate(pdf.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {typeof pdf.courses_count === "number" ? (
+                          <Badge variant="secondary">
+                            {pdf.courses_count}{" "}
+                            {pdf.courses_count === 1 ? "course" : "courses"}
+                          </Badge>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end">
                           <Dropdown
@@ -471,6 +481,59 @@ export function PdfsTable({
                                 shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
+                              {centerId && pdf.source_id ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={async () => {
+                                      try {
+                                        const { url } = await getPdfSignedUrl(
+                                          centerId,
+                                          pdf.id,
+                                          "inline",
+                                        );
+                                        window.open(url, "_blank");
+                                      } catch {
+                                        showToast(
+                                          "Failed to get preview URL",
+                                          "error",
+                                        );
+                                      }
+                                      setOpenMenuId(null);
+                                    }}
+                                  >
+                                    Preview
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={async () => {
+                                      try {
+                                        const { url } = await getPdfSignedUrl(
+                                          centerId,
+                                          pdf.id,
+                                          "attachment",
+                                        );
+                                        const link =
+                                          document.createElement("a");
+                                        link.href = url;
+                                        link.download =
+                                          pdf.title ?? "document.pdf";
+                                        link.click();
+                                      } catch {
+                                        showToast(
+                                          "Failed to get download URL",
+                                          "error",
+                                        );
+                                      }
+                                      setOpenMenuId(null);
+                                    }}
+                                  >
+                                    Download
+                                  </button>
+                                </>
+                              ) : null}
                               {onView ? (
                                 <button
                                   type="button"
@@ -482,14 +545,6 @@ export function PdfsTable({
                                 >
                                   View details
                                 </button>
-                              ) : centerId ? (
-                                <Link
-                                  href={`/centers/${centerId}/pdfs/${pdf.id}`}
-                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                  onClick={() => setOpenMenuId(null)}
-                                >
-                                  View details
-                                </Link>
                               ) : null}
                               {onEdit ? (
                                 <button
@@ -502,14 +557,6 @@ export function PdfsTable({
                                 >
                                   Edit PDF
                                 </button>
-                              ) : centerId ? (
-                                <Link
-                                  href={`/centers/${centerId}/pdfs/${pdf.id}/edit`}
-                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                  onClick={() => setOpenMenuId(null)}
-                                >
-                                  Edit PDF
-                                </Link>
                               ) : null}
                               {onDelete ? (
                                 <button
@@ -546,9 +593,9 @@ export function PdfsTable({
               size="sm"
               variant="outline"
               onClick={handleBulkDelete}
-              disabled={isLoadingState || isBulkDeleting}
+              disabled={isLoadingState}
             >
-              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+              Delete Selected
             </Button>
           </div>
         </div>
@@ -570,6 +617,16 @@ export function PdfsTable({
           />
         </div>
       )}
+
+      {centerId ? (
+        <BulkDeletePdfsDialog
+          open={isBulkDeleteDialogOpen}
+          onOpenChange={setIsBulkDeleteDialogOpen}
+          pdfs={selectedPdfsList}
+          centerId={centerId}
+          onSuccess={handleBulkDeleteSuccess}
+        />
+      ) : null}
     </ListingCard>
   );
 }

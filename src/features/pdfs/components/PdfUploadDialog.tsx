@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useModal } from "@/components/ui/modal-store";
 import { usePdfUpload } from "@/features/pdfs/context/pdf-upload-context";
 import {
+  useCreatePdf,
   useCreatePdfUploadSession,
   useFinalizePdfUploadSession,
   useUpdatePdf,
@@ -53,6 +54,8 @@ type UploadPhase =
   | "finalizing"
   | "ready"
   | "failed";
+
+type PdfSourceMode = "upload" | "url";
 
 function resolveUploadSessionId(session: PdfUploadSession) {
   return session.upload_session_id ?? session.id;
@@ -94,6 +97,17 @@ function buildTranslations(enValue: string, arValue: string) {
   };
 }
 
+function parseTags(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
 function isPdfFile(file: File) {
   const name = file.name.toLowerCase();
   return file.type === "application/pdf" || name.endsWith(".pdf");
@@ -131,6 +145,20 @@ function resolveUploadPhaseLabel(phase: UploadPhase) {
   return "Idle";
 }
 
+function resolveModeLabel(sourceMode: PdfSourceMode) {
+  return sourceMode === "upload" ? "Upload PDF" : "PDF URL";
+}
+
+function resolveModeDescription(sourceMode: PdfSourceMode) {
+  return sourceMode === "upload"
+    ? "Store the file in Najaah App storage."
+    : "Link to an external PDF URL.";
+}
+
+function resolveProviderLabel(sourceMode: PdfSourceMode) {
+  return sourceMode === "upload" ? "Najaah App" : "Custom";
+}
+
 export function PdfUploadDialog({
   centerId,
   open,
@@ -141,6 +169,7 @@ export function PdfUploadDialog({
 }: PdfUploadDialogProps) {
   const { showToast } = useModal();
   const isEditMode = Boolean(pdf);
+  const createPdfMutation = useCreatePdf();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isMountedRef = useRef(false);
   const uploadAbortControllerRef = useRef<AbortController | null>(null);
@@ -165,10 +194,13 @@ export function PdfUploadDialog({
     useUpdatePdf();
 
   const [file, setFile] = useState<File | null>(null);
+  const [sourceMode, setSourceMode] = useState<PdfSourceMode>("upload");
+  const [sourceUrl, setSourceUrl] = useState("");
   const [titleEn, setTitleEn] = useState("");
   const [titleAr, setTitleAr] = useState("");
   const [descriptionEn, setDescriptionEn] = useState("");
   const [descriptionAr, setDescriptionAr] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -181,7 +213,11 @@ export function PdfUploadDialog({
   const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
 
-  const isMutating = isCreatingSession || isFinalizingSession || isUpdatingPdf;
+  const isMutating =
+    isCreatingSession ||
+    isFinalizingSession ||
+    isUpdatingPdf ||
+    createPdfMutation.isPending;
   const hasActiveUpload =
     uploadPhase === "creating" ||
     uploadPhase === "uploading" ||
@@ -192,13 +228,17 @@ export function PdfUploadDialog({
     if (!file) return "";
     return `${file.name} (${formatFileSize(file.size)})`;
   }, [file]);
+  const parsedTags = useMemo(() => parseTags(tagsInput), [tagsInput]);
 
   const resetCreateState = useCallback(() => {
     setFile(null);
+    setSourceMode("upload");
+    setSourceUrl("");
     setTitleEn("");
     setTitleAr("");
     setDescriptionEn("");
     setDescriptionAr("");
+    setTagsInput("");
     setFormError(null);
     setUploadPhase("idle");
     setUploadProgress(0);
@@ -233,6 +273,7 @@ export function PdfUploadDialog({
         String(pdf.description_translations?.en ?? pdf.description ?? ""),
       );
       setDescriptionAr(String(pdf.description_translations?.ar ?? ""));
+      setTagsInput(Array.isArray(pdf.tags) ? pdf.tags.join(", ") : "");
       setUploadPhase("idle");
       setUploadProgress(0);
       setUploadSpeedBps(null);
@@ -298,6 +339,9 @@ export function PdfUploadDialog({
     if (isEditMode) {
       return isUpdatingPdf ? "Saving..." : "Save Changes";
     }
+    if (sourceMode === "url") {
+      return createPdfMutation.isPending ? "Creating..." : "Create PDF";
+    }
     if (uploadPhase === "creating" || isCreatingSession) {
       return "Creating Session...";
     }
@@ -329,6 +373,7 @@ export function PdfUploadDialog({
       descriptionEn,
       descriptionAr,
     );
+    const tags = parseTags(tagsInput);
     let currentUploadId: string | null = null;
 
     try {
@@ -339,12 +384,52 @@ export function PdfUploadDialog({
           payload: {
             title_translations: titleTranslations,
             description_translations: descriptionTranslations,
+            tags,
           },
         });
 
         const successMessage = getAdminResponseMessage(
           updatedPdf,
           "PDF updated successfully.",
+        );
+        showToast(successMessage, "success");
+        onSuccess?.(successMessage);
+        onUploaded?.(successMessage);
+        onOpenChange(false);
+        return;
+      }
+
+      if (sourceMode === "url") {
+        const normalizedUrl = sourceUrl.trim();
+        if (!normalizedUrl) {
+          setFormError("PDF URL is required for URL mode.");
+          return;
+        }
+
+        try {
+          new URL(normalizedUrl);
+        } catch {
+          setFormError("Enter a valid PDF URL.");
+          return;
+        }
+
+        const createdPdf = await createPdfMutation.mutateAsync({
+          centerId,
+          payload: {
+            source_type: "url",
+            source_provider: "custom",
+            source_url: normalizedUrl,
+            title_translations: titleTranslations,
+            ...(tags.length > 0 ? { tags } : {}),
+            ...(Object.keys(descriptionTranslations).length > 0
+              ? { description_translations: descriptionTranslations }
+              : {}),
+          },
+        });
+
+        const successMessage = getAdminResponseMessage(
+          createdPdf,
+          "PDF created successfully.",
         );
         showToast(successMessage, "success");
         onSuccess?.(successMessage);
@@ -440,6 +525,7 @@ export function PdfUploadDialog({
 
       const finalizePayload: FinalizePdfUploadSessionPayload = {
         title_translations: titleTranslations,
+        ...(tags.length > 0 ? { tags } : {}),
         ...(Object.keys(descriptionTranslations).length > 0
           ? { description_translations: descriptionTranslations }
           : {}),
@@ -531,28 +617,28 @@ export function PdfUploadDialog({
             </div>
             <div className="space-y-1">
               <DialogTitle>
-                {isEditMode ? "Edit PDF" : "Upload PDF"}
+                {isEditMode ? "Edit PDF" : "Create PDF"}
               </DialogTitle>
               <DialogDescription>
                 {isEditMode
                   ? "Update PDF metadata and translations."
-                  : "Upload file and finalize metadata in one flow."}
+                  : "Create using upload or URL source mode."}
               </DialogDescription>
               <p className="text-xs text-gray-400">
-                {isEditMode ? "Metadata only" : "File + Metadata"}
+                {isEditMode ? "Metadata only" : "Source + Metadata"}
               </p>
             </div>
           </div>
           {isEditMode ? null : (
             <div className="flex flex-wrap gap-2 text-xs">
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                1. Select file
+                1. Source
               </span>
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
                 2. Metadata
               </span>
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                3. Upload & Finalize
+                3. Upload / Create
               </span>
             </div>
           )}
@@ -569,13 +655,182 @@ export function PdfUploadDialog({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {isEditMode ? null : (
+            <div className="space-y-2">
+              <Label>Source Mode</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(["upload", "url"] as PdfSourceMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={cn(
+                      "rounded-xl border px-3 py-3 text-left transition-colors",
+                      sourceMode === mode
+                        ? "border-primary/50 bg-primary/5 text-primary"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-600",
+                    )}
+                    onClick={() => {
+                      setSourceMode(mode);
+                      setFormError(null);
+                    }}
+                    disabled={isBusy}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "inline-flex h-6 w-6 items-center justify-center rounded-full text-xs",
+                          sourceMode === mode
+                            ? "bg-primary text-white"
+                            : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300",
+                        )}
+                      >
+                        {mode === "upload" ? "U" : "L"}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {resolveModeLabel(mode)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {resolveModeDescription(mode)}
+                    </p>
+                    <p className="mt-2 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                      Provider: {resolveProviderLabel(mode)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                Metadata
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                These fields are shared for upload and URL sources.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="pdf-title-en">Title (English) *</Label>
+                <Input
+                  id="pdf-title-en"
+                  value={titleEn}
+                  onChange={(event) => setTitleEn(event.target.value)}
+                  placeholder="e.g., Lesson Notes"
+                  disabled={isBusy}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pdf-title-ar">Title (Arabic)</Label>
+                <Input
+                  id="pdf-title-ar"
+                  value={titleAr}
+                  onChange={(event) => setTitleAr(event.target.value)}
+                  placeholder="e.g., ملاحظات الدرس"
+                  dir="rtl"
+                  disabled={isBusy}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="pdf-description-en">
+                  Description (English)
+                </Label>
+                <Textarea
+                  id="pdf-description-en"
+                  value={descriptionEn}
+                  onChange={(event) => setDescriptionEn(event.target.value)}
+                  rows={3}
+                  disabled={isBusy}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pdf-description-ar">Description (Arabic)</Label>
+                <Textarea
+                  id="pdf-description-ar"
+                  value={descriptionAr}
+                  onChange={(event) => setDescriptionAr(event.target.value)}
+                  rows={3}
+                  dir="rtl"
+                  disabled={isBusy}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pdf-tags">Tags</Label>
+              <Input
+                id="pdf-tags"
+                value={tagsInput}
+                onChange={(event) => setTagsInput(event.target.value)}
+                placeholder="comma,separated,tags"
+                disabled={isBusy}
+              />
+              {parsedTags.length > 0 ? (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {parsedTags.slice(0, 4).map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {parsedTags.length > 4 ? (
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                      +{parsedTags.length - 4}
+                    </span>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Optional. Separate tags with commas.
+                </p>
+              )}
+            </div>
+          </section>
+
+          {!isEditMode && sourceMode === "url" ? (
             <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                  Source File
+                  URL Source
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Upload PDF from your device.
+                  Link to an external PDF file.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pdf-source-url">PDF URL *</Label>
+                <Input
+                  id="pdf-source-url"
+                  value={sourceUrl}
+                  onChange={(event) => setSourceUrl(event.target.value)}
+                  placeholder="https://example.com/handout.pdf"
+                  disabled={isBusy}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Use a direct public PDF link. Provider will be stored as
+                  Custom.
+                </p>
+              </div>
+            </section>
+          ) : null}
+
+          {!isEditMode && sourceMode === "upload" ? (
+            <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                  Upload Source
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Upload PDF to Najaah App storage. You can stop or minimize the
+                  transfer.
                 </p>
               </div>
 
@@ -726,69 +981,7 @@ export function PdfUploadDialog({
                 </p>
               ) : null}
             </section>
-          )}
-
-          <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                Metadata
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Titles and descriptions used across locales.
-              </p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="pdf-title-en">Title (English) *</Label>
-                <Input
-                  id="pdf-title-en"
-                  value={titleEn}
-                  onChange={(event) => setTitleEn(event.target.value)}
-                  placeholder="e.g., Lesson Notes"
-                  disabled={isBusy}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pdf-title-ar">Title (Arabic)</Label>
-                <Input
-                  id="pdf-title-ar"
-                  value={titleAr}
-                  onChange={(event) => setTitleAr(event.target.value)}
-                  placeholder="e.g., ملاحظات الدرس"
-                  dir="rtl"
-                  disabled={isBusy}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="pdf-description-en">
-                  Description (English)
-                </Label>
-                <Textarea
-                  id="pdf-description-en"
-                  value={descriptionEn}
-                  onChange={(event) => setDescriptionEn(event.target.value)}
-                  rows={3}
-                  disabled={isBusy}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pdf-description-ar">Description (Arabic)</Label>
-                <Textarea
-                  id="pdf-description-ar"
-                  value={descriptionAr}
-                  onChange={(event) => setDescriptionAr(event.target.value)}
-                  rows={3}
-                  dir="rtl"
-                  disabled={isBusy}
-                />
-              </div>
-            </div>
-          </section>
-
+          ) : null}
           <DialogFooter>
             <Button
               type="button"

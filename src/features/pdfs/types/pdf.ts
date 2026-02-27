@@ -6,6 +6,7 @@ export type Pdf = {
   title_translations?: TranslationsRecord | null;
   description?: string | null;
   description_translations?: TranslationsRecord | null;
+  tags?: string[] | null;
   creator?: {
     id?: string | number;
     name?: string | null;

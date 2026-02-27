@@ -96,6 +96,49 @@ function getStatusConfig(status: PdfStatus) {
   );
 }
 
+function resolvePdfSourceTypeLabel(pdf: Pdf) {
+  const rawType = String(pdf.source_type ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (rawType === "1" || rawType === "upload") {
+    return "Upload";
+  }
+
+  if (rawType === "0" || rawType === "url") {
+    return "URL";
+  }
+
+  return pdf.source_url ? "URL" : "Upload";
+}
+
+function resolvePdfProviderLabel(pdf: Pdf) {
+  const rawProvider = String(pdf.source_provider ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (rawProvider === "spaces") {
+    return "Najaah App";
+  }
+
+  if (rawProvider === "custom") {
+    return "Custom";
+  }
+
+  if (rawProvider) {
+    return rawProvider.charAt(0).toUpperCase() + rawProvider.slice(1);
+  }
+
+  return resolvePdfSourceTypeLabel(pdf) === "Upload" ? "Najaah App" : "Custom";
+}
+
+function resolvePdfTags(pdf: Pdf) {
+  if (!Array.isArray(pdf.tags)) return [];
+  return pdf.tags
+    .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
+    .filter(Boolean);
+}
+
 type PdfsTableProps = {
   centerId?: string | number;
   onView?: (_pdf: Pdf) => void;
@@ -402,7 +445,7 @@ export function PdfsTable({
             <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
               All providers
             </SelectItem>
-            <SelectItem value="spaces">Spaces</SelectItem>
+            <SelectItem value="spaces">Najaah App</SelectItem>
             <SelectItem value="custom">Custom</SelectItem>
           </SelectContent>
         </Select>
@@ -475,9 +518,10 @@ export function PdfsTable({
                   </TableHead>
                 ) : null}
                 <TableHead className="font-medium">Title</TableHead>
+                <TableHead className="font-medium">Tags</TableHead>
+                <TableHead className="font-medium">Provider</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">Size</TableHead>
-                <TableHead className="font-medium">Uploaded By</TableHead>
                 <TableHead className="font-medium">Created</TableHead>
                 <TableHead className="font-medium">Used In</TableHead>
                 <TableHead className="w-10 text-right font-medium">
@@ -499,13 +543,16 @@ export function PdfsTable({
                         <Skeleton className="h-4 w-48" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-5 w-20 rounded-full" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-4 w-16" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-4 w-20" />
@@ -522,7 +569,7 @@ export function PdfsTable({
               ) : showEmptyState ? (
                 <TableRow>
                   <TableCell
-                    colSpan={enableBulkSelection ? 8 : 7}
+                    colSpan={enableBulkSelection ? 9 : 8}
                     className="h-48"
                   >
                     <EmptyState
@@ -540,6 +587,9 @@ export function PdfsTable({
                 items.map((pdf, index) => {
                   const shouldOpenUp =
                     items.length > 4 && index >= items.length - 2;
+                  const sourceTypeLabel = resolvePdfSourceTypeLabel(pdf);
+                  const providerLabel = resolvePdfProviderLabel(pdf);
+                  const tags = resolvePdfTags(pdf);
 
                   return (
                     <TableRow
@@ -559,7 +609,62 @@ export function PdfsTable({
                         </TableCell>
                       ) : null}
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {pdf.title ?? "—"}
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                            {pdf.title ?? "—"}
+                          </p>
+                          <p
+                            className="line-clamp-2 max-w-sm text-xs text-gray-500 dark:text-gray-400"
+                            title={
+                              pdf.description ??
+                              pdf.description_translations?.en ??
+                              pdf.description_translations?.ar ??
+                              undefined
+                            }
+                          >
+                            {pdf.description ??
+                              pdf.description_translations?.en ??
+                              pdf.description_translations?.ar ??
+                              "No description"}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {tags.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1">
+                            {tags.slice(0, 2).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="max-w-[120px] truncate text-[10px]"
+                                title={tag}
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                            {tags.length > 2 ? (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px]"
+                                title={tags.slice(2).join(", ")}
+                              >
+                                +{tags.length - 2}
+                              </Badge>
+                            ) : null}
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                            {providerLabel}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {sourceTypeLabel}
+                          </p>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {pdf.status != null || pdf.upload_status != null ? (
@@ -590,9 +695,6 @@ export function PdfsTable({
                               : pdf.file_size
                                 ? String(pdf.file_size)
                                 : "—"}
-                      </TableCell>
-                      <TableCell className="text-gray-500 dark:text-gray-400">
-                        {pdf.creator?.name ?? "—"}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {formatDate(pdf.created_at)}

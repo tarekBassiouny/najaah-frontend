@@ -25,6 +25,7 @@ export type ListPdfsParams = {
 export type CreatePdfPayload = {
   title_translations: Record<string, string>;
   description_translations?: Record<string, string>;
+  tags?: string[];
   upload_session_id?: string | number;
   source_id?: string;
   source_url?: string;
@@ -36,6 +37,7 @@ export type CreatePdfPayload = {
 export type UpdatePdfPayload = {
   title_translations?: Record<string, string>;
   description_translations?: Record<string, string>;
+  tags?: string[];
   file_size_kb?: number;
 };
 
@@ -152,6 +154,7 @@ export type FinalizePdfUploadSessionPayload = {
   pdf_id?: string | number;
   title_translations?: Record<string, string>;
   description_translations?: Record<string, string>;
+  tags?: string[];
   error_message?: string;
 };
 

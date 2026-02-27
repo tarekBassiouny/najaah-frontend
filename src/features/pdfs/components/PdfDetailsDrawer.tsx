@@ -62,6 +62,42 @@ function formatFileSize(pdf: Pdf | null | undefined) {
   return "—";
 }
 
+function resolvePdfSourceTypeLabel(pdf: Pdf | null | undefined) {
+  const rawType = String(pdf?.source_type ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (rawType === "1" || rawType === "upload") {
+    return "Upload";
+  }
+
+  if (rawType === "0" || rawType === "url") {
+    return "URL";
+  }
+
+  return pdf?.source_url ? "URL" : "Upload";
+}
+
+function resolvePdfProviderLabel(pdf: Pdf | null | undefined) {
+  const rawProvider = String(pdf?.source_provider ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (rawProvider === "spaces") {
+    return "Najaah App";
+  }
+
+  if (rawProvider === "custom") {
+    return "Custom";
+  }
+
+  if (rawProvider) {
+    return rawProvider.charAt(0).toUpperCase() + rawProvider.slice(1);
+  }
+
+  return resolvePdfSourceTypeLabel(pdf) === "Upload" ? "Najaah App" : "Custom";
+}
+
 export function PdfDetailsDrawer({
   open,
   onOpenChange,
@@ -180,6 +216,18 @@ export function PdfDetailsDrawer({
                   <p className="text-xs text-gray-500">File Type</p>
                   <p className="break-words text-base font-semibold uppercase text-gray-900 dark:text-white">
                     {pdf?.file_extension ? String(pdf.file_extension) : "PDF"}
+                  </p>
+                </div>
+                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                  <p className="text-xs text-gray-500">Source Type</p>
+                  <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                    {resolvePdfSourceTypeLabel(pdf)}
+                  </p>
+                </div>
+                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                  <p className="text-xs text-gray-500">Provider</p>
+                  <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                    {resolvePdfProviderLabel(pdf)}
                   </p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">

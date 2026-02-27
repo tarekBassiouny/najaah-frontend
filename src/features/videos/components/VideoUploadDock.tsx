@@ -7,6 +7,10 @@ import {
   type GlobalVideoUpload,
   useVideoUpload,
 } from "@/features/videos/context/video-upload-context";
+import {
+  formatBytesPerSecond,
+  formatEtaSeconds,
+} from "@/features/videos/lib/upload-metrics";
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
 
 function isTransferActive(upload: GlobalVideoUpload) {
@@ -139,6 +143,20 @@ export function VideoUploadDock() {
                   <span>{upload.progress.toFixed(1)}%</span>
                 </div>
                 <Progress value={upload.progress} />
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+                  <span>
+                    Speed:{" "}
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      {formatBytesPerSecond(upload.bytesPerSecond)}
+                    </span>
+                  </span>
+                  <span>
+                    ETA:{" "}
+                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                      {formatEtaSeconds(upload.etaSeconds)}
+                    </span>
+                  </span>
+                </div>
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-2">

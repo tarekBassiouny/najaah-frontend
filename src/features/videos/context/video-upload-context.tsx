@@ -26,6 +26,8 @@ export type GlobalVideoUpload = {
   fileName: string;
   uploadSessionId: string | number | null;
   progress: number;
+  bytesPerSecond: number | null;
+  etaSeconds: number | null;
   phase: GlobalVideoUploadPhase;
   statusText: string;
 };
@@ -132,6 +134,8 @@ export function VideoUploadProvider({
         fileName: payload.fileName,
         uploadSessionId: payload.uploadSessionId ?? null,
         progress: 0,
+        bytesPerSecond: null,
+        etaSeconds: null,
         phase: payload.phase ?? "creating",
         statusText: payload.statusText ?? "Preparing upload...",
       },
@@ -173,6 +177,8 @@ export function VideoUploadProvider({
               ...upload,
               phase: "paused",
               statusText: "Upload paused.",
+              bytesPerSecond: null,
+              etaSeconds: null,
             }
           : upload,
       ),
@@ -190,6 +196,8 @@ export function VideoUploadProvider({
               ...upload,
               phase: "uploading",
               statusText: "Uploading video...",
+              bytesPerSecond: null,
+              etaSeconds: null,
             }
           : upload,
       ),

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTenant } from "@/app/tenant-provider";
-import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,13 @@ import { ListingFilters } from "@/components/ui/listing-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -34,6 +40,9 @@ import {
 } from "@/features/videos/lib/video-thumbnail";
 
 const DEFAULT_PER_PAGE = 10;
+const ALL_STATUS_VALUE = "all";
+const ALL_SOURCE_TYPE_VALUE = "all";
+const ALL_SOURCE_PROVIDER_VALUE = "all";
 
 type VideoStatusVariant =
   | "success"
@@ -58,6 +67,7 @@ const statusConfig: Record<
 
 type VideosTableProps = {
   centerId?: string | number;
+  courseId?: string | number;
   onView?: (_video: Video) => void;
   onPreview?: (_video: Video) => void;
   onRetryUpload?: (_video: Video) => void;
@@ -81,6 +91,30 @@ function resolveVideoTitle(video: Video) {
     video.title_translations?.ar ??
     "—"
   );
+}
+
+function resolveVideoDescription(video: Video) {
+  if (typeof video.description === "string" && video.description.trim()) {
+    return video.description.trim();
+  }
+
+  const englishDescription = video.description_translations?.en;
+  if (
+    typeof englishDescription === "string" &&
+    englishDescription.trim().length > 0
+  ) {
+    return englishDescription.trim();
+  }
+
+  const arabicDescription = video.description_translations?.ar;
+  if (
+    typeof arabicDescription === "string" &&
+    arabicDescription.trim().length > 0
+  ) {
+    return arabicDescription.trim();
+  }
+
+  return "";
 }
 
 function normalizeStatus(value: unknown) {
@@ -205,6 +239,7 @@ function canRetryVideoUpload(video: Video) {
 
 export function VideosTable({
   centerId: centerIdProp,
+  courseId,
   onView,
   onPreview,
   onRetryUpload,
@@ -219,6 +254,15 @@ export function VideosTable({
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<string>(
+    ALL_SOURCE_TYPE_VALUE,
+  );
+  const [sourceProviderFilter, setSourceProviderFilter] = useState<string>(
+    ALL_SOURCE_PROVIDER_VALUE,
+  );
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedVideos, setSelectedVideos] = useState<Record<string, Video>>(
     {},
@@ -230,11 +274,34 @@ export function VideosTable({
   const params = useMemo(
     () => ({
       centerId: centerId ?? undefined,
+      course_id: courseId ?? undefined,
       page,
       per_page: perPage,
-      search: query || undefined,
+      q: query || undefined,
+      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      source_type:
+        sourceTypeFilter === ALL_SOURCE_TYPE_VALUE
+          ? undefined
+          : sourceTypeFilter,
+      source_provider:
+        sourceProviderFilter === ALL_SOURCE_PROVIDER_VALUE
+          ? undefined
+          : sourceProviderFilter,
+      created_from: createdFrom || undefined,
+      created_to: createdTo || undefined,
     }),
-    [centerId, page, perPage, query],
+    [
+      centerId,
+      courseId,
+      page,
+      perPage,
+      query,
+      statusFilter,
+      sourceTypeFilter,
+      sourceProviderFilter,
+      createdFrom,
+      createdTo,
+    ],
   );
 
   const { data, isLoading, isError, isFetching } = useVideos(params, {
@@ -286,6 +353,20 @@ export function VideosTable({
     () => selectedVideosList.filter((video) => canRetryVideoUpload(video)),
     [selectedVideosList],
   );
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== ALL_STATUS_VALUE ||
+    sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ||
+    sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ||
+    createdFrom.trim().length > 0 ||
+    createdTo.trim().length > 0;
+  const activeFilterCount =
+    (search.trim().length > 0 ? 1 : 0) +
+    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ? 1 : 0) +
+    (sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ? 1 : 0) +
+    (createdFrom.trim().length > 0 ? 1 : 0) +
+    (createdTo.trim().length > 0 ? 1 : 0);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -298,15 +379,37 @@ export function VideosTable({
 
   useEffect(() => {
     setPage(1);
-  }, [centerId]);
+  }, [centerId, courseId]);
 
   useEffect(() => {
     setSelectedVideos({});
-  }, [centerId, page, perPage, query]);
+  }, [
+    centerId,
+    courseId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    sourceTypeFilter,
+    sourceProviderFilter,
+    createdFrom,
+    createdTo,
+  ]);
 
   useEffect(() => {
     setFailedThumbnailIds({});
-  }, [centerId, page, perPage, query]);
+  }, [
+    centerId,
+    courseId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    sourceTypeFilter,
+    sourceProviderFilter,
+    createdFrom,
+    createdTo,
+  ]);
 
   const toggleVideoSelection = (video: Video) => {
     const videoId = String(video.id);
@@ -344,13 +447,18 @@ export function VideosTable({
   return (
     <ListingCard>
       <ListingFilters
-        activeCount={search.trim() ? 1 : 0}
+        activeCount={activeFilterCount}
         isFetching={isFetching}
         isLoading={isLoading}
-        hasActiveFilters={search.trim().length > 0}
+        hasActiveFilters={hasActiveFilters}
         onClear={() => {
           setSearch("");
           setQuery("");
+          setStatusFilter(ALL_STATUS_VALUE);
+          setSourceTypeFilter(ALL_SOURCE_TYPE_VALUE);
+          setSourceProviderFilter(ALL_SOURCE_PROVIDER_VALUE);
+          setCreatedFrom("");
+          setCreatedTo("");
           setPage(1);
         }}
         summary={
@@ -362,7 +470,7 @@ export function VideosTable({
             <>Select a center to view videos.</>
           )
         }
-        gridClassName="grid-cols-1 md:grid-cols-2"
+        gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
       >
         <div className="relative">
           <svg
@@ -381,7 +489,7 @@ export function VideosTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search videos..."
+            placeholder="Search title or tags..."
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             disabled={!centerId}
           />
@@ -417,10 +525,92 @@ export function VideosTable({
           </button>
         </div>
 
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={true}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            setStatusFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="uploading">Uploading</SelectItem>
+            <SelectItem value="processing">Processing</SelectItem>
+            <SelectItem value="ready">Ready</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceTypeFilter}
+          onValueChange={(value) => {
+            setSourceTypeFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Source Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_TYPE_VALUE}>
+              All source types
+            </SelectItem>
+            <SelectItem value="upload">Upload</SelectItem>
+            <SelectItem value="url">URL</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceProviderFilter}
+          onValueChange={(value) => {
+            setSourceProviderFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Provider" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
+              All providers
+            </SelectItem>
+            <SelectItem value="bunny">Najaah App</SelectItem>
+            <SelectItem value="youtube">YouTube</SelectItem>
+            <SelectItem value="vimeo">Vimeo</SelectItem>
+            <SelectItem value="zoom">Zoom</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Input
+          type="date"
+          value={createdFrom}
+          max={createdTo || undefined}
+          onChange={(event) => {
+            setCreatedFrom(event.target.value);
+            setPage(1);
+          }}
+          title="Created from date"
+          disabled={!centerId}
+        />
+
+        <Input
+          type="date"
+          value={createdTo}
+          min={createdFrom || undefined}
+          onChange={(event) => {
+            setCreatedTo(event.target.value);
+            setPage(1);
+          }}
+          title="Created to date"
+          disabled={!centerId}
         />
       </ListingFilters>
 
@@ -451,7 +641,7 @@ export function VideosTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[1320px]">
+          <Table className="min-w-[1320px] table-fixed">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
                 {showSelection ? (
@@ -467,7 +657,7 @@ export function VideosTable({
                   </TableHead>
                 ) : null}
                 <TableHead className="font-medium">Thumbnail</TableHead>
-                <TableHead className="font-medium">Video</TableHead>
+                <TableHead className="w-[200px] font-medium">Video</TableHead>
                 <TableHead className="font-medium">Tags</TableHead>
                 <TableHead className="font-medium">Provider</TableHead>
                 <TableHead className="font-medium">Duration</TableHead>
@@ -551,6 +741,7 @@ export function VideosTable({
                   const providerLabel = resolveVideoProviderLabel(video);
                   const sourceMode = resolveSourceMode(video);
                   const durationSeconds = resolveDurationSeconds(video);
+                  const description = resolveVideoDescription(video);
                   const tableStatus = resolveTableStatus(video);
                   const tableStatusBadge = getStatusBadge(
                     tableStatus.key,
@@ -609,13 +800,17 @@ export function VideosTable({
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-gray-700 dark:text-gray-300">
-                        <div className="space-y-1">
-                          <p className="line-clamp-1 font-medium">{title}</p>
-                          {typeof video.description === "string" &&
-                          video.description.trim() ? (
-                            <p className="line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
-                              {video.description.trim()}
+                      <TableCell className="w-[200px] max-w-[200px] overflow-hidden text-gray-700 dark:text-gray-300">
+                        <div className="max-w-full space-y-1 overflow-hidden">
+                          <p className="line-clamp-1 max-w-full break-all font-medium">
+                            {title}
+                          </p>
+                          {description ? (
+                            <p
+                              className="line-clamp-1 max-w-full break-all text-xs leading-relaxed text-gray-500 dark:text-gray-400"
+                              title={description}
+                            >
+                              {description}
                             </p>
                           ) : null}
                         </div>

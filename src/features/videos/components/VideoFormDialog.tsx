@@ -26,11 +26,16 @@ import {
   createTusUploadController,
   type TusUploadController,
 } from "@/features/videos/lib/tus-upload";
+import {
+  formatBytesPerSecond,
+  formatEtaSeconds,
+} from "@/features/videos/lib/upload-metrics";
 import type { Video, VideoSourceMode } from "@/features/videos/types/video";
 import {
   getAdminApiErrorMessage,
   getAdminResponseMessage,
 } from "@/lib/admin-response";
+import { cn } from "@/lib/utils";
 
 const REQUIRED_TITLE_MESSAGE = "English title is required.";
 
@@ -109,6 +114,35 @@ function resolveModeLabel(sourceMode: VideoSourceMode) {
   return sourceMode === "upload" ? "Upload File" : "Video URL";
 }
 
+function resolveModeDescription(sourceMode: VideoSourceMode) {
+  return sourceMode === "upload"
+    ? "Upload large video files with resumable transfer."
+    : "Create from YouTube, Vimeo, Zoom, or direct URL.";
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes <= 0) return "0 B";
+
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const exponent = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1,
+  );
+  const value = bytes / 1024 ** exponent;
+  const precision = value >= 100 || exponent === 0 ? 0 : 1;
+  return `${value.toFixed(precision)} ${units[exponent]}`;
+}
+
+function resolveUploadPhaseLabel(phase: UploadPhase) {
+  if (phase === "creating") return "Creating Session";
+  if (phase === "uploading") return "Uploading";
+  if (phase === "paused") return "Paused";
+  if (phase === "processing") return "Processing";
+  if (phase === "failed") return "Failed";
+  if (phase === "ready") return "Ready";
+  return "Idle";
+}
+
 export function VideoFormDialog({
   open,
   onOpenChange,
@@ -123,6 +157,7 @@ export function VideoFormDialog({
   const createUploadVideoMutation = useCreateVideoUpload();
   const updateVideoMutation = useUpdateVideo();
   const uploadControllerRef = useRef<TusUploadController | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isMountedRef = useRef(false);
   const {
     startUpload: startGlobalUpload,
@@ -145,11 +180,14 @@ export function VideoFormDialog({
   const [formError, setFormError] = useState<string | null>(null);
   const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSpeedBps, setUploadSpeedBps] = useState<number | null>(null);
+  const [uploadEtaSeconds, setUploadEtaSeconds] = useState<number | null>(null);
   const [uploadStatusText, setUploadStatusText] = useState("");
   const [uploadSessionId, setUploadSessionId] = useState<
     string | number | null
   >(null);
   const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
 
   const isMutating =
     createVideoMutation.isPending ||
@@ -170,6 +208,7 @@ export function VideoFormDialog({
     const sizeMb = file.size / (1024 * 1024);
     return `${file.name} (${sizeMb.toFixed(sizeMb >= 100 ? 0 : 1)} MB)`;
   }, [file]);
+  const parsedTags = useMemo(() => parseTags(tagsInput), [tagsInput]);
 
   const stopUploadLifecycle = useCallback(async () => {
     if (uploadControllerRef.current) {
@@ -197,9 +236,12 @@ export function VideoFormDialog({
     setFormError(null);
     setUploadPhase("idle");
     setUploadProgress(0);
+    setUploadSpeedBps(null);
+    setUploadEtaSeconds(null);
     setUploadStatusText("");
     setUploadSessionId(null);
     setActiveUploadId(null);
+    setIsDragActive(false);
   }, []);
 
   useEffect(() => {
@@ -215,6 +257,8 @@ export function VideoFormDialog({
     setFormError(null);
     setUploadPhase("idle");
     setUploadProgress(0);
+    setUploadSpeedBps(null);
+    setUploadEtaSeconds(null);
     setUploadStatusText("");
     setUploadSessionId(null);
 
@@ -229,6 +273,7 @@ export function VideoFormDialog({
       setTagsInput(Array.isArray(video.tags) ? video.tags.join(", ") : "");
       setSourceUrl("");
       setFile(null);
+      setIsDragActive(false);
       return;
     }
 
@@ -244,9 +289,13 @@ export function VideoFormDialog({
       await pauseGlobalUpload(activeUploadId);
       setUploadPhase("paused");
       setUploadStatusText("Upload paused.");
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "paused",
         statusText: "Upload paused.",
+        bytesPerSecond: null,
+        etaSeconds: null,
       });
     } catch (error) {
       const message = getAdminApiErrorMessage(error, "Failed to pause upload.");
@@ -261,9 +310,13 @@ export function VideoFormDialog({
       await resumeGlobalUpload(activeUploadId);
       setUploadPhase("uploading");
       setUploadStatusText("Uploading video...");
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "uploading",
         statusText: "Uploading video...",
+        bytesPerSecond: null,
+        etaSeconds: null,
       });
     } catch (error) {
       const message = getAdminApiErrorMessage(
@@ -296,6 +349,12 @@ export function VideoFormDialog({
       setFormError(message);
       showToast(message, "error");
     }
+  };
+
+  const applySelectedFile = (nextFile: File | null) => {
+    setFile(nextFile);
+    setIsDragActive(false);
+    setFormError(null);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -417,6 +476,8 @@ export function VideoFormDialog({
 
     setUploadPhase("creating");
     setUploadProgress(0);
+    setUploadSpeedBps(null);
+    setUploadEtaSeconds(null);
     setUploadStatusText("Creating upload session...");
     let createdUploadId: string | null = null;
 
@@ -466,16 +527,20 @@ export function VideoFormDialog({
         uploadEndpoint,
         fingerprintKey: sessionId ?? `video:${String(videoId)}`,
         presignedHeaders: uploadSession?.presigned_headers ?? null,
-        onProgress: ({ percentage }) => {
+        onProgress: ({ percentage, bytesPerSecond, etaSeconds }) => {
           if (isMountedRef.current) {
             setUploadProgress(percentage);
             setUploadPhase("uploading");
             setUploadStatusText("Uploading video...");
+            setUploadSpeedBps(bytesPerSecond);
+            setUploadEtaSeconds(etaSeconds);
           }
           updateGlobalUpload(uploadId, {
             progress: percentage,
             phase: "uploading",
             statusText: "Uploading video...",
+            bytesPerSecond,
+            etaSeconds,
           });
         },
         onError: (uploadError) => {
@@ -483,10 +548,14 @@ export function VideoFormDialog({
           if (isMountedRef.current) {
             setUploadPhase("failed");
             setFormError(message);
+            setUploadSpeedBps(null);
+            setUploadEtaSeconds(null);
           }
           updateGlobalUpload(uploadId, {
             phase: "failed",
             statusText: message,
+            bytesPerSecond: null,
+            etaSeconds: null,
           });
           showToast(message, "error");
         },
@@ -495,11 +564,15 @@ export function VideoFormDialog({
             setUploadProgress(100);
             setUploadPhase("processing");
             setUploadStatusText("Upload complete. Processing started...");
+            setUploadSpeedBps(null);
+            setUploadEtaSeconds(null);
           }
           updateGlobalUpload(uploadId, {
             progress: 100,
             phase: "processing",
             statusText: "Upload complete. Processing started...",
+            bytesPerSecond: null,
+            etaSeconds: null,
           });
           const successMessage = getAdminResponseMessage(
             createdUpload,
@@ -528,11 +601,15 @@ export function VideoFormDialog({
       if (isMountedRef.current) {
         setUploadPhase("failed");
         setFormError(message);
+        setUploadSpeedBps(null);
+        setUploadEtaSeconds(null);
       }
       if (createdUploadId) {
         updateGlobalUpload(createdUploadId, {
           phase: "failed",
           statusText: message,
+          bytesPerSecond: null,
+          etaSeconds: null,
         });
       }
       showToast(message, "error");
@@ -580,15 +657,38 @@ export function VideoFormDialog({
     <>
       <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditMode ? "Edit Video" : "Create Video"}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditMode
-                ? "Update video metadata."
-                : "Create a video using file upload or an external URL."}
-            </DialogDescription>
+          <DialogHeader className="space-y-3">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
+                VD
+              </div>
+              <div className="space-y-1">
+                <DialogTitle>
+                  {isEditMode ? "Edit Video" : "Create Video"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isEditMode
+                    ? "Update video metadata."
+                    : "Create using upload or URL source mode."}
+                </DialogDescription>
+                <p className="text-xs text-gray-400">
+                  {isEditMode ? "Metadata only" : "Source + Metadata"}
+                </p>
+              </div>
+            </div>
+            {!isEditMode ? (
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                  1. Source
+                </span>
+                <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                  2. Metadata
+                </span>
+                <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                  3. Upload / Create
+                </span>
+              </div>
+            ) : null}
           </DialogHeader>
 
           {formError ? (
@@ -598,11 +698,11 @@ export function VideoFormDialog({
             </Alert>
           ) : null}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {!isEditMode ? (
               <div className="space-y-2">
                 <Label>Source Mode</Label>
-                <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800">
+                <div className="grid gap-2 sm:grid-cols-2">
                   {(
                     (allowUploadMode
                       ? (["upload", "url"] as VideoSourceMode[])
@@ -611,130 +711,290 @@ export function VideoFormDialog({
                     <button
                       key={mode}
                       type="button"
-                      className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                      className={cn(
+                        "rounded-xl border px-3 py-3 text-left transition-colors",
                         sourceMode === mode
-                          ? "bg-white text-primary shadow-sm dark:bg-gray-900"
-                          : "text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
-                      }`}
+                          ? "border-primary/50 bg-primary/5 text-primary"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-gray-600",
+                      )}
                       onClick={() => {
                         setSourceMode(mode);
                         setFormError(null);
                       }}
                       disabled={isBusy}
                     >
-                      {resolveModeLabel(mode)}
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "inline-flex h-6 w-6 items-center justify-center rounded-full text-xs",
+                            sourceMode === mode
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300",
+                          )}
+                        >
+                          {mode === "upload" ? "U" : "L"}
+                        </span>
+                        <span className="text-sm font-semibold">
+                          {resolveModeLabel(mode)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        {resolveModeDescription(mode)}
+                      </p>
                     </button>
                   ))}
                 </div>
               </div>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="video-title-en">Title (English) *</Label>
-                <Input
-                  id="video-title-en"
-                  value={titleEn}
-                  onChange={(event) => setTitleEn(event.target.value)}
-                  placeholder="e.g., Lesson 1"
-                  disabled={isBusy}
-                />
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Metadata
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  These fields are shared for upload and URL sources.
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="video-title-ar">Title (Arabic)</Label>
-                <Input
-                  id="video-title-ar"
-                  value={titleAr}
-                  onChange={(event) => setTitleAr(event.target.value)}
-                  placeholder="e.g., الدرس الأول"
-                  dir="rtl"
-                  disabled={isBusy}
-                />
-              </div>
-            </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="video-description-en">
-                  Description (English)
-                </Label>
-                <Textarea
-                  id="video-description-en"
-                  value={descriptionEn}
-                  onChange={(event) => setDescriptionEn(event.target.value)}
-                  rows={3}
-                  placeholder="Optional"
-                  disabled={isBusy}
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="video-title-en">Title (English) *</Label>
+                  <Input
+                    id="video-title-en"
+                    value={titleEn}
+                    onChange={(event) => setTitleEn(event.target.value)}
+                    placeholder="e.g., Lesson 1"
+                    disabled={isBusy}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="video-title-ar">Title (Arabic)</Label>
+                  <Input
+                    id="video-title-ar"
+                    value={titleAr}
+                    onChange={(event) => setTitleAr(event.target.value)}
+                    placeholder="e.g., الدرس الأول"
+                    dir="rtl"
+                    disabled={isBusy}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="video-description-ar">
-                  Description (Arabic)
-                </Label>
-                <Textarea
-                  id="video-description-ar"
-                  value={descriptionAr}
-                  onChange={(event) => setDescriptionAr(event.target.value)}
-                  rows={3}
-                  placeholder="اختياري"
-                  dir="rtl"
-                  disabled={isBusy}
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="video-tags">Tags</Label>
-              <Input
-                id="video-tags"
-                value={tagsInput}
-                onChange={(event) => setTagsInput(event.target.value)}
-                placeholder="comma,separated,tags"
-                disabled={isBusy}
-              />
-            </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="video-description-en">
+                    Description (English)
+                  </Label>
+                  <Textarea
+                    id="video-description-en"
+                    value={descriptionEn}
+                    onChange={(event) => setDescriptionEn(event.target.value)}
+                    rows={3}
+                    placeholder="Optional"
+                    disabled={isBusy}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="video-description-ar">
+                    Description (Arabic)
+                  </Label>
+                  <Textarea
+                    id="video-description-ar"
+                    value={descriptionAr}
+                    onChange={(event) => setDescriptionAr(event.target.value)}
+                    rows={3}
+                    placeholder="اختياري"
+                    dir="rtl"
+                    disabled={isBusy}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="video-tags">Tags</Label>
+                <Input
+                  id="video-tags"
+                  value={tagsInput}
+                  onChange={(event) => setTagsInput(event.target.value)}
+                  placeholder="comma,separated,tags"
+                  disabled={isBusy}
+                />
+                {parsedTags.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {parsedTags.slice(0, 4).map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {parsedTags.length > 4 ? (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                        +{parsedTags.length - 4}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Optional. Separate tags with commas.
+                  </p>
+                )}
+              </div>
+            </section>
 
             {!isEditMode && sourceMode === "url" ? (
-              <div className="space-y-2">
-                <Label htmlFor="video-source-url">Video URL *</Label>
-                <Input
-                  id="video-source-url"
-                  value={sourceUrl}
-                  onChange={(event) => setSourceUrl(event.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  disabled={isBusy}
-                />
-              </div>
+              <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    URL Source
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Paste a valid video URL. Backend will detect provider.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="video-source-url">Video URL *</Label>
+                  <Input
+                    id="video-source-url"
+                    value={sourceUrl}
+                    onChange={(event) => setSourceUrl(event.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    disabled={isBusy}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Supports YouTube, Vimeo, Zoom and direct links.
+                  </p>
+                </div>
+              </section>
             ) : null}
 
             {!isEditMode && sourceMode === "upload" ? (
-              <div className="space-y-3">
+              <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Upload Source
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Use resumable upload for large files. You can pause, resume,
+                    stop, or minimize.
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="video-upload-file">Video File *</Label>
-                  <Input
+                  <input
+                    ref={fileInputRef}
                     id="video-upload-file"
                     type="file"
                     accept="video/*"
+                    className="sr-only"
                     onChange={(event) => {
-                      setFile(event.target.files?.[0] ?? null);
-                      setFormError(null);
+                      applySelectedFile(event.target.files?.[0] ?? null);
                     }}
                     disabled={isBusy}
                   />
-                  {selectedFileLabel ? (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {selectedFileLabel}
+                  <div
+                    role="button"
+                    tabIndex={isBusy ? -1 : 0}
+                    onClick={() => {
+                      if (!isBusy) fileInputRef.current?.click();
+                    }}
+                    onKeyDown={(event) => {
+                      if (isBusy) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        fileInputRef.current?.click();
+                      }
+                    }}
+                    onDragEnter={(event) => {
+                      event.preventDefault();
+                      if (!isBusy) setIsDragActive(true);
+                    }}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      if (!isBusy) setIsDragActive(true);
+                    }}
+                    onDragLeave={(event) => {
+                      event.preventDefault();
+                      setIsDragActive(false);
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (isBusy) return;
+                      setIsDragActive(false);
+                      const droppedFile = event.dataTransfer.files?.[0] ?? null;
+                      applySelectedFile(droppedFile);
+                    }}
+                    className={cn(
+                      "rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors",
+                      isDragActive
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600",
+                      isBusy && "cursor-not-allowed opacity-70",
+                    )}
+                  >
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {file ? "Replace selected file" : "Drop video file here"}
                     </p>
-                  ) : null}
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      or click to browse from your device
+                    </p>
+                    <div className="mt-3">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isBusy}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (!isBusy) fileInputRef.current?.click();
+                        }}
+                      >
+                        Browse File
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+
+                {file ? (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-900/50">
+                    <p className="font-medium text-gray-700 dark:text-gray-200">
+                      {file.name}
+                    </p>
+                    <p className="mt-0.5 text-gray-500 dark:text-gray-400">
+                      {formatFileSize(file.size)} • {file.type || "video/*"}
+                    </p>
+                  </div>
+                ) : null}
 
                 {uploadPhase !== "idle" ? (
                   <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
-                    <div className="flex items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
-                      <span>{uploadStatusText || "Preparing upload..."}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                        {resolveUploadPhaseLabel(uploadPhase)}
+                      </span>
                       <span>{uploadProgress.toFixed(1)}%</span>
                     </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300">
+                      {uploadStatusText || "Preparing upload..."}
+                    </div>
                     <Progress value={uploadProgress} />
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                      <span>
+                        Speed:{" "}
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          {formatBytesPerSecond(uploadSpeedBps)}
+                        </span>
+                      </span>
+                      <span>
+                        ETA:{" "}
+                        <span className="font-medium text-gray-700 dark:text-gray-200">
+                          {formatEtaSeconds(uploadEtaSeconds)}
+                        </span>
+                      </span>
+                    </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
                         type="button"
@@ -772,14 +1032,19 @@ export function VideoFormDialog({
                         Minimize
                       </Button>
                       {uploadSessionId != null ? (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
                           Session #{String(uploadSessionId)}
                         </span>
                       ) : null}
                     </div>
                   </div>
                 ) : null}
-              </div>
+                {selectedFileLabel ? (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Selected: {selectedFileLabel}
+                  </p>
+                ) : null}
+              </section>
             ) : null}
 
             <DialogFooter>

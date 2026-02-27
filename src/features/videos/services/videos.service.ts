@@ -16,7 +16,14 @@ export type ListVideosParams = {
   centerId?: string | number;
   page?: number;
   per_page?: number;
+  course_id?: string | number;
   search?: string;
+  q?: string;
+  status?: string | number;
+  source_type?: string | number;
+  source_provider?: string;
+  created_from?: string;
+  created_to?: string;
 };
 
 export type CreateVideoFromUrlPayload = {
@@ -155,13 +162,24 @@ export async function listVideos(
   if (!params.centerId) {
     throw new Error("centerId is required to list videos");
   }
+  const normalizedQuery = params.q?.trim() || undefined;
+  const normalizedLegacySearch = params.search?.trim() || undefined;
+  const normalizedProvider = params.source_provider?.trim() || undefined;
+
   const { data } = await http.get<RawVideosResponse>(
     basePath(params.centerId),
     {
       params: {
         page: params.page,
         per_page: params.per_page,
-        search: params.search || undefined,
+        course_id: params.course_id ?? undefined,
+        q: normalizedQuery,
+        search: normalizedQuery ? undefined : normalizedLegacySearch,
+        status: params.status ?? undefined,
+        source_type: params.source_type ?? undefined,
+        source_provider: normalizedProvider,
+        created_from: params.created_from || undefined,
+        created_to: params.created_to || undefined,
       },
     },
   );

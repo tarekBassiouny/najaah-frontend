@@ -20,6 +20,10 @@ import {
   createTusUploadController,
   type TusUploadController,
 } from "@/features/videos/lib/tus-upload";
+import {
+  formatBytesPerSecond,
+  formatEtaSeconds,
+} from "@/features/videos/lib/upload-metrics";
 import type { Video, VideoUploadSession } from "@/features/videos/types/video";
 import {
   getAdminApiErrorMessage,
@@ -94,6 +98,8 @@ export function VideoRetryUploadDialog({
   const [formError, setFormError] = useState<string | null>(null);
   const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSpeedBps, setUploadSpeedBps] = useState<number | null>(null);
+  const [uploadEtaSeconds, setUploadEtaSeconds] = useState<number | null>(null);
   const [uploadStatusText, setUploadStatusText] = useState("");
   const [uploadSessionId, setUploadSessionId] = useState<
     string | number | null
@@ -133,6 +139,8 @@ export function VideoRetryUploadDialog({
     setFormError(null);
     setUploadPhase("idle");
     setUploadProgress(0);
+    setUploadSpeedBps(null);
+    setUploadEtaSeconds(null);
     setUploadStatusText("");
     setUploadSessionId(null);
     setActiveUploadId(null);
@@ -156,9 +164,13 @@ export function VideoRetryUploadDialog({
       await pauseGlobalUpload(activeUploadId);
       setUploadPhase("paused");
       setUploadStatusText("Upload paused.");
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "paused",
         statusText: "Upload paused.",
+        bytesPerSecond: null,
+        etaSeconds: null,
       });
     } catch (error) {
       const message = getAdminApiErrorMessage(error, "Failed to pause upload.");
@@ -173,9 +185,13 @@ export function VideoRetryUploadDialog({
       await resumeGlobalUpload(activeUploadId);
       setUploadPhase("uploading");
       setUploadStatusText("Uploading video...");
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "uploading",
         statusText: "Uploading video...",
+        bytesPerSecond: null,
+        etaSeconds: null,
       });
     } catch (error) {
       const message = getAdminApiErrorMessage(
@@ -209,6 +225,8 @@ export function VideoRetryUploadDialog({
     setFormError(null);
     setUploadPhase("creating");
     setUploadProgress(0);
+    setUploadSpeedBps(null);
+    setUploadEtaSeconds(null);
     setUploadStatusText("Creating upload session...");
     let createdUploadId: string | null = null;
 
@@ -247,16 +265,20 @@ export function VideoRetryUploadDialog({
         uploadEndpoint,
         fingerprintKey: sessionId ?? `video:${String(video.id)}`,
         presignedHeaders: createdSession.presigned_headers ?? null,
-        onProgress: ({ percentage }) => {
+        onProgress: ({ percentage, bytesPerSecond, etaSeconds }) => {
           if (isMountedRef.current) {
             setUploadProgress(percentage);
             setUploadPhase("uploading");
             setUploadStatusText("Uploading video...");
+            setUploadSpeedBps(bytesPerSecond);
+            setUploadEtaSeconds(etaSeconds);
           }
           updateGlobalUpload(uploadId, {
             progress: percentage,
             phase: "uploading",
             statusText: "Uploading video...",
+            bytesPerSecond,
+            etaSeconds,
           });
         },
         onError: (uploadError) => {
@@ -264,10 +286,14 @@ export function VideoRetryUploadDialog({
           if (isMountedRef.current) {
             setUploadPhase("failed");
             setFormError(message);
+            setUploadSpeedBps(null);
+            setUploadEtaSeconds(null);
           }
           updateGlobalUpload(uploadId, {
             phase: "failed",
             statusText: message,
+            bytesPerSecond: null,
+            etaSeconds: null,
           });
           showToast(message, "error");
         },
@@ -276,11 +302,15 @@ export function VideoRetryUploadDialog({
             setUploadProgress(100);
             setUploadPhase("processing");
             setUploadStatusText("Upload complete. Processing started...");
+            setUploadSpeedBps(null);
+            setUploadEtaSeconds(null);
           }
           updateGlobalUpload(uploadId, {
             progress: 100,
             phase: "processing",
             statusText: "Upload complete. Processing started...",
+            bytesPerSecond: null,
+            etaSeconds: null,
           });
           const successMessage = getAdminResponseMessage(
             createdSession,
@@ -309,11 +339,15 @@ export function VideoRetryUploadDialog({
       if (isMountedRef.current) {
         setUploadPhase("failed");
         setFormError(message);
+        setUploadSpeedBps(null);
+        setUploadEtaSeconds(null);
       }
       if (createdUploadId) {
         updateGlobalUpload(createdUploadId, {
           phase: "failed",
           statusText: message,
+          bytesPerSecond: null,
+          etaSeconds: null,
         });
       }
       showToast(message, "error");
@@ -383,6 +417,20 @@ export function VideoRetryUploadDialog({
                 <span>{uploadProgress.toFixed(1)}%</span>
               </div>
               <Progress value={uploadProgress} />
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                <span>
+                  Speed:{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-200">
+                    {formatBytesPerSecond(uploadSpeedBps)}
+                  </span>
+                </span>
+                <span>
+                  ETA:{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-200">
+                    {formatEtaSeconds(uploadEtaSeconds)}
+                  </span>
+                </span>
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="button"

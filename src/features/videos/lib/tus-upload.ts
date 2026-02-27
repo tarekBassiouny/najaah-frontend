@@ -8,6 +8,8 @@ export type TusUploadProgressPayload = {
   bytesUploaded: number;
   bytesTotal: number;
   percentage: number;
+  bytesPerSecond: number | null;
+  etaSeconds: number | null;
 };
 
 export type CreateTusUploadControllerOptions = {
@@ -120,6 +122,9 @@ export function createTusUploadController({
   let resumedPreviousUpload = false;
   let recoveryAttempted = false;
   let previousUpload: tus.PreviousUpload | null = null;
+  let lastProgressAtMs: number | null = null;
+  let lastProgressBytes: number | null = null;
+  let smoothedBytesPerSecond: number | null = null;
 
   const baseFingerprint = [
     "najaah-video",
@@ -144,14 +149,53 @@ export function createTusUploadController({
         title: file.name,
       },
       onProgress: (bytesUploaded, bytesTotal) => {
+        const nowMs = Date.now();
+        let bytesPerSecond = smoothedBytesPerSecond;
+
+        if (
+          lastProgressAtMs != null &&
+          lastProgressBytes != null &&
+          bytesUploaded >= lastProgressBytes
+        ) {
+          const elapsedSeconds = (nowMs - lastProgressAtMs) / 1000;
+          const bytesDelta = bytesUploaded - lastProgressBytes;
+
+          if (elapsedSeconds > 0.2 && bytesDelta >= 0) {
+            const instantBytesPerSecond = bytesDelta / elapsedSeconds;
+            if (
+              Number.isFinite(instantBytesPerSecond) &&
+              instantBytesPerSecond > 0
+            ) {
+              bytesPerSecond =
+                smoothedBytesPerSecond == null
+                  ? instantBytesPerSecond
+                  : smoothedBytesPerSecond * 0.7 + instantBytesPerSecond * 0.3;
+              smoothedBytesPerSecond = bytesPerSecond;
+            }
+          }
+        }
+
+        lastProgressAtMs = nowMs;
+        lastProgressBytes = bytesUploaded;
+
         const percentage =
           bytesTotal > 0
             ? Math.min(100, (bytesUploaded / bytesTotal) * 100)
             : 0;
+        const remainingBytes = Math.max(0, bytesTotal - bytesUploaded);
+        const etaSeconds =
+          bytesPerSecond != null && bytesPerSecond > 0
+            ? remainingBytes / bytesPerSecond
+            : remainingBytes === 0
+              ? 0
+              : null;
+
         onProgress?.({
           bytesUploaded,
           bytesTotal,
           percentage,
+          bytesPerSecond,
+          etaSeconds,
         });
       },
       onError: (error) => {
@@ -217,6 +261,9 @@ export function createTusUploadController({
     await clearPreviousUploadRecord();
     allowStoredResume = false;
     isPrepared = false;
+    lastProgressAtMs = null;
+    lastProgressBytes = null;
+    smoothedBytesPerSecond = null;
     upload = createUpload();
     await prepareUpload();
     upload.start();

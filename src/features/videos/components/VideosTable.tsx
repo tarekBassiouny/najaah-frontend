@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTenant } from "@/app/tenant-provider";
-import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,74 +32,221 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format-date-time";
 import type { Video } from "@/features/videos/types/video";
+import {
+  resolveVideoProviderLabel,
+  resolveVideoThumbnailState,
+} from "@/features/videos/lib/video-thumbnail";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
+const ALL_SOURCE_TYPE_VALUE = "all";
+const ALL_SOURCE_PROVIDER_VALUE = "all";
 
-type VideoStatus = "active" | "processing" | "failed" | string;
+type VideoStatusVariant =
+  | "success"
+  | "warning"
+  | "secondary"
+  | "error"
+  | "default";
 
 const statusConfig: Record<
   string,
   {
-    variant: "success" | "warning" | "secondary" | "error" | "default";
+    variant: VideoStatusVariant;
     label: string;
   }
 > = {
-  active: { variant: "success", label: "Active" },
-  enabled: { variant: "success", label: "Enabled" },
-  approved: { variant: "success", label: "Approved" },
+  ready: { variant: "success", label: "Ready" },
   pending: { variant: "warning", label: "Pending" },
+  uploading: { variant: "warning", label: "Uploading" },
   processing: { variant: "warning", label: "Processing" },
-  inactive: { variant: "default", label: "Inactive" },
-  disabled: { variant: "default", label: "Disabled" },
   failed: { variant: "error", label: "Failed" },
-  rejected: { variant: "error", label: "Rejected" },
-  error: { variant: "error", label: "Error" },
 };
-
-function getStatusConfig(status: VideoStatus) {
-  const normalized = status.toLowerCase();
-  return (
-    statusConfig[normalized] || {
-      variant: "default" as const,
-      label: status.charAt(0).toUpperCase() + status.slice(1),
-    }
-  );
-}
-
-const StatusIcon = () => (
-  <svg
-    className="h-4 w-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={1.6}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M8.25 18.75h7.5a2.25 2.25 0 002.25-2.25v-1.125a2.25 2.25 0 00-2.25-2.25h-7.5A2.25 2.25 0 006 15.375V16.5a2.25 2.25 0 002.25 2.25zM8.25 10.875h7.5a2.25 2.25 0 002.25-2.25V7.5a2.25 2.25 0 00-2.25-2.25h-7.5A2.25 2.25 0 006 7.5v1.125a2.25 2.25 0 002.25 2.25z"
-    />
-  </svg>
-);
 
 type VideosTableProps = {
   centerId?: string | number;
+  courseId?: string | number;
   onView?: (_video: Video) => void;
+  onPreview?: (_video: Video) => void;
+  onRetryUpload?: (_video: Video) => void;
   onEdit?: (_video: Video) => void;
   onDelete?: (_video: Video) => void;
-  onToggleStatus?: (_video: Video) => void;
-  onBulkChangeStatus?: (_videos: Video[]) => void;
+  onBulkRetryUpload?: (_videos: Video[]) => void;
+  onBulkDelete?: (_videos: Video[]) => void;
 };
+
+function resolveVideoTags(video: Video) {
+  if (!Array.isArray(video.tags)) return [];
+  return video.tags
+    .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
+    .filter(Boolean);
+}
+
+function resolveVideoTitle(video: Video) {
+  return (
+    video.title ??
+    video.title_translations?.en ??
+    video.title_translations?.ar ??
+    "—"
+  );
+}
+
+function resolveVideoDescription(video: Video) {
+  if (typeof video.description === "string" && video.description.trim()) {
+    return video.description.trim();
+  }
+
+  const englishDescription = video.description_translations?.en;
+  if (
+    typeof englishDescription === "string" &&
+    englishDescription.trim().length > 0
+  ) {
+    return englishDescription.trim();
+  }
+
+  const arabicDescription = video.description_translations?.ar;
+  if (
+    typeof arabicDescription === "string" &&
+    arabicDescription.trim().length > 0
+  ) {
+    return arabicDescription.trim();
+  }
+
+  return "";
+}
+
+function normalizeStatus(value: unknown) {
+  if (typeof value !== "string") return "";
+  return value.trim().toLowerCase();
+}
+
+function resolveEncodingStatus(video: Video) {
+  return (
+    normalizeStatus(video.encoding_status_key) ||
+    normalizeStatus(video.status_key) ||
+    normalizeStatus(video.status)
+  );
+}
+
+function resolveLifecycleStatus(video: Video) {
+  return normalizeStatus(video.lifecycle_status_key) || "pending";
+}
+
+function resolveTableStatus(video: Video) {
+  const encodingStatus = resolveEncodingStatus(video);
+  if (encodingStatus && encodingStatus !== "unknown") {
+    return {
+      key: encodingStatus,
+      label: video.encoding_status_label ?? video.status_label ?? null,
+    };
+  }
+
+  const lifecycleStatus = resolveLifecycleStatus(video);
+  return {
+    key: lifecycleStatus,
+    label: video.lifecycle_status_label ?? video.status_label ?? null,
+  };
+}
+
+function resolveDurationSeconds(video: Video) {
+  if (typeof video.duration_seconds === "number") {
+    return video.duration_seconds;
+  }
+
+  if (typeof video.duration === "number") {
+    return video.duration;
+  }
+
+  if (typeof video.duration === "string" && video.duration.trim()) {
+    const parsed = Number(video.duration);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function formatDuration(seconds: number | null) {
+  if (seconds == null || Number.isNaN(seconds)) return "—";
+
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds,
+    ).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function resolveSourceMode(video: Video) {
+  const sourceType = String(video.source_type ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (sourceType === "1" || sourceType === "upload" || sourceType === "bunny") {
+    return "Upload";
+  }
+
+  if (sourceType === "0" || sourceType === "url") {
+    return "URL";
+  }
+
+  return video.source_url ? "URL" : "Upload";
+}
+
+function getStatusBadge(status: string, statusLabel?: string | null) {
+  const fallbackLabel = status
+    ? status.charAt(0).toUpperCase() + status.slice(1)
+    : "Unknown";
+  const explicitLabel =
+    typeof statusLabel === "string" && statusLabel.trim()
+      ? statusLabel.trim()
+      : null;
+
+  const config = statusConfig[status] ?? {
+    variant: "default" as const,
+    label: fallbackLabel,
+  };
+
+  return {
+    ...config,
+    label: explicitLabel ?? config.label,
+  };
+}
+
+function isUploadSourceVideo(video: Video) {
+  const sourceType = String(video.source_type ?? "")
+    .trim()
+    .toLowerCase();
+  return (
+    sourceType === "1" || sourceType === "upload" || sourceType === "bunny"
+  );
+}
+
+function canRetryVideoUpload(video: Video) {
+  return (
+    resolveEncodingStatus(video) === "failed" && isUploadSourceVideo(video)
+  );
+}
 
 export function VideosTable({
   centerId: centerIdProp,
+  courseId,
   onView,
+  onPreview,
+  onRetryUpload,
   onEdit,
   onDelete,
-  onToggleStatus,
-  onBulkChangeStatus,
+  onBulkRetryUpload,
+  onBulkDelete,
 }: VideosTableProps) {
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -109,35 +255,76 @@ export function VideosTable({
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<string>(
+    ALL_SOURCE_TYPE_VALUE,
+  );
+  const [sourceProviderFilter, setSourceProviderFilter] = useState<string>(
+    ALL_SOURCE_PROVIDER_VALUE,
+  );
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedVideos, setSelectedVideos] = useState<Record<string, Video>>(
     {},
   );
+  const [failedThumbnailIds, setFailedThumbnailIds] = useState<
+    Record<string, true>
+  >({});
 
   const params = useMemo(
     () => ({
       centerId: centerId ?? undefined,
+      course_id: courseId ?? undefined,
       page,
       per_page: perPage,
-      search: query || undefined,
+      q: query || undefined,
+      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      source_type:
+        sourceTypeFilter === ALL_SOURCE_TYPE_VALUE
+          ? undefined
+          : sourceTypeFilter,
+      source_provider:
+        sourceProviderFilter === ALL_SOURCE_PROVIDER_VALUE
+          ? undefined
+          : sourceProviderFilter,
+      created_from: createdFrom || undefined,
+      created_to: createdTo || undefined,
     }),
-    [centerId, page, perPage, query],
+    [
+      centerId,
+      courseId,
+      page,
+      perPage,
+      query,
+      statusFilter,
+      sourceTypeFilter,
+      sourceProviderFilter,
+      createdFrom,
+      createdTo,
+    ],
   );
 
-  const { data, isLoading, isError, isFetching } = useVideos(params);
-
+  const { data, isLoading, isError, isFetching } = useVideos(params, {
+    refetchInterval: (query) => {
+      const rows = query.state.data?.items ?? [];
+      const hasProcessingVideos = rows.some((video) => {
+        const status = resolveEncodingStatus(video);
+        return (
+          status === "pending" ||
+          status === "uploading" ||
+          status === "processing"
+        );
+      });
+      return hasProcessingVideos ? 15000 : false;
+    },
+    refetchIntervalInBackground: true,
+  });
   const items = useMemo(() => data?.items ?? [], [data]);
-  const meta = data?.meta;
-  const total = meta?.total ?? 0;
+  const total = data?.meta?.total ?? 0;
   const maxPage = Math.max(1, Math.ceil(total / perPage));
   const isLoadingState = isLoading || isFetching;
   const showEmptyState =
     !isLoadingState && !isError && items.length === 0 && Boolean(centerId);
-  const hasActiveFilters =
-    search.trim().length > 0 || statusFilter !== ALL_STATUS_VALUE;
-  const activeFilterCount =
-    (search.trim().length > 0 ? 1 : 0) +
-    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0);
   const selectedIds = useMemo(
     () => Object.keys(selectedVideos),
     [selectedVideos],
@@ -156,6 +343,30 @@ export function VideosTable({
   );
   const isAllPageSelected =
     pageVideoIds.length > 0 && pageVideoIds.every((id) => selectedVideos[id]);
+  const hasActions = Boolean(
+    onView || onPreview || onRetryUpload || onEdit || onDelete,
+  );
+  const hasBulkActions = Boolean(onBulkDelete || onBulkRetryUpload);
+  const showSelection = hasBulkActions;
+  const columnCount = (showSelection ? 9 : 8) + (hasActions ? 1 : 0);
+  const retryEligibleSelectedVideos = useMemo(
+    () => selectedVideosList.filter((video) => canRetryVideoUpload(video)),
+    [selectedVideosList],
+  );
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== ALL_STATUS_VALUE ||
+    sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ||
+    sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ||
+    createdFrom.trim().length > 0 ||
+    createdTo.trim().length > 0;
+  const activeFilterCount =
+    (search.trim().length > 0 ? 1 : 0) +
+    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ? 1 : 0) +
+    (sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ? 1 : 0) +
+    (createdFrom.trim().length > 0 ? 1 : 0) +
+    (createdTo.trim().length > 0 ? 1 : 0);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -168,17 +379,43 @@ export function VideosTable({
 
   useEffect(() => {
     setPage(1);
-  }, [centerId]);
+  }, [centerId, courseId]);
 
   useEffect(() => {
     setSelectedVideos({});
-  }, [centerId, page, perPage, query, statusFilter]);
+  }, [
+    centerId,
+    courseId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    sourceTypeFilter,
+    sourceProviderFilter,
+    createdFrom,
+    createdTo,
+  ]);
+
+  useEffect(() => {
+    setFailedThumbnailIds({});
+  }, [
+    centerId,
+    courseId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    sourceTypeFilter,
+    sourceProviderFilter,
+    createdFrom,
+    createdTo,
+  ]);
 
   const toggleVideoSelection = (video: Video) => {
     const videoId = String(video.id);
     setSelectedVideos((prev) => {
       if (prev[videoId]) {
-        const { [videoId]: _, ...rest } = prev;
+        const { [videoId]: _removed, ...rest } = prev;
         return rest;
       }
       return { ...prev, [videoId]: video };
@@ -218,6 +455,10 @@ export function VideosTable({
           setSearch("");
           setQuery("");
           setStatusFilter(ALL_STATUS_VALUE);
+          setSourceTypeFilter(ALL_SOURCE_TYPE_VALUE);
+          setSourceProviderFilter(ALL_SOURCE_PROVIDER_VALUE);
+          setCreatedFrom("");
+          setCreatedTo("");
           setPage(1);
         }}
         summary={
@@ -229,7 +470,7 @@ export function VideosTable({
             <>Select a center to view videos.</>
           )
         }
-        gridClassName="grid-cols-1 md:grid-cols-3"
+        gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
       >
         <div className="relative">
           <svg
@@ -248,7 +489,7 @@ export function VideosTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search videos..."
+            placeholder="Search title or tags..."
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             disabled={!centerId}
           />
@@ -284,34 +525,93 @@ export function VideosTable({
           </button>
         </div>
 
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={true}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-        />
-
         <Select
           value={statusFilter}
           onValueChange={(value) => {
-            setPage(1);
             setStatusFilter(value);
+            setPage(1);
           }}
-          disabled
+          disabled={!centerId}
         >
-          <SelectTrigger
-            className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-            icon={<StatusIcon />}
-          >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="uploading">Uploading</SelectItem>
             <SelectItem value="processing">Processing</SelectItem>
+            <SelectItem value="ready">Ready</SelectItem>
             <SelectItem value="failed">Failed</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select
+          value={sourceTypeFilter}
+          onValueChange={(value) => {
+            setSourceTypeFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Source Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_TYPE_VALUE}>
+              All source types
+            </SelectItem>
+            <SelectItem value="upload">Upload</SelectItem>
+            <SelectItem value="url">URL</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceProviderFilter}
+          onValueChange={(value) => {
+            setSourceProviderFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Provider" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
+              All providers
+            </SelectItem>
+            <SelectItem value="bunny">Najaah App</SelectItem>
+            <SelectItem value="youtube">YouTube</SelectItem>
+            <SelectItem value="vimeo">Vimeo</SelectItem>
+            <SelectItem value="zoom">Zoom</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Input
+          type="date"
+          value={createdFrom}
+          max={createdTo || undefined}
+          onChange={(event) => {
+            setCreatedFrom(event.target.value);
+            setPage(1);
+          }}
+          title="Created from date"
+          disabled={!centerId}
+        />
+
+        <Input
+          type="date"
+          value={createdTo}
+          min={createdFrom || undefined}
+          onChange={(event) => {
+            setCreatedTo(event.target.value);
+            setPage(1);
+          }}
+          title="Created to date"
+          disabled={!centerId}
+        />
       </ListingFilters>
 
       {!centerId ? (
@@ -341,27 +641,34 @@ export function VideosTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[880px]">
+          <Table className="min-w-[1320px] table-fixed">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                <TableHead className="w-8">
-                  <input
-                    type="checkbox"
-                    className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                    checked={isAllPageSelected}
-                    onChange={toggleAllSelections}
-                    disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all videos on this page"
-                  />
-                </TableHead>
-                <TableHead className="font-medium">Title</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
+                {showSelection ? (
+                  <TableHead className="w-8">
+                    <input
+                      type="checkbox"
+                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                      checked={isAllPageSelected}
+                      onChange={toggleAllSelections}
+                      disabled={isLoadingState || items.length === 0}
+                      aria-label="Select all videos on this page"
+                    />
+                  </TableHead>
+                ) : null}
+                <TableHead className="font-medium">Thumbnail</TableHead>
+                <TableHead className="w-[200px] font-medium">Video</TableHead>
+                <TableHead className="font-medium">Tags</TableHead>
+                <TableHead className="font-medium">Provider</TableHead>
                 <TableHead className="font-medium">Duration</TableHead>
-                {(onView || onEdit || onDelete || onToggleStatus) && (
+                <TableHead className="font-medium">Status</TableHead>
+                <TableHead className="font-medium">Uploaded By</TableHead>
+                <TableHead className="font-medium">Updated</TableHead>
+                {hasActions ? (
                   <TableHead className="w-10 text-right font-medium">
                     Actions
                   </TableHead>
-                )}
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -369,35 +676,52 @@ export function VideosTable({
                 <>
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
+                      {showSelection ? (
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
-                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-10 w-16 rounded-md" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-4 w-44" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-36" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-5 w-20 rounded-full" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-28" />
                       </TableCell>
-                      {(onView || onEdit || onDelete || onToggleStatus) && (
+                      {hasActions ? (
                         <TableCell>
                           <Skeleton className="ml-auto h-4 w-16" />
                         </TableCell>
-                      )}
+                      ) : null}
                     </TableRow>
                   ))}
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48">
+                  <TableCell colSpan={columnCount} className="h-48">
                     <EmptyState
                       title={query ? "No videos found" : "No videos yet"}
                       description={
                         query
                           ? "Try adjusting your search terms"
-                          : "Upload videos to get started"
+                          : "Create videos to get started"
                       }
                       className="border-0 bg-transparent"
                     />
@@ -407,39 +731,161 @@ export function VideosTable({
                 items.map((video, index) => {
                   const shouldOpenUp =
                     items.length > 4 && index >= items.length - 2;
+                  const title = resolveVideoTitle(video);
+                  const videoId = String(video.id);
+                  const thumbnailState = resolveVideoThumbnailState(video);
+                  const canRenderThumbnailImage = Boolean(
+                    thumbnailState.imageUrl && !failedThumbnailIds[videoId],
+                  );
+                  const tags = resolveVideoTags(video);
+                  const providerLabel = resolveVideoProviderLabel(video);
+                  const sourceMode = resolveSourceMode(video);
+                  const durationSeconds = resolveDurationSeconds(video);
+                  const description = resolveVideoDescription(video);
+                  const tableStatus = resolveTableStatus(video);
+                  const tableStatusBadge = getStatusBadge(
+                    tableStatus.key,
+                    tableStatus.label,
+                  );
+                  const creatorName =
+                    typeof video.creator?.name === "string" &&
+                    video.creator.name.trim()
+                      ? video.creator.name.trim()
+                      : "—";
+                  const centerName =
+                    typeof video.center?.name === "string" &&
+                    video.center.name.trim()
+                      ? video.center.name.trim()
+                      : null;
 
                   return (
                     <TableRow
                       key={video.id}
                       className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
                     >
+                      {showSelection ? (
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
+                            checked={Boolean(selectedVideos[String(video.id)])}
+                            onChange={() => toggleVideoSelection(video)}
+                            aria-label={`Select ${title}`}
+                          />
+                        </TableCell>
+                      ) : null}
                       <TableCell>
-                        <input
-                          type="checkbox"
-                          className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                          checked={Boolean(selectedVideos[String(video.id)])}
-                          onChange={() => toggleVideoSelection(video)}
-                          aria-label={`Select ${video.title ?? `video ${video.id}`}`}
-                        />
+                        {canRenderThumbnailImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbnailState.imageUrl ?? undefined}
+                            alt={`${title} thumbnail`}
+                            className="h-10 w-16 rounded-md border border-gray-200 object-cover dark:border-gray-700"
+                            loading="lazy"
+                            onError={() => {
+                              setFailedThumbnailIds((prev) => ({
+                                ...prev,
+                                [videoId]: true,
+                              }));
+                            }}
+                          />
+                        ) : (
+                          <div className="flex h-10 w-16 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-1 text-center dark:border-gray-700 dark:bg-gray-900">
+                            <span className="line-clamp-1 text-[9px] font-medium text-gray-500 dark:text-gray-400">
+                              {thumbnailState.fallbackLabel}
+                            </span>
+                            <span className="line-clamp-1 text-[8px] text-gray-400 dark:text-gray-500">
+                              {thumbnailState.fallbackHint ?? "No thumbnail"}
+                            </span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="w-[200px] max-w-[200px] overflow-hidden text-gray-700 dark:text-gray-300">
+                        <div className="max-w-full space-y-1 overflow-hidden">
+                          <p className="line-clamp-1 max-w-full break-all font-medium">
+                            {title}
+                          </p>
+                          {description ? (
+                            <p
+                              className="line-clamp-1 max-w-full break-all text-xs leading-relaxed text-gray-500 dark:text-gray-400"
+                              title={description}
+                            >
+                              {description}
+                            </p>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {video.title ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        {video.status ? (
-                          <Badge
-                            variant={getStatusConfig(video.status).variant}
-                          >
-                            {getStatusConfig(video.status).label}
-                          </Badge>
+                        {tags.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1">
+                            {tags.slice(0, 2).map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="max-w-[120px] truncate text-[10px]"
+                                title={tag}
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                            {tags.length > 2 ? (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px]"
+                                title={tags.slice(2).join(", ")}
+                              >
+                                +{tags.length - 2}
+                              </Badge>
+                            ) : null}
+                          </div>
                         ) : (
                           "—"
                         )}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {video.duration ?? "—"}
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-700 dark:text-gray-300">
+                            {providerLabel}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {sourceMode}
+                          </p>
+                        </div>
                       </TableCell>
-                      {(onView || onEdit || onDelete || onToggleStatus) && (
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {formatDuration(durationSeconds)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={tableStatusBadge.variant}>
+                          {tableStatusBadge.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        <div className="space-y-1">
+                          <p className="line-clamp-1 font-medium text-gray-700 dark:text-gray-300">
+                            {creatorName}
+                          </p>
+                          <p className="line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
+                            {centerName ?? "Najaah App"}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        <div className="space-y-1">
+                          <p>
+                            {video.updated_at
+                              ? formatDateTime(video.updated_at)
+                              : "—"}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            Created{" "}
+                            {video.created_at
+                              ? formatDateTime(video.created_at)
+                              : "—"}
+                          </p>
+                        </div>
+                      </TableCell>
+                      {hasActions ? (
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end">
                             <Dropdown
@@ -454,59 +900,70 @@ export function VideosTable({
                               <DropdownContent
                                 align="end"
                                 className={cn(
-                                  "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
+                                  "w-52 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
                                   shouldOpenUp && "bottom-full mb-2 mt-0",
                                 )}
                               >
-                                {onView && (
+                                {onView ? (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                     onClick={() => {
                                       setOpenMenuId(null);
-                                      onView?.(video);
+                                      onView(video);
                                     }}
                                   >
                                     View details
                                   </button>
-                                )}
-                                {onEdit && (
+                                ) : null}
+                                {onPreview ? (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                     onClick={() => {
                                       setOpenMenuId(null);
-                                      onEdit?.(video);
+                                      onPreview(video);
+                                    }}
+                                  >
+                                    Preview
+                                  </button>
+                                ) : null}
+                                {onRetryUpload && canRetryVideoUpload(video) ? (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onRetryUpload(video);
+                                    }}
+                                  >
+                                    Retry upload
+                                  </button>
+                                ) : null}
+                                {onEdit ? (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onEdit(video);
                                     }}
                                   >
                                     Edit video
                                   </button>
-                                )}
-                                {onToggleStatus && (
-                                  <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    onClick={() => {
-                                      setOpenMenuId(null);
-                                      onToggleStatus?.(video);
-                                    }}
-                                  >
-                                    Change status
-                                  </button>
-                                )}
-                                {onDelete && (
+                                ) : null}
+                                {onDelete ? (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                     onClick={() => {
                                       setOpenMenuId(null);
-                                      onDelete?.(video);
+                                      onDelete(video);
                                     }}
                                   >
                                     Delete
                                   </button>
-                                )}
+                                ) : null}
                               </DropdownContent>
                             </Dropdown>
                           </div>
                         </TableCell>
-                      )}
+                      ) : null}
                     </TableRow>
                   );
                 })
@@ -516,25 +973,45 @@ export function VideosTable({
         </div>
       )}
 
-      {selectedCount > 0 && (
+      {selectedCount > 0 && hasBulkActions ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
             {selectedCount} selected
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onBulkChangeStatus?.(selectedVideosList)}
-              disabled={isLoadingState}
-            >
-              Change Status
-            </Button>
+            {onBulkRetryUpload ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onBulkRetryUpload(retryEligibleSelectedVideos)}
+                disabled={
+                  isLoadingState || retryEligibleSelectedVideos.length === 0
+                }
+                title={
+                  retryEligibleSelectedVideos.length === 0
+                    ? "Select failed upload-source videos to retry"
+                    : undefined
+                }
+              >
+                Retry Uploads
+              </Button>
+            ) : null}
+            {onBulkDelete ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onBulkDelete(selectedVideosList)}
+                disabled={isLoadingState}
+                className="text-red-600 hover:text-red-600"
+              >
+                Delete Selected
+              </Button>
+            ) : null}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {!isError && maxPage > 1 && (
+      {!isError && maxPage > 1 ? (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">
           <PaginationControls
             page={page}
@@ -549,7 +1026,7 @@ export function VideosTable({
             size="sm"
           />
         </div>
-      )}
+      ) : null}
     </ListingCard>
   );
 }

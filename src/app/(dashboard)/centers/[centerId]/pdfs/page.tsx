@@ -66,6 +66,9 @@ export default function CenterPdfsPage({ params }: PageProps) {
       <PdfDetailsDrawer
         open={Boolean(viewingPdf)}
         pdf={viewingPdf}
+        centerId={centerId}
+        onEdit={(pdf) => setEditingPdf(pdf)}
+        onDelete={(pdf) => setDeletingPdf(pdf)}
         onOpenChange={(open) => {
           if (!open) setViewingPdf(null);
         }}

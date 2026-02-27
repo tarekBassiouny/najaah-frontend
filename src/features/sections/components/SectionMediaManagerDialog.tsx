@@ -15,8 +15,8 @@ import { Label } from "@/components/ui/label";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useAttachSectionPdf,
-  useAttachSectionVideo,
+  useBulkAttachSectionPdfs,
+  useBulkAttachSectionVideos,
   useDetachSectionPdf,
   useDetachSectionVideo,
   useSection,
@@ -28,7 +28,10 @@ import type {
 } from "@/features/sections/types/section";
 import { listPdfs } from "@/features/pdfs/services/pdfs.service";
 import { listVideos } from "@/features/videos/services/videos.service";
-import { getAdminResponseMessage } from "@/lib/admin-response";
+import {
+  getAdminResponseMessage,
+  isAdminRequestSuccessful,
+} from "@/lib/admin-response";
 
 const MEDIA_PICKER_PAGE_SIZE = 20;
 const MEDIA_SEARCH_DEBOUNCE_MS = 300;
@@ -41,6 +44,15 @@ type SectionMediaManagerDialogProps = {
   centerId: string | number;
   courseId: string | number;
   onSuccess?: (_message: string) => void;
+};
+
+type MediaOptionsPage = {
+  items: Array<Record<string, unknown>>;
+  meta?: {
+    page?: number;
+    per_page?: number;
+    total?: number;
+  };
 };
 
 function getMediaLabel(mode: "video" | "pdf") {
@@ -114,10 +126,10 @@ export function SectionMediaManagerDialog({
     enabled: open && Boolean(sectionId),
   });
 
-  const { mutateAsync: attachVideoAsync, isPending: isAttachingVideo } =
-    useAttachSectionVideo();
-  const { mutateAsync: attachPdfAsync, isPending: isAttachingPdf } =
-    useAttachSectionPdf();
+  const { mutateAsync: bulkAttachVideosAsync, isPending: isAttachingVideos } =
+    useBulkAttachSectionVideos();
+  const { mutateAsync: bulkAttachPdfsAsync, isPending: isAttachingPdfs } =
+    useBulkAttachSectionPdfs();
   const { mutateAsync: detachVideoAsync, isPending: isDetachingVideo } =
     useDetachSectionVideo();
   const { mutateAsync: detachPdfAsync, isPending: isDetachingPdf } =
@@ -129,7 +141,7 @@ export function SectionMediaManagerDialog({
     isFetchingNextPage: isOptionsLoadingMore,
     hasNextPage: hasMoreOptions,
     fetchNextPage: fetchMoreOptions,
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<MediaOptionsPage>({
     queryKey: [
       "section-media-options",
       mode,
@@ -138,23 +150,31 @@ export function SectionMediaManagerDialog({
       debouncedSearch,
     ],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => {
+    queryFn: async ({ pageParam }) => {
       const page = Number(pageParam ?? 1);
       if (mode === "video") {
-        return listVideos({
+        const response = await listVideos({
           centerId,
           page,
           per_page: MEDIA_PICKER_PAGE_SIZE,
           search: debouncedSearch || undefined,
         });
+        return {
+          items: response.items as Array<Record<string, unknown>>,
+          meta: response.meta,
+        };
       }
 
-      return listPdfs({
+      const response = await listPdfs({
         centerId,
         page,
         per_page: MEDIA_PICKER_PAGE_SIZE,
         search: debouncedSearch || undefined,
       });
+      return {
+        items: response.items as Array<Record<string, unknown>>,
+        meta: response.meta,
+      };
     },
     enabled: open,
     getNextPageParam: (lastPage) => {
@@ -187,8 +207,7 @@ export function SectionMediaManagerDialog({
     >();
 
     (optionsData?.pages ?? []).forEach((pageData) => {
-      pageData.items.forEach((entry) => {
-        const item = entry as Record<string, unknown>;
+      pageData.items.forEach((item) => {
         const key = String(item.id);
         if (dedupe.has(key)) return;
 
@@ -205,8 +224,8 @@ export function SectionMediaManagerDialog({
 
   const isMutating =
     isBatchAttaching ||
-    isAttachingVideo ||
-    isAttachingPdf ||
+    isAttachingVideos ||
+    isAttachingPdfs ||
     isDetachingVideo ||
     isDetachingPdf;
 
@@ -232,7 +251,9 @@ export function SectionMediaManagerDialog({
   const handleAttachSelected = async () => {
     if (!sectionId) return;
 
-    const idsToAttach = selectedIds.filter((id) => !attachedItemIds.has(id));
+    const idsToAttach = selectedIds
+      .filter((id) => !attachedItemIds.has(id))
+      .map(normalizeMediaId);
     if (idsToAttach.length === 0) {
       setErrorMessage(
         `Select at least one ${mediaLabel.toLowerCase()} to attach.`,
@@ -243,59 +264,84 @@ export function SectionMediaManagerDialog({
     setErrorMessage(null);
     setIsBatchAttaching(true);
 
-    const results = await Promise.allSettled(
-      idsToAttach.map((id) => {
-        if (mode === "video") {
-          return attachVideoAsync({
-            centerId,
-            courseId,
-            sectionId,
-            payload: { video_id: normalizeMediaId(id) },
-          });
+    try {
+      const result =
+        mode === "video"
+          ? await bulkAttachVideosAsync({
+              centerId,
+              courseId,
+              sectionId,
+              videoIds: idsToAttach,
+            })
+          : await bulkAttachPdfsAsync({
+              centerId,
+              courseId,
+              sectionId,
+              pdfIds: idsToAttach,
+            });
+
+      setIsBatchAttaching(false);
+
+      if (!isAdminRequestSuccessful(result)) {
+        setErrorMessage(
+          getAdminResponseMessage(
+            result,
+            `Failed to attach ${mediaLabel.toLowerCase()}s.`,
+          ),
+        );
+        return;
+      }
+
+      const attached = result.data?.attached ?? 0;
+      const failed = result.data?.failed ?? 0;
+      const skipped = result.data?.skipped ?? 0;
+      const attachedIds = result.data?.details?.attached_ids ?? [];
+
+      if (attached > 0 || skipped > 0) {
+        const fallbackMessage =
+          attached === 1
+            ? `${mediaLabel} attached successfully.`
+            : attached > 1
+              ? `${attached} ${mediaLabel.toLowerCase()}s attached successfully.`
+              : skipped > 0
+                ? `${skipped} ${mediaLabel.toLowerCase()}s already attached.`
+                : `No ${mediaLabel.toLowerCase()} changes were applied.`;
+        const message = getAdminResponseMessage(result, fallbackMessage);
+
+        if (failed === 0) {
+          onSuccess?.(message);
         }
 
-        return attachPdfAsync({
-          centerId,
-          courseId,
-          sectionId,
-          payload: { pdf_id: normalizeMediaId(id) },
-        });
-      }),
-    );
+        if (attachedIds.length > 0) {
+          const attachedIdSet = new Set(attachedIds.map((id) => String(id)));
+          setSelectedIds((prev) =>
+            prev.filter((id) => !attachedIdSet.has(String(id))),
+          );
+        } else if (failed === 0) {
+          setSelectedIds([]);
+        }
 
-    setIsBatchAttaching(false);
+        await refetchDetails();
+      }
 
-    const successful = results.filter(
-      (result): result is PromiseFulfilledResult<unknown> =>
-        result.status === "fulfilled",
-    );
-    const failed = results.filter(
-      (result): result is PromiseRejectedResult => result.status === "rejected",
-    );
-
-    if (successful.length > 0) {
-      const fallbackMessage =
-        successful.length === 1
-          ? `${mediaLabel} attached successfully.`
-          : `${successful.length} ${mediaLabel.toLowerCase()}s attached successfully.`;
-      const message = getAdminResponseMessage(
-        successful[successful.length - 1].value,
-        fallbackMessage,
+      if (failed > 0) {
+        const firstFailedReason = result.data?.details?.failed?.[0]?.reason;
+        const errorMsg =
+          attached > 0
+            ? `Attached ${attached} of ${idsToAttach.length} selected ${mediaLabel.toLowerCase()}s.`
+            : `Failed to attach ${mediaLabel.toLowerCase()}s.`;
+        setErrorMessage(
+          firstFailedReason ? `${errorMsg} ${firstFailedReason}` : errorMsg,
+        );
+      }
+    } catch (error) {
+      setIsBatchAttaching(false);
+      setErrorMessage(
+        getSectionApiErrorMessage(
+          error,
+          `Failed to attach ${mediaLabel.toLowerCase()}s.`,
+        ),
       );
-
-      onSuccess?.(message);
-      setSelectedIds([]);
-      await refetchDetails();
-    }
-
-    if (failed.length > 0) {
-      const fallbackError =
-        successful.length > 0
-          ? `Attached ${successful.length} of ${idsToAttach.length} selected ${mediaLabel.toLowerCase()}s.`
-          : `Failed to attach ${mediaLabel.toLowerCase()}.`;
-
-      const firstError = failed[0]?.reason;
-      setErrorMessage(getSectionApiErrorMessage(firstError, fallbackError));
     }
   };
 

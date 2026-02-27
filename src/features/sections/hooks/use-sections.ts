@@ -7,6 +7,10 @@ import {
 import {
   attachSectionPdf,
   attachSectionVideo,
+  bulkAttachSectionPdfs,
+  bulkAttachSectionVideos,
+  bulkDetachSectionPdfs,
+  bulkDetachSectionVideos,
   bulkPublishSections,
   bulkUnpublishSections,
   createSection,
@@ -553,6 +557,122 @@ export function useBulkUnpublishSections() {
     onSuccess: (_, { centerId, courseId }) => {
       queryClient.invalidateQueries({
         queryKey: ["sections", centerId, courseId],
+      });
+    },
+  });
+}
+
+export function useBulkAttachSectionPdfs() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      sectionId,
+      pdfIds,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      sectionId: string | number;
+      pdfIds: Array<string | number>;
+    }) => bulkAttachSectionPdfs(centerId, courseId, sectionId, pdfIds),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-pdfs", centerId, courseId, sectionId],
+      });
+    },
+  });
+}
+
+export function useBulkDetachSectionPdfs() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      sectionId,
+      pdfIds,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      sectionId: string | number;
+      pdfIds: Array<string | number>;
+    }) => bulkDetachSectionPdfs(centerId, courseId, sectionId, pdfIds),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-pdfs", centerId, courseId, sectionId],
+      });
+    },
+  });
+}
+
+export function useBulkAttachSectionVideos() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      sectionId,
+      videoIds,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      sectionId: string | number;
+      videoIds: Array<string | number>;
+    }) => bulkAttachSectionVideos(centerId, courseId, sectionId, videoIds),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-videos", centerId, courseId, sectionId],
+      });
+    },
+  });
+}
+
+export function useBulkDetachSectionVideos() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      courseId,
+      sectionId,
+      videoIds,
+    }: {
+      centerId: string | number;
+      courseId: string | number;
+      sectionId: string | number;
+      videoIds: Array<string | number>;
+    }) => bulkDetachSectionVideos(centerId, courseId, sectionId, videoIds),
+    onSuccess: (_, { centerId, courseId, sectionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sections", centerId, courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section", centerId, courseId, sectionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["section-videos", centerId, courseId, sectionId],
       });
     },
   });

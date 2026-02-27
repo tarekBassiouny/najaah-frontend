@@ -2,6 +2,7 @@
 
 import { use, useMemo } from "react";
 import Link from "next/link";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
+import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { getAdminScope } from "@/lib/user-scope";
 
 type PageProps = {
@@ -224,7 +226,7 @@ const SECTIONS = [
 
 export default function CenterDetailPage({ params }: PageProps) {
   const { centerId } = use(params);
-  const { data: center, isLoading } = useCenter(centerId);
+  const { data: center, isLoading, isError, error } = useCenter(centerId);
   const { data: currentAdmin } = useAdminMe();
   const userScope = getAdminScope(currentAdmin);
 
@@ -267,6 +269,33 @@ export default function CenterDetailPage({ params }: PageProps) {
           ))}
         </div>
       </div>
+    );
+  }
+
+  const isMissingCenter = !isLoading && !isError && !center;
+  if (isMissingCenter || isAdminApiNotFoundError(error)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Center"
+        title="Center not found"
+        description="The center you requested does not exist or is no longer available."
+        primaryAction={{ href: "/centers", label: "Go to Centers" }}
+      />
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="space-y-4 py-10 text-center">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Failed to load this center. Please try again.
+          </p>
+          <Link href="/centers">
+            <Button variant="outline">Back to Centers</Button>
+          </Link>
+        </CardContent>
+      </Card>
     );
   }
 

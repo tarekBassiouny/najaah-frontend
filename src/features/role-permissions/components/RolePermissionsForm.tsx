@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
 import { useRolePermissions } from "@/features/role-permissions/hooks/use-role-permissions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
 
 type RolePermissionsFormProps = {
@@ -410,6 +412,21 @@ export function RolePermissionsForm({
     if (current.length !== initial.length) return true;
     return current.some((id, index) => id !== initial[index]);
   }, [initialSelectedIds, selectedIds]);
+
+  const isMissingRole = !isLoading && !isError && !data;
+  if (isMissingRole || isAdminApiNotFoundError(error)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Role Permissions"
+        title="Role not found"
+        description="The role you requested does not exist or is no longer available."
+        primaryAction={{
+          href: scopeCenterId ? `/centers/${scopeCenterId}/roles` : "/roles",
+          label: scopeCenterId ? "Go to Roles" : "Go to Platform Roles",
+        }}
+      />
+    );
+  }
 
   const togglePermission = (permissionId: number | string) => {
     if (readOnly) return;

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosProgressEvent } from "axios";
 import type { Pdf, PdfUploadSession } from "@/features/pdfs/types/pdf";
 import type { PaginatedResponse } from "@/types/pagination";
 import { http } from "@/lib/http";
@@ -13,6 +13,12 @@ export type ListPdfsParams = {
   page?: number;
   per_page?: number;
   search?: string;
+  q?: string;
+  status?: string | number;
+  source_type?: string | number;
+  source_provider?: string;
+  created_from?: string;
+  created_to?: string;
   course_id?: string | number;
 };
 
@@ -60,11 +66,20 @@ export async function listPdfs(
   if (!params.centerId) {
     throw new Error("centerId is required to list pdfs");
   }
+  const normalizedQuery = params.q?.trim() || undefined;
+  const normalizedLegacySearch = params.search?.trim() || undefined;
+  const normalizedProvider = params.source_provider?.trim() || undefined;
   const { data } = await http.get<RawPdfsResponse>(basePath(params.centerId), {
     params: {
       page: params.page,
       per_page: params.per_page,
-      search: params.search || undefined,
+      q: normalizedQuery,
+      search: normalizedQuery ? undefined : normalizedLegacySearch,
+      status: params.status ?? undefined,
+      source_type: params.source_type ?? undefined,
+      source_provider: normalizedProvider,
+      created_from: params.created_from || undefined,
+      created_to: params.created_to || undefined,
       course_id: params.course_id ?? undefined,
     },
   });
@@ -156,6 +171,16 @@ export async function uploadPdfToStorage(
   uploadEndpoint: string,
   file: File | Blob,
   requiredHeaders?: Record<string, string> | null,
+  options?: {
+    signal?: AbortSignal;
+    onProgress?: (_payload: {
+      loaded: number;
+      total: number | null;
+      percentage: number;
+      bytesPerSecond: number | null;
+      etaSeconds: number | null;
+    }) => void;
+  },
 ): Promise<void> {
   const headers: Record<string, string> = {
     ...(requiredHeaders ?? {}),
@@ -168,9 +193,49 @@ export async function uploadPdfToStorage(
     headers["Content-Type"] = "application/pdf";
   }
 
+  let previousLoaded = 0;
+  let previousTimestamp = Date.now();
+
+  const handleProgress = (event: AxiosProgressEvent) => {
+    const loaded = Number(event.loaded ?? 0);
+    const totalValue =
+      typeof event.total === "number" && event.total > 0 ? event.total : null;
+    const percentage =
+      totalValue != null ? Math.min(100, (loaded / totalValue) * 100) : 0;
+
+    const currentTimestamp = Date.now();
+    const elapsedSeconds = (currentTimestamp - previousTimestamp) / 1000;
+    const loadedDelta = Math.max(0, loaded - previousLoaded);
+    const calculatedRate =
+      elapsedSeconds > 0 ? loadedDelta / elapsedSeconds : null;
+    const bytesPerSecond =
+      calculatedRate && Number.isFinite(calculatedRate) && calculatedRate > 0
+        ? calculatedRate
+        : typeof event.rate === "number" && event.rate > 0
+          ? event.rate
+          : null;
+    const etaSeconds =
+      totalValue != null && bytesPerSecond && bytesPerSecond > 0
+        ? Math.max(0, (totalValue - loaded) / bytesPerSecond)
+        : null;
+
+    previousLoaded = loaded;
+    previousTimestamp = currentTimestamp;
+
+    options?.onProgress?.({
+      loaded,
+      total: totalValue,
+      percentage,
+      bytesPerSecond,
+      etaSeconds,
+    });
+  };
+
   await axios.put(uploadEndpoint, file, {
     headers,
     withCredentials: false,
+    signal: options?.signal,
+    onUploadProgress: options?.onProgress ? handleProgress : undefined,
   });
 }
 

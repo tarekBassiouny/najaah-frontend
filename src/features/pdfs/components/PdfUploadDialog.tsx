@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { useModal } from "@/components/ui/modal-store";
+import { usePdfUpload } from "@/features/pdfs/context/pdf-upload-context";
 import {
   useCreatePdfUploadSession,
   useFinalizePdfUploadSession,
@@ -24,10 +28,14 @@ import {
 } from "@/features/pdfs/services/pdfs.service";
 import type { Pdf, PdfUploadSession } from "@/features/pdfs/types/pdf";
 import {
+  formatBytesPerSecond,
+  formatEtaSeconds,
+} from "@/features/videos/lib/upload-metrics";
+import {
   getAdminApiErrorMessage,
   getAdminResponseMessage,
 } from "@/lib/admin-response";
-import { useModal } from "@/components/ui/modal-store";
+import { cn } from "@/lib/utils";
 
 type PdfUploadDialogProps = {
   centerId: string | number;
@@ -37,6 +45,14 @@ type PdfUploadDialogProps = {
   onSuccess?: (_message: string) => void;
   onUploaded?: (_message: string) => void;
 };
+
+type UploadPhase =
+  | "idle"
+  | "creating"
+  | "uploading"
+  | "finalizing"
+  | "ready"
+  | "failed";
 
 function resolveUploadSessionId(session: PdfUploadSession) {
   return session.upload_session_id ?? session.id;
@@ -83,6 +99,38 @@ function isPdfFile(file: File) {
   return file.type === "application/pdf" || name.endsWith(".pdf");
 }
 
+function isUploadCanceled(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const maybeError = error as { code?: unknown; name?: unknown };
+  return (
+    maybeError.code === "ERR_CANCELED" || maybeError.name === "CanceledError"
+  );
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes <= 0) return "0 B";
+
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    units.length - 1,
+  );
+  const value = bytes / 1024 ** exponent;
+  const precision = value >= 100 || exponent === 0 ? 0 : 1;
+  return `${value.toFixed(precision)} ${units[exponent]}`;
+}
+
+function resolveUploadPhaseLabel(phase: UploadPhase) {
+  if (phase === "creating") return "Creating Session";
+  if (phase === "uploading") return "Uploading";
+  if (phase === "finalizing") return "Finalizing";
+  if (phase === "failed") return "Failed";
+  if (phase === "ready") return "Ready";
+  return "Idle";
+}
+
 export function PdfUploadDialog({
   centerId,
   open,
@@ -93,6 +141,17 @@ export function PdfUploadDialog({
 }: PdfUploadDialogProps) {
   const { showToast } = useModal();
   const isEditMode = Boolean(pdf);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isMountedRef = useRef(false);
+  const uploadAbortControllerRef = useRef<AbortController | null>(null);
+  const wasStoppedByUserRef = useRef(false);
+  const {
+    startUpload: startGlobalUpload,
+    updateUpload: updateGlobalUpload,
+    attachAbortController: attachGlobalAbortController,
+    minimize: minimizeGlobalUpload,
+    stopUpload: stopGlobalUpload,
+  } = usePdfUpload();
 
   const {
     mutateAsync: createUploadSessionAsync,
@@ -111,25 +170,61 @@ export function PdfUploadDialog({
   const [descriptionEn, setDescriptionEn] = useState("");
   const [descriptionAr, setDescriptionAr] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
-  const [isUploadingStorage, setIsUploadingStorage] = useState(false);
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSpeedBps, setUploadSpeedBps] = useState<number | null>(null);
+  const [uploadEtaSeconds, setUploadEtaSeconds] = useState<number | null>(null);
+  const [uploadStatusText, setUploadStatusText] = useState("");
+  const [uploadSessionId, setUploadSessionId] = useState<
+    string | number | null
+  >(null);
+  const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
+  const [isDragActive, setIsDragActive] = useState(false);
 
-  const isBusy =
-    isCreatingSession ||
-    isUploadingStorage ||
-    isFinalizingSession ||
-    isUpdatingPdf;
+  const isMutating = isCreatingSession || isFinalizingSession || isUpdatingPdf;
+  const hasActiveUpload =
+    uploadPhase === "creating" ||
+    uploadPhase === "uploading" ||
+    uploadPhase === "finalizing";
+  const isBusy = isMutating || hasActiveUpload;
 
   const selectedFileLabel = useMemo(() => {
     if (!file) return "";
-    const sizeKb = Math.max(1, Math.ceil(file.size / 1024));
-    return `${file.name} (${sizeKb} KB)`;
+    return `${file.name} (${formatFileSize(file.size)})`;
   }, [file]);
+
+  const resetCreateState = useCallback(() => {
+    setFile(null);
+    setTitleEn("");
+    setTitleAr("");
+    setDescriptionEn("");
+    setDescriptionAr("");
+    setFormError(null);
+    setUploadPhase("idle");
+    setUploadProgress(0);
+    setUploadSpeedBps(null);
+    setUploadEtaSeconds(null);
+    setUploadStatusText("");
+    setUploadSessionId(null);
+    setActiveUploadId(null);
+    setIsDragActive(false);
+    uploadAbortControllerRef.current = null;
+    wasStoppedByUserRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
 
     setFormError(null);
-    setIsUploadingStorage(false);
+    setIsDragActive(false);
+
     if (isEditMode && pdf) {
       setFile(null);
       setTitleEn(String(pdf.title_translations?.en ?? pdf.title ?? ""));
@@ -138,15 +233,85 @@ export function PdfUploadDialog({
         String(pdf.description_translations?.en ?? pdf.description ?? ""),
       );
       setDescriptionAr(String(pdf.description_translations?.ar ?? ""));
+      setUploadPhase("idle");
+      setUploadProgress(0);
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
+      setUploadStatusText("");
+      setUploadSessionId(null);
+      setActiveUploadId(null);
       return;
     }
 
-    setFile(null);
-    setTitleEn("");
-    setTitleAr("");
-    setDescriptionEn("");
-    setDescriptionAr("");
-  }, [open, isEditMode, pdf]);
+    resetCreateState();
+  }, [open, isEditMode, pdf, resetCreateState]);
+
+  const handleMinimizeUpload = () => {
+    minimizeGlobalUpload();
+    onOpenChange(false);
+  };
+
+  const handleStopUpload = async () => {
+    try {
+      wasStoppedByUserRef.current = true;
+      if (activeUploadId) {
+        await stopGlobalUpload(activeUploadId);
+      } else if (uploadAbortControllerRef.current) {
+        uploadAbortControllerRef.current.abort();
+      }
+
+      const message = "Upload stopped.";
+      showToast(message, "success");
+      resetCreateState();
+      onOpenChange(false);
+    } catch (error) {
+      const message = getAdminApiErrorMessage(error, "Failed to stop upload.");
+      setFormError(message);
+      showToast(message, "error");
+    }
+  };
+
+  const applySelectedFile = (nextFile: File | null) => {
+    setFile(nextFile);
+    setIsDragActive(false);
+    setFormError(null);
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && hasActiveUpload) {
+      handleMinimizeUpload();
+      return;
+    }
+
+    if (!nextOpen && isMutating) {
+      return;
+    }
+
+    if (!nextOpen && !isEditMode) {
+      resetCreateState();
+    }
+
+    onOpenChange(nextOpen);
+  };
+
+  const submitLabel = (() => {
+    if (isEditMode) {
+      return isUpdatingPdf ? "Saving..." : "Save Changes";
+    }
+    if (uploadPhase === "creating" || isCreatingSession) {
+      return "Creating Session...";
+    }
+    if (uploadPhase === "uploading") {
+      return "Uploading...";
+    }
+    if (uploadPhase === "finalizing" || isFinalizingSession) {
+      return "Finalizing...";
+    }
+    if (uploadPhase === "failed") {
+      return "Retry Upload";
+    }
+    return "Create & Upload";
+  })();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -164,6 +329,7 @@ export function PdfUploadDialog({
       descriptionEn,
       descriptionAr,
     );
+    let currentUploadId: string | null = null;
 
     try {
       if (isEditMode && pdf) {
@@ -197,6 +363,12 @@ export function PdfUploadDialog({
         return;
       }
 
+      setUploadPhase("creating");
+      setUploadProgress(0);
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
+      setUploadStatusText("Creating upload session...");
+
       const fileSizeKb = Math.max(1, Math.ceil(file.size / 1024));
       const session = await createUploadSessionAsync({
         centerId,
@@ -206,19 +378,65 @@ export function PdfUploadDialog({
         },
       });
 
-      const uploadSessionId = resolveUploadSessionId(session);
+      const currentUploadSessionId = resolveUploadSessionId(session);
       const uploadEndpoint = resolveUploadEndpoint(session);
-      if (!uploadSessionId || !uploadEndpoint) {
+      if (!currentUploadSessionId || !uploadEndpoint) {
         throw new Error("Upload session is missing endpoint or identifier.");
       }
 
-      setIsUploadingStorage(true);
+      setUploadSessionId(currentUploadSessionId);
+      setUploadPhase("uploading");
+      setUploadStatusText("Uploading PDF...");
+
+      currentUploadId = startGlobalUpload({
+        centerId,
+        fileName: file.name,
+        uploadSessionId: currentUploadSessionId,
+        phase: "uploading",
+        statusText: "Uploading PDF...",
+      });
+      setActiveUploadId(currentUploadId);
+
+      const abortController = new AbortController();
+      uploadAbortControllerRef.current = abortController;
+      attachGlobalAbortController(currentUploadId, abortController);
+
       await uploadPdfToStorage(
         uploadEndpoint,
         file,
         resolveRequiredHeaders(session),
+        {
+          signal: abortController.signal,
+          onProgress: ({ percentage, bytesPerSecond, etaSeconds }) => {
+            if (isMountedRef.current) {
+              setUploadProgress(percentage);
+              setUploadPhase("uploading");
+              setUploadStatusText("Uploading PDF...");
+              setUploadSpeedBps(bytesPerSecond);
+              setUploadEtaSeconds(etaSeconds);
+            }
+            updateGlobalUpload(currentUploadId!, {
+              progress: percentage,
+              phase: "uploading",
+              statusText: "Uploading PDF...",
+              bytesPerSecond,
+              etaSeconds,
+            });
+          },
+        },
       );
-      setIsUploadingStorage(false);
+
+      setUploadPhase("finalizing");
+      setUploadStatusText("Upload complete. Finalizing...");
+      setUploadSpeedBps(null);
+      setUploadEtaSeconds(null);
+      updateGlobalUpload(currentUploadId, {
+        progress: 100,
+        phase: "finalizing",
+        statusText: "Upload complete. Finalizing...",
+        bytesPerSecond: null,
+        etaSeconds: null,
+      });
 
       const finalizePayload: FinalizePdfUploadSessionPayload = {
         title_translations: titleTranslations,
@@ -229,7 +447,7 @@ export function PdfUploadDialog({
 
       const finalizedSession = await finalizeUploadSessionAsync({
         centerId,
-        uploadSessionId,
+        uploadSessionId: currentUploadSessionId,
         payload: finalizePayload,
       });
 
@@ -247,37 +465,97 @@ export function PdfUploadDialog({
       showToast(successMessage, "success");
       onSuccess?.(successMessage);
       onUploaded?.(successMessage);
-      onOpenChange(false);
+
+      updateGlobalUpload(currentUploadId, {
+        progress: 100,
+        phase: "ready",
+        statusText: successMessage,
+        bytesPerSecond: null,
+        etaSeconds: null,
+      });
+      attachGlobalAbortController(currentUploadId, null);
+      setActiveUploadId(null);
+      uploadAbortControllerRef.current = null;
+
+      if (isMountedRef.current) {
+        resetCreateState();
+        onOpenChange(false);
+      }
     } catch (error) {
-      setIsUploadingStorage(false);
+      const uploadWasCanceled = isUploadCanceled(error);
+      if (uploadWasCanceled) {
+        if (isMountedRef.current) {
+          setUploadPhase("idle");
+          setUploadProgress(0);
+          setUploadSpeedBps(null);
+          setUploadEtaSeconds(null);
+          setUploadStatusText("");
+        }
+        wasStoppedByUserRef.current = false;
+        return;
+      }
+
       const message =
         error instanceof Error && error.message
           ? error.message
-          : getAdminApiErrorMessage(
-              error,
-              isEditMode ? "Failed to update PDF." : "Failed to upload PDF.",
-            );
-      setFormError(message);
+          : getAdminApiErrorMessage(error, "Failed to upload PDF.");
+
+      if (isMountedRef.current) {
+        setUploadPhase("failed");
+        setFormError(message);
+        setUploadSpeedBps(null);
+        setUploadEtaSeconds(null);
+      }
+
+      const failedUploadId = currentUploadId ?? activeUploadId;
+      if (failedUploadId) {
+        updateGlobalUpload(failedUploadId, {
+          phase: "failed",
+          statusText: message,
+          bytesPerSecond: null,
+          etaSeconds: null,
+        });
+      }
+
       showToast(message, "error");
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (isBusy && !nextOpen) return;
-        onOpenChange(nextOpen);
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? "Edit PDF" : "Upload PDF"}</DialogTitle>
-          <DialogDescription>
-            {isEditMode
-              ? "Update PDF metadata and translations."
-              : "Create upload session, upload file to storage, then finalize metadata."}
-          </DialogDescription>
+        <DialogHeader className="space-y-3">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary">
+              PDF
+            </div>
+            <div className="space-y-1">
+              <DialogTitle>
+                {isEditMode ? "Edit PDF" : "Upload PDF"}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditMode
+                  ? "Update PDF metadata and translations."
+                  : "Upload file and finalize metadata in one flow."}
+              </DialogDescription>
+              <p className="text-xs text-gray-400">
+                {isEditMode ? "Metadata only" : "File + Metadata"}
+              </p>
+            </div>
+          </div>
+          {isEditMode ? null : (
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                1. Select file
+              </span>
+              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                2. Metadata
+              </span>
+              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                3. Upload & Finalize
+              </span>
+            </div>
+          )}
         </DialogHeader>
 
         {formError ? (
@@ -289,99 +567,238 @@ export function PdfUploadDialog({
           </Alert>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {isEditMode ? null : (
-            <div className="space-y-2">
-              <Label htmlFor="pdf-upload-file">PDF File *</Label>
-              <Input
-                id="pdf-upload-file"
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={(event) => {
-                  const nextFile = event.target.files?.[0] ?? null;
-                  setFile(nextFile);
-                }}
-                disabled={isBusy}
-              />
+            <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                  Source File
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Upload PDF from your device.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pdf-upload-file">PDF File *</Label>
+                <input
+                  ref={fileInputRef}
+                  id="pdf-upload-file"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="sr-only"
+                  onChange={(event) => {
+                    applySelectedFile(event.target.files?.[0] ?? null);
+                  }}
+                  disabled={isBusy}
+                />
+                <div
+                  role="button"
+                  tabIndex={isBusy ? -1 : 0}
+                  onClick={() => {
+                    if (!isBusy) fileInputRef.current?.click();
+                  }}
+                  onKeyDown={(event) => {
+                    if (isBusy) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                  onDragEnter={(event) => {
+                    event.preventDefault();
+                    if (!isBusy) setIsDragActive(true);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    if (!isBusy) setIsDragActive(true);
+                  }}
+                  onDragLeave={(event) => {
+                    event.preventDefault();
+                    setIsDragActive(false);
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    if (isBusy) return;
+                    setIsDragActive(false);
+                    const droppedFile = event.dataTransfer.files?.[0] ?? null;
+                    applySelectedFile(droppedFile);
+                  }}
+                  className={cn(
+                    "rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors",
+                    isDragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600",
+                    isBusy && "cursor-not-allowed opacity-70",
+                  )}
+                >
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {file ? "Replace selected file" : "Drop PDF file here"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    or click to browse from your device
+                  </p>
+                  <div className="mt-3">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={isBusy}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (!isBusy) fileInputRef.current?.click();
+                      }}
+                    >
+                      Browse File
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {file ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-900/50">
+                  <p className="font-medium text-gray-700 dark:text-gray-200">
+                    {file.name}
+                  </p>
+                  <p className="mt-0.5 text-gray-500 dark:text-gray-400">
+                    {formatFileSize(file.size)} • application/pdf
+                  </p>
+                </div>
+              ) : null}
+
+              {uploadPhase !== "idle" ? (
+                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
+                    <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                      {resolveUploadPhaseLabel(uploadPhase)}
+                    </span>
+                    <span>{uploadProgress.toFixed(1)}%</span>
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-300">
+                    {uploadStatusText || "Preparing upload..."}
+                  </div>
+                  <Progress value={uploadProgress} />
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>
+                      Speed:{" "}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        {formatBytesPerSecond(uploadSpeedBps)}
+                      </span>
+                    </span>
+                    <span>
+                      ETA:{" "}
+                      <span className="font-medium text-gray-700 dark:text-gray-200">
+                        {formatEtaSeconds(uploadEtaSeconds)}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleStopUpload}
+                      className="text-red-600 hover:text-red-700"
+                      disabled={!hasActiveUpload}
+                    >
+                      Stop
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleMinimizeUpload}
+                      disabled={!hasActiveUpload}
+                    >
+                      Minimize
+                    </Button>
+                    {uploadSessionId != null ? (
+                      <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                        Session #{String(uploadSessionId)}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
               {selectedFileLabel ? (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {selectedFileLabel}
+                  Selected: {selectedFileLabel}
                 </p>
               ) : null}
-            </div>
+            </section>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="pdf-title-en">Title (English) *</Label>
-              <Input
-                id="pdf-title-en"
-                value={titleEn}
-                onChange={(event) => setTitleEn(event.target.value)}
-                placeholder="e.g., Lesson Notes"
-                disabled={isBusy}
-              />
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                Metadata
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Titles and descriptions used across locales.
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="pdf-title-ar">Title (Arabic)</Label>
-              <Input
-                id="pdf-title-ar"
-                value={titleAr}
-                onChange={(event) => setTitleAr(event.target.value)}
-                placeholder="e.g., ملاحظات الدرس"
-                dir="rtl"
-                disabled={isBusy}
-              />
-            </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="pdf-description-en">Description (English)</Label>
-              <textarea
-                id="pdf-description-en"
-                value={descriptionEn}
-                onChange={(event) => setDescriptionEn(event.target.value)}
-                rows={3}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                disabled={isBusy}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="pdf-title-en">Title (English) *</Label>
+                <Input
+                  id="pdf-title-en"
+                  value={titleEn}
+                  onChange={(event) => setTitleEn(event.target.value)}
+                  placeholder="e.g., Lesson Notes"
+                  disabled={isBusy}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pdf-title-ar">Title (Arabic)</Label>
+                <Input
+                  id="pdf-title-ar"
+                  value={titleAr}
+                  onChange={(event) => setTitleAr(event.target.value)}
+                  placeholder="e.g., ملاحظات الدرس"
+                  dir="rtl"
+                  disabled={isBusy}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="pdf-description-ar">Description (Arabic)</Label>
-              <textarea
-                id="pdf-description-ar"
-                value={descriptionAr}
-                onChange={(event) => setDescriptionAr(event.target.value)}
-                rows={3}
-                dir="rtl"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                disabled={isBusy}
-              />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="pdf-description-en">
+                  Description (English)
+                </Label>
+                <Textarea
+                  id="pdf-description-en"
+                  value={descriptionEn}
+                  onChange={(event) => setDescriptionEn(event.target.value)}
+                  rows={3}
+                  disabled={isBusy}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pdf-description-ar">Description (Arabic)</Label>
+                <Textarea
+                  id="pdf-description-ar"
+                  value={descriptionAr}
+                  onChange={(event) => setDescriptionAr(event.target.value)}
+                  rows={3}
+                  dir="rtl"
+                  disabled={isBusy}
+                />
+              </div>
             </div>
-          </div>
+          </section>
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isBusy}
+              onClick={() => handleDialogOpenChange(false)}
             >
-              Cancel
+              {hasActiveUpload ? "Minimize" : "Cancel"}
             </Button>
             <Button type="submit" disabled={isBusy}>
-              {isEditMode
-                ? isUpdatingPdf
-                  ? "Saving..."
-                  : "Save Changes"
-                : isCreatingSession
-                  ? "Creating session..."
-                  : isUploadingStorage
-                    ? "Uploading file..."
-                    : isFinalizingSession
-                      ? "Finalizing..."
-                      : "Upload PDF"}
+              {submitLabel}
             </Button>
           </DialogFooter>
         </form>

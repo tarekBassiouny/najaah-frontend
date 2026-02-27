@@ -5,7 +5,6 @@ import { usePdfs } from "@/features/pdfs/hooks/use-pdfs";
 import { getPdfSignedUrl } from "@/features/pdfs/services/pdfs.service";
 import { BulkDeletePdfsDialog } from "@/features/pdfs/components/BulkDeletePdfsDialog";
 import { useTenant } from "@/app/tenant-provider";
-import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import type { Pdf } from "@/features/pdfs/types/pdf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -32,6 +38,9 @@ import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PER_PAGE = 10;
+const ALL_STATUS_VALUE = "all";
+const ALL_SOURCE_TYPE_VALUE = "all";
+const ALL_SOURCE_PROVIDER_VALUE = "all";
 
 function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return "—";
@@ -107,6 +116,15 @@ export function PdfsTable({
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<string>(
+    ALL_SOURCE_TYPE_VALUE,
+  );
+  const [sourceProviderFilter, setSourceProviderFilter] = useState<string>(
+    ALL_SOURCE_PROVIDER_VALUE,
+  );
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedPdfs, setSelectedPdfs] = useState<Record<string, Pdf>>({});
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
@@ -116,9 +134,30 @@ export function PdfsTable({
       centerId: centerId ?? undefined,
       page,
       per_page: perPage,
-      search: query || undefined,
+      q: query || undefined,
+      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      source_type:
+        sourceTypeFilter === ALL_SOURCE_TYPE_VALUE
+          ? undefined
+          : sourceTypeFilter,
+      source_provider:
+        sourceProviderFilter === ALL_SOURCE_PROVIDER_VALUE
+          ? undefined
+          : sourceProviderFilter,
+      created_from: createdFrom || undefined,
+      created_to: createdTo || undefined,
     }),
-    [centerId, page, perPage, query],
+    [
+      centerId,
+      page,
+      perPage,
+      query,
+      statusFilter,
+      sourceTypeFilter,
+      sourceProviderFilter,
+      createdFrom,
+      createdTo,
+    ],
   );
 
   const { data, isLoading, isError, isFetching } = usePdfs(params);
@@ -144,8 +183,20 @@ export function PdfsTable({
     pagePdfIds.every((id) => Boolean(selectedPdfs[id]));
   const showEmptyState =
     !isLoadingState && !isError && items.length === 0 && Boolean(centerId);
-  const hasActiveFilters = search.trim().length > 0;
-  const activeFilterCount = search.trim().length > 0 ? 1 : 0;
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== ALL_STATUS_VALUE ||
+    sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ||
+    sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ||
+    createdFrom.trim().length > 0 ||
+    createdTo.trim().length > 0;
+  const activeFilterCount =
+    (search.trim().length > 0 ? 1 : 0) +
+    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (sourceTypeFilter !== ALL_SOURCE_TYPE_VALUE ? 1 : 0) +
+    (sourceProviderFilter !== ALL_SOURCE_PROVIDER_VALUE ? 1 : 0) +
+    (createdFrom.trim().length > 0 ? 1 : 0) +
+    (createdTo.trim().length > 0 ? 1 : 0);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -158,7 +209,17 @@ export function PdfsTable({
 
   useEffect(() => {
     setSelectedPdfs({});
-  }, [centerId, page, perPage, query]);
+  }, [
+    centerId,
+    page,
+    perPage,
+    query,
+    statusFilter,
+    sourceTypeFilter,
+    sourceProviderFilter,
+    createdFrom,
+    createdTo,
+  ]);
 
   const togglePdfSelection = (pdf: Pdf) => {
     const id = String(pdf.id);
@@ -216,6 +277,11 @@ export function PdfsTable({
         onClear={() => {
           setSearch("");
           setQuery("");
+          setStatusFilter(ALL_STATUS_VALUE);
+          setSourceTypeFilter(ALL_SOURCE_TYPE_VALUE);
+          setSourceProviderFilter(ALL_SOURCE_PROVIDER_VALUE);
+          setCreatedFrom("");
+          setCreatedTo("");
           setPage(1);
         }}
         summary={
@@ -227,7 +293,7 @@ export function PdfsTable({
             <>Select a center to view PDFs.</>
           )
         }
-        gridClassName="grid-cols-1 md:grid-cols-2"
+        gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
       >
         <div className="relative">
           <svg
@@ -246,7 +312,7 @@ export function PdfsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search PDFs..."
+            placeholder="Search title, description, source ID..."
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             disabled={!centerId}
           />
@@ -281,10 +347,88 @@ export function PdfsTable({
             </svg>
           </button>
         </div>
-        <CenterPicker
-          className="w-full min-w-0"
-          hideWhenCenterScoped={true}
-          selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            setStatusFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="uploading">Uploading</SelectItem>
+            <SelectItem value="ready">Ready</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceTypeFilter}
+          onValueChange={(value) => {
+            setSourceTypeFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Source Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_TYPE_VALUE}>
+              All source types
+            </SelectItem>
+            <SelectItem value="upload">Upload</SelectItem>
+            <SelectItem value="url">URL</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceProviderFilter}
+          onValueChange={(value) => {
+            setSourceProviderFilter(value);
+            setPage(1);
+          }}
+          disabled={!centerId}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue placeholder="Provider" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
+              All providers
+            </SelectItem>
+            <SelectItem value="spaces">Spaces</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Input
+          type="date"
+          value={createdFrom}
+          max={createdTo || undefined}
+          onChange={(event) => {
+            setCreatedFrom(event.target.value);
+            setPage(1);
+          }}
+          title="Created from date"
+          disabled={!centerId}
+        />
+
+        <Input
+          type="date"
+          value={createdTo}
+          min={createdFrom || undefined}
+          onChange={(event) => {
+            setCreatedTo(event.target.value);
+            setPage(1);
+          }}
+          title="Created to date"
+          disabled={!centerId}
         />
       </ListingFilters>
 

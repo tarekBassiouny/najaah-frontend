@@ -40,6 +40,18 @@ function buildAllowedDevOrigins() {
 const nextConfig = {
   reactStrictMode: false,
   allowedDevOrigins: buildAllowedDevOrigins(),
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        destination: "/landing-page-najaah.html",
+      },
+      {
+        source: "/ar",
+        destination: "/landing-page-najaah-ar.html",
+      },
+    ];
+  },
   images: {
     qualities: [75, 100],
     remotePatterns: [

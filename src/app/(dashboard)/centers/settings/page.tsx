@@ -1,10 +1,12 @@
 "use client";
 
 import { PageHeader } from "@/components/ui/page-header";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTenant } from "@/app/tenant-provider";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import {
   CenterProfileForm,
   CenterBrandingForm,
@@ -19,6 +21,7 @@ export default function CentersSettingsPage() {
     data: center,
     isLoading,
     isError,
+    error,
     refetch: refetchCenter,
   } = useCenter(centerId ?? undefined);
 
@@ -44,12 +47,25 @@ export default function CentersSettingsPage() {
     );
   }
 
-  if (isError || !center) {
+  const isMissingCenter = !isLoading && !isError && !center;
+
+  if (isMissingCenter || isAdminApiNotFoundError(error)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Center Settings"
+        title="Center not found"
+        description="The center linked to this workspace is unavailable or no longer exists."
+        primaryAction={{ href: "/dashboard", label: "Go to Dashboard" }}
+      />
+    );
+  }
+
+  if (isError) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Center not found or unavailable.
+            Failed to load center settings.
           </p>
         </CardContent>
       </Card>

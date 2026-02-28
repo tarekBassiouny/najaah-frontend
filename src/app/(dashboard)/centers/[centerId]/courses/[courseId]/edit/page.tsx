@@ -3,6 +3,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ import {
 import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
+  isAdminApiNotFoundError,
 } from "@/lib/admin-response";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
@@ -87,10 +89,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: course, isLoading: isLoadingCourse } = useCenterCourse(
-    centerId,
-    courseId,
-  );
+  const {
+    data: course,
+    isLoading: isLoadingCourse,
+    isError: isCourseError,
+    error: courseError,
+  } = useCenterCourse(centerId, courseId);
   const {
     mutate: updateCourse,
     isPending: isUpdating,
@@ -322,6 +326,36 @@ export default function CenterCourseEditPage({ params }: PageProps) {
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-96 w-full" />
       </div>
+    );
+  }
+
+  const isMissingCourse = !isLoadingCourse && !isCourseError && !course;
+  if (isMissingCourse || isAdminApiNotFoundError(courseError)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Edit Course"
+        title="Course not found"
+        description="The course you are trying to edit does not exist or is no longer available in this center."
+        primaryAction={{
+          href: `/centers/${centerId}/courses`,
+          label: "Go to Courses",
+        }}
+      />
+    );
+  }
+
+  if (isCourseError) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Failed to load this course. Please try again.
+          </p>
+          <Link href={`/centers/${centerId}/courses`}>
+            <Button variant="outline">Back to Courses</Button>
+          </Link>
+        </CardContent>
+      </Card>
     );
   }
 

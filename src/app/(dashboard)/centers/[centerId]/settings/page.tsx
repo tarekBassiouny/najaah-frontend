@@ -2,12 +2,14 @@
 
 import { use } from "react";
 import Link from "next/link";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import {
   CenterProfileForm,
   CenterBrandingForm,
@@ -59,6 +61,7 @@ export default function CenterSettingsPage({ params }: PageProps) {
     data: center,
     isLoading,
     isError,
+    error,
     refetch: refetchCenter,
   } = useCenter(centerId);
 
@@ -79,12 +82,25 @@ export default function CenterSettingsPage({ params }: PageProps) {
     );
   }
 
-  if (isError || !center) {
+  const isMissingCenter = !isLoading && !isError && !center;
+
+  if (isMissingCenter || isAdminApiNotFoundError(error)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Center Settings"
+        title="Center not found"
+        description="The center you requested does not exist or is no longer available."
+        primaryAction={{ href: "/centers", label: "Go to Centers" }}
+      />
+    );
+  }
+
+  if (isError) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Center not found or unavailable.
+            Failed to load center settings.
           </p>
           <Link href="/centers" className="mt-4 inline-block">
             <Button variant="outline">Back to Centers</Button>
@@ -94,21 +110,23 @@ export default function CenterSettingsPage({ params }: PageProps) {
     );
   }
 
+  const centerData = center!;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${center.name ?? `Center ${center.id}`} Settings`}
+        title={`${centerData.name ?? `Center ${centerData.id}`} Settings`}
         description="Manage center details, status, and onboarding operations"
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
           {
-            label: center.name ?? `Center ${center.id}`,
-            href: `/centers/${center.id}`,
+            label: centerData.name ?? `Center ${centerData.id}`,
+            href: `/centers/${centerData.id}`,
           },
           { label: "Settings" },
         ]}
         actions={
-          <Link href={`/centers/${center.id}`}>
+          <Link href={`/centers/${centerData.id}`}>
             <Button variant="outline">Back</Button>
           </Link>
         }
@@ -121,16 +139,16 @@ export default function CenterSettingsPage({ params }: PageProps) {
             {toTitleCase(onboardingStatus.replace(/_/g, " "))}
           </Badge>
           <Badge variant="outline">
-            {toTitleCase(String(center.type ?? "unbranded"))}
+            {toTitleCase(String(centerData.type ?? "unbranded"))}
           </Badge>
           <Badge variant="outline">
-            Tier: {toTitleCase(String(center.tier ?? "standard"))}
+            Tier: {toTitleCase(String(centerData.tier ?? "standard"))}
           </Badge>
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            ID: {center.id}
+            ID: {centerData.id}
           </span>
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            /{center.slug ?? "-"}
+            /{centerData.slug ?? "-"}
           </span>
         </CardContent>
       </Card>
@@ -138,24 +156,24 @@ export default function CenterSettingsPage({ params }: PageProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <CenterProfileForm
-            center={center}
+            center={centerData}
             mode="edit"
             isPlatformAdmin={true}
           />
 
           <CenterBrandingForm
-            center={center}
+            center={centerData}
             isPlatformAdmin={true}
             mode="edit"
             refetchCenter={refetchCenter}
           />
 
-          <CenterPolicyForm centerId={center.id} />
+          <CenterPolicyForm centerId={centerData.id} />
         </div>
 
         <div className="space-y-6">
-          <CenterStatusCard center={center} />
-          <CenterOnboardingCard center={center} />
+          <CenterStatusCard center={centerData} />
+          <CenterOnboardingCard center={centerData} />
         </div>
       </div>
     </div>

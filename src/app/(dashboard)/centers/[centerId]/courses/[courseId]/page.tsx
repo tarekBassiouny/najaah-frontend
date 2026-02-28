@@ -3,6 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ import { formatDateTime } from "@/lib/format-date-time";
 import {
   getAdminApiErrorMessage,
   getAdminResponseMessage,
+  isAdminApiNotFoundError,
 } from "@/lib/admin-response";
 import type { InstructorSummary } from "@/features/courses/types/course";
 
@@ -103,6 +105,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     data: course,
     isLoading,
     isError,
+    error,
   } = useCenterCourse(centerId, courseId);
 
   const {
@@ -384,7 +387,23 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     );
   }
 
-  if (isError || !course) {
+  const isMissingCourse = !isLoading && !isError && !course;
+
+  if (isMissingCourse || isAdminApiNotFoundError(error)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Course"
+        title="Course not found"
+        description="The course you requested does not exist or is no longer available in this center."
+        primaryAction={{
+          href: `/centers/${centerId}/courses`,
+          label: "Go to Courses",
+        }}
+      />
+    );
+  }
+
+  if (isError) {
     return (
       <div className="space-y-6">
         <Card>
@@ -402,10 +421,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     );
   }
 
-  const statusSource = course.status_key ?? course.status;
+  const courseData = course!;
+  const statusSource = courseData.status_key ?? courseData.status;
   const status = String(statusSource ?? "").toLowerCase();
   const statusLabel = String(
-    course.status_label ?? statusSource ?? course.status ?? "",
+    courseData.status_label ?? statusSource ?? courseData.status ?? "",
   ).trim();
   const statusVariant =
     status === "published" || status === "active"
@@ -414,7 +434,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         ? "secondary"
         : "default";
   const categoryLabel = (() => {
-    const category = course.category;
+    const category = courseData.category;
     if (category && typeof category === "object") {
       const label =
         (typeof category.title === "string" && category.title.trim()) ||
@@ -426,15 +446,15 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       }
     }
 
-    if (course.category_id != null && course.category_id !== "") {
-      return `Category #${course.category_id}`;
+    if (courseData.category_id != null && courseData.category_id !== "") {
+      return `Category #${courseData.category_id}`;
     }
 
     return "";
   })();
 
   const courseTitle = String(
-    course.title ?? course.name ?? `Course #${course.id}`,
+    courseData.title ?? courseData.name ?? `Course #${courseData.id}`,
   );
 
   return (
@@ -494,39 +514,39 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       </Badge>
                     ) : null}
                   </div>
-                  {course.description ? (
+                  {courseData.description ? (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {String(course.description)}
+                      {String(courseData.description)}
                     </p>
                   ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <CoursePublishAction course={course} />
+                  <CoursePublishAction course={courseData} />
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-primary" />
-                  <span>{course.center?.name ?? `Center ${centerId}`}</span>
+                  <span>{courseData.center?.name ?? `Center ${centerId}`}</span>
                 </div>
                 {primaryInstructorId ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
                       Primary Instructor:{" "}
-                      {getInstructorLabel(course.primary_instructor)}
+                      {getInstructorLabel(courseData.primary_instructor)}
                       {assignedInstructors.length > 1
                         ? ` (+${assignedInstructors.length - 1} more)`
                         : ""}
                     </span>
                   </div>
                 ) : null}
-                {course.created_at ? (
+                {courseData.created_at ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
-                      Created: {formatDateTime(String(course.created_at))}
+                      Created: {formatDateTime(String(courseData.created_at))}
                     </span>
                   </div>
                 ) : null}
@@ -539,7 +559,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               centerId={centerId}
               courseId={courseId}
               managerHref={`/centers/${centerId}/courses/${courseId}/sections`}
-              initialSections={course.sections}
+              initialSections={courseData.sections}
             />
           ) : activePanel === "students" ? (
             <EnrollmentsTable

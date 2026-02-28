@@ -50,10 +50,15 @@ export default function OpenGraphImage() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-        <div style={{ fontSize: "64px", lineHeight: 1.08, fontWeight: 800 }}>
-          White-Label LMS for
-          <br />
-          Educational Centers
+        <div
+          style={{
+            fontSize: "64px",
+            lineHeight: 1.08,
+            fontWeight: 800,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {"White-Label LMS for\nEducational Centers"}
         </div>
         <div style={{ fontSize: "28px", lineHeight: 1.4, opacity: 0.92 }}>
           AI quizzes, DRM-protected content, Arabic RTL support, and

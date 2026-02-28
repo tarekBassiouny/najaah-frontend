@@ -420,7 +420,7 @@ export function PdfUploadDialog({
             source_provider: "custom",
             source_url: normalizedUrl,
             title_translations: titleTranslations,
-            ...(tags.length > 0 ? { tags } : {}),
+            tags,
             ...(Object.keys(descriptionTranslations).length > 0
               ? { description_translations: descriptionTranslations }
               : {}),
@@ -525,7 +525,7 @@ export function PdfUploadDialog({
 
       const finalizePayload: FinalizePdfUploadSessionPayload = {
         title_translations: titleTranslations,
-        ...(tags.length > 0 ? { tags } : {}),
+        tags,
         ...(Object.keys(descriptionTranslations).length > 0
           ? { description_translations: descriptionTranslations }
           : {}),

@@ -7,13 +7,41 @@ import type { Metadata } from "next";
 import type { PropsWithChildren } from "react";
 import NextTopLoader from "nextjs-toploader";
 import { Providers } from "./providers";
+import { siteConfig } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.siteUrl),
   title: {
-    template: "%s | Najaah.me",
-    default: "Najaah.me",
+    template: "%s | Najaah",
+    default: "Najaah",
   },
-  description: "Najaah.me learning platform and admin portal.",
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  keywords: [...siteConfig.keywords],
+  alternates: {
+    canonical: siteConfig.siteUrl,
+  },
+  openGraph: {
+    type: "website",
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.siteUrl,
+    images: [
+      {
+        url: `${siteConfig.siteUrl}${siteConfig.socialOgImagePath}`,
+        width: 1200,
+        height: 630,
+        alt: `${siteConfig.name} platform overview`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [`${siteConfig.siteUrl}${siteConfig.socialTwitterImagePath}`],
+  },
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {

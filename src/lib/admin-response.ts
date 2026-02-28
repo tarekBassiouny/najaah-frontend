@@ -183,6 +183,14 @@ export function getAdminApiErrorCode(error: unknown): string | undefined {
   );
 }
 
+export function isAdminApiNotFoundError(error: unknown): boolean {
+  if (!isAxiosError(error)) return false;
+  if (error.response?.status === 404) return true;
+
+  const code = getAdminApiErrorCode(error);
+  return code === "NOT_FOUND";
+}
+
 export function getAdminApiFieldErrors(
   error: unknown,
 ): AdminErrorDetails | undefined {

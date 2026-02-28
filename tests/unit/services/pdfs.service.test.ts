@@ -68,7 +68,7 @@ describe("pdfs.service", () => {
       },
     );
     expect(result).toEqual({
-      items: [{ id: 1 }],
+      items: [{ id: 1, tags: null }],
       meta: { page: 2, per_page: 15, total: 30 },
     });
   });

@@ -2,6 +2,7 @@
 
 import { Fragment, use, useMemo, useState } from "react";
 import Link from "next/link";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useStudentProfile } from "@/features/students/hooks/use-students";
+import { isAdminApiNotFoundError } from "@/lib/admin-response";
 
 type PageProps = {
   params: Promise<{ centerId: string; studentId: string }>;
@@ -105,6 +107,7 @@ export default function StudentProfilePage({
     data: profile,
     isLoading,
     isError,
+    error,
   } = useStudentProfile(
     studentId,
     { centerId },
@@ -209,7 +212,23 @@ export default function StudentProfilePage({
     );
   }
 
-  if (isError || !profile) {
+  const isMissingProfile = !isLoading && !isError && !profile;
+
+  if (isMissingProfile || isAdminApiNotFoundError(error)) {
+    return (
+      <AppNotFoundState
+        scopeLabel="Student"
+        title="Student not found"
+        description="The student profile you requested does not exist or is no longer available in this center."
+        primaryAction={{
+          href: `/centers/${centerId}/students`,
+          label: "Go to Students",
+        }}
+      />
+    );
+  }
+
+  if (isError) {
     return (
       <Card>
         <CardContent className="space-y-4 py-8 text-center">
@@ -224,10 +243,12 @@ export default function StudentProfilePage({
     );
   }
 
+  const studentProfile = profile!;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={profile.name}
+        title={studentProfile.name}
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
@@ -245,11 +266,11 @@ export default function StudentProfilePage({
         <CardContent className="space-y-5 bg-gradient-to-br from-primary/10 via-transparent to-transparent p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              {profile.avatar_url ? (
+              {studentProfile.avatar_url ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
-                  src={profile.avatar_url}
-                  alt={profile.name}
+                  src={studentProfile.avatar_url}
+                  alt={studentProfile.name}
                   className="h-14 w-14 rounded-full object-cover"
                 />
               ) : (
@@ -259,15 +280,18 @@ export default function StudentProfilePage({
               )}
               <div>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {profile.name}
+                  {studentProfile.name}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {formatPhone(profile.country_code, profile.phone)}
+                  {formatPhone(
+                    studentProfile.country_code,
+                    studentProfile.phone,
+                  )}
                 </p>
               </div>
             </div>
-            <Badge variant={resolveStatusVariant(profile.status_label)}>
-              {profile.status_label}
+            <Badge variant={resolveStatusVariant(studentProfile.status_label)}>
+              {studentProfile.status_label}
             </Badge>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -276,7 +300,7 @@ export default function StudentProfilePage({
                 Last Activity
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {formatDateTime(profile.last_activity_at)}
+                {formatDateTime(studentProfile.last_activity_at)}
               </p>
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -297,7 +321,7 @@ export default function StudentProfilePage({
                 Total Enrollments
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {profile.total_enrollments}
+                {studentProfile.total_enrollments}
               </p>
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -305,7 +329,7 @@ export default function StudentProfilePage({
                 Device Changes
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {profile.device_changes_count}
+                {studentProfile.device_changes_count}
               </p>
             </div>
           </div>
@@ -317,7 +341,7 @@ export default function StudentProfilePage({
           <CardTitle className="text-base">Device Change Log</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          {profile.device_change_log.length === 0 ? (
+          {studentProfile.device_change_log.length === 0 ? (
             <p className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
               No device changes recorded.
             </p>
@@ -332,7 +356,7 @@ export default function StudentProfilePage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {profile.device_change_log.map((log, index) => (
+                {studentProfile.device_change_log.map((log, index) => (
                   <TableRow key={`${log.device_id}-${index}`}>
                     <TableCell className="font-medium">
                       {log.device_name}
@@ -372,7 +396,7 @@ export default function StudentProfilePage({
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          {profile.enrollments.length === 0 ? (
+          {studentProfile.enrollments.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
               No enrollments found.
             </p>

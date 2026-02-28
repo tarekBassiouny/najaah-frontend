@@ -58,6 +58,50 @@ type RawUploadSessionResponse = {
   data?: PdfUploadSession;
 };
 
+function normalizePdfTags(tags: unknown): string[] | null {
+  if (Array.isArray(tags)) {
+    const normalized = tags
+      .map((tag) => {
+        if (typeof tag === "string") return tag.trim();
+        if (!tag || typeof tag !== "object") return "";
+
+        const record = tag as {
+          name?: unknown;
+          label?: unknown;
+          title?: unknown;
+          value?: unknown;
+        };
+
+        if (typeof record.name === "string") return record.name.trim();
+        if (typeof record.label === "string") return record.label.trim();
+        if (typeof record.title === "string") return record.title.trim();
+        if (typeof record.value === "string") return record.value.trim();
+        return "";
+      })
+      .filter(Boolean);
+
+    return normalized.length > 0 ? Array.from(new Set(normalized)) : [];
+  }
+
+  if (typeof tags === "string") {
+    const normalized = tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    return normalized.length > 0 ? Array.from(new Set(normalized)) : [];
+  }
+
+  return null;
+}
+
+function normalizePdf(pdf: Pdf): Pdf {
+  return {
+    ...pdf,
+    tags: normalizePdfTags(pdf.tags),
+  };
+}
+
 function basePath(centerId: string | number) {
   return `/api/v1/admin/centers/${centerId}/pdfs`;
 }
@@ -87,7 +131,7 @@ export async function listPdfs(
   });
 
   return {
-    items: data?.data ?? [],
+    items: (data?.data ?? []).map(normalizePdf),
     meta: {
       page: data?.meta?.page ?? params.page ?? 1,
       per_page: data?.meta?.per_page ?? params.per_page ?? 10,
@@ -103,7 +147,7 @@ export async function getPdf(
   const { data } = await http.get<RawPdfResponse>(
     `${basePath(centerId)}/${pdfId}`,
   );
-  return data?.data ?? (data as unknown as Pdf);
+  return normalizePdf((data?.data ?? (data as unknown as Pdf)) as Pdf);
 }
 
 export async function createPdf(
@@ -111,7 +155,7 @@ export async function createPdf(
   payload: CreatePdfPayload,
 ): Promise<Pdf> {
   const { data } = await http.post<RawPdfResponse>(basePath(centerId), payload);
-  return data?.data ?? (data as unknown as Pdf);
+  return normalizePdf((data?.data ?? (data as unknown as Pdf)) as Pdf);
 }
 
 export async function updatePdf(
@@ -123,7 +167,7 @@ export async function updatePdf(
     `${basePath(centerId)}/${pdfId}`,
     payload,
   );
-  return data?.data ?? (data as unknown as Pdf);
+  return normalizePdf((data?.data ?? (data as unknown as Pdf)) as Pdf);
 }
 
 export async function deletePdf(

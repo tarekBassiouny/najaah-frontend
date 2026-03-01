@@ -73,6 +73,9 @@ export type DeviceChangeLog = {
 export type ProfileCourseVideo = {
   id: number;
   title: string;
+  thumbnail_url?: string | null;
+  duration_seconds?: number | null;
+  duration?: number | string | null;
   watch_count: number;
   watch_limit: number | null;
   watch_progress_percentage: number;

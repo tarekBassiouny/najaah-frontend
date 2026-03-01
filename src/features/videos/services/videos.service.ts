@@ -38,6 +38,8 @@ export type CreateVideoFromUrlPayload = {
     ar?: string;
   };
   tags?: string[];
+  duration_seconds?: number | null;
+  thumbnail_url?: string | null;
 };
 
 export type UpdateVideoPayload = {
@@ -50,6 +52,8 @@ export type UpdateVideoPayload = {
     ar?: string;
   };
   tags?: string[];
+  duration_seconds?: number | null;
+  thumbnail_url?: string | null;
 };
 
 export type CreateVideoUploadPayload = {

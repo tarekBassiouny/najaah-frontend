@@ -30,6 +30,10 @@ import {
   formatBytesPerSecond,
   formatEtaSeconds,
 } from "@/features/videos/lib/upload-metrics";
+import {
+  resolvePersistableThumbnailUrl,
+  resolveVideoThumbnailState,
+} from "@/features/videos/lib/video-thumbnail";
 import type { Video, VideoSourceMode } from "@/features/videos/types/video";
 import {
   getAdminApiErrorMessage,
@@ -133,6 +137,99 @@ function formatFileSize(bytes: number) {
   return `${value.toFixed(precision)} ${units[exponent]}`;
 }
 
+function formatDurationInput(seconds: number) {
+  const totalSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds,
+    ).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function resolveDurationInputValue(video?: Video | null) {
+  if (!video) return "";
+
+  if (
+    typeof video.duration_seconds === "number" &&
+    video.duration_seconds >= 0
+  ) {
+    return formatDurationInput(video.duration_seconds);
+  }
+
+  if (typeof video.duration === "number" && video.duration >= 0) {
+    return formatDurationInput(video.duration);
+  }
+
+  if (typeof video.duration === "string" && video.duration.trim()) {
+    const trimmed = video.duration.trim();
+    const numericValue = Number(trimmed);
+    if (!Number.isNaN(numericValue)) {
+      return formatDurationInput(numericValue);
+    }
+    return trimmed;
+  }
+
+  return "";
+}
+
+function isUrlBasedVideo(video?: Video | null) {
+  if (!video) return false;
+
+  const sourceType = String(video.source_type ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (sourceType === "0" || sourceType === "url") return true;
+  if (sourceType === "1" || sourceType === "upload" || sourceType === "bunny") {
+    return false;
+  }
+
+  return Boolean(video.source_url);
+}
+
+function parseDurationInput(
+  value: string,
+): { ok: true; value: number | null } | { ok: false; message: string } {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { ok: true, value: null };
+  }
+
+  if (/^\d+$/.test(trimmed)) {
+    return { ok: true, value: Number(trimmed) };
+  }
+
+  if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(trimmed)) {
+    const segments = trimmed.split(":").map(Number);
+
+    if (segments.some((segment) => Number.isNaN(segment))) {
+      return {
+        ok: false,
+        message: "Duration must be seconds or mm:ss / hh:mm:ss.",
+      };
+    }
+
+    if (segments.length === 2) {
+      const [minutes, seconds] = segments;
+      return { ok: true, value: minutes * 60 + seconds };
+    }
+
+    const [hours, minutes, seconds] = segments;
+    return { ok: true, value: hours * 3600 + minutes * 60 + seconds };
+  }
+
+  return {
+    ok: false,
+    message: "Duration must be seconds or mm:ss / hh:mm:ss.",
+  };
+}
+
 function resolveUploadPhaseLabel(phase: UploadPhase) {
   if (phase === "creating") return "Creating Session";
   if (phase === "uploading") return "Uploading";
@@ -175,6 +272,7 @@ export function VideoFormDialog({
   const [descriptionEn, setDescriptionEn] = useState("");
   const [descriptionAr, setDescriptionAr] = useState("");
   const [tagsInput, setTagsInput] = useState("");
+  const [durationInput, setDurationInput] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -209,6 +307,26 @@ export function VideoFormDialog({
     return `${file.name} (${sizeMb.toFixed(sizeMb >= 100 ? 0 : 1)} MB)`;
   }, [file]);
   const parsedTags = useMemo(() => parseTags(tagsInput), [tagsInput]);
+  const showsManualDuration = !isEditMode
+    ? sourceMode === "url" || !allowUploadMode
+    : isUrlBasedVideo(video);
+  const urlThumbnailPreview = useMemo(() => {
+    const previewSourceUrl =
+      !isEditMode && (sourceMode === "url" || !allowUploadMode)
+        ? sourceUrl.trim()
+        : isEditMode && isUrlBasedVideo(video)
+          ? String(video?.source_url ?? "").trim()
+          : "";
+
+    if (!previewSourceUrl) return null;
+
+    return resolveVideoThumbnailState({
+      id: "preview",
+      source_type: "url",
+      source_url: previewSourceUrl,
+      thumbnail_url: resolvePersistableThumbnailUrl(previewSourceUrl),
+    });
+  }, [allowUploadMode, isEditMode, sourceMode, sourceUrl, video]);
 
   const stopUploadLifecycle = useCallback(async () => {
     if (uploadControllerRef.current) {
@@ -231,6 +349,7 @@ export function VideoFormDialog({
     setDescriptionEn("");
     setDescriptionAr("");
     setTagsInput("");
+    setDurationInput("");
     setSourceUrl("");
     setFile(null);
     setFormError(null);
@@ -271,6 +390,7 @@ export function VideoFormDialog({
       );
       setDescriptionAr(String(video.description_translations?.ar ?? ""));
       setTagsInput(Array.isArray(video.tags) ? video.tags.join(", ") : "");
+      setDurationInput(resolveDurationInputValue(video));
       setSourceUrl("");
       setFile(null);
       setIsDragActive(false);
@@ -385,6 +505,16 @@ export function VideoFormDialog({
       descriptionAr,
     );
     const tags = parseTags(tagsInput);
+    const parsedDuration = parseDurationInput(durationInput);
+    if (!parsedDuration.ok) {
+      setFormError(parsedDuration.message);
+      return;
+    }
+
+    const resolvedThumbnailUrl =
+      sourceMode === "url" || !allowUploadMode
+        ? resolvePersistableThumbnailUrl(sourceUrl)
+        : null;
 
     if (isEditMode && video) {
       try {
@@ -398,6 +528,11 @@ export function VideoFormDialog({
               ? { description_translations: descriptionTranslations }
               : {}),
             tags,
+            ...(isUrlBasedVideo(video)
+              ? {
+                  duration_seconds: parsedDuration.value,
+                }
+              : {}),
           },
         });
         const successMessage = getAdminResponseMessage(
@@ -444,6 +579,10 @@ export function VideoFormDialog({
               ? { description_translations: descriptionTranslations }
               : {}),
             tags,
+            duration_seconds: parsedDuration.value,
+            ...(resolvedThumbnailUrl
+              ? { thumbnail_url: resolvedThumbnailUrl }
+              : {}),
           },
         });
         const successMessage = getAdminResponseMessage(
@@ -842,6 +981,25 @@ export function VideoFormDialog({
                   </p>
                 )}
               </div>
+
+              {showsManualDuration ? (
+                <div className="space-y-2">
+                  <Label htmlFor="video-duration">
+                    Duration (seconds or mm:ss)
+                  </Label>
+                  <Input
+                    id="video-duration"
+                    value={durationInput}
+                    onChange={(event) => setDurationInput(event.target.value)}
+                    placeholder="e.g., 540 or 09:00"
+                    disabled={isBusy}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Optional. For URL-based videos only. Uploads continue to get
+                    duration from processing.
+                  </p>
+                </div>
+              ) : null}
             </section>
 
             {!isEditMode && sourceMode === "url" ? (
@@ -867,6 +1025,45 @@ export function VideoFormDialog({
                     Supports YouTube, Vimeo, Zoom and direct links.
                   </p>
                 </div>
+                {urlThumbnailPreview ? (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-800 dark:bg-gray-950/40">
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Thumbnail Preview
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {urlThumbnailPreview.source === "backend"
+                            ? "This thumbnail will be sent in the create request."
+                            : "Preview only. Backend can keep null and populate a thumbnail later."}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm dark:bg-gray-900 dark:text-gray-300">
+                        {urlThumbnailPreview.providerLabel}
+                      </span>
+                    </div>
+                    {urlThumbnailPreview.imageUrl ? (
+                      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={urlThumbnailPreview.imageUrl}
+                          alt={`${urlThumbnailPreview.providerLabel} thumbnail preview`}
+                          className="h-44 w-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-44 w-full flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 text-center dark:border-gray-700 dark:bg-gray-900">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          {urlThumbnailPreview.fallbackLabel}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          {urlThumbnailPreview.fallbackHint ??
+                            "No thumbnail available"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </section>
             ) : null}
 

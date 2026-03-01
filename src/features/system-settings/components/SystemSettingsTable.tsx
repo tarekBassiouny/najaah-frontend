@@ -1,14 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dropdown,
-  DropdownContent,
-  DropdownTrigger,
-} from "@/components/ui/dropdown";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { ListingCard } from "@/components/ui/listing-card";
@@ -31,22 +25,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useModal } from "@/components/ui/modal-store";
 import { useSystemSettings } from "@/features/system-settings/hooks/use-system-settings";
-import { deleteSystemSetting } from "@/features/system-settings/services/system-settings.service";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
-import {
-  getAdminResponseMessage,
-  isAdminRequestSuccessful,
-} from "@/lib/admin-response";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_VISIBILITY = "all";
-
-type SystemSettingsTableProps = {
-  onEdit: (_setting: SystemSetting) => void;
-  onDelete: (_setting: SystemSetting) => void;
-};
+const CANONICAL_DEFAULT_KEYS = new Set([
+  "timezone",
+  "support_email",
+  "require_device_approval",
+  "attendance_required",
+]);
 
 type ValueType = "string" | "number" | "boolean" | "object" | "array" | "null";
 
@@ -119,23 +108,108 @@ const VALUE_TYPE_STYLES: Record<ValueType, string> = {
   null: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
 };
 
+function RegistryStat({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  tone?: "neutral" | "success" | "muted";
+}) {
+  const toneClassName =
+    tone === "success"
+      ? "border-emerald-200/80 bg-emerald-50/80 dark:border-emerald-900/70 dark:bg-emerald-950/30"
+      : tone === "muted"
+        ? "border-gray-200/80 bg-gray-50/90 dark:border-gray-800 dark:bg-gray-900/70"
+        : "border-blue-200/80 bg-blue-50/80 dark:border-blue-900/70 dark:bg-blue-950/30";
+
+  return (
+    <div
+      className={cn("rounded-2xl border px-4 py-3 shadow-sm", toneClassName)}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-semibold text-gray-950 dark:text-white">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function formatHumanValue(setting: SystemSetting): string {
+  const payload = setting.value;
+  const payloadRecord =
+    payload && typeof payload === "object" && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>)
+      : null;
+
+  if (!payloadRecord) {
+    return formatValuePreview(payload);
+  }
+
+  if (setting.key === "timezone") {
+    return typeof payloadRecord.timezone === "string"
+      ? payloadRecord.timezone
+      : "—";
+  }
+
+  if (setting.key === "support_email") {
+    return typeof payloadRecord.email === "string" ? payloadRecord.email : "—";
+  }
+
+  if (
+    setting.key === "require_device_approval" ||
+    setting.key === "attendance_required"
+  ) {
+    return payloadRecord.enabled === true ? "Enabled" : "Disabled";
+  }
+
+  const firstValue = Object.values(payloadRecord)[0];
+  if (typeof firstValue === "string") return firstValue;
+  if (typeof firstValue === "boolean")
+    return firstValue ? "Enabled" : "Disabled";
+  if (typeof firstValue === "number") return String(firstValue);
+
+  return valueTypeLabel(getValueType(payload));
+}
+
+function valueTypeLabel(type: ValueType): string {
+  switch (type) {
+    case "object":
+      return "Structured value";
+    case "array":
+      return "List value";
+    case "null":
+      return "No value";
+    case "boolean":
+      return "Boolean value";
+    case "number":
+      return "Numeric value";
+    case "string":
+    default:
+      return "Text value";
+  }
+}
+
+type SystemSettingsTableProps = {
+  onCreateSetting?: () => void;
+  onEditSetting?: (_setting: SystemSetting) => void;
+  onDeleteSetting?: (_setting: SystemSetting) => void;
+};
+
 export function SystemSettingsTable({
-  onEdit,
-  onDelete,
+  onCreateSetting,
+  onEditSetting,
+  onDeleteSetting,
 }: SystemSettingsTableProps) {
-  const queryClient = useQueryClient();
-  const { showToast } = useModal();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [visibilityFilter, setVisibilityFilter] =
     useState<string>(ALL_VISIBILITY);
-  const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
-  const [selectedSettings, setSelectedSettings] = useState<
-    Record<string, SystemSetting>
-  >({});
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -158,31 +232,19 @@ export function SystemSettingsTable({
   const maxPage = Math.max(1, Math.ceil(total / perPage));
   const isLoadingState = isLoading;
   const showEmptyState = !isLoadingState && !isError && items.length === 0;
-  const selectedIds = useMemo(
-    () => Object.keys(selectedSettings),
-    [selectedSettings],
-  );
-  const selectedCount = selectedIds.length;
-  const selectedSettingsList = useMemo(
-    () =>
-      selectedIds
-        .map((id) => selectedSettings[id])
-        .filter((setting): setting is SystemSetting => Boolean(setting)),
-    [selectedIds, selectedSettings],
-  );
-  const pageSettingIds = useMemo(
-    () => items.map((setting) => String(setting.id)),
-    [items],
-  );
-  const isAllPageSelected =
-    pageSettingIds.length > 0 &&
-    pageSettingIds.every((id) => Boolean(selectedSettings[id]));
-  const enableBulkSelection = true;
   const hasActiveFilters =
     search.trim().length > 0 || visibilityFilter !== ALL_VISIBILITY;
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
     (visibilityFilter !== ALL_VISIBILITY ? 1 : 0);
+  const publicCount = useMemo(
+    () => items.filter((setting) => setting.is_public).length,
+    [items],
+  );
+  const privateCount = useMemo(
+    () => items.filter((setting) => !setting.is_public).length,
+    [items],
+  );
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -194,98 +256,52 @@ export function SystemSettingsTable({
     return () => clearTimeout(timeout);
   }, [search]);
 
-  useEffect(() => {
-    setSelectedSettings({});
-  }, [page, perPage, query, visibilityFilter]);
-
-  const toggleSettingSelection = (setting: SystemSetting) => {
-    const id = String(setting.id);
-    setSelectedSettings((prev) => {
-      const next = { ...prev };
-      if (next[id]) {
-        delete next[id];
-      } else {
-        next[id] = setting;
-      }
-      return next;
-    });
-  };
-
-  const toggleAllSelections = () => {
-    if (isAllPageSelected) {
-      setSelectedSettings((prev) => {
-        const next = { ...prev };
-        pageSettingIds.forEach((id) => {
-          delete next[id];
-        });
-        return next;
-      });
-      return;
-    }
-
-    setSelectedSettings((prev) => {
-      const next = { ...prev };
-      items.forEach((setting) => {
-        next[String(setting.id)] = setting;
-      });
-      return next;
-    });
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedSettingsList.length === 0 || isBulkDeleting) return;
-
-    const confirmed = window.confirm(
-      `Delete ${selectedSettingsList.length} selected setting${
-        selectedSettingsList.length === 1 ? "" : "s"
-      }?`,
-    );
-    if (!confirmed) return;
-
-    setIsBulkDeleting(true);
-
-    let deletedCount = 0;
-    let lastSuccessMessage = "";
-    for (const setting of selectedSettingsList) {
-      try {
-        const response = await deleteSystemSetting(setting.id);
-        if (!isAdminRequestSuccessful(response)) {
-          continue;
-        }
-        deletedCount += 1;
-        lastSuccessMessage = getAdminResponseMessage(
-          response,
-          lastSuccessMessage,
-        );
-      } catch {
-        // Continue deleting remaining selections even if one fails.
-      }
-    }
-
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["system-settings"] }),
-      queryClient.invalidateQueries({ queryKey: ["system-settings-preview"] }),
-    ]);
-    setSelectedSettings({});
-    setIsBulkDeleting(false);
-
-    if (deletedCount === selectedSettingsList.length) {
-      showToast(
-        lastSuccessMessage ||
-          `Deleted ${deletedCount} setting${deletedCount === 1 ? "" : "s"} successfully.`,
-        "success",
-      );
-      return;
-    }
-
-    showToast(
-      `Deleted ${deletedCount} of ${selectedSettingsList.length} selected settings.`,
-      "error",
-    );
-  };
-
   return (
-    <ListingCard>
+    <ListingCard className="overflow-hidden border-gray-200/80 shadow-sm dark:border-gray-800">
+      <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#fff7ed_100%)] p-4 dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(17,24,39,0.96)_48%,rgba(41,37,36,0.92)_100%)]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-2">
+            <div className="inline-flex items-center rounded-full border border-gray-200 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
+              Global Registry
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-gray-950 dark:text-white">
+                Settings Inventory
+              </h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                Search by exact key fragments, filter by visibility, and manage
+                non-canonical registry entries from one screen.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+            <div className="grid flex-1 gap-3 sm:grid-cols-3">
+              <RegistryStat label="Visible Now" value={`${items.length}`} />
+              <RegistryStat
+                label="Public"
+                value={`${publicCount}`}
+                tone="success"
+              />
+              <RegistryStat
+                label="Private"
+                value={`${privateCount}`}
+                tone="muted"
+              />
+            </div>
+            {onCreateSetting ? (
+              <Button
+                type="button"
+                onClick={onCreateSetting}
+                className="h-auto rounded-2xl px-5 py-3"
+              >
+                Add Registry Key
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       <ListingFilters
         activeCount={activeFilterCount}
         isFetching={isFetching}
@@ -298,11 +314,19 @@ export function SystemSettingsTable({
           setPage(1);
         }}
         summary={
-          <>
-            {total} {total === 1 ? "setting" : "settings"}
-          </>
+          <div className="flex flex-wrap items-center gap-2">
+            <span>
+              {total} {total === 1 ? "setting" : "settings"}
+            </span>
+            {query ? (
+              <span className="rounded-full bg-gray-900 px-2.5 py-1 text-[11px] font-medium text-white dark:bg-gray-100 dark:text-gray-900">
+                Matching "{query}"
+              </span>
+            ) : null}
+          </div>
         }
-        gridClassName="grid-cols-1 md:grid-cols-2"
+        className="border-b-0 bg-white/90 px-4 pb-3 pt-4 dark:bg-gray-950/70"
+        gridClassName="grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.5fr)_260px]"
       >
         <div className="relative">
           <svg
@@ -322,7 +346,7 @@ export function SystemSettingsTable({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by key"
-            className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="h-11 rounded-xl border-gray-200 bg-white pl-10 pr-9 shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
           />
           <button
             type="button"
@@ -363,7 +387,7 @@ export function SystemSettingsTable({
             setVisibilityFilter(value);
           }}
         >
-          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+          <SelectTrigger className="h-11 w-full rounded-xl border-gray-200 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900">
             <SelectValue placeholder="Visibility" />
           </SelectTrigger>
           <SelectContent>
@@ -376,14 +400,14 @@ export function SystemSettingsTable({
 
       {isError ? (
         <div className="p-6">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
-            <p className="text-sm text-red-600 dark:text-red-400">
+          <div className="rounded-2xl border border-red-200 bg-red-50/90 p-5 text-center shadow-sm dark:border-red-900 dark:bg-red-900/20">
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">
               Failed to load settings. Please try again.
             </p>
             <Button
               variant="outline"
               size="sm"
-              className="mt-2"
+              className="mt-3"
               onClick={() => window.location.reload()}
             >
               Retry
@@ -397,28 +421,145 @@ export function SystemSettingsTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[900px]">
+          <div className="grid gap-4 p-4 lg:hidden">
+            {isLoadingState
+              ? Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+                  >
+                    <div className="space-y-3">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-10 w-full rounded-xl" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-5 w-20 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              : null}
+
+            {!isLoadingState && showEmptyState ? (
+              <EmptyState
+                title={query ? "No settings found" : "No settings yet"}
+                description={
+                  query
+                    ? "Try adjusting your search terms"
+                    : "Add a non-canonical system setting to extend the registry"
+                }
+                className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 dark:border-gray-800 dark:bg-gray-950/50"
+              />
+            ) : null}
+
+            {!isLoadingState
+              ? items.map((setting) => {
+                  const valueType = getValueType(setting.value);
+                  const effectiveUpdatedAt =
+                    setting.updated_at ?? setting.created_at ?? null;
+                  const isCanonicalDefault = CANONICAL_DEFAULT_KEYS.has(
+                    String(setting.key),
+                  );
+
+                  return (
+                    <div
+                      key={setting.id}
+                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <p className="font-mono text-sm font-semibold text-gray-950 dark:text-white">
+                              {setting.key}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                                VALUE_TYPE_STYLES[valueType],
+                              )}
+                            >
+                              {valueType}
+                            </span>
+                            <Badge variant="outline">Global default</Badge>
+                            {isCanonicalDefault ? (
+                              <Badge variant="secondary">Managed above</Badge>
+                            ) : null}
+                            <Badge
+                              variant={
+                                setting.is_public ? "success" : "secondary"
+                              }
+                            >
+                              {setting.is_public ? "Public" : "Private"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-800 dark:bg-gray-950/60">
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+                          Current default
+                        </p>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                          {formatHumanValue(setting) || "—"}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Last updated</span>
+                        <span
+                          title={
+                            formatFullDate(effectiveUpdatedAt) || undefined
+                          }
+                        >
+                          {getRelativeTime(effectiveUpdatedAt)}
+                        </span>
+                      </div>
+                      {!isCanonicalDefault &&
+                      (onEditSetting || onDeleteSetting) ? (
+                        <div className="mt-4 flex gap-2">
+                          {onEditSetting ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onEditSetting(setting)}
+                            >
+                              Edit
+                            </Button>
+                          ) : null}
+                          {onDeleteSetting ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => onDeleteSetting(setting)}
+                            >
+                              Delete
+                            </Button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              : null}
+          </div>
+
+          <Table className="hidden min-w-[880px] lg:table">
             <TableHeader>
-              <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                {enableBulkSelection ? (
-                  <TableHead className="w-8">
-                    <input
-                      type="checkbox"
-                      className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                      checked={isAllPageSelected}
-                      onChange={toggleAllSelections}
-                      disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all settings on this page"
-                    />
+              <TableRow className="bg-gray-50/90 dark:bg-gray-900/80">
+                <TableHead className="font-medium">Registry Key</TableHead>
+                <TableHead className="font-medium">Current Default</TableHead>
+                <TableHead className="font-medium">Visibility</TableHead>
+                <TableHead className="font-medium">Last Sync</TableHead>
+                {onEditSetting || onDeleteSetting ? (
+                  <TableHead className="text-right font-medium">
+                    Actions
                   </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Key</TableHead>
-                <TableHead className="font-medium">Value</TableHead>
-                <TableHead className="font-medium">Visibility</TableHead>
-                <TableHead className="font-medium">Updated At</TableHead>
-                <TableHead className="w-10 text-right font-medium">
-                  Actions
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -426,11 +567,6 @@ export function SystemSettingsTable({
                 <>
                   {Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index} className="animate-pulse">
-                      {enableBulkSelection ? (
-                        <TableCell>
-                          <Skeleton className="h-4 w-4" />
-                        </TableCell>
-                      ) : null}
                       <TableCell>
                         <Skeleton className="h-4 w-48" />
                       </TableCell>
@@ -443,16 +579,18 @@ export function SystemSettingsTable({
                       <TableCell>
                         <Skeleton className="h-4 w-28" />
                       </TableCell>
-                      <TableCell>
-                        <Skeleton className="ml-auto h-4 w-16" />
-                      </TableCell>
+                      {onEditSetting || onDeleteSetting ? (
+                        <TableCell>
+                          <Skeleton className="ml-auto h-9 w-28 rounded-xl" />
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   ))}
                 </>
               ) : showEmptyState ? (
                 <TableRow>
                   <TableCell
-                    colSpan={enableBulkSelection ? 6 : 5}
+                    colSpan={onEditSetting || onDeleteSetting ? 5 : 4}
                     className="h-48"
                   >
                     <EmptyState
@@ -460,52 +598,45 @@ export function SystemSettingsTable({
                       description={
                         query
                           ? "Try adjusting your search terms"
-                          : "Create your first system setting to get started"
+                          : "Add a non-canonical system setting to extend the registry"
                       }
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((setting, index) => {
-                  const valuePreview = formatValuePreview(setting.value);
+                items.map((setting) => {
                   const valueType = getValueType(setting.value);
-                  const valueInline = valuePreview.replace(/\s+/g, " ").trim();
-                  const displayValue =
-                    valueInline.length > 120
-                      ? `${valueInline.slice(0, 120)}...`
-                      : valueInline;
                   const effectiveUpdatedAt =
                     setting.updated_at ?? setting.created_at ?? null;
                   const relativeUpdatedAt = getRelativeTime(effectiveUpdatedAt);
                   const fullUpdatedAt = formatFullDate(effectiveUpdatedAt);
-                  const shouldOpenUp =
-                    items.length > 4 && index >= items.length - 2;
+                  const isCanonicalDefault = CANONICAL_DEFAULT_KEYS.has(
+                    String(setting.key),
+                  );
 
                   return (
                     <TableRow
                       key={setting.id}
-                      className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
+                      className="group transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-900/50"
                     >
-                      {enableBulkSelection ? (
-                        <TableCell>
-                          <input
-                            type="checkbox"
-                            className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
-                            checked={Boolean(
-                              selectedSettings[String(setting.id)],
-                            )}
-                            onChange={() => toggleSettingSelection(setting)}
-                            aria-label={`Select setting ${setting.key}`}
-                            disabled={isBulkDeleting}
-                          />
-                        </TableCell>
-                      ) : null}
                       <TableCell className="font-medium text-gray-900 dark:text-white">
-                        <span className="font-mono">{setting.key}</span>
+                        <div className="space-y-1">
+                          <span className="font-mono text-sm">
+                            {setting.key}
+                          </span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Global default in the system registry
+                          </p>
+                          {isCanonicalDefault ? (
+                            <p className="text-xs text-amber-600 dark:text-amber-400">
+                              Managed from the canonical defaults panel above
+                            </p>
+                          ) : null}
+                        </div>
                       </TableCell>
-                      <TableCell className="max-w-[420px]">
-                        <div className="space-y-1.5">
+                      <TableCell className="max-w-[460px]">
+                        <div className="space-y-2">
                           <span
                             className={cn(
                               "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
@@ -514,13 +645,13 @@ export function SystemSettingsTable({
                           >
                             {valueType}
                           </span>
-                          <div className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 dark:border-gray-700 dark:bg-gray-800/60">
-                            <span
-                              className="block truncate font-mono text-xs text-gray-600 dark:text-gray-300"
-                              title={valuePreview}
+                          <div className="rounded-xl border border-gray-200 bg-gray-50/90 px-3 py-2 dark:border-gray-800 dark:bg-gray-950/60">
+                            <p
+                              className="truncate text-sm font-medium text-gray-800 dark:text-gray-100"
+                              title={formatHumanValue(setting)}
                             >
-                              {displayValue || "—"}
-                            </span>
+                              {formatHumanValue(setting) || "—"}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
@@ -544,46 +675,39 @@ export function SystemSettingsTable({
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end">
-                          <Dropdown
-                            isOpen={openMenuId === setting.id}
-                            setIsOpen={(value) =>
-                              setOpenMenuId(value ? setting.id : null)
-                            }
-                          >
-                            <DropdownTrigger className="text-gray-400 hover:text-gray-600">
-                              ⋮
-                            </DropdownTrigger>
-                            <DropdownContent
-                              align="end"
-                              className={cn(
-                                "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                shouldOpenUp && "bottom-full mb-2 mt-0",
-                              )}
-                            >
-                              <button
-                                className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onEdit(setting);
-                                }}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onDelete(setting);
-                                }}
-                              >
-                                Delete
-                              </button>
-                            </DropdownContent>
-                          </Dropdown>
-                        </div>
-                      </TableCell>
+                      {onEditSetting || onDeleteSetting ? (
+                        <TableCell>
+                          {isCanonicalDefault ? (
+                            <div className="flex justify-end">
+                              <Badge variant="secondary">Managed above</Badge>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end gap-2">
+                              {onEditSetting ? (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => onEditSetting(setting)}
+                                >
+                                  Edit
+                                </Button>
+                              ) : null}
+                              {onDeleteSetting ? (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => onDeleteSetting(setting)}
+                                >
+                                  Delete
+                                </Button>
+                              ) : null}
+                            </div>
+                          )}
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   );
                 })
@@ -592,24 +716,6 @@ export function SystemSettingsTable({
           </Table>
         </div>
       )}
-
-      {selectedCount > 0 && enableBulkSelection ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
-          <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBulkDelete}
-              disabled={isLoadingState || isBulkDeleting}
-            >
-              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
-            </Button>
-          </div>
-        </div>
-      ) : null}
 
       {!isError && maxPage > 1 && (
         <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-700">

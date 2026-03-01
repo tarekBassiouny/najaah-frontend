@@ -29,6 +29,7 @@ export type UpdateSystemSettingPayload = {
 };
 
 export type SystemSettingsPreviewResponse = Record<string, unknown>;
+export type SystemSettingsByKey = Record<string, SystemSetting | null>;
 
 type RawResponse = {
   data?: unknown;
@@ -129,6 +130,31 @@ export async function getSystemSetting(
 ): Promise<SystemSetting> {
   const { data } = await http.get<RawResponse>(`/api/v1/admin/settings/${id}`);
   return normalizeEntityResponse(data);
+}
+
+export async function findSystemSettingByKey(
+  key: string,
+): Promise<SystemSetting | null> {
+  const response = await listSystemSettings({
+    page: 1,
+    per_page: 100,
+    search: key,
+  });
+
+  return (
+    response.items.find((item) => String(item.key).trim() === key.trim()) ??
+    null
+  );
+}
+
+export async function findSystemSettingsByKeys(
+  keys: string[],
+): Promise<SystemSettingsByKey> {
+  const entries = await Promise.all(
+    keys.map(async (key) => [key, await findSystemSettingByKey(key)] as const),
+  );
+
+  return Object.fromEntries(entries);
 }
 
 export async function createSystemSetting(

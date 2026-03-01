@@ -27,9 +27,11 @@ import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import {
+  getAdminApiFieldErrors,
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
+import { cn } from "@/lib/utils";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -120,9 +122,14 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  const categoryError = fieldErrors.category_id?.[0] ?? null;
+  const difficultyError = fieldErrors.difficulty?.[0] ?? null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
 
     const titleTranslations: Record<string, string> = {
       en: formData.title,
@@ -165,6 +172,25 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
         onSuccess: (course) => {
           router.push(`/centers/${centerId}/courses/${course.id}`);
         },
+        onError: (mutationError) => {
+          const errors = getAdminApiFieldErrors(mutationError) as
+            | Record<string, string[] | string>
+            | undefined;
+
+          if (!errors) {
+            setFieldErrors({});
+            return;
+          }
+
+          const normalizedErrors = Object.fromEntries(
+            Object.entries(errors).map(([key, value]) => [
+              key,
+              Array.isArray(value) ? value.map(String) : [String(value)],
+            ]),
+          );
+
+          setFieldErrors(normalizedErrors);
+        },
       },
     );
   };
@@ -173,10 +199,21 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     (field: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        if (field === "categoryId") delete next.category_id;
+        if (field === "difficulty") delete next.difficulty;
+        return next;
+      });
     };
 
   const handleSelectChange = (field: string) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (field === "difficulty") delete next.difficulty;
+      return next;
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,7 +384,13 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       value={formData.difficulty}
                       onValueChange={handleSelectChange("difficulty")}
                     >
-                      <SelectTrigger id="difficulty">
+                      <SelectTrigger
+                        id="difficulty"
+                        className={cn(
+                          difficultyError &&
+                            "border-red-500 focus:ring-red-500",
+                        )}
+                      >
                         <SelectValue placeholder="Select difficulty" />
                       </SelectTrigger>
                       <SelectContent>
@@ -358,6 +401,9 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                    {difficultyError ? (
+                      <p className="text-xs text-red-600">{difficultyError}</p>
+                    ) : null}
                   </div>
 
                   <div className="space-y-2">
@@ -395,15 +441,22 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">
+                      Category <span className="text-red-500">*</span>
+                    </Label>
                     <SearchableSelect
                       value={formData.categoryId || null}
-                      onValueChange={(value) =>
+                      onValueChange={(value) => {
                         setFormData((prev) => ({
                           ...prev,
                           categoryId: value ?? "",
-                        }))
-                      }
+                        }));
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.category_id;
+                          return next;
+                        });
+                      }}
                       options={categoryOptions}
                       placeholder="Select category"
                       searchPlaceholder="Search categories..."
@@ -415,10 +468,17 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       isLoadingMore={isLoadingMoreCategories}
                       onReachEnd={loadMoreCategories}
                       allowClear
+                      triggerClassName={cn(
+                        categoryError && "border-red-500 focus:ring-red-500",
+                      )}
                     />
-                    <p className="text-xs text-gray-500">
-                      Optional. Organize your course in a category.
-                    </p>
+                    {categoryError ? (
+                      <p className="text-xs text-red-600">{categoryError}</p>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        Required. Choose the category this course belongs to.
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -522,7 +582,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {isError && (
+            {isError && Object.keys(fieldErrors).length === 0 && (
               <Alert variant="destructive">
                 <AlertTitle>Could not create course</AlertTitle>
                 <AlertDescription>

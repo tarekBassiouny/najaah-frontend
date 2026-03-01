@@ -1,10 +1,7 @@
 import { http } from "@/lib/http";
-import type { CenterSetting } from "@/features/centers/types/center";
+import type { CenterSettingsData } from "@/features/centers/types/center";
 
-export type CenterSettingsResponse = {
-  settings: CenterSetting[];
-  [key: string]: unknown;
-};
+export type CenterSettingsResponse = CenterSettingsData;
 
 export type UpdateCenterSettingsPayload = {
   settings: Record<string, unknown>;
@@ -12,10 +9,35 @@ export type UpdateCenterSettingsPayload = {
 };
 
 type RawCenterSettingsResponse = {
-  data?: CenterSetting[] | Record<string, unknown>;
-  settings?: CenterSetting[] | Record<string, unknown>;
+  data?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
   [key: string]: unknown;
 };
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function normalizeCenterSettingsResponse(
+  raw: RawCenterSettingsResponse | undefined,
+): CenterSettingsResponse {
+  const container = asRecord(raw) ?? {};
+  const payload = asRecord(container.data) ?? container;
+
+  return {
+    ...payload,
+    id: payload.id,
+    center_id: payload.center_id,
+    settings: asRecord(payload.settings) ?? {},
+    resolved_settings: asRecord(payload.resolved_settings) ?? {},
+    system_defaults: asRecord(payload.system_defaults) ?? {},
+    catalog: asRecord(payload.catalog) ?? {},
+  };
+}
 
 export async function getCenterSettings(
   centerId: string | number,
@@ -24,13 +46,7 @@ export async function getCenterSettings(
     `/api/v1/admin/centers/${centerId}/settings`,
   );
 
-  const settings = Array.isArray(data?.data)
-    ? data?.data
-    : Array.isArray(data?.settings)
-      ? data?.settings
-      : [];
-
-  return { settings };
+  return normalizeCenterSettingsResponse(data);
 }
 
 export async function updateCenterSettings(
@@ -42,11 +58,5 @@ export async function updateCenterSettings(
     payload,
   );
 
-  const settings = Array.isArray(data?.data)
-    ? data?.data
-    : Array.isArray(data?.settings)
-      ? data?.settings
-      : [];
-
-  return { settings };
+  return normalizeCenterSettingsResponse(data);
 }

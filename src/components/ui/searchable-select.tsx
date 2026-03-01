@@ -352,13 +352,21 @@ export function SearchableSelect<T = string>({
 
         <span className="flex items-center gap-1">
           {allowClear && selectedOption && !isLoading && (
-            <button
-              type="button"
+            <span
+              role="button"
+              tabIndex={disabled ? -1 : 0}
               onClick={handleClear}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleClear(event as unknown as React.MouseEvent);
+                }
+              }}
               className={cn(
                 "rounded-md p-0.5 text-gray-400 transition-colors",
                 "hover:bg-gray-100 hover:text-gray-600",
                 "dark:hover:bg-gray-800 dark:hover:text-gray-300",
+                disabled && "pointer-events-none opacity-50",
               )}
               aria-label={clearLabel}
             >
@@ -377,7 +385,7 @@ export function SearchableSelect<T = string>({
                   />
                 </svg>
               )}
-            </button>
+            </span>
           )}
           <ChevronDownIcon
             className={cn(

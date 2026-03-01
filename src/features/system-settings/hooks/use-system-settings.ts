@@ -9,12 +9,14 @@ import type { SystemSetting } from "@/features/system-settings/types/system-sett
 import {
   createSystemSetting,
   deleteSystemSetting,
+  findSystemSettingsByKeys,
   getSystemSetting,
   getSystemSettingsPreview,
   listSystemSettings,
   updateSystemSetting,
   type CreateSystemSettingPayload,
   type ListSystemSettingsParams,
+  type SystemSettingsByKey,
   type SystemSettingsPreviewResponse,
   type UpdateSystemSettingPayload,
 } from "@/features/system-settings/services/system-settings.service";
@@ -31,6 +33,11 @@ type UseSystemSettingOptions = Omit<
 
 type UseSystemSettingsPreviewOptions = Omit<
   UseQueryOptions<SystemSettingsPreviewResponse>,
+  "queryKey" | "queryFn"
+>;
+
+type UseSystemSettingsByKeysOptions = Omit<
+  UseQueryOptions<SystemSettingsByKey>,
   "queryKey" | "queryFn"
 >;
 
@@ -69,6 +76,20 @@ export function useSystemSettingsPreview(
   });
 }
 
+export function useSystemSettingsByKeys(
+  keys: string[],
+  options?: UseSystemSettingsByKeysOptions,
+) {
+  const normalizedKeys = [...keys].sort();
+
+  return useQuery({
+    queryKey: ["system-settings-by-keys", normalizedKeys],
+    queryFn: () => findSystemSettingsByKeys(normalizedKeys),
+    enabled: normalizedKeys.length > 0,
+    ...options,
+  });
+}
+
 export function useCreateSystemSetting() {
   const queryClient = useQueryClient();
 
@@ -77,6 +98,7 @@ export function useCreateSystemSetting() {
       createSystemSetting(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["system-settings-by-keys"] });
       queryClient.invalidateQueries({ queryKey: ["system-settings-preview"] });
     },
   });
@@ -95,6 +117,7 @@ export function useUpdateSystemSetting() {
     }) => updateSystemSetting(id, payload),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["system-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["system-settings-by-keys"] });
       queryClient.invalidateQueries({ queryKey: ["system-setting", id] });
       queryClient.invalidateQueries({ queryKey: ["system-settings-preview"] });
     },
@@ -108,6 +131,7 @@ export function useDeleteSystemSetting() {
     mutationFn: (id: string | number) => deleteSystemSetting(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["system-settings-by-keys"] });
       queryClient.invalidateQueries({ queryKey: ["system-settings-preview"] });
     },
   });

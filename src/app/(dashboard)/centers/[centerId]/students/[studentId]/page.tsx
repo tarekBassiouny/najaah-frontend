@@ -2,7 +2,9 @@
 
 import { Fragment, use, useMemo, useState } from "react";
 import Link from "next/link";
+import { useModal } from "@/components/ui/modal-store";
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +29,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useStudentProfile } from "@/features/students/hooks/use-students";
+import { useGrantExtraViewsToStudent } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
+import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
 
 type PageProps = {
   params: Promise<{ centerId: string; studentId: string }>;
@@ -96,12 +100,70 @@ function formatPhone(countryCode: string, phone: string): string {
   return `${countryCode} ${phone}`;
 }
 
+function resolveVideoDurationSeconds(video: {
+  duration_seconds?: number | null;
+  duration?: number | string | null;
+}) {
+  if (typeof video.duration_seconds === "number") {
+    return video.duration_seconds;
+  }
+
+  if (typeof video.duration === "number") {
+    return video.duration;
+  }
+
+  if (typeof video.duration === "string" && video.duration.trim()) {
+    const trimmed = video.duration.trim();
+    const numericValue = Number(trimmed);
+    if (!Number.isNaN(numericValue)) {
+      return numericValue;
+    }
+
+    if (/^\d{1,2}:\d{2}(?::\d{2})?$/.test(trimmed)) {
+      const parts = trimmed.split(":").map(Number);
+      if (parts.some((part) => Number.isNaN(part))) {
+        return null;
+      }
+
+      if (parts.length === 2) {
+        const [minutes, seconds] = parts;
+        return minutes * 60 + seconds;
+      }
+
+      const [hours, minutes, seconds] = parts;
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+
+    return Number.isNaN(numericValue) ? null : numericValue;
+  }
+
+  return null;
+}
+
+function formatDuration(seconds: number | null) {
+  if (seconds == null || seconds < 0) return null;
+
+  const totalSeconds = Math.floor(seconds);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds,
+    ).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
 export default function StudentProfilePage({
   params,
   searchParams,
 }: PageProps) {
   const { centerId, studentId } = use(params);
   const { from, courseId } = use(searchParams);
+  const { showToast } = useModal();
 
   const {
     data: profile,
@@ -113,6 +175,7 @@ export default function StudentProfilePage({
     { centerId },
     { enabled: Boolean(studentId) && Boolean(centerId) },
   );
+  const grantExtraViewsMutation = useGrantExtraViewsToStudent();
 
   const [expandedCourseIds, setExpandedCourseIds] = useState<number[]>([]);
   const [selectedCourseCategory, setSelectedCourseCategory] = useState<
@@ -127,6 +190,7 @@ export default function StudentProfilePage({
     videoName: string;
   } | null>(null);
   const [extraViews, setExtraViews] = useState<number>(1);
+  const [grantError, setGrantError] = useState<string | null>(null);
 
   const canOpenFromCenter = from === "center";
   const canOpenFromCourse = from === "course" && Boolean(courseId);
@@ -157,11 +221,36 @@ export default function StudentProfilePage({
   const activeDevice = profile?.device ?? profile?.active_device ?? null;
   const activeDeviceMeta = formatActiveDeviceMeta(activeDevice);
 
-  const handleGrantViews = () => {
+  const handleGrantViews = async () => {
     if (!grantTarget || extraViews < 1) return;
-    // TODO: Implement grant extra views API call
-    setGrantTarget(null);
-    setExtraViews(1);
+
+    setGrantError(null);
+
+    try {
+      await grantExtraViewsMutation.mutateAsync({
+        studentId,
+        centerId,
+        payload: {
+          course_id: grantTarget.courseId,
+          video_id: grantTarget.videoId,
+          granted_views: extraViews,
+        },
+      });
+
+      showToast(
+        `Granted ${extraViews} extra view${extraViews === 1 ? "" : "s"} for ${grantTarget.videoName}.`,
+        "success",
+      );
+      setGrantTarget(null);
+      setExtraViews(1);
+    } catch (error) {
+      const message = getStudentRequestApiErrorMessage(
+        error,
+        "Unable to grant extra views.",
+      );
+      setGrantError(message);
+      showToast(message, "error");
+    }
   };
 
   if (!hasAllowedEntry) {
@@ -530,9 +619,40 @@ export default function StudentProfilePage({
                                     </TableCell>
                                   </TableRow>
                                 ) : null}
-                                {visibleVideos.map((video) => (
-                                  <TableRow key={video.id}>
-                                    <TableCell>{video.title}</TableCell>
+                                {visibleVideos.map((video) => {
+                                  const formattedDuration = formatDuration(
+                                    resolveVideoDurationSeconds(video),
+                                  );
+
+                                  return (
+                                    <TableRow key={video.id}>
+                                      <TableCell>
+                                        <div className="flex items-center gap-3">
+                                          {video.thumbnail_url ? (
+                                            /* eslint-disable-next-line @next/next/no-img-element */
+                                            <img
+                                              src={video.thumbnail_url}
+                                              alt={`${video.title} thumbnail`}
+                                              className="h-14 w-24 rounded-lg border border-gray-200 object-cover dark:border-gray-700"
+                                            />
+                                          ) : (
+                                            <div className="flex h-14 w-24 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-[11px] font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+                                              No thumbnail
+                                            </div>
+                                          )}
+                                          <div className="min-w-0">
+                                            <p className="truncate font-medium text-gray-900 dark:text-white">
+                                              {video.title}
+                                            </p>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                              <p>{video.watch_progress_percentage}% watched</p>
+                                              {formattedDuration ? (
+                                                <p>{formattedDuration}</p>
+                                              ) : null}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </TableCell>
                                     <TableCell className="text-center font-medium">
                                       <span>
                                         {video.watch_count}/
@@ -546,7 +666,9 @@ export default function StudentProfilePage({
                                         </Button>
                                         <Button
                                           size="sm"
+                                          disabled={grantExtraViewsMutation.isPending}
                                           onClick={() => {
+                                            setGrantError(null);
                                             setGrantTarget({
                                               courseId: enrollment.course.id,
                                               videoId: video.id,
@@ -559,8 +681,9 @@ export default function StudentProfilePage({
                                         </Button>
                                       </div>
                                     </TableCell>
-                                  </TableRow>
-                                ))}
+                                    </TableRow>
+                                  );
+                                })}
                               </TableBody>
                             </Table>
                           </TableCell>
@@ -591,6 +714,7 @@ export default function StudentProfilePage({
           if (!open) {
             setGrantTarget(null);
             setExtraViews(1);
+            setGrantError(null);
           }
         }}
       >
@@ -601,6 +725,12 @@ export default function StudentProfilePage({
               Add extra views for {grantTarget?.videoName}.
             </DialogDescription>
           </DialogHeader>
+          {grantError ? (
+            <Alert variant="destructive">
+              <AlertTitle>Could not grant extra views</AlertTitle>
+              <AlertDescription>{grantError}</AlertDescription>
+            </Alert>
+          ) : null}
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               {[1, 3, 5].map((value) => (
@@ -609,6 +739,7 @@ export default function StudentProfilePage({
                   type="button"
                   size="sm"
                   variant={extraViews === value ? "default" : "outline"}
+                  disabled={grantExtraViewsMutation.isPending}
                   onClick={() => setExtraViews(value)}
                 >
                   +{value}
@@ -622,6 +753,7 @@ export default function StudentProfilePage({
                 type="number"
                 min={1}
                 value={extraViews}
+                disabled={grantExtraViewsMutation.isPending}
                 onChange={(event) => {
                   const numeric = Number(event.target.value);
                   setExtraViews(Number.isFinite(numeric) ? numeric : 1);
@@ -632,15 +764,22 @@ export default function StudentProfilePage({
           <DialogFooter>
             <Button
               variant="outline"
+              disabled={grantExtraViewsMutation.isPending}
               onClick={() => {
                 setGrantTarget(null);
                 setExtraViews(1);
+                setGrantError(null);
               }}
             >
               Cancel
             </Button>
-            <Button onClick={handleGrantViews} disabled={extraViews < 1}>
-              Grant {extraViews} view{extraViews === 1 ? "" : "s"}
+            <Button
+              onClick={handleGrantViews}
+              disabled={extraViews < 1 || grantExtraViewsMutation.isPending}
+            >
+              {grantExtraViewsMutation.isPending
+                ? "Granting..."
+                : `Grant ${extraViews} view${extraViews === 1 ? "" : "s"}`}
             </Button>
           </DialogFooter>
         </DialogContent>

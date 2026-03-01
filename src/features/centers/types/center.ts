@@ -10,6 +10,32 @@ export type CenterSetting = {
   [key: string]: any;
 };
 
+export type CenterSettingsScope = "center" | "system" | string;
+
+export type CenterSettingsCatalogEntry = {
+  scope?: CenterSettingsScope;
+  type?: string;
+  [key: string]: unknown;
+};
+
+export type CenterSettingsCatalog = Record<string, CenterSettingsCatalogEntry>;
+
+export type CenterSettingsMap = Record<string, unknown>;
+
+export type CenterResolvedSettings = CenterSettingsMap & {
+  branding?: Record<string, unknown> | null;
+};
+
+export type CenterSettingsData = {
+  id?: string | number;
+  center_id?: string | number;
+  settings: CenterSettingsMap;
+  resolved_settings: CenterResolvedSettings;
+  system_defaults: CenterSettingsMap;
+  catalog: CenterSettingsCatalog;
+  [key: string]: unknown;
+};
+
 export type CenterTypeValue = "branded" | "unbranded" | string;
 export type CenterTierValue = "standard" | "premium" | "vip" | string;
 export type CenterStatusValue = 0 | 1 | number;

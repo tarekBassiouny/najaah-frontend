@@ -19,11 +19,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  useUpdateCenter,
-  useUploadCenterLogo,
-} from "@/features/centers/hooks/use-centers";
+  useCenterSettings,
+  useUpdateCenterSettings,
+} from "@/features/centers/hooks/use-center-settings";
+import { useUploadCenterLogo } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import { getAdminApiErrorMessage } from "@/lib/admin-response";
 
 type CenterBrandingFormProps = {
   center?: Center | null;
@@ -39,6 +41,13 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     return null;
   }
   return value as Record<string, unknown>;
+}
+
+function hasOwnKey(
+  record: Record<string, unknown> | null,
+  key: string,
+): boolean {
+  return Boolean(record && Object.prototype.hasOwnProperty.call(record, key));
 }
 
 function readString(value: unknown): string | null {
@@ -140,7 +149,10 @@ export function CenterBrandingForm({
   onPrimaryColorChange,
   refetchCenter,
 }: CenterBrandingFormProps) {
-  const updateCenterMutation = useUpdateCenter();
+  const { data: centerSettings, refetch: refetchCenterSettings } =
+    useCenterSettings(center?.id);
+  const { mutateAsync: updateCenterSettings, isPending: isColorSavePending } =
+    useUpdateCenterSettings();
   const uploadLogoMutation = useUploadCenterLogo();
 
   const [primaryColor, setPrimaryColor] = useState("");
@@ -170,7 +182,6 @@ export function CenterBrandingForm({
 
   const previewImageUrl = selectedLogoPreviewUrl ?? centerLogoUrl;
   const isPreviewingSelectedFile = Boolean(selectedLogoPreviewUrl);
-
   useEffect(() => {
     return () => {
       if (selectedLogoPreviewUrl) {
@@ -182,10 +193,17 @@ export function CenterBrandingForm({
   useEffect(() => {
     if (!center) return;
 
+    const resolvedBranding = asRecord(
+      centerSettings?.resolved_settings?.branding,
+    );
     const existingColor =
-      typeof center.primary_color === "string" ? center.primary_color : "";
+      typeof resolvedBranding?.primary_color === "string"
+        ? resolvedBranding.primary_color
+        : typeof center.primary_color === "string"
+          ? center.primary_color
+          : "";
     setPrimaryColor(existingColor);
-  }, [center]);
+  }, [center, centerSettings?.resolved_settings]);
 
   const handleLogoFileChange = (file: File | null) => {
     setLogoFile(file);
@@ -211,7 +229,12 @@ export function CenterBrandingForm({
     setIsLogoPreviewOpen(true);
   };
 
-  const handleSaveColor = () => {
+  const hasPrimaryColorOverride = hasOwnKey(
+    asRecord(asRecord(centerSettings?.settings)?.branding),
+    "primary_color",
+  );
+
+  const handleSaveColor = async () => {
     if (!center || !isBranded) return;
 
     if (!primaryColor.trim()) {
@@ -221,34 +244,35 @@ export function CenterBrandingForm({
 
     setColorError(null);
 
-    const existingBrandingMetadata =
-      center.branding_metadata &&
-      typeof center.branding_metadata === "object" &&
-      !Array.isArray(center.branding_metadata)
-        ? center.branding_metadata
-        : {};
+    const existingBrandingSettings = asRecord(
+      centerSettings?.settings?.branding,
+    );
 
-    updateCenterMutation.mutate(
-      {
-        id: center.id,
+    try {
+      await updateCenterSettings({
+        centerId: center.id,
         payload: {
-          branding_metadata: {
-            ...existingBrandingMetadata,
-            primary_color: primaryColor.trim(),
+          settings: {
+            branding: {
+              ...(existingBrandingSettings ?? {}),
+              primary_color: primaryColor.trim(),
+            },
           },
         },
-      },
-      {
-        onError: (error) => {
-          setColorError(
-            getCenterApiErrorMessage(
-              error,
-              "Unable to update primary color. Please try again.",
-            ),
-          );
-        },
-      },
-    );
+      });
+
+      await refetchCenterSettings();
+      if (refetchCenter) {
+        await refetchCenter();
+      }
+    } catch (error) {
+      setColorError(
+        getAdminApiErrorMessage(
+          error,
+          "Unable to update primary color. Please try again.",
+        ),
+      );
+    }
   };
 
   const handleUploadLogo = () => {
@@ -385,7 +409,14 @@ export function CenterBrandingForm({
               ) : null}
 
               <div className="space-y-2">
-                <Label htmlFor="primary-color">Primary Color</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="primary-color">Primary Color</Label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {hasPrimaryColorOverride
+                      ? "Custom for this center"
+                      : "Inherited"}
+                  </p>
+                </div>
                 <Input
                   id="primary-color"
                   value={primaryColor}
@@ -399,10 +430,10 @@ export function CenterBrandingForm({
 
               <div className="flex justify-end">
                 <Button
-                  onClick={handleSaveColor}
-                  disabled={updateCenterMutation.isPending}
+                  onClick={() => void handleSaveColor()}
+                  disabled={isColorSavePending}
                 >
-                  {updateCenterMutation.isPending ? "Saving..." : "Save Color"}
+                  {isColorSavePending ? "Saving..." : "Save Color"}
                 </Button>
               </div>
             </>

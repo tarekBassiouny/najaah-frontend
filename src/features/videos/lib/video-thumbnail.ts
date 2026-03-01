@@ -307,3 +307,26 @@ export function resolveVideoThumbnailState(video: Video): VideoThumbnailState {
     source: "placeholder",
   };
 }
+
+export function resolvePersistableThumbnailUrl(
+  sourceUrl: string,
+): string | null {
+  const trimmedSourceUrl = sourceUrl.trim();
+  if (!trimmedSourceUrl) return null;
+
+  const thumbnailState = resolveVideoThumbnailState({
+    id: "preview",
+    source_type: "url",
+    source_url: trimmedSourceUrl,
+  });
+
+  const imageUrl =
+    typeof thumbnailState.imageUrl === "string"
+      ? thumbnailState.imageUrl.trim()
+      : "";
+
+  if (!imageUrl) return null;
+  if (!/^https?:\/\//i.test(imageUrl)) return null;
+
+  return imageUrl;
+}

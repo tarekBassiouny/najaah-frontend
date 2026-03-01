@@ -102,7 +102,9 @@ function toFormValues(
   };
 }
 
-function normalizeForComparison(values: DefaultsFormValues): DefaultsFormValues {
+function normalizeForComparison(
+  values: DefaultsFormValues,
+): DefaultsFormValues {
   return {
     ...values,
     timezone: values.timezone.trim(),
@@ -123,17 +125,20 @@ const FIELD_META: Array<{
   {
     key: "support_email",
     label: "Support Email",
-    description: "Global support contact shown anywhere a center inherits email.",
+    description:
+      "Global support contact shown anywhere a center inherits email.",
   },
   {
     key: "require_device_approval",
     label: "Require Device Approval",
-    description: "Default approval workflow for new centers and inherited policy.",
+    description:
+      "Default approval workflow for new centers and inherited policy.",
   },
   {
     key: "attendance_required",
     label: "Attendance Required",
-    description: "Default attendance requirement across centers without overrides.",
+    description:
+      "Default attendance requirement across centers without overrides.",
   },
 ];
 
@@ -144,10 +149,10 @@ export function SystemDefaultsPanel() {
   const { mutateAsync: updateSystemSetting, isPending: isUpdating } =
     useUpdateSystemSetting();
 
-  const [formValues, setFormValues] = useState<DefaultsFormValues>(EMPTY_VALUES);
-  const [initialValues, setInitialValues] = useState<DefaultsFormValues>(
-    EMPTY_VALUES,
-  );
+  const [formValues, setFormValues] =
+    useState<DefaultsFormValues>(EMPTY_VALUES);
+  const [initialValues, setInitialValues] =
+    useState<DefaultsFormValues>(EMPTY_VALUES);
   const [formError, setFormError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -269,7 +274,9 @@ export function SystemDefaultsPanel() {
         {saveSuccess ? (
           <Alert>
             <AlertTitle>Saved</AlertTitle>
-            <AlertDescription>Global defaults updated successfully.</AlertDescription>
+            <AlertDescription>
+              Global defaults updated successfully.
+            </AlertDescription>
           </Alert>
         ) : null}
 
@@ -373,7 +380,10 @@ export function SystemDefaultsPanel() {
         )}
 
         <div className="flex justify-end">
-          <Button onClick={() => void handleSave()} disabled={isSaving || isLoading}>
+          <Button
+            onClick={() => void handleSave()}
+            disabled={isSaving || isLoading}
+          >
             {isSaving ? "Saving..." : "Save Global Defaults"}
           </Button>
         </div>

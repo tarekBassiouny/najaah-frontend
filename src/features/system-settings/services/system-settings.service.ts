@@ -142,7 +142,8 @@ export async function findSystemSettingByKey(
   });
 
   return (
-    response.items.find((item) => String(item.key).trim() === key.trim()) ?? null
+    response.items.find((item) => String(item.key).trim() === key.trim()) ??
+    null
   );
 }
 

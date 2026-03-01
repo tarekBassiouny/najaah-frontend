@@ -58,7 +58,10 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
-function hasOwnKey(record: Record<string, unknown> | null, key: string): boolean {
+function hasOwnKey(
+  record: Record<string, unknown> | null,
+  key: string,
+): boolean {
   return Boolean(record && Object.prototype.hasOwnProperty.call(record, key));
 }
 
@@ -136,10 +139,8 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
     isError,
     refetch: refetchCenterSettings,
   } = useCenterSettings(centerId);
-  const {
-    mutateAsync: updateCenterSettings,
-    isPending: isSaving,
-  } = useUpdateCenterSettings();
+  const { mutateAsync: updateCenterSettings, isPending: isSaving } =
+    useUpdateCenterSettings();
 
   const [formValues, setFormValues] = useState<EditablePolicyValues>(
     EMPTY_EDITABLE_VALUES,
@@ -159,7 +160,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
   useEffect(() => {
     if (!data) return;
 
-    const nextValues = mapResolvedSettingsToEditableValues(data.resolved_settings);
+    const nextValues = mapResolvedSettingsToEditableValues(
+      data.resolved_settings,
+    );
     setFormValues(nextValues);
     setInitialValues(nextValues);
   }, [data]);
@@ -197,7 +200,8 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
     }
 
     const normalizedCurrent = normalizeEditableValuesForComparison(formValues);
-    const normalizedInitial = normalizeEditableValuesForComparison(initialValues);
+    const normalizedInitial =
+      normalizeEditableValuesForComparison(initialValues);
 
     const changedKeys = CENTER_POLICY_KEYS.filter(
       (key) => normalizedCurrent[key] !== normalizedInitial[key],
@@ -284,8 +288,8 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
       <CardHeader className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#fff7ed_100%)] dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(17,24,39,0.96)_48%,rgba(41,37,36,0.92)_100%)]">
         <CardTitle>Policy Settings</CardTitle>
         <CardDescription>
-          Edit center-specific policy controls here. Inherited values continue to
-          follow the platform fallback chain automatically.
+          Edit center-specific policy controls here. Inherited values continue
+          to follow the platform fallback chain automatically.
         </CardDescription>
       </CardHeader>
 
@@ -360,7 +364,10 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
               <div className="space-y-1">
                 <Label htmlFor="device-limit">Device Limit</Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {getCenterSettingSourceLabel("device_limit", persistedSettings)}
+                  {getCenterSettingSourceLabel(
+                    "device_limit",
+                    persistedSettings,
+                  )}
                 </p>
               </div>
               <Input
@@ -424,7 +431,10 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={() => void handleSave()} disabled={isSaving || isLoading}>
+          <Button
+            onClick={() => void handleSave()}
+            disabled={isSaving || isLoading}
+          >
             {isSaving ? "Saving..." : "Save Center Policy"}
           </Button>
         </div>

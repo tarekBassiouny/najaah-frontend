@@ -20,8 +20,12 @@ import type { SystemSetting } from "@/features/system-settings/types/system-sett
 export default function SettingsPage() {
   const { centerSlug } = useTenant();
   const isPlatformAdmin = !centerSlug;
-  const [editingSetting, setEditingSetting] = useState<SystemSetting | null>(null);
-  const [deletingSetting, setDeletingSetting] = useState<SystemSetting | null>(null);
+  const [editingSetting, setEditingSetting] = useState<SystemSetting | null>(
+    null,
+  );
+  const [deletingSetting, setDeletingSetting] = useState<SystemSetting | null>(
+    null,
+  );
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
@@ -76,8 +80,8 @@ export default function SettingsPage() {
                 One registry for defaults, fallbacks, and platform-wide policy.
               </h2>
               <p className="max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-                These values are consumed by center policy resolution. Changes to
-                keys like <span className="font-mono">timezone</span> or{" "}
+                These values are consumed by center policy resolution. Changes
+                to keys like <span className="font-mono">timezone</span> or{" "}
                 <span className="font-mono">support_email</span> affect every
                 center that inherits the global default.
               </p>

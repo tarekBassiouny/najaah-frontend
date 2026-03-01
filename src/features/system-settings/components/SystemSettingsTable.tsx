@@ -125,7 +125,9 @@ function RegistryStat({
         : "border-blue-200/80 bg-blue-50/80 dark:border-blue-900/70 dark:bg-blue-950/30";
 
   return (
-    <div className={cn("rounded-2xl border px-4 py-3 shadow-sm", toneClassName)}>
+    <div
+      className={cn("rounded-2xl border px-4 py-3 shadow-sm", toneClassName)}
+    >
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
         {label}
       </p>
@@ -166,7 +168,8 @@ function formatHumanValue(setting: SystemSetting): string {
 
   const firstValue = Object.values(payloadRecord)[0];
   if (typeof firstValue === "string") return firstValue;
-  if (typeof firstValue === "boolean") return firstValue ? "Enabled" : "Disabled";
+  if (typeof firstValue === "boolean")
+    return firstValue ? "Enabled" : "Disabled";
   if (typeof firstValue === "number") return String(firstValue);
 
   return valueTypeLabel(getValueType(payload));
@@ -505,7 +508,11 @@ export function SystemSettingsTable({
 
                       <div className="mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                         <span>Last updated</span>
-                        <span title={formatFullDate(effectiveUpdatedAt) || undefined}>
+                        <span
+                          title={
+                            formatFullDate(effectiveUpdatedAt) || undefined
+                          }
+                        >
                           {getRelativeTime(effectiveUpdatedAt)}
                         </span>
                       </div>
@@ -549,7 +556,9 @@ export function SystemSettingsTable({
                 <TableHead className="font-medium">Visibility</TableHead>
                 <TableHead className="font-medium">Last Sync</TableHead>
                 {onEditSetting || onDeleteSetting ? (
-                  <TableHead className="text-right font-medium">Actions</TableHead>
+                  <TableHead className="text-right font-medium">
+                    Actions
+                  </TableHead>
                 ) : null}
               </TableRow>
             </TableHeader>
@@ -613,7 +622,9 @@ export function SystemSettingsTable({
                     >
                       <TableCell className="font-medium text-gray-900 dark:text-white">
                         <div className="space-y-1">
-                          <span className="font-mono text-sm">{setting.key}</span>
+                          <span className="font-mono text-sm">
+                            {setting.key}
+                          </span>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Global default in the system registry
                           </p>

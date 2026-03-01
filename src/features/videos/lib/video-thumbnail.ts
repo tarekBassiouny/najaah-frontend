@@ -308,7 +308,9 @@ export function resolveVideoThumbnailState(video: Video): VideoThumbnailState {
   };
 }
 
-export function resolvePersistableThumbnailUrl(sourceUrl: string): string | null {
+export function resolvePersistableThumbnailUrl(
+  sourceUrl: string,
+): string | null {
   const trimmedSourceUrl = sourceUrl.trim();
   if (!trimmedSourceUrl) return null;
 

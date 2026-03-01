@@ -155,7 +155,10 @@ function formatDurationInput(seconds: number) {
 function resolveDurationInputValue(video?: Video | null) {
   if (!video) return "";
 
-  if (typeof video.duration_seconds === "number" && video.duration_seconds >= 0) {
+  if (
+    typeof video.duration_seconds === "number" &&
+    video.duration_seconds >= 0
+  ) {
     return formatDurationInput(video.duration_seconds);
   }
 
@@ -190,9 +193,9 @@ function isUrlBasedVideo(video?: Video | null) {
   return Boolean(video.source_url);
 }
 
-function parseDurationInput(value: string):
-  | { ok: true; value: number | null }
-  | { ok: false; message: string } {
+function parseDurationInput(
+  value: string,
+): { ok: true; value: number | null } | { ok: false; message: string } {
   const trimmed = value.trim();
   if (!trimmed) {
     return { ok: true, value: null };
@@ -1054,7 +1057,8 @@ export function VideoFormDialog({
                           {urlThumbnailPreview.fallbackLabel}
                         </p>
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          {urlThumbnailPreview.fallbackHint ?? "No thumbnail available"}
+                          {urlThumbnailPreview.fallbackHint ??
+                            "No thumbnail available"}
                         </p>
                       </div>
                     )}

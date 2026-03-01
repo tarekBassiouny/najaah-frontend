@@ -645,7 +645,12 @@ export default function StudentProfilePage({
                                               {video.title}
                                             </p>
                                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                                              <p>{video.watch_progress_percentage}% watched</p>
+                                              <p>
+                                                {
+                                                  video.watch_progress_percentage
+                                                }
+                                                % watched
+                                              </p>
                                               {formattedDuration ? (
                                                 <p>{formattedDuration}</p>
                                               ) : null}
@@ -653,34 +658,36 @@ export default function StudentProfilePage({
                                           </div>
                                         </div>
                                       </TableCell>
-                                    <TableCell className="text-center font-medium">
-                                      <span>
-                                        {video.watch_count}/
-                                        {video.watch_limit ?? "∞"}
-                                      </span>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="inline-flex items-center gap-2">
-                                        <Button variant="outline" size="sm">
-                                          Statistics
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          disabled={grantExtraViewsMutation.isPending}
-                                          onClick={() => {
-                                            setGrantError(null);
-                                            setGrantTarget({
-                                              courseId: enrollment.course.id,
-                                              videoId: video.id,
-                                              videoName: video.title,
-                                            });
-                                            setExtraViews(1);
-                                          }}
-                                        >
-                                          Grant extra views
-                                        </Button>
-                                      </div>
-                                    </TableCell>
+                                      <TableCell className="text-center font-medium">
+                                        <span>
+                                          {video.watch_count}/
+                                          {video.watch_limit ?? "∞"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="inline-flex items-center gap-2">
+                                          <Button variant="outline" size="sm">
+                                            Statistics
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            disabled={
+                                              grantExtraViewsMutation.isPending
+                                            }
+                                            onClick={() => {
+                                              setGrantError(null);
+                                              setGrantTarget({
+                                                courseId: enrollment.course.id,
+                                                videoId: video.id,
+                                                videoName: video.title,
+                                              });
+                                              setExtraViews(1);
+                                            }}
+                                          >
+                                            Grant extra views
+                                          </Button>
+                                        </div>
+                                      </TableCell>
                                     </TableRow>
                                   );
                                 })}

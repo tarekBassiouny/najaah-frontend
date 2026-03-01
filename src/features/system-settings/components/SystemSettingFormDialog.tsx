@@ -167,7 +167,7 @@ export function SystemSettingFormDialog({
   );
   const matchingExistingSetting =
     normalizedDraftKey && !isEditMode
-      ? existingByKey?.[normalizedDraftKey] ?? null
+      ? (existingByKey?.[normalizedDraftKey] ?? null)
       : null;
   const suggestedTemplate = KNOWN_SETTING_TEMPLATES[normalizedDraftKey] ?? null;
 
@@ -312,8 +312,8 @@ export function SystemSettingFormDialog({
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
               Store values as JSON objects such as{" "}
               <span className="font-mono">{`{ "enabled": true }`}</span> or{" "}
-              <span className="font-mono">{`{ "timezone": "UTC" }`}</span>.
-              Use <span className="font-mono">null</span> only when the setting
+              <span className="font-mono">{`{ "timezone": "UTC" }`}</span>. Use{" "}
+              <span className="font-mono">null</span> only when the setting
               intentionally carries no structured payload.
             </p>
             {suggestedTemplate && !isEditMode ? (
@@ -345,115 +345,115 @@ export function SystemSettingFormDialog({
             ) : null}
             {!isEditMode && CANONICAL_DEFAULT_KEYS.has(normalizedDraftKey) ? (
               <div className="mt-4 rounded-xl border border-blue-200/80 bg-blue-50/80 px-3 py-3 text-sm text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-300">
-                This key is edited from the Global Defaults panel above, not from
-                the generic registry dialog.
+                This key is edited from the Global Defaults panel above, not
+                from the generic registry dialog.
               </div>
             ) : null}
           </div>
 
-	          <Form {...form}>
-	            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-	              <FormField
-	                control={form.control}
-	                name="key"
-	                render={({ field }) => (
-	                  <FormItem>
-	                    <FormLabel>Key</FormLabel>
-	                    <FormControl>
-	                      <Input
-	                        placeholder="student.default_country_code"
-	                        className="h-11 rounded-xl font-mono"
-	                        {...field}
-	                        disabled={isPending || isEditMode}
-	                      />
-	                    </FormControl>
-	                    {!isEditMode && matchingExistingSetting ? (
-	                      <p className="text-xs text-amber-600 dark:text-amber-400">
-	                        This key already exists in the system registry. Edit the
-	                        existing record instead of creating a duplicate.
-	                      </p>
-	                    ) : null}
-	                    <FormMessage />
-	                  </FormItem>
-	                )}
-	              />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <FormField
+                control={form.control}
+                name="key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="student.default_country_code"
+                        className="h-11 rounded-xl font-mono"
+                        {...field}
+                        disabled={isPending || isEditMode}
+                      />
+                    </FormControl>
+                    {!isEditMode && matchingExistingSetting ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        This key already exists in the system registry. Edit the
+                        existing record instead of creating a duplicate.
+                      </p>
+                    ) : null}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-	              <FormField
-	                control={form.control}
-	                name="isPublic"
-	                render={({ field }) => (
-	                  <FormItem>
-	                    <FormLabel>Visibility</FormLabel>
-	                    <Select
-	                      value={field.value}
-	                      onValueChange={field.onChange}
-	                      disabled={isPending}
-	                    >
-	                      <FormControl>
-	                        <SelectTrigger className="h-11 rounded-xl">
-	                          <SelectValue placeholder="Select visibility" />
-	                        </SelectTrigger>
-	                      </FormControl>
-	                      <SelectContent>
-	                        <SelectItem value="false">Private</SelectItem>
-	                        <SelectItem value="true">Public</SelectItem>
-	                      </SelectContent>
-	                    </Select>
-	                    <FormMessage />
-	                  </FormItem>
-	                )}
-	              />
+              <FormField
+                control={form.control}
+                name="isPublic"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Visibility</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isPending}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-11 rounded-xl">
+                          <SelectValue placeholder="Select visibility" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="false">Private</SelectItem>
+                        <SelectItem value="true">Public</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-	              <FormField
-	                control={form.control}
-	                name="valueText"
-	                render={({ field }) => (
-	                  <FormItem>
-	                    <FormLabel>Value (JSON object or null)</FormLabel>
-	                    <FormControl>
-	                      <Textarea
-	                        rows={12}
-	                        placeholder='{"code":"+20"}'
-	                        className="min-h-[260px] rounded-2xl border-gray-200 bg-gray-50 font-mono text-xs leading-6 dark:border-gray-800 dark:bg-gray-950/80"
-	                        {...field}
-	                        disabled={isPending}
-	                      />
-	                    </FormControl>
-	                    <FormMessage />
-	                  </FormItem>
-	                )}
-	              />
+              <FormField
+                control={form.control}
+                name="valueText"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Value (JSON object or null)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={12}
+                        placeholder='{"code":"+20"}'
+                        className="min-h-[260px] rounded-2xl border-gray-200 bg-gray-50 font-mono text-xs leading-6 dark:border-gray-800 dark:bg-gray-950/80"
+                        {...field}
+                        disabled={isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-	              <DialogFooter className="border-t border-gray-200 pt-4 dark:border-gray-800">
-	                <Button
-	                  type="button"
-	                  variant="outline"
-	                  onClick={() => onOpenChange(false)}
-	                  disabled={isPending}
-	                >
-	                  Cancel
-	                </Button>
-	                <Button
-	                  type="submit"
-	                  disabled={
-	                    isPending ||
-	                    !form.formState.isValid ||
-	                    Boolean(
-	                      !isEditMode &&
-	                        (matchingExistingSetting ||
-	                          CANONICAL_DEFAULT_KEYS.has(normalizedDraftKey)),
-	                    )
-	                  }
-	                >
-	                  {isPending
-	                    ? "Saving..."
-	                    : isEditMode
-	                      ? "Save Changes"
-	                      : "Create Setting"}
-	                </Button>
-	              </DialogFooter>
-	            </form>
-	          </Form>
+              <DialogFooter className="border-t border-gray-200 pt-4 dark:border-gray-800">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    isPending ||
+                    !form.formState.isValid ||
+                    Boolean(
+                      !isEditMode &&
+                      (matchingExistingSetting ||
+                        CANONICAL_DEFAULT_KEYS.has(normalizedDraftKey)),
+                    )
+                  }
+                >
+                  {isPending
+                    ? "Saving..."
+                    : isEditMode
+                      ? "Save Changes"
+                      : "Create Setting"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </div>
       </DialogContent>
     </Dialog>

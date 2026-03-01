@@ -43,7 +43,10 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
-function hasOwnKey(record: Record<string, unknown> | null, key: string): boolean {
+function hasOwnKey(
+  record: Record<string, unknown> | null,
+  key: string,
+): boolean {
   return Boolean(record && Object.prototype.hasOwnProperty.call(record, key));
 }
 
@@ -148,10 +151,8 @@ export function CenterBrandingForm({
 }: CenterBrandingFormProps) {
   const { data: centerSettings, refetch: refetchCenterSettings } =
     useCenterSettings(center?.id);
-  const {
-    mutateAsync: updateCenterSettings,
-    isPending: isColorSavePending,
-  } = useUpdateCenterSettings();
+  const { mutateAsync: updateCenterSettings, isPending: isColorSavePending } =
+    useUpdateCenterSettings();
   const uploadLogoMutation = useUploadCenterLogo();
 
   const [primaryColor, setPrimaryColor] = useState("");
@@ -192,7 +193,9 @@ export function CenterBrandingForm({
   useEffect(() => {
     if (!center) return;
 
-    const resolvedBranding = asRecord(centerSettings?.resolved_settings?.branding);
+    const resolvedBranding = asRecord(
+      centerSettings?.resolved_settings?.branding,
+    );
     const existingColor =
       typeof resolvedBranding?.primary_color === "string"
         ? resolvedBranding.primary_color
@@ -241,7 +244,9 @@ export function CenterBrandingForm({
 
     setColorError(null);
 
-    const existingBrandingSettings = asRecord(centerSettings?.settings?.branding);
+    const existingBrandingSettings = asRecord(
+      centerSettings?.settings?.branding,
+    );
 
     try {
       await updateCenterSettings({

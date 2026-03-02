@@ -46,6 +46,17 @@ type CenterTypeFilterValue =
   | "branded"
   | "unbranded";
 
+function normalizeWhatsAppNumber(
+  countryCode?: string | null,
+  phone?: string | null,
+): string | null {
+  const normalizedCountryCode = (countryCode ?? "").replace(/\D/g, "");
+  const normalizedPhone = (phone ?? "").replace(/\D/g, "");
+  const combined = `${normalizedCountryCode}${normalizedPhone}`;
+
+  return combined ? combined : null;
+}
+
 function getInitials(value: string): string {
   const parts = value.trim().split(" ").filter(Boolean);
   if (parts.length === 0) return "—";
@@ -210,6 +221,7 @@ export function StudentsTable({
   const hasActions = Boolean(
     onEdit || onDelete || onViewDetails || onEnrollCourse || buildProfileHref,
   );
+  const showWhatsAppAction = !isCenterScoped;
 
   const toggleStudentSelection = (student: Student) => {
     const studentId = String(student.id);
@@ -504,6 +516,13 @@ export function StudentsTable({
                   const shouldOpenUp =
                     items.length > 4 && index >= items.length - 2;
                   const profileHref = buildProfileHref?.(student) ?? null;
+                  const whatsappNumber = normalizeWhatsAppNumber(
+                    student.country_code,
+                    student.phone,
+                  );
+                  const whatsappHref = whatsappNumber
+                    ? `https://wa.me/${whatsappNumber}`
+                    : null;
 
                   return (
                     <TableRow
@@ -543,9 +562,44 @@ export function StudentsTable({
                                 {student.name ?? "—"}
                               </span>
                             )}
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {student.phone ?? "—"}
-                            </span>
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                              <span>{student.phone ?? "—"}</span>
+                              {showWhatsAppAction ? (
+                                whatsappHref ? (
+                                  <Link
+                                    href={whatsappHref}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
+                                    aria-label={`Open WhatsApp for ${student.name ?? `student ${student.id}`}`}
+                                    title="Open WhatsApp"
+                                  >
+                                    <svg
+                                      className="h-4 w-4"
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M20.52 3.48A11.8 11.8 0 0012.11 0C5.6 0 .3 5.3.3 11.82c0 2.08.54 4.11 1.56 5.9L0 24l6.46-1.7a11.78 11.78 0 005.64 1.43h.01c6.51 0 11.8-5.3 11.8-11.82 0-3.16-1.23-6.13-3.39-8.43zm-8.41 18.2h-.01a9.8 9.8 0 01-4.99-1.36l-.36-.21-3.84 1.01 1.03-3.74-.24-.38a9.83 9.83 0 01-1.5-5.18c0-5.42 4.4-9.83 9.82-9.83 2.62 0 5.08 1.02 6.93 2.88a9.76 9.76 0 012.88 6.95c0 5.42-4.41 9.86-9.82 9.86zm5.39-7.37c-.3-.15-1.77-.87-2.05-.96-.27-.1-.47-.15-.67.15s-.77.96-.94 1.15c-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47a9 9 0 01-1.66-2.06c-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.62-.91-2.22-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.46s1.06 2.85 1.21 3.05c.15.2 2.08 3.18 5.04 4.46.7.3 1.25.49 1.68.62.71.23 1.36.2 1.88.12.57-.08 1.77-.72 2.02-1.42.25-.69.25-1.29.17-1.42-.08-.12-.28-.2-.58-.35z" />
+                                    </svg>
+                                  </Link>
+                                ) : (
+                                  <span
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
+                                    aria-hidden="true"
+                                    title="Phone not available"
+                                  >
+                                    <svg
+                                      className="h-4 w-4"
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M20.52 3.48A11.8 11.8 0 0012.11 0C5.6 0 .3 5.3.3 11.82c0 2.08.54 4.11 1.56 5.9L0 24l6.46-1.7a11.78 11.78 0 005.64 1.43h.01c6.51 0 11.8-5.3 11.8-11.82 0-3.16-1.23-6.13-3.39-8.43zm-8.41 18.2h-.01a9.8 9.8 0 01-4.99-1.36l-.36-.21-3.84 1.01 1.03-3.74-.24-.38a9.83 9.83 0 01-1.5-5.18c0-5.42 4.4-9.83 9.82-9.83 2.62 0 5.08 1.02 6.93 2.88a9.76 9.76 0 012.88 6.95c0 5.42-4.41 9.86-9.82 9.86z" />
+                                    </svg>
+                                  </span>
+                                )
+                              ) : null}
+                            </div>
                             {student.email ? (
                               <span className="text-sm text-gray-500 dark:text-gray-400">
                                 {student.email}

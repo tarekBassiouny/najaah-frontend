@@ -51,6 +51,7 @@ type InstructorFormDialogProps = {
   scopeCenterId?: string | number | null;
   instructor?: Instructor | null;
   onSuccess?: (_value: string) => void;
+  onSaved?: (_value: Instructor) => void;
 };
 
 function getInitials(value: string) {
@@ -69,6 +70,7 @@ export function InstructorFormDialog({
   scopeCenterId,
   instructor,
   onSuccess,
+  onSaved,
 }: InstructorFormDialogProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(instructor);
@@ -135,8 +137,9 @@ export function InstructorFormDialog({
           payload,
         },
         {
-          onSuccess: () => {
+          onSuccess: (savedInstructor) => {
             onOpenChange(false);
+            onSaved?.(savedInstructor);
             onSuccess?.("Instructor updated successfully.");
           },
           onError: (error) =>
@@ -152,8 +155,9 @@ export function InstructorFormDialog({
     }
 
     createMutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (savedInstructor) => {
         onOpenChange(false);
+        onSaved?.(savedInstructor);
         onSuccess?.("Instructor created successfully.");
       },
       onError: (error) =>

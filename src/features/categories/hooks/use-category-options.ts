@@ -169,5 +169,6 @@ export function useCategoryOptions({
     isLoadingMore: query.isFetchingNextPage,
     hasMore: Boolean(query.hasNextPage),
     onReachEnd: handleReachEnd,
+    refetch: query.refetch,
   };
 }

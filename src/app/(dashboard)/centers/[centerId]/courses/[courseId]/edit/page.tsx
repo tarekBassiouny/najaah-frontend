@@ -36,7 +36,12 @@ import {
   isAdminApiNotFoundError,
 } from "@/lib/admin-response";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
+import { CategoryFormDialog } from "@/features/categories/components/CategoryFormDialog";
+import type { Category } from "@/features/categories/types/category";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
+import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
+import type { Instructor } from "@/features/instructors/types/instructor";
+import { PlusIcon } from "@/components/icons/plus";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -87,6 +92,8 @@ function normalizeDifficulty(
 export default function CenterCourseEditPage({ params }: PageProps) {
   const { centerId, courseId } = use(params);
   const router = useRouter();
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -128,6 +135,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     hasMore: hasMoreCategories,
     isLoadingMore: isLoadingMoreCategories,
     onReachEnd: loadMoreCategories,
+    refetch: refetchCategoryOptions,
   } = useCategoryOptions({
     centerId,
     selectedValue: formData.categoryId || null,
@@ -141,10 +149,27 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     hasMore: hasMoreInstructors,
     isLoadingMore: isLoadingMoreInstructors,
     onReachEnd: loadMoreInstructors,
+    refetch: refetchInstructorOptions,
   } = useInstructorOptions({
     centerId,
     selectedValue: formData.instructorId || null,
   });
+
+  const handleCategorySaved = (category: Category) => {
+    void refetchCategoryOptions?.();
+    setFormData((prev) => ({
+      ...prev,
+      categoryId: String(category.id),
+    }));
+  };
+
+  const handleInstructorSaved = (instructor: Instructor) => {
+    void refetchInstructorOptions?.();
+    setFormData((prev) => ({
+      ...prev,
+      instructorId: String(instructor.id),
+    }));
+  };
 
   const [currentThumbnailUrl, setCurrentThumbnailUrl] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -528,6 +553,21 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                       isLoadingMore={isLoadingMoreCategories}
                       onReachEnd={loadMoreCategories}
                       allowClear
+                      dropdownActionClassName="flex justify-end"
+                      dropdownAction={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
+                          onClick={() => setIsCategoryDialogOpen(true)}
+                          disabled={!centerId}
+                          aria-label="Create a category"
+                          title="Create a category"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                        </Button>
+                      }
                     />
                   </div>
 
@@ -552,6 +592,21 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                       isLoadingMore={isLoadingMoreInstructors}
                       onReachEnd={loadMoreInstructors}
                       allowClear
+                      dropdownActionClassName="flex justify-end"
+                      dropdownAction={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
+                          onClick={() => setIsInstructorDialogOpen(true)}
+                          disabled={!centerId}
+                          aria-label="Create an instructor"
+                          title="Create an instructor"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                        </Button>
+                      }
                     />
                   </div>
                 </div>
@@ -686,6 +741,18 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           </div>
         </div>
       </form>
+      <CategoryFormDialog
+        centerId={centerId}
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+        onSaved={handleCategorySaved}
+      />
+      <InstructorFormDialog
+        scopeCenterId={centerId}
+        open={isInstructorDialogOpen}
+        onOpenChange={setIsInstructorDialogOpen}
+        onSaved={handleInstructorSaved}
+      />
     </div>
   );
 }

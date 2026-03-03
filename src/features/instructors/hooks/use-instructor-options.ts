@@ -174,5 +174,6 @@ export function useInstructorOptions({
     isLoadingMore: query.isFetchingNextPage,
     hasMore: Boolean(query.hasNextPage),
     onReachEnd: handleReachEnd,
+    refetch: query.refetch,
   };
 }

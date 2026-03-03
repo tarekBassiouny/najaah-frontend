@@ -26,12 +26,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
+import { CategoryFormDialog } from "@/features/categories/components/CategoryFormDialog";
+import type { Category } from "@/features/categories/types/category";
+import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
+import type { Instructor } from "@/features/instructors/types/instructor";
 import {
   getAdminApiFieldErrors,
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
+import { PlusIcon } from "@/components/icons/plus";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -71,6 +76,8 @@ function extractErrorMessage(error: unknown): string {
 export default function CenterCoursesCreatePage({ params }: PageProps) {
   const { centerId } = use(params);
   const router = useRouter();
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     mutate: createCourse,
@@ -100,6 +107,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     hasMore: hasMoreCategories,
     isLoadingMore: isLoadingMoreCategories,
     onReachEnd: loadMoreCategories,
+    refetch: refetchCategoryOptions,
   } = useCategoryOptions({
     centerId,
     selectedValue: formData.categoryId || null,
@@ -114,6 +122,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     hasMore: hasMoreInstructors,
     isLoadingMore: isLoadingMoreInstructors,
     onReachEnd: loadMoreInstructors,
+    refetch: refetchInstructorOptions,
   } = useInstructorOptions({
     centerId,
     selectedValue: formData.instructorId || null,
@@ -123,6 +132,20 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const handleCategorySaved = (category: Category) => {
+    void refetchCategoryOptions?.();
+    setFormData((prev) => ({
+      ...prev,
+      categoryId: String(category.id),
+    }));
+  };
+  const handleInstructorSaved = (instructor: Instructor) => {
+    void refetchInstructorOptions?.();
+    setFormData((prev) => ({
+      ...prev,
+      instructorId: String(instructor.id),
+    }));
+  };
 
   const categoryError = fieldErrors.category_id?.[0] ?? null;
   const difficultyError = fieldErrors.difficulty?.[0] ?? null;
@@ -471,6 +494,21 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       triggerClassName={cn(
                         categoryError && "border-red-500 focus:ring-red-500",
                       )}
+                      dropdownActionClassName="flex justify-end"
+                      dropdownAction={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
+                          onClick={() => setIsCategoryDialogOpen(true)}
+                          disabled={!centerId}
+                          aria-label="Create a category"
+                          title="Create a category"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                        </Button>
+                      }
                     />
                     {categoryError ? (
                       <p className="text-xs text-red-600">{categoryError}</p>
@@ -502,6 +540,21 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       isLoadingMore={isLoadingMoreInstructors}
                       onReachEnd={loadMoreInstructors}
                       allowClear
+                      dropdownActionClassName="flex justify-end"
+                      dropdownAction={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
+                          onClick={() => setIsInstructorDialogOpen(true)}
+                          disabled={!centerId}
+                          aria-label="Create an instructor"
+                          title="Create an instructor"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                        </Button>
+                      }
                     />
                     <p className="text-xs text-gray-500">
                       Optional. You can assign an instructor later.
@@ -593,6 +646,18 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
           </div>
         </div>
       </form>
+      <CategoryFormDialog
+        centerId={centerId}
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+        onSaved={handleCategorySaved}
+      />
+      <InstructorFormDialog
+        open={isInstructorDialogOpen}
+        onOpenChange={setIsInstructorDialogOpen}
+        scopeCenterId={centerId}
+        onSaved={handleInstructorSaved}
+      />
     </div>
   );
 }

@@ -61,6 +61,7 @@ type CategoryFormDialogProps = {
   onOpenChange: (_isOpen: boolean) => void;
   category?: Category | null;
   onSuccess?: (_value: string) => void;
+  onSaved?: (_value: Category) => void;
 };
 
 function getCategoryTitle(category: Category) {
@@ -98,6 +99,7 @@ export function CategoryFormDialog({
   onOpenChange,
   category,
   onSuccess,
+  onSaved,
 }: CategoryFormDialogProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(category);
@@ -165,8 +167,9 @@ export function CategoryFormDialog({
       is_active: values.isActive,
     };
 
-    const onMutationSuccess = () => {
+    const onMutationSuccess = (savedCategory: Category) => {
       onOpenChange(false);
+      onSaved?.(savedCategory);
       onSuccess?.(
         isEditMode
           ? "Category updated successfully."

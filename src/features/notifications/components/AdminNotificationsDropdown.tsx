@@ -5,6 +5,7 @@ import {
   DropdownContent,
   DropdownTrigger,
 } from "@/components/ui/dropdown";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ import {
   ADMIN_NOTIFICATION_TYPE_OPTIONS,
   DEFAULT_NOTIFICATION_POLL_INTERVAL_MS,
   type AdminNotification,
+  type AdminNotificationPayload,
   type AdminNotificationType,
 } from "../types/notification";
 
@@ -292,6 +294,40 @@ function resolveActionPath(notification: AdminNotification): string | null {
   return null;
 }
 
+function isNotificationActionable(payload: AdminNotificationPayload): boolean {
+  const raw = payload?.is_actionable ?? payload?.isActionable;
+  if (raw === undefined || raw === null) return true;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "number") return raw !== 0;
+  return String(raw).toLowerCase() !== "false";
+}
+
+function normalizeFallbackUrl(
+  payload: AdminNotificationPayload,
+): string | null {
+  const raw =
+    typeof payload?.fallback_url === "string"
+      ? payload?.fallback_url
+      : typeof payload?.fallbackUrl === "string"
+        ? payload.fallbackUrl
+        : null;
+  if (!raw) return null;
+
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    try {
+      const parsed = new URL(trimmed);
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    } catch {
+      return null;
+    }
+  }
+
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+}
+
 function getTypeLabel(notification: AdminNotification) {
   const locale = getApiLocale().toLowerCase().startsWith("ar") ? "ar" : "en";
   return (
@@ -326,6 +362,7 @@ export function AdminNotificationsDropdown() {
   const [openActionMenuId, setOpenActionMenuId] = useState<
     string | number | null
   >(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const typeValue =
     selectedType === "all"
@@ -366,6 +403,7 @@ export function AdminNotificationsDropdown() {
   useEffect(() => {
     if (!isOpen) {
       setOpenActionMenuId(null);
+      setActionError(null);
       return;
     }
     setPage(1);
@@ -390,6 +428,7 @@ export function AdminNotificationsDropdown() {
   const isListLoading = isLoading || (isFetching && notifications.length === 0);
 
   const handleOpenNotification = async (notification: AdminNotification) => {
+    setActionError(null);
     if (!notification.isRead) {
       await markAsReadMutation.mutateAsync(notification.id);
       setNotifications((current) => {
@@ -401,11 +440,44 @@ export function AdminNotificationsDropdown() {
       });
     }
 
+    const payload = notification.data ?? {};
     const actionPath = resolveActionPath(notification);
-    if (actionPath) {
-      setIsOpen(false);
-      router.push(actionPath);
+    const fallbackUrl = normalizeFallbackUrl(payload);
+    const actionable = isNotificationActionable(payload);
+
+    if (!actionPath) {
+      console.warn("Notification action path missing", {
+        notificationId: notification.id,
+        actionUrl: payload.action_url ?? payload.actionUrl ?? null,
+      });
+
+      if (fallbackUrl) {
+        setIsOpen(false);
+        router.push(fallbackUrl);
+        return;
+      }
+
+      setActionError(
+        "This notification no longer points to a valid destination. Please check the notifications list.",
+      );
+      return;
     }
+
+    if (!actionable) {
+      if (fallbackUrl) {
+        setIsOpen(false);
+        router.push(fallbackUrl);
+        return;
+      }
+
+      setActionError(
+        "This notification is no longer actionable. Please visit the notifications list for details.",
+      );
+      return;
+    }
+
+    setIsOpen(false);
+    router.push(actionPath);
   };
 
   const handleMarkAsRead = async (notificationId: string | number) => {
@@ -530,6 +602,16 @@ export function AdminNotificationsDropdown() {
             </div>
           </div>
         </div>
+
+        {actionError ? (
+          <div className="px-3 pb-2 pt-2">
+            <Alert variant="destructive">
+              <AlertDescription className="text-xs">
+                {actionError}
+              </AlertDescription>
+            </Alert>
+          </div>
+        ) : null}
 
         {isError ? (
           <div className="px-3 pb-3 pt-4">

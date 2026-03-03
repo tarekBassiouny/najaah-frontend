@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { useStudentProfile } from "@/features/students/hooks/use-students";
 import { useGrantExtraViewsToStudent } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
+import { PlaybackSessionsModal } from "@/features/playback-sessions/components/PlaybackSessionsModal";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
 
@@ -191,6 +192,28 @@ export default function StudentProfilePage({
   } | null>(null);
   const [extraViews, setExtraViews] = useState<number>(1);
   const [grantError, setGrantError] = useState<string | null>(null);
+  const [playbackModalTarget, setPlaybackModalTarget] = useState<{
+    courseId: number;
+    videoId: number;
+    courseTitle: string;
+    videoTitle: string;
+  } | null>(null);
+
+  const openPlaybackSessions = (
+    courseId: number,
+    courseTitle: string,
+    videoId: number,
+    videoTitle: string,
+  ) => {
+    setPlaybackModalTarget({
+      courseId,
+      videoId,
+      courseTitle,
+      videoTitle,
+    });
+  };
+
+  const closePlaybackSessions = () => setPlaybackModalTarget(null);
 
   const canOpenFromCenter = from === "center";
   const canOpenFromCourse = from === "course" && Boolean(courseId);
@@ -666,7 +689,18 @@ export default function StudentProfilePage({
                                       </TableCell>
                                       <TableCell className="text-right">
                                         <div className="inline-flex items-center gap-2">
-                                          <Button variant="outline" size="sm">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                              openPlaybackSessions(
+                                                enrollment.course.id,
+                                                enrollment.course.title,
+                                                video.id,
+                                                video.title,
+                                              )
+                                            }
+                                          >
                                             Statistics
                                           </Button>
                                           <Button
@@ -714,6 +748,21 @@ export default function StudentProfilePage({
           )}
         </CardContent>
       </Card>
+
+      <PlaybackSessionsModal
+        open={Boolean(playbackModalTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            closePlaybackSessions();
+          }
+        }}
+        centerId={centerId}
+        courseId={playbackModalTarget?.courseId ?? 0}
+        courseTitle={playbackModalTarget?.courseTitle ?? null}
+        videoId={playbackModalTarget?.videoId ?? 0}
+        videoTitle={playbackModalTarget?.videoTitle ?? null}
+        userId={profile?.id}
+      />
 
       <Dialog
         open={Boolean(grantTarget)}

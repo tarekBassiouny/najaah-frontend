@@ -100,6 +100,8 @@ type SearchableSelectProps<T = string> = {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   onReachEnd?: () => void;
+  dropdownAction?: React.ReactNode;
+  dropdownActionClassName?: string;
 };
 
 export function SearchableSelect<T = string>({
@@ -127,6 +129,8 @@ export function SearchableSelect<T = string>({
   hasMore = false,
   isLoadingMore = false,
   onReachEnd,
+  dropdownAction,
+  dropdownActionClassName,
 }: SearchableSelectProps<T>) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [internalSearch, setInternalSearch] = React.useState("");
@@ -413,26 +417,35 @@ export function SearchableSelect<T = string>({
           style={{ maxHeight: "min(24rem, calc(100vh - 200px))" }}
         >
           {/* Search Input */}
-          {showSearch && (
-            <div className="border-b border-gray-100 p-2.5 dark:border-gray-800">
-              <div className="relative">
-                <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-                  <SearchIcon className="h-4 w-4" />
-                </span>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={search}
-                  onChange={(event) => updateSearch(event.target.value)}
-                  placeholder={searchPlaceholder}
-                  className={cn(
-                    "h-9 w-full rounded-lg border bg-gray-50 pl-9 pr-3 text-sm outline-none transition-all duration-200",
-                    "border-gray-200 text-gray-700 placeholder:text-gray-400",
-                    "focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20",
-                    "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500",
-                    "dark:focus:border-primary dark:focus:bg-gray-900",
-                  )}
-                />
+          {(showSearch || dropdownAction) && (
+            <div className="border-b border-gray-100 px-2.5 py-2.5 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                {showSearch && (
+                  <div className="relative min-w-0 flex-1">
+                    <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+                      <SearchIcon className="h-4 w-4" />
+                    </span>
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      value={search}
+                      onChange={(event) => updateSearch(event.target.value)}
+                      placeholder={searchPlaceholder}
+                      className={cn(
+                        "h-9 w-full rounded-lg border bg-gray-50 pl-9 pr-3 text-sm outline-none transition-all duration-200",
+                        "border-gray-200 text-gray-700 placeholder:text-gray-400",
+                        "focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20",
+                        "dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500",
+                        "dark:focus:border-primary dark:focus:bg-gray-900",
+                      )}
+                    />
+                  </div>
+                )}
+                {dropdownAction && (
+                  <div className={cn("flex-shrink-0", dropdownActionClassName)}>
+                    {dropdownAction}
+                  </div>
+                )}
               </div>
             </div>
           )}

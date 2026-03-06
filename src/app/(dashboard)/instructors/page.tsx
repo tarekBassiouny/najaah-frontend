@@ -10,6 +10,7 @@ import { getAdminScope } from "@/lib/user-scope";
 import { InstructorsTable } from "@/features/instructors/components/InstructorsTable";
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import { DeleteInstructorDialog } from "@/features/instructors/components/DeleteInstructorDialog";
+import { InstructorDetailsDrawer } from "@/features/instructors/components/InstructorDetailsDrawer";
 import type { Instructor } from "@/features/instructors/types/instructor";
 
 export default function InstructorsPage() {
@@ -25,6 +26,9 @@ export default function InstructorsPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(
+    null,
+  );
+  const [viewingInstructor, setViewingInstructor] = useState<Instructor | null>(
     null,
   );
   const [deletingInstructor, setDeletingInstructor] =
@@ -71,6 +75,10 @@ export default function InstructorsPage() {
       <InstructorsTable
         scopeCenterId={scopeCenterId}
         showCenterFilter={!isCenterAdmin}
+        onViewDetails={(instructor) => {
+          setFeedback(null);
+          setViewingInstructor(instructor);
+        }}
         onEdit={(instructor) => {
           setFeedback(null);
           setEditingInstructor(instructor);
@@ -101,6 +109,15 @@ export default function InstructorsPage() {
         instructor={deletingInstructor}
         scopeCenterId={selectedCenterId}
         onSuccess={(message) => setFeedback(message)}
+      />
+
+      <InstructorDetailsDrawer
+        open={Boolean(viewingInstructor)}
+        onOpenChange={(open) => {
+          if (!open) setViewingInstructor(null);
+        }}
+        instructor={viewingInstructor}
+        scopeCenterId={selectedCenterId}
       />
     </div>
   );

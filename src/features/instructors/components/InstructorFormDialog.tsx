@@ -24,8 +24,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useModal } from "@/components/ui/modal-store";
 import {
   useCreateInstructor,
+  useUploadInstructorAvatar,
   useUpdateInstructor,
 } from "@/features/instructors/hooks/use-instructors";
 import type { Instructor } from "@/features/instructors/types/instructor";
@@ -44,6 +46,9 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_AVATAR_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 type InstructorFormDialogProps = {
   open: boolean;
@@ -72,7 +77,11 @@ export function InstructorFormDialog({
   onSuccess,
   onSaved,
 }: InstructorFormDialogProps) {
+  const { showToast } = useModal();
   const [formError, setFormError] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const isEditMode = Boolean(instructor);
 
   const createMutation = useCreateInstructor({
@@ -81,7 +90,13 @@ export function InstructorFormDialog({
   const updateMutation = useUpdateInstructor({
     centerId: scopeCenterId ?? null,
   });
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const uploadAvatarMutation = useUploadInstructorAvatar({
+    centerId: scopeCenterId ?? null,
+  });
+  const isPending =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    uploadAvatarMutation.isPending;
   const displayName = instructor?.name ? String(instructor.name) : "Instructor";
   const displayEmail = instructor?.email
     ? String(instructor.email)
@@ -101,6 +116,9 @@ export function InstructorFormDialog({
     if (!open) return;
 
     setFormError(null);
+    setAvatarError(null);
+    setAvatarFile(null);
+    setAvatarPreview(null);
     form.reset({
       name: instructor?.name ? String(instructor.name) : "",
       email: instructor?.email ? String(instructor.email) : "",
@@ -108,6 +126,113 @@ export function InstructorFormDialog({
       bio: instructor?.bio ? String(instructor.bio) : "",
     });
   }, [form, instructor, open]);
+
+  const avatarUrl =
+    typeof instructor?.avatar_url === "string" &&
+    instructor.avatar_url.trim().length > 0
+      ? instructor.avatar_url
+      : null;
+
+  const avatarDisplayNameValue =
+    instructor?.name ?? instructor?.email ?? instructor?.id;
+  const avatarDisplayName =
+    avatarDisplayNameValue != null
+      ? String(
+          instructor?.name ??
+            instructor?.email ??
+            `Instructor ${instructor?.id ?? ""}`,
+        )
+      : "Instructor";
+
+  const avatarDisplaySrc = avatarPreview ?? avatarUrl;
+
+  const validateAvatar = (file: File) => {
+    if (!ALLOWED_AVATAR_MIME_TYPES.includes(file.type)) {
+      return "Please choose a valid image (JPG, PNG, or WebP).";
+    }
+
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
+      return "Avatar must be 5MB or smaller.";
+    }
+
+    return null;
+  };
+
+  const handleAvatarFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    setAvatarError(null);
+
+    if (!file) {
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      return;
+    }
+
+    const validationMessage = validateAvatar(file);
+    if (validationMessage) {
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      setAvatarError(validationMessage);
+      event.target.value = "";
+      return;
+    }
+
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarUpload = () => {
+    setAvatarError(null);
+
+    if (scopeCenterId == null) {
+      setAvatarError("Select a center before uploading an avatar.");
+      return;
+    }
+
+    if (!instructor) {
+      setAvatarError("Save the instructor first, then upload an avatar.");
+      return;
+    }
+
+    if (!avatarFile) {
+      setAvatarError("Choose an image file first.");
+      return;
+    }
+
+    uploadAvatarMutation.mutate(
+      {
+        instructorId: instructor.id,
+        avatarFile,
+      },
+      {
+        onSuccess: (savedInstructor) => {
+          onSaved?.(savedInstructor);
+          setAvatarFile(null);
+          setAvatarPreview(null);
+          const responseMessage =
+            typeof savedInstructor._response_message === "string" &&
+            savedInstructor._response_message.trim().length > 0
+              ? savedInstructor._response_message
+              : "Instructor avatar updated successfully.";
+          showToast(responseMessage, "success");
+        },
+        onError: (error) => {
+          setAvatarError(
+            getInstructorApiErrorMessage(
+              error,
+              "Unable to upload avatar. Please try again.",
+            ),
+          );
+        },
+      },
+    );
+  };
 
   const onSubmit = (values: FormValues) => {
     setFormError(null);
@@ -214,6 +339,58 @@ export function InstructorFormDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid gap-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-900/40 md:grid-cols-2"
           >
+            {isEditMode ? (
+              <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:col-span-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-semibold uppercase text-white">
+                    {avatarDisplaySrc ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={avatarDisplaySrc}
+                        alt={`${avatarDisplayName} avatar`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      getInitials(avatarDisplayName)
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      Avatar
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      JPG, PNG, or WebP. Max size 5MB.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleAvatarFileChange}
+                    disabled={isPending}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAvatarUpload}
+                    disabled={!avatarFile || isPending}
+                  >
+                    {uploadAvatarMutation.isPending
+                      ? "Uploading..."
+                      : "Upload Avatar"}
+                  </Button>
+                </div>
+
+                {avatarError ? (
+                  <p className="text-xs text-red-600 dark:text-red-400">
+                    {avatarError}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
             <FormField
               control={form.control}
               name="name"

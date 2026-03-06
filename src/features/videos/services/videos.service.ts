@@ -316,6 +316,36 @@ export async function updateVideo(
   return withResponseMessage((data?.data ?? data) as Video, data);
 }
 
+export async function uploadVideoThumbnail(
+  centerId: string | number,
+  videoId: string | number,
+  thumbnail: File | Blob,
+): Promise<Video> {
+  const formData = new FormData();
+  formData.append("thumbnail", thumbnail);
+
+  const { data } = await http.post<RawVideoResponse>(
+    `${basePath(centerId)}/${videoId}/thumbnail`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
+  assertEnvelopeSuccess(data, "Failed to upload video thumbnail.");
+  return withResponseMessage((data?.data ?? data) as Video, data);
+}
+
+export async function clearVideoThumbnail(
+  centerId: string | number,
+  videoId: string | number,
+): Promise<Video> {
+  const { data } = await http.delete<RawVideoResponse>(
+    `${basePath(centerId)}/${videoId}/thumbnail`,
+  );
+  assertEnvelopeSuccess(data, "Failed to reset video thumbnail.");
+  return withResponseMessage((data?.data ?? data) as Video, data);
+}
+
 export async function deleteVideo(
   centerId: string | number,
   videoId: string | number,

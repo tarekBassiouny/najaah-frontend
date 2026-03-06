@@ -31,8 +31,10 @@ import {
 import { useStudentProfile } from "@/features/students/hooks/use-students";
 import { useGrantExtraViewsToStudent } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
 import { PlaybackSessionsModal } from "@/features/playback-sessions/components/PlaybackSessionsModal";
+import { GenerateVideoAccessCodeDialog } from "@/features/video-access/components/GenerateVideoAccessCodeDialog";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import { can } from "@/lib/capabilities";
 
 type PageProps = {
   params: Promise<{ centerId: string; studentId: string }>;
@@ -177,6 +179,7 @@ export default function StudentProfilePage({
     { enabled: Boolean(studentId) && Boolean(centerId) },
   );
   const grantExtraViewsMutation = useGrantExtraViewsToStudent();
+  const canGenerateVideoCode = can("manage_video_access");
 
   const [expandedCourseIds, setExpandedCourseIds] = useState<number[]>([]);
   const [selectedCourseCategory, setSelectedCourseCategory] = useState<
@@ -196,6 +199,12 @@ export default function StudentProfilePage({
     courseId: number;
     videoId: number;
     courseTitle: string;
+    videoTitle: string;
+  } | null>(null);
+  const [generateCodeTarget, setGenerateCodeTarget] = useState<{
+    courseId: number;
+    courseTitle: string;
+    videoId: number;
     videoTitle: string;
   } | null>(null);
 
@@ -720,6 +729,24 @@ export default function StudentProfilePage({
                                           >
                                             Grant extra views
                                           </Button>
+                                          {canGenerateVideoCode ? (
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => {
+                                                setGenerateCodeTarget({
+                                                  courseId:
+                                                    enrollment.course.id,
+                                                  courseTitle:
+                                                    enrollment.course.title,
+                                                  videoId: video.id,
+                                                  videoTitle: video.title,
+                                                });
+                                              }}
+                                            >
+                                              Generate code
+                                            </Button>
+                                          ) : null}
                                         </div>
                                       </TableCell>
                                     </TableRow>
@@ -840,6 +867,36 @@ export default function StudentProfilePage({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <GenerateVideoAccessCodeDialog
+        open={Boolean(generateCodeTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setGenerateCodeTarget(null);
+          }
+        }}
+        centerId={centerId}
+        studentPreset={{
+          id: profile?.id ?? studentId,
+          label: profile?.name ?? "Student",
+        }}
+        coursePreset={
+          generateCodeTarget
+            ? {
+                id: generateCodeTarget.courseId,
+                label: generateCodeTarget.courseTitle,
+              }
+            : null
+        }
+        videoPreset={
+          generateCodeTarget
+            ? {
+                id: generateCodeTarget.videoId,
+                label: generateCodeTarget.videoTitle,
+              }
+            : null
+        }
+      />
     </div>
   );
 }

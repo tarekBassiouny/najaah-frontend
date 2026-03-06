@@ -5,6 +5,7 @@ import {
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import {
+  clearVideoThumbnail,
   createVideo,
   createVideoUpload,
   createVideoUploadSession,
@@ -14,6 +15,7 @@ import {
   listVideoUploadSessions,
   listVideos,
   previewVideo,
+  uploadVideoThumbnail,
   updateVideo,
   type CreateVideoFromUrlPayload,
   type CreateVideoUploadPayload,
@@ -153,6 +155,44 @@ export function useUpdateVideo() {
       videoId: string | number;
       payload: UpdateVideoPayload;
     }) => updateVideo(centerId, videoId, payload),
+    onSuccess: (_, { centerId, videoId }) => {
+      queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
+      queryClient.invalidateQueries({ queryKey: ["video", centerId, videoId] });
+    },
+  });
+}
+
+export function useUploadVideoThumbnail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      videoId,
+      thumbnail,
+    }: {
+      centerId: string | number;
+      videoId: string | number;
+      thumbnail: File | Blob;
+    }) => uploadVideoThumbnail(centerId, videoId, thumbnail),
+    onSuccess: (_, { centerId, videoId }) => {
+      queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
+      queryClient.invalidateQueries({ queryKey: ["video", centerId, videoId] });
+    },
+  });
+}
+
+export function useClearVideoThumbnail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      videoId,
+    }: {
+      centerId: string | number;
+      videoId: string | number;
+    }) => clearVideoThumbnail(centerId, videoId),
     onSuccess: (_, { centerId, videoId }) => {
       queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
       queryClient.invalidateQueries({ queryKey: ["video", centerId, videoId] });

@@ -1,4 +1,5 @@
 import { http } from "@/lib/http";
+import { withResponseMessage } from "@/lib/admin-response";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import type { PaginatedResponse } from "@/types/pagination";
 
@@ -195,6 +196,26 @@ export async function updateInstructor(
     { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data?.data ?? (data as unknown as Instructor);
+}
+
+export async function uploadInstructorAvatar(
+  instructorId: string | number,
+  avatar: File | Blob,
+  context?: InstructorsApiScopeContext,
+): Promise<Instructor> {
+  const basePath = buildInstructorsBasePath(context?.centerId);
+  const formData = new FormData();
+  formData.append("avatar", avatar);
+
+  const { data } = await http.post<RawInstructorResponse>(
+    `${basePath}/${instructorId}/avatar`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    },
+  );
+
+  return withResponseMessage((data?.data ?? data) as Instructor, data);
 }
 
 export async function deleteInstructor(

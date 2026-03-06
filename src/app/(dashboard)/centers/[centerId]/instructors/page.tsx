@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InstructorsTable } from "@/features/instructors/components/InstructorsTable";
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import { DeleteInstructorDialog } from "@/features/instructors/components/DeleteInstructorDialog";
+import { InstructorDetailsDrawer } from "@/features/instructors/components/InstructorDetailsDrawer";
 import type { Instructor } from "@/features/instructors/types/instructor";
 
 type PageProps = {
@@ -18,6 +19,9 @@ export default function CenterInstructorsPage({ params }: PageProps) {
   const { centerId } = use(params);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(
+    null,
+  );
+  const [viewingInstructor, setViewingInstructor] = useState<Instructor | null>(
     null,
   );
   const [deletingInstructor, setDeletingInstructor] =
@@ -61,6 +65,10 @@ export default function CenterInstructorsPage({ params }: PageProps) {
       <InstructorsTable
         scopeCenterId={centerId}
         showCenterFilter={false}
+        onViewDetails={(instructor) => {
+          setFeedback(null);
+          setViewingInstructor(instructor);
+        }}
         onEdit={(instructor) => {
           setFeedback(null);
           setEditingInstructor(instructor);
@@ -91,6 +99,15 @@ export default function CenterInstructorsPage({ params }: PageProps) {
         instructor={deletingInstructor}
         scopeCenterId={centerId}
         onSuccess={(message) => setFeedback(message)}
+      />
+
+      <InstructorDetailsDrawer
+        open={Boolean(viewingInstructor)}
+        onOpenChange={(open) => {
+          if (!open) setViewingInstructor(null);
+        }}
+        instructor={viewingInstructor}
+        scopeCenterId={centerId}
       />
     </div>
   );

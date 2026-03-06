@@ -53,9 +53,13 @@ function isBlobLike(value: unknown): value is Blob {
 function appendIfPresent(
   formData: FormData,
   key: string,
-  value: string | number | undefined,
+  value: string | number | boolean | undefined | null,
 ) {
-  if (value === undefined) return;
+  if (value === undefined || value === null) return;
+  if (typeof value === "boolean") {
+    formData.append(key, value ? "true" : "false");
+    return;
+  }
   formData.append(key, String(value));
 }
 
@@ -85,6 +89,11 @@ function toCreateCourseFormData(payload: CreateCoursePayload): FormData {
   );
   appendIfPresent(formData, "slug", payload.slug);
   appendIfPresent(formData, "status", payload.status);
+  appendIfPresent(
+    formData,
+    "requires_video_approval",
+    payload.requires_video_approval,
+  );
 
   if (isBlobLike(payload.thumbnail)) {
     formData.append("thumbnail", payload.thumbnail);

@@ -7,7 +7,9 @@ import {
 import {
   createInstructor,
   deleteInstructor,
+  getInstructor,
   listInstructors,
+  uploadInstructorAvatar,
   updateInstructor,
   type CreateInstructorPayload,
   type InstructorsApiScopeContext,
@@ -20,10 +22,25 @@ export const instructorKeys = {
   all: ["instructors"] as const,
   list: (params: ListInstructorsParams, context?: InstructorsApiScopeContext) =>
     [...instructorKeys.all, params, context?.centerId ?? null] as const,
+  detail: (
+    instructorId: string | number | null | undefined,
+    context?: InstructorsApiScopeContext,
+  ) =>
+    [
+      ...instructorKeys.all,
+      "detail",
+      instructorId ?? null,
+      context?.centerId ?? null,
+    ] as const,
 };
 
 type UseInstructorsOptions = Omit<
   UseQueryOptions<PaginatedResponse<Instructor>>,
+  "queryKey" | "queryFn"
+>;
+
+type UseInstructorOptions = Omit<
+  UseQueryOptions<Instructor | null>,
   "queryKey" | "queryFn"
 >;
 
@@ -36,6 +53,22 @@ export function useInstructors(
     queryKey: instructorKeys.list(params, context),
     queryFn: () => listInstructors(params, context),
     placeholderData: (previous) => previous,
+    ...options,
+  });
+}
+
+export function useInstructor(
+  instructorId: string | number | null | undefined,
+  context?: InstructorsApiScopeContext,
+  options?: UseInstructorOptions,
+) {
+  return useQuery({
+    queryKey: instructorKeys.detail(instructorId, context),
+    queryFn: () => getInstructor(instructorId!, context),
+    enabled:
+      Boolean(instructorId) &&
+      Boolean(context?.centerId) &&
+      (options?.enabled ?? true),
     ...options,
   });
 }
@@ -75,6 +108,25 @@ export function useDeleteInstructor(context?: InstructorsApiScopeContext) {
   return useMutation({
     mutationFn: (instructorId: string | number) =>
       deleteInstructor(instructorId, context),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: instructorKeys.all });
+    },
+  });
+}
+
+export function useUploadInstructorAvatar(
+  context?: InstructorsApiScopeContext,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      instructorId,
+      avatarFile,
+    }: {
+      instructorId: string | number;
+      avatarFile: File | Blob;
+    }) => uploadInstructorAvatar(instructorId, avatarFile, context),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: instructorKeys.all });
     },

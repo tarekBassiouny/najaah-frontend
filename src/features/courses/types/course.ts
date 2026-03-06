@@ -4,6 +4,7 @@ export type CenterSummary = {
   id: string | number;
   name?: string | null;
   slug?: string | null;
+  type?: string | number | null;
   [key: string]: unknown;
 };
 

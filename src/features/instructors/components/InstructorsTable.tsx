@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useTenant } from "@/app/tenant-provider";
 import { setTenantState } from "@/lib/tenant-store";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format-date-time";
 import { useInstructors } from "@/features/instructors/hooks/use-instructors";
 import { deleteInstructor } from "@/features/instructors/services/instructors.service";
 import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
+import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import type { Instructor } from "@/features/instructors/types/instructor";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dropdown,
@@ -23,12 +24,9 @@ import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SearchableSelect,
+  type SearchableSelectOption,
+} from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -41,43 +39,18 @@ import {
 import { useModal } from "@/components/ui/modal-store";
 
 const DEFAULT_PER_PAGE = 10;
-const ALL_STATUS_VALUE = "all";
+const COURSES_PAGE_SIZE = 20;
+const ALL_COURSES_VALUE = "all";
 
-type StatusVariant = "success" | "warning" | "secondary" | "error" | "default";
-type InstructorStatus = string | number | null | undefined;
-
-const statusConfig: Record<string, { variant: StatusVariant; label: string }> =
-  {
-    active: { variant: "success", label: "Active" },
-    enabled: { variant: "success", label: "Enabled" },
-    approved: { variant: "success", label: "Approved" },
-    pending: { variant: "warning", label: "Pending" },
-    processing: { variant: "warning", label: "Processing" },
-    inactive: { variant: "default", label: "Inactive" },
-    disabled: { variant: "default", label: "Disabled" },
-    failed: { variant: "error", label: "Failed" },
-    rejected: { variant: "error", label: "Rejected" },
-    error: { variant: "error", label: "Error" },
-    banned: { variant: "error", label: "Banned" },
-  };
-
-function resolveStatusLabel(
-  status: InstructorStatus,
-  statusLabel?: string | null,
-) {
-  const raw = String(status ?? "")
-    .trim()
-    .toLowerCase();
-  const config = statusConfig[raw] ?? {
-    variant: "default" as const,
-    label: raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "Unknown",
-  };
-
-  if (typeof statusLabel === "string" && statusLabel.trim()) {
-    return { ...config, label: statusLabel.trim() };
+function asString(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
-
-  return config;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
 }
 
 function getInitials(value: string): string {
@@ -90,25 +63,49 @@ function getInitials(value: string): string {
     .slice(0, 2);
 }
 
-const StatusIcon = () => (
-  <svg
-    className="h-4 w-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={1.6}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M8.25 18.75h7.5a2.25 2.25 0 002.25-2.25v-1.125a2.25 2.25 0 00-2.25-2.25h-7.5A2.25 2.25 0 006 15.375V16.5a2.25 2.25 0 002.25 2.25zM8.25 10.875h7.5a2.25 2.25 0 002.25-2.25V7.5a2.25 2.25 0 00-2.25-2.25h-7.5A2.25 2.25 0 006 7.5v1.125a2.25 2.25 0 002.25 2.25z"
-    />
-  </svg>
-);
+function getTranslationValue(record: unknown): string | null {
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return null;
+  }
+
+  const translations = record as Record<string, unknown>;
+  const preferred = ["en", "ar"]
+    .map((key) => translations[key])
+    .find((value) => typeof value === "string" && value.trim().length > 0);
+  if (typeof preferred === "string" && preferred.trim())
+    return preferred.trim();
+
+  const fallback = Object.values(translations).find(
+    (value) => typeof value === "string" && value.trim().length > 0,
+  );
+  return typeof fallback === "string" && fallback.trim()
+    ? fallback.trim()
+    : null;
+}
+
+function resolveInstructorName(instructor: Instructor): string {
+  if (typeof instructor.name === "string" && instructor.name.trim()) {
+    return instructor.name.trim();
+  }
+  return (
+    getTranslationValue(instructor.name_translations) ??
+    (typeof instructor.email === "string" && instructor.email.trim()
+      ? instructor.email.trim()
+      : `Instructor ${instructor.id ?? ""}`)
+  );
+}
+
+function resolveInstructorTitle(instructor: Instructor): string | null {
+  if (typeof instructor.title === "string" && instructor.title.trim()) {
+    return instructor.title.trim();
+  }
+  return getTranslationValue(instructor.title_translations);
+}
 
 type InstructorsTableProps = {
   scopeCenterId?: string | number | null;
   showCenterFilter?: boolean;
+  onViewDetails?: (_instructor: Instructor) => void;
   onEdit?: (_instructor: Instructor) => void;
   onDelete?: (_instructor: Instructor) => void;
 };
@@ -116,6 +113,7 @@ type InstructorsTableProps = {
 export function InstructorsTable({
   scopeCenterId = null,
   showCenterFilter = true,
+  onViewDetails,
   onEdit,
   onDelete,
 }: InstructorsTableProps) {
@@ -133,12 +131,39 @@ export function InstructorsTable({
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [courseSearch, setCourseSearch] = useState("");
+  const [selectedCourse, setSelectedCourse] =
+    useState<string>(ALL_COURSES_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedInstructors, setSelectedInstructors] = useState<
     Record<string, Instructor>
   >({});
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [courseSearchTerm, setCourseSearchTerm] = useState("");
+
+  const coursesQuery = useInfiniteQuery({
+    queryKey: [
+      "instructors-course-filter-options",
+      selectedCenterId ?? "none",
+      courseSearchTerm,
+    ],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      listCenterCourses({
+        center_id: selectedCenterId!,
+        page: Number(pageParam ?? 1),
+        per_page: COURSES_PAGE_SIZE,
+        search: courseSearchTerm || undefined,
+      }),
+    enabled: hasSelectedCenter,
+    getNextPageParam: (lastPage) => {
+      const page = Number(lastPage.page ?? 1);
+      const perPage = Number(lastPage.perPage ?? COURSES_PAGE_SIZE);
+      const total = Number(lastPage.total ?? 0);
+      return page * perPage < total ? page + 1 : undefined;
+    },
+    staleTime: 60_000,
+  });
 
   const params = useMemo(
     () => ({
@@ -146,9 +171,10 @@ export function InstructorsTable({
       per_page: perPage,
       search: query || undefined,
       center_id: selectedCenterId ?? undefined,
-      status: statusFilter === ALL_STATUS_VALUE ? undefined : statusFilter,
+      course_id:
+        selectedCourse !== ALL_COURSES_VALUE ? selectedCourse : undefined,
     }),
-    [page, perPage, query, selectedCenterId, statusFilter],
+    [page, perPage, query, selectedCenterId, selectedCourse],
   );
 
   const { data, isLoading, isError, isFetching, error } = useInstructors(
@@ -166,7 +192,7 @@ export function InstructorsTable({
     !isLoadingState && !isError && !hasSelectedCenter;
   const showEmptyState =
     !isLoadingState && !isError && hasSelectedCenter && items.length === 0;
-  const hasActions = Boolean(onEdit || onDelete);
+  const hasActions = Boolean(onViewDetails || onEdit || onDelete);
   const enableBulkSelection = hasSelectedCenter && Boolean(onDelete);
   const selectedIds = useMemo(
     () => Object.keys(selectedInstructors),
@@ -190,18 +216,52 @@ export function InstructorsTable({
   const columnCount = 4 + (enableBulkSelection ? 1 : 0) + (hasActions ? 1 : 0);
   const hasActiveFilters =
     search.trim().length > 0 ||
-    statusFilter !== ALL_STATUS_VALUE ||
+    selectedCourse !== ALL_COURSES_VALUE ||
     (showCenterFilter &&
       effectiveScopeCenterId == null &&
       selectedCenterId != null);
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
-    (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (selectedCourse !== ALL_COURSES_VALUE ? 1 : 0) +
     (showCenterFilter &&
     effectiveScopeCenterId == null &&
     selectedCenterId != null
       ? 1
       : 0);
+
+  const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
+    const defaults: SearchableSelectOption<string>[] = [
+      { value: ALL_COURSES_VALUE, label: "All courses" },
+    ];
+
+    if (!hasSelectedCenter) return defaults;
+
+    const courses = (coursesQuery.data?.pages ?? [])
+      .flatMap((pageData) => pageData.items)
+      .filter(
+        (item, index, array) =>
+          array.findIndex((entry) => String(entry.id) === String(item.id)) ===
+          index,
+      )
+      .map((course) => ({
+        value: String(course.id),
+        label:
+          asString((course as { title?: unknown }).title) ??
+          `Course ${course.id}`,
+      }));
+
+    if (
+      selectedCourse !== ALL_COURSES_VALUE &&
+      !courses.some((option) => option.value === selectedCourse)
+    ) {
+      courses.unshift({
+        value: selectedCourse,
+        label: `Course ${selectedCourse}`,
+      });
+    }
+
+    return [...defaults, ...courses];
+  }, [coursesQuery.data?.pages, hasSelectedCenter, selectedCourse]);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -214,11 +274,22 @@ export function InstructorsTable({
 
   useEffect(() => {
     setPage(1);
+    setSelectedCourse(ALL_COURSES_VALUE);
+    setCourseSearch("");
+    setCourseSearchTerm("");
   }, [selectedCenterId]);
 
   useEffect(() => {
+    const nextQuery = courseSearch.trim();
+    const timeout = setTimeout(() => {
+      setCourseSearchTerm(nextQuery);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [courseSearch]);
+
+  useEffect(() => {
     setSelectedInstructors({});
-  }, [selectedCenterId, page, perPage, query, statusFilter]);
+  }, [selectedCenterId, page, perPage, query, selectedCourse]);
 
   const errorMessage = getInstructorApiErrorMessage(
     error,
@@ -317,7 +388,9 @@ export function InstructorsTable({
         onClear={() => {
           setSearch("");
           setQuery("");
-          setStatusFilter(ALL_STATUS_VALUE);
+          setSelectedCourse(ALL_COURSES_VALUE);
+          setCourseSearch("");
+          setCourseSearchTerm("");
           setPage(1);
 
           if (showCenterFilter && effectiveScopeCenterId == null) {
@@ -356,7 +429,7 @@ export function InstructorsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name or email"
+            placeholder="Search by name, phone, or email"
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -399,26 +472,30 @@ export function InstructorsTable({
           />
         ) : null}
 
-        <Select
-          value={statusFilter}
+        <SearchableSelect
+          value={selectedCourse}
           onValueChange={(value) => {
             setPage(1);
-            setStatusFilter(value);
+            setSelectedCourse(value ?? ALL_COURSES_VALUE);
           }}
-        >
-          <SelectTrigger
-            className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-            icon={<StatusIcon />}
-          >
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="1">Active</SelectItem>
-            <SelectItem value="0">Inactive</SelectItem>
-            <SelectItem value="2">Banned</SelectItem>
-          </SelectContent>
-        </Select>
+          options={courseOptions}
+          searchValue={courseSearch}
+          onSearchValueChange={setCourseSearch}
+          placeholder="All courses"
+          searchPlaceholder="Search courses..."
+          emptyMessage="No courses found"
+          isLoading={coursesQuery.isLoading}
+          filterOptions={false}
+          disabled={!hasSelectedCenter}
+          hasMore={Boolean(coursesQuery.hasNextPage)}
+          isLoadingMore={coursesQuery.isFetchingNextPage}
+          onReachEnd={() => {
+            if (coursesQuery.hasNextPage) {
+              void coursesQuery.fetchNextPage();
+            }
+          }}
+          triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        />
       </ListingFilters>
 
       {isError ? (
@@ -460,9 +537,9 @@ export function InstructorsTable({
                   </TableHead>
                 ) : null}
                 <TableHead className="font-medium">Instructor</TableHead>
-                <TableHead className="font-medium">Email</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Center</TableHead>
+                <TableHead className="font-medium">Bio</TableHead>
+                <TableHead className="font-medium">Created By</TableHead>
+                <TableHead className="font-medium">Created At</TableHead>
                 {hasActions ? (
                   <TableHead className="w-10 text-right font-medium">
                     Actions
@@ -484,10 +561,10 @@ export function InstructorsTable({
                         <Skeleton className="h-4 w-44" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-48" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-5 w-20 rounded-full" />
+                        <Skeleton className="h-4 w-24" />
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
@@ -528,9 +605,41 @@ export function InstructorsTable({
                 </TableRow>
               ) : (
                 items.map((instructor, index) => {
-                  const status = resolveStatusLabel(instructor.status);
                   const shouldOpenUp =
                     items.length > 4 && index >= items.length - 2;
+                  const avatarUrl =
+                    typeof instructor.avatar_url === "string" &&
+                    instructor.avatar_url.trim().length > 0
+                      ? instructor.avatar_url
+                      : null;
+                  const displayName = resolveInstructorName(instructor);
+                  const displayTitle = resolveInstructorTitle(instructor);
+                  const displayPhone =
+                    typeof instructor.phone === "string" &&
+                    instructor.phone.trim().length > 0
+                      ? instructor.phone.trim()
+                      : null;
+                  const displayEmail =
+                    typeof instructor.email === "string" &&
+                    instructor.email.trim().length > 0
+                      ? instructor.email.trim()
+                      : null;
+                  const displayBio =
+                    typeof instructor.bio === "string" &&
+                    instructor.bio.trim().length > 0
+                      ? instructor.bio.trim()
+                      : (getTranslationValue(instructor.bio_translations) ??
+                        "—");
+                  const createdByLabel =
+                    typeof instructor.creator?.name === "string" &&
+                    instructor.creator.name.trim().length > 0
+                      ? instructor.creator.name.trim()
+                      : instructor.creator?.id != null
+                        ? String(instructor.creator.id)
+                        : "—";
+                  const createdAtLabel = formatDateTime(
+                    asString(instructor.created_at),
+                  );
 
                   return (
                     <TableRow
@@ -548,46 +657,54 @@ export function InstructorsTable({
                             onChange={() =>
                               toggleInstructorSelection(instructor)
                             }
-                            aria-label={`Select ${instructor.name ?? `instructor ${instructor.id}`}`}
+                            aria-label={`Select ${displayName}`}
                             disabled={isBulkDeleting}
                           />
                         </TableCell>
                       ) : null}
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold uppercase text-white">
-                            {getInitials(
-                              instructor.name ??
-                                instructor.email ??
-                                `Instructor ${instructor.id ?? ""}`,
+                          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-semibold uppercase text-white">
+                            {avatarUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={avatarUrl}
+                                alt={`${displayName} avatar`}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              getInitials(displayName)
                             )}
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex min-w-0 flex-col">
                             <span className="font-medium text-gray-900 dark:text-white">
-                              {instructor.name ?? "—"}
+                              {displayTitle
+                                ? `${displayTitle} ${displayName}`
+                                : displayName}
                             </span>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {instructor.title ?? "—"}
-                            </span>
+                            {displayPhone ? (
+                              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                <span>{displayPhone}</span>
+                              </div>
+                            ) : null}
+                            {displayEmail ? (
+                              <span className="truncate text-sm text-gray-500 dark:text-gray-400">
+                                {displayEmail}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {instructor.email ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        {instructor.status ? (
-                          <Badge variant={status.variant}>{status.label}</Badge>
-                        ) : (
-                          "—"
-                        )}
+                        <p className="line-clamp-2 max-w-[340px]">
+                          {displayBio}
+                        </p>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {effectiveScopeCenterId != null
-                          ? "Current Center"
-                          : instructor.center_id != null
-                            ? `Center #${instructor.center_id}`
-                            : "—"}
+                        {createdByLabel}
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
+                        {createdAtLabel}
                       </TableCell>
                       {hasActions ? (
                         <TableCell className="text-right">
@@ -608,6 +725,17 @@ export function InstructorsTable({
                                   shouldOpenUp && "bottom-full mb-2 mt-0",
                                 )}
                               >
+                                {onViewDetails && (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onViewDetails?.(instructor);
+                                    }}
+                                  >
+                                    View details
+                                  </button>
+                                )}
                                 {onEdit && (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"

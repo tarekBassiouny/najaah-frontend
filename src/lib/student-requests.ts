@@ -1,6 +1,10 @@
 import type { Capability } from "@/lib/capabilities";
 
-export type StudentRequestType = "enrollments" | "extra-view" | "device-change";
+export type StudentRequestType =
+  | "enrollments"
+  | "extra-view"
+  | "device-change"
+  | "video-access";
 
 export type StudentRequestDefinition = {
   type: StudentRequestType;
@@ -30,6 +34,12 @@ export const STUDENT_REQUEST_DEFINITIONS: readonly StudentRequestDefinition[] =
       label: "Device Change Requests",
       href: "/student-requests/device-change",
       capability: "manage_device_change_requests",
+    },
+    {
+      type: "video-access",
+      label: "Video Access",
+      href: "/student-requests/video-access",
+      capability: "manage_video_access",
     },
   ];
 

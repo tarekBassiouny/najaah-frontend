@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTenant } from "@/app/tenant-provider";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { DeviceChangeRequestsTable } from "@/features/device-change-requests/components/DeviceChangeRequestsTable";
@@ -10,6 +12,9 @@ import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsT
 import { useEnrollments } from "@/features/enrollments/hooks/use-enrollments";
 import { ExtraViewRequestsTable } from "@/features/extra-view-requests/components/ExtraViewRequestsTable";
 import { useExtraViewRequests } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
+import { VideoAccessPanel } from "@/features/video-access/components/VideoAccessPanel";
+import { useVideoAccessRequests } from "@/features/video-access/hooks/use-video-access";
+import { can } from "@/lib/capabilities";
 import {
   STUDENT_REQUEST_DEFINITIONS,
   type StudentRequestType,
@@ -25,6 +30,8 @@ export function StudentRequestsPage({
   type,
   centerId,
 }: StudentRequestsPageProps) {
+  const tenant = useTenant();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const basePath = centerId
     ? `/centers/${centerId}/student-requests`
@@ -32,6 +39,20 @@ export function StudentRequestsPage({
   const initialCourseId = searchParams.get("course_id");
   const initialUserId = searchParams.get("user_id");
   const searchParamsString = searchParams.toString();
+  const videoAccessCenterId = centerId ?? tenant.centerId ?? null;
+  const hasVideoAccessCenterContext =
+    videoAccessCenterId != null &&
+    String(videoAccessCenterId).trim().length > 0;
+  const canManageEnrollments = can("manage_enrollments");
+  const canManageExtraView = can("manage_extra_view_requests");
+  const canManageDeviceChange = can("manage_device_change_requests");
+  const canManageVideoAccess = can("manage_video_access");
+  const availableTabs = STUDENT_REQUEST_DEFINITIONS.filter((item) =>
+    can(item.capability),
+  );
+  const hasAccessToCurrentType = availableTabs.some(
+    (item) => item.type === type,
+  );
 
   const enrollmentsCountQuery = useEnrollments(
     {
@@ -40,7 +61,7 @@ export function StudentRequestsPage({
       centerScopeId: centerId ?? null,
       status: "PENDING",
     },
-    { staleTime: 60_000 },
+    { staleTime: 60_000, enabled: canManageEnrollments },
   );
 
   const extraViewsCountQuery = useExtraViewRequests(
@@ -50,7 +71,7 @@ export function StudentRequestsPage({
       centerScopeId: centerId ?? null,
       status: "PENDING",
     },
-    { staleTime: 60_000 },
+    { staleTime: 60_000, enabled: canManageExtraView },
   );
 
   const deviceChangesCountQuery = useDeviceChangeRequests(
@@ -60,14 +81,47 @@ export function StudentRequestsPage({
       centerScopeId: centerId ?? null,
       status: "PENDING",
     },
-    { staleTime: 60_000 },
+    { staleTime: 60_000, enabled: canManageDeviceChange },
+  );
+
+  const videoAccessCountQuery = useVideoAccessRequests(
+    {
+      page: 1,
+      per_page: 1,
+      centerScopeId: videoAccessCenterId,
+      status: "pending",
+    },
+    {
+      staleTime: 60_000,
+      enabled: hasVideoAccessCenterContext && canManageVideoAccess,
+    },
   );
 
   const tabCounts: Record<StudentRequestType, number> = {
     enrollments: enrollmentsCountQuery.data?.meta?.total ?? 0,
     "extra-view": extraViewsCountQuery.data?.meta?.total ?? 0,
     "device-change": deviceChangesCountQuery.data?.meta?.total ?? 0,
+    "video-access": videoAccessCountQuery.data?.meta?.total ?? 0,
   };
+
+  useEffect(() => {
+    if (hasAccessToCurrentType) return;
+    if (availableTabs.length === 0) return;
+    const fallbackType = availableTabs[0].type;
+    router.replace(
+      `${basePath}/${fallbackType}${searchParamsString ? `?${searchParamsString}` : ""}`,
+    );
+  }, [
+    availableTabs,
+    basePath,
+    hasAccessToCurrentType,
+    router,
+    searchParamsString,
+  ]);
+
+  if (!hasAccessToCurrentType) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -75,8 +129,8 @@ export function StudentRequestsPage({
         title={centerId ? "Center Student Requests" : "Student Requests"}
         description={
           centerId
-            ? "Manage enrollment, extra-view, and device-change requests for this center."
-            : "Manage enrollment, extra-view, and device-change requests across the system."
+            ? "Manage enrollment, extra-view, device-change, and video-access requests for this center."
+            : "Manage enrollment, extra-view, device-change, and video-access requests across the system."
         }
         breadcrumbs={
           centerId
@@ -97,8 +151,8 @@ export function StudentRequestsPage({
       />
 
       <div className="rounded-xl border border-gray-200 bg-white p-1 dark:border-gray-700 dark:bg-gray-900">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
-          {STUDENT_REQUEST_DEFINITIONS.map((item) => (
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-4">
+          {availableTabs.map((item) => (
             <Link
               key={item.type}
               href={`${basePath}/${item.type}${searchParamsString ? `?${searchParamsString}` : ""}`}
@@ -140,6 +194,10 @@ export function StudentRequestsPage({
 
       {type === "device-change" ? (
         <DeviceChangeRequestsTable hideHeader centerId={centerId} />
+      ) : null}
+
+      {type === "video-access" ? (
+        <VideoAccessPanel centerId={centerId} showCenterFilter={!centerId} />
       ) : null}
     </div>
   );

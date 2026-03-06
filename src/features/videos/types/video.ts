@@ -40,6 +40,9 @@ export type Video = {
   source_id?: string | null;
   source_url?: string | null;
   thumbnail_url?: string | null;
+  has_custom_thumbnail?: boolean;
+  custom_thumbnail_url?: string | null;
+  default_thumbnail_url?: string | null;
   encoding_status_key?: VideoEncodingStatusKey | string | null;
   encoding_status_label?: string | null;
   lifecycle_status?: number | string | null;

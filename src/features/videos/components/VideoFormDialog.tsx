@@ -18,8 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useModal } from "@/components/ui/modal-store";
 import { useVideoUpload } from "@/features/videos/context/video-upload-context";
 import {
+  useClearVideoThumbnail,
   useCreateVideo,
   useCreateVideoUpload,
+  useUploadVideoThumbnail,
   useUpdateVideo,
 } from "@/features/videos/hooks/use-videos";
 import {
@@ -42,6 +44,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const REQUIRED_TITLE_MESSAGE = "English title is required.";
+const MAX_THUMBNAIL_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_THUMBNAIL_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 type UploadPhase =
   | "idle"
@@ -240,6 +244,19 @@ function resolveUploadPhaseLabel(phase: UploadPhase) {
   return "Idle";
 }
 
+function resolveHasCustomThumbnail(video?: Video | null) {
+  if (!video) return false;
+
+  if (typeof video.has_custom_thumbnail === "boolean") {
+    return video.has_custom_thumbnail;
+  }
+
+  return (
+    typeof video.custom_thumbnail_url === "string" &&
+    video.custom_thumbnail_url.trim().length > 0
+  );
+}
+
 export function VideoFormDialog({
   open,
   onOpenChange,
@@ -253,6 +270,8 @@ export function VideoFormDialog({
   const createVideoMutation = useCreateVideo();
   const createUploadVideoMutation = useCreateVideoUpload();
   const updateVideoMutation = useUpdateVideo();
+  const uploadThumbnailMutation = useUploadVideoThumbnail();
+  const clearThumbnailMutation = useClearVideoThumbnail();
   const uploadControllerRef = useRef<TusUploadController | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isMountedRef = useRef(false);
@@ -286,18 +305,25 @@ export function VideoFormDialog({
   >(null);
   const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+  const [resolvedThumbnailVideo, setResolvedThumbnailVideo] =
+    useState<Video | null>(null);
 
   const isMutating =
     createVideoMutation.isPending ||
     createUploadVideoMutation.isPending ||
     updateVideoMutation.isPending;
+  const isThumbnailMutating =
+    uploadThumbnailMutation.isPending || clearThumbnailMutation.isPending;
   const isUploading = uploadPhase === "uploading";
   const isProcessing = uploadPhase === "processing";
   const isCreatingUpload = uploadPhase === "creating";
   const isPaused = uploadPhase === "paused";
   const hasActiveUpload =
     isCreatingUpload || isUploading || isPaused || isProcessing;
-  const isBusy = isMutating || hasActiveUpload;
+  const isBusy = isMutating || hasActiveUpload || isThumbnailMutating;
   const canPause = uploadPhase === "uploading";
   const canResume = uploadPhase === "paused";
 
@@ -327,6 +353,20 @@ export function VideoFormDialog({
       thumbnail_url: resolvePersistableThumbnailUrl(previewSourceUrl),
     });
   }, [allowUploadMode, isEditMode, sourceMode, sourceUrl, video]);
+  const currentThumbnailVideo = resolvedThumbnailVideo ?? video ?? null;
+  const currentThumbnailState = useMemo(
+    () =>
+      currentThumbnailVideo
+        ? resolveVideoThumbnailState(currentThumbnailVideo)
+        : null,
+    [currentThumbnailVideo],
+  );
+  const hasCustomThumbnail = resolveHasCustomThumbnail(currentThumbnailVideo);
+  const selectedThumbnailLabel = useMemo(() => {
+    if (!thumbnailFile) return "";
+    const sizeMb = thumbnailFile.size / (1024 * 1024);
+    return `${thumbnailFile.name} (${sizeMb.toFixed(sizeMb >= 100 ? 0 : 1)} MB)`;
+  }, [thumbnailFile]);
 
   const stopUploadLifecycle = useCallback(async () => {
     if (uploadControllerRef.current) {
@@ -361,6 +401,10 @@ export function VideoFormDialog({
     setUploadSessionId(null);
     setActiveUploadId(null);
     setIsDragActive(false);
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
+    setThumbnailError(null);
+    setResolvedThumbnailVideo(null);
   }, []);
 
   useEffect(() => {
@@ -374,12 +418,16 @@ export function VideoFormDialog({
     if (!open) return;
 
     setFormError(null);
+    setThumbnailError(null);
     setUploadPhase("idle");
     setUploadProgress(0);
     setUploadSpeedBps(null);
     setUploadEtaSeconds(null);
     setUploadStatusText("");
     setUploadSessionId(null);
+    setThumbnailError(null);
+    setThumbnailFile(null);
+    setThumbnailPreview(null);
 
     if (isEditMode && video) {
       setSourceMode(allowUploadMode ? "upload" : "url");
@@ -394,6 +442,7 @@ export function VideoFormDialog({
       setSourceUrl("");
       setFile(null);
       setIsDragActive(false);
+      setResolvedThumbnailVideo(video);
       return;
     }
 
@@ -477,6 +526,146 @@ export function VideoFormDialog({
     setFormError(null);
   };
 
+  const validateThumbnail = (nextFile: File) => {
+    if (!ALLOWED_THUMBNAIL_MIME_TYPES.includes(nextFile.type)) {
+      return "Please choose a valid image (JPG, PNG, or WebP).";
+    }
+
+    if (nextFile.size > MAX_THUMBNAIL_SIZE_BYTES) {
+      return "Thumbnail must be 5MB or smaller.";
+    }
+
+    return null;
+  };
+
+  const handleThumbnailFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const nextFile = event.target.files?.[0] ?? null;
+    setThumbnailError(null);
+
+    if (!nextFile) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+      return;
+    }
+
+    const validationError = validateThumbnail(nextFile);
+    if (validationError) {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+      setThumbnailError(validationError);
+      event.target.value = "";
+      return;
+    }
+
+    setThumbnailFile(nextFile);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (!isMountedRef.current) return;
+      setThumbnailPreview(reader.result as string);
+    };
+    reader.readAsDataURL(nextFile);
+  };
+
+  const uploadSelectedThumbnail = async (videoId: string | number) => {
+    if (!centerId) {
+      setThumbnailError("Select a center before uploading a thumbnail.");
+      return null;
+    }
+
+    if (!thumbnailFile) {
+      return null;
+    }
+
+    try {
+      const savedVideo = await uploadThumbnailMutation.mutateAsync({
+        centerId,
+        videoId,
+        thumbnail: thumbnailFile,
+      });
+      if (isMountedRef.current) {
+        setResolvedThumbnailVideo(savedVideo);
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+        setThumbnailError(null);
+      }
+      return savedVideo;
+    } catch (error) {
+      const message = getAdminApiErrorMessage(
+        error,
+        "Unable to upload custom thumbnail.",
+      );
+      if (isMountedRef.current) {
+        setThumbnailError(message);
+      }
+      showToast(message, "error");
+      return null;
+    }
+  };
+
+  const handleThumbnailUpload = async () => {
+    if (!video) {
+      setThumbnailError(
+        "Save the video first, then upload a custom thumbnail.",
+      );
+      return;
+    }
+
+    if (!thumbnailFile) {
+      setThumbnailError("Choose an image file first.");
+      return;
+    }
+
+    const savedVideo = await uploadSelectedThumbnail(video.id);
+    if (!savedVideo) return;
+
+    const successMessage = getAdminResponseMessage(
+      savedVideo,
+      "Video thumbnail updated successfully.",
+    );
+    showToast(successMessage, "success");
+  };
+
+  const handleThumbnailReset = async () => {
+    if (!centerId) {
+      setThumbnailError("Select a center before resetting a thumbnail.");
+      return;
+    }
+
+    if (!video) {
+      setThumbnailError("Save the video first, then reset the thumbnail.");
+      return;
+    }
+
+    try {
+      const resetVideo = await clearThumbnailMutation.mutateAsync({
+        centerId,
+        videoId: video.id,
+      });
+      if (isMountedRef.current) {
+        setResolvedThumbnailVideo(resetVideo);
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+        setThumbnailError(null);
+      }
+      const successMessage = getAdminResponseMessage(
+        resetVideo,
+        "Video thumbnail reset successfully.",
+      );
+      showToast(successMessage, "success");
+    } catch (error) {
+      const message = getAdminApiErrorMessage(
+        error,
+        "Unable to reset video thumbnail.",
+      );
+      if (isMountedRef.current) {
+        setThumbnailError(message);
+      }
+      showToast(message, "error");
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isBusy) return;
@@ -487,6 +676,7 @@ export function VideoFormDialog({
     }
 
     setFormError(null);
+    setThumbnailError(null);
 
     const titleTranslations = buildTranslations(titleEn, titleAr, {
       requireEn: true,
@@ -518,7 +708,7 @@ export function VideoFormDialog({
 
     if (isEditMode && video) {
       try {
-        const updatedVideo = await updateVideoMutation.mutateAsync({
+        let updatedVideo = await updateVideoMutation.mutateAsync({
           centerId,
           videoId: video.id,
           payload: {
@@ -535,6 +725,14 @@ export function VideoFormDialog({
               : {}),
           },
         });
+
+        if (thumbnailFile) {
+          const thumbnailUpdatedVideo = await uploadSelectedThumbnail(video.id);
+          if (thumbnailUpdatedVideo) {
+            updatedVideo = thumbnailUpdatedVideo;
+          }
+        }
+
         const successMessage = getAdminResponseMessage(
           updatedVideo,
           "Video updated successfully.",
@@ -568,7 +766,7 @@ export function VideoFormDialog({
       }
 
       try {
-        const createdVideo = await createVideoMutation.mutateAsync({
+        let createdVideo = await createVideoMutation.mutateAsync({
           centerId,
           payload: {
             source_type: "url",
@@ -585,6 +783,16 @@ export function VideoFormDialog({
               : {}),
           },
         });
+
+        if (thumbnailFile && createdVideo?.id != null) {
+          const thumbnailUpdatedVideo = await uploadSelectedThumbnail(
+            createdVideo.id,
+          );
+          if (thumbnailUpdatedVideo) {
+            createdVideo = thumbnailUpdatedVideo;
+          }
+        }
+
         const successMessage = getAdminResponseMessage(
           createdVideo,
           "Video created successfully.",
@@ -643,6 +851,10 @@ export function VideoFormDialog({
 
       if (!videoId || !uploadEndpoint) {
         throw new Error("Upload session is missing endpoint or video ID.");
+      }
+
+      if (thumbnailFile) {
+        await uploadSelectedThumbnail(videoId);
       }
 
       const sessionId = resolveUploadSessionId(uploadSession);
@@ -811,7 +1023,7 @@ export function VideoFormDialog({
                     : "Create using upload or URL source mode."}
                 </DialogDescription>
                 <p className="text-xs text-gray-400">
-                  {isEditMode ? "Metadata only" : "Source + Metadata"}
+                  {isEditMode ? "Metadata + Thumbnail" : "Source + Metadata"}
                 </p>
               </div>
             </div>
@@ -999,6 +1211,127 @@ export function VideoFormDialog({
                     duration from processing.
                   </p>
                 </div>
+              ) : null}
+            </section>
+
+            <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Custom Thumbnail
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  JPG, PNG, or WebP up to 5MB.{" "}
+                  {isEditMode
+                    ? "Upload a new image or reset to the default thumbnail."
+                    : "If selected, this image will be uploaded after video creation."}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleThumbnailFileChange}
+                  disabled={isBusy}
+                />
+                {isEditMode ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleThumbnailUpload}
+                    disabled={!thumbnailFile || isBusy}
+                  >
+                    {uploadThumbnailMutation.isPending
+                      ? "Uploading..."
+                      : "Upload Thumbnail"}
+                  </Button>
+                ) : null}
+                {isEditMode && hasCustomThumbnail ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleThumbnailReset}
+                    disabled={isBusy}
+                  >
+                    {clearThumbnailMutation.isPending
+                      ? "Resetting..."
+                      : "Reset to Default"}
+                  </Button>
+                ) : null}
+              </div>
+
+              {selectedThumbnailLabel ? (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-900/50">
+                  <span className="truncate text-gray-600 dark:text-gray-300">
+                    Selected: {selectedThumbnailLabel}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setThumbnailFile(null);
+                      setThumbnailPreview(null);
+                      setThumbnailError(null);
+                    }}
+                    disabled={isBusy}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : null}
+
+              <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-800 dark:bg-gray-950/40">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Thumbnail Preview
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {thumbnailPreview
+                        ? "Local preview before upload."
+                        : isEditMode
+                          ? "Current effective thumbnail from API."
+                          : "A preview appears here after selecting an image."}
+                    </p>
+                  </div>
+                  {isEditMode ? (
+                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm dark:bg-gray-900 dark:text-gray-300">
+                      {hasCustomThumbnail ? "Custom" : "Default"}
+                    </span>
+                  ) : null}
+                </div>
+                {thumbnailPreview || currentThumbnailState?.imageUrl ? (
+                  <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        thumbnailPreview ??
+                        currentThumbnailState?.imageUrl ??
+                        ""
+                      }
+                      alt="Video thumbnail preview"
+                      className="h-44 w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-44 w-full flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 text-center dark:border-gray-700 dark:bg-gray-900">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {currentThumbnailState?.fallbackLabel ??
+                        "No thumbnail selected"}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      {currentThumbnailState?.fallbackHint ??
+                        "Upload a custom image or keep the default thumbnail."}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {thumbnailError ? (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {thumbnailError}
+                </p>
               ) : null}
             </section>
 

@@ -66,6 +66,8 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/webp",
 ];
 
+type VideoApprovalOverride = "inherit" | "enabled" | "disabled";
+
 function extractErrorMessage(error: unknown): string {
   const firstFieldError = getAdminApiFirstFieldError(error);
   if (firstFieldError) {
@@ -87,6 +89,22 @@ function normalizeDifficulty(
   if (str === "2" || str === "intermediate") return "intermediate";
   if (str === "3" || str === "advanced") return "advanced";
   return str;
+}
+
+function mapVideoApprovalOverrideToPayload(
+  value: VideoApprovalOverride,
+): boolean | null {
+  if (value === "enabled") return true;
+  if (value === "disabled") return false;
+  return null;
+}
+
+function mapCourseVideoApprovalToOverride(
+  value: boolean | null | undefined,
+): VideoApprovalOverride {
+  if (value === true) return "enabled";
+  if (value === false) return "disabled";
+  return "inherit";
 }
 
 export default function CenterCourseEditPage({ params }: PageProps) {
@@ -124,6 +142,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     difficulty: "",
     language: "",
     price: "",
+    requiresVideoApproval: "inherit" as VideoApprovalOverride,
     instructorId: "",
     categoryId: "",
   });
@@ -191,6 +210,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
       ),
       language: course.language ?? "en",
       price: course.price != null ? String(course.price) : "",
+      requiresVideoApproval: mapCourseVideoApprovalToOverride(
+        course.requires_video_approval,
+      ),
       instructorId: course.primary_instructor_id
         ? String(course.primary_instructor_id)
         : course.primary_instructor?.id
@@ -246,6 +268,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           difficulty: formData.difficulty || undefined,
           language: formData.language || undefined,
           price: formData.price ? Number(formData.price) : undefined,
+          requires_video_approval: mapVideoApprovalOverrideToPayload(
+            formData.requiresVideoApproval,
+          ),
           instructor_id: formData.instructorId
             ? Number(formData.instructorId)
             : undefined,
@@ -479,7 +504,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
                     <Label htmlFor="difficulty">Difficulty</Label>
                     <Select
@@ -528,6 +553,29 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                       value={formData.price}
                       onChange={handleChange("price")}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="requires-video-approval">
+                      Video Approval
+                    </Label>
+                    <Select
+                      value={formData.requiresVideoApproval}
+                      onValueChange={handleSelectChange(
+                        "requiresVideoApproval",
+                      )}
+                    >
+                      <SelectTrigger id="requires-video-approval">
+                        <SelectValue placeholder="Use center policy" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inherit">
+                          Use center policy
+                        </SelectItem>
+                        <SelectItem value="enabled">Force enabled</SelectItem>
+                        <SelectItem value="disabled">Force disabled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

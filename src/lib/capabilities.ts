@@ -20,6 +20,7 @@ export type Capability =
   | "manage_students"
   | "manage_device_change_requests"
   | "manage_extra_view_requests"
+  | "manage_video_access"
   | "manage_instructors"
   | "manage_admin_users"
   | "manage_roles"
@@ -50,6 +51,7 @@ const capabilityPermissions: Record<Capability, string[]> = {
   manage_students: ["student.manage"],
   manage_device_change_requests: ["device_change.manage"],
   manage_extra_view_requests: ["extra_view.manage"],
+  manage_video_access: ["video.manage"],
   manage_instructors: ["instructor.manage"],
   manage_admin_users: ["admin.manage"],
   manage_roles: ["role.manage"],

@@ -11,6 +11,7 @@ import {
   CenterProfileForm,
   CenterBrandingForm,
   CenterPolicyForm,
+  CenterEducationProfileForm,
 } from "@/features/centers/components/forms";
 
 export default function CentersSettingsPage() {
@@ -88,6 +89,8 @@ export default function CentersSettingsPage() {
           />
 
           <CenterPolicyForm centerId={centerId} />
+
+          <CenterEducationProfileForm centerId={centerId} />
         </div>
 
         <div className="space-y-6">

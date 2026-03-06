@@ -35,6 +35,7 @@ import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
 import { listStudents } from "@/features/students/services/students.service";
 import { listVideos } from "@/features/videos/services/videos.service";
+import type { Course } from "@/features/courses/types/course";
 import { GenerateVideoAccessCodeDialog } from "@/features/video-access/components/GenerateVideoAccessCodeDialog";
 import {
   useBulkSendVideoAccessCodesWhatsapp,
@@ -228,7 +229,9 @@ export function VideoAccessCodesTable({
   const bulkSendMutation = useBulkSendVideoAccessCodesWhatsapp();
 
   const cachedStudentsRef = useRef<Map<string, string>>(new Map());
-  const cachedCoursesRef = useRef<Map<string, string>>(new Map());
+  const cachedCoursesRef = useRef<
+    Map<string, { label: string; centerId?: string | number | null }>
+  >(new Map());
   const cachedVideosRef = useRef<
     Map<string, { title: string; courseId?: string }>
   >(new Map());
@@ -364,11 +367,13 @@ export function VideoAccessCodesTable({
       (page) => page.items,
     );
     courses.forEach((course) => {
-      cachedCoursesRef.current.set(
-        String(course.id),
-        asString((course as { title?: unknown }).title) ??
+      cachedCoursesRef.current.set(String(course.id), {
+        label:
+          asString((course as { title?: unknown }).title) ??
           `Course ${course.id}`,
-      );
+        centerId:
+          (course as Course).center_id ?? (course as Course).center?.id ?? null,
+      });
     });
   }, [coursesQuery.data?.pages]);
 
@@ -450,7 +455,7 @@ export function VideoAccessCodesTable({
       courses.unshift({
         value: selectedCourse,
         label:
-          cachedCoursesRef.current.get(selectedCourse) ??
+          cachedCoursesRef.current.get(selectedCourse)?.label ??
           `Course ${selectedCourse}`,
       });
     }
@@ -1127,12 +1132,15 @@ export function VideoAccessCodesTable({
         centerId={queryCenterId}
         coursePreset={
           selectedCourse !== ALL_COURSES_VALUE
-            ? {
-                id: selectedCourse,
-                label:
-                  cachedCoursesRef.current.get(selectedCourse) ??
-                  `Course ${selectedCourse}`,
-              }
+            ? (() => {
+                const cachedCourse =
+                  cachedCoursesRef.current.get(selectedCourse);
+                return {
+                  id: selectedCourse,
+                  label: cachedCourse?.label ?? `Course ${selectedCourse}`,
+                  centerId: cachedCourse?.centerId ?? null,
+                };
+              })()
             : null
         }
         videoPreset={

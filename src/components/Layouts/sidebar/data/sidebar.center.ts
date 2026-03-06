@@ -117,6 +117,13 @@ export const CENTER_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
+        title: "Education",
+        capability: "manage_students",
+        icon: iconFromTitle("Education"),
+        url: "/education",
+        items: [],
+      },
+      {
         title: "Settings",
         capability: "view_settings",
         icon: iconFromTitle("Settings"),

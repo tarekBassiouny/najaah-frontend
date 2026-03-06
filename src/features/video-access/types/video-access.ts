@@ -87,6 +87,9 @@ export type VideoAccessCode = {
   course?: VideoAccessRequestCourse | null;
   video?: VideoAccessRequestVideo | null;
   center?: VideoAccessRequestCenter | null;
+  generated_at?: string | null;
+  generated_by?: VideoAccessRequestDecider | null;
+  whatsapp_error?: string | null;
   [key: string]: unknown;
 };
 
@@ -172,6 +175,27 @@ export type SendVideoAccessCodeWhatsappPayload = {
 export type BulkSendVideoAccessCodesWhatsappPayload = {
   code_ids: Array<string | number>;
   format: VideoAccessWhatsappFormat;
+};
+
+export type BulkGenerateVideoAccessCodesPayload = {
+  student_ids: Array<string | number>;
+  course_id: string | number;
+  video_id: string | number;
+  send_whatsapp?: boolean;
+  whatsapp_format?: VideoAccessWhatsappFormat;
+};
+
+export type BulkGenerateVideoAccessCodesResult = {
+  counts?: {
+    total?: number;
+    generated?: number;
+    failed?: number;
+    whatsapp_sent?: number;
+    whatsapp_failed?: number;
+  };
+  generated?: Array<Record<string, unknown>>;
+  failed?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
 };
 
 export type BulkWhatsappJobSettings = {

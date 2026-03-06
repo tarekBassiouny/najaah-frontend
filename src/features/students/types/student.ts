@@ -30,6 +30,17 @@ export type StudentCenter = {
   [key: string]: unknown;
 };
 
+export type StudentEducationEntity = {
+  id?: number | string | null;
+  name?: string | null;
+  stage?: number | null;
+  stage_label?: string | null;
+  type?: number | string | null;
+  type_label?: string | null;
+  is_active?: boolean | null;
+  [key: string]: unknown;
+};
+
 export type Student = {
   id: number | string;
   name?: string | null;
@@ -41,7 +52,13 @@ export type Student = {
   status_key?: string | null;
   status_label?: string | null;
   center_id?: number | string | null;
+  grade_id?: number | string | null;
+  school_id?: number | string | null;
+  college_id?: number | string | null;
   center?: StudentCenter | null;
+  grade?: StudentEducationEntity | null;
+  school?: StudentEducationEntity | null;
+  college?: StudentEducationEntity | null;
   device?: StudentDevice | null;
   analytics?: StudentAnalytics | null;
   enrollments_count?: number | null;
@@ -121,5 +138,8 @@ export type StudentProfile = {
     id: number;
     name: string;
   } | null;
+  grade?: StudentEducationEntity | null;
+  school?: StudentEducationEntity | null;
+  college?: StudentEducationEntity | null;
   enrollments: StudentEnrollment[];
 };

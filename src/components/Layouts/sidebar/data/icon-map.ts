@@ -21,6 +21,7 @@ const EXACT_ICON_MAP: Record<string, SidebarIcon> = {
   Permissions: Icons.Authentication,
   Admins: Icons.ShieldCheck,
   Students: Icons.UsersGroup,
+  Education: Icons.BookOpen,
   Settings: Icons.Gear,
   "Audit Log": Icons.HistoryIcon,
   "Audit Logs": Icons.HistoryIcon,

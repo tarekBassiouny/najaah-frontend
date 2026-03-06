@@ -19,6 +19,7 @@ import { ListingFilters } from "@/components/ui/listing-filters";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
   SelectContent,
@@ -37,10 +38,21 @@ import {
 import { formatDateTime } from "@/lib/format-date-time";
 import { cn } from "@/lib/utils";
 import { resolveStudentStatus } from "@/features/students/utils/student-status";
+import {
+  EDUCATIONAL_STAGE_OPTIONS,
+  getEducationName,
+} from "@/features/education/types/education";
+import { useGradeOptions } from "@/features/education/hooks/use-grade-options";
+import { useSchoolOptions } from "@/features/education/hooks/use-school-options";
+import { useCollegeOptions } from "@/features/education/hooks/use-college-options";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
 const ALL_CENTER_TYPE_VALUE = "all";
+const ALL_STAGE_VALUE = "all";
+const ALL_GRADE_VALUE = "all";
+const ALL_SCHOOL_VALUE = "all";
+const ALL_COLLEGE_VALUE = "all";
 type CenterTypeFilterValue =
   | typeof ALL_CENTER_TYPE_VALUE
   | "branded"
@@ -94,8 +106,11 @@ type StudentsTableProps = {
   onDelete?: (_student: Student) => void;
   onViewDetails?: (_student: Student) => void;
   onEnrollCourse?: (_student: Student) => void;
+  onGenerateAccessCode?: (_student: Student) => void;
   onBulkEnrollCourse?: (_students: Student[]) => void;
   onBulkChangeStatus?: (_students: Student[]) => void;
+  onBulkGenerateAccessCodes?: (_students: Student[]) => void;
+  onBulkEnrollAndGenerate?: (_students: Student[]) => void;
 };
 
 export function StudentsTable({
@@ -109,8 +124,11 @@ export function StudentsTable({
   onDelete,
   onViewDetails,
   onEnrollCourse,
+  onGenerateAccessCode,
   onBulkEnrollCourse,
   onBulkChangeStatus,
+  onBulkGenerateAccessCodes,
+  onBulkEnrollAndGenerate,
 }: StudentsTableProps) {
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -122,12 +140,17 @@ export function StudentsTable({
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
+  const [stageFilter, setStageFilter] = useState<string>(ALL_STAGE_VALUE);
+  const [gradeFilter, setGradeFilter] = useState<string>(ALL_GRADE_VALUE);
+  const [schoolFilter, setSchoolFilter] = useState<string>(ALL_SCHOOL_VALUE);
+  const [collegeFilter, setCollegeFilter] = useState<string>(ALL_COLLEGE_VALUE);
   const [centerTypeFilter, setCenterTypeFilter] =
     useState<CenterTypeFilterValue>(ALL_CENTER_TYPE_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<
     Record<string, Student>
   >({});
+  const canLoadEducationOptions = Boolean(centerId);
 
   const params = useMemo(
     () => ({
@@ -142,6 +165,14 @@ export function StudentsTable({
         isCenterScoped || centerTypeFilter === ALL_CENTER_TYPE_VALUE
           ? undefined
           : centerTypeFilter,
+      stage:
+        canLoadEducationOptions && stageFilter !== ALL_STAGE_VALUE
+          ? stageFilter
+          : undefined,
+      grade_id: gradeFilter === ALL_GRADE_VALUE ? undefined : gradeFilter,
+      school_id: schoolFilter === ALL_SCHOOL_VALUE ? undefined : schoolFilter,
+      college_id:
+        collegeFilter === ALL_COLLEGE_VALUE ? undefined : collegeFilter,
     }),
     [
       page,
@@ -152,8 +183,59 @@ export function StudentsTable({
       statusFilter,
       centerTypeFilter,
       isCenterScoped,
+      canLoadEducationOptions,
+      stageFilter,
+      gradeFilter,
+      schoolFilter,
+      collegeFilter,
     ],
   );
+
+  const stageValueForOptions =
+    canLoadEducationOptions && stageFilter !== ALL_STAGE_VALUE
+      ? Number(stageFilter)
+      : undefined;
+
+  const {
+    options: gradeOptions,
+    search: gradeSearch,
+    setSearch: setGradeSearch,
+    isLoading: isGradeOptionsLoading,
+  } = useGradeOptions({
+    centerId: centerId ?? undefined,
+    selectedValue: gradeFilter === ALL_GRADE_VALUE ? null : gradeFilter,
+    stage: stageValueForOptions,
+    includeAllOption: true,
+    allOptionValue: ALL_GRADE_VALUE,
+    allOptionLabel: "All Grades",
+    enabled: canLoadEducationOptions,
+  });
+  const {
+    options: schoolOptions,
+    search: schoolSearch,
+    setSearch: setSchoolSearch,
+    isLoading: isSchoolOptionsLoading,
+  } = useSchoolOptions({
+    centerId: centerId ?? undefined,
+    selectedValue: schoolFilter === ALL_SCHOOL_VALUE ? null : schoolFilter,
+    includeAllOption: true,
+    allOptionValue: ALL_SCHOOL_VALUE,
+    allOptionLabel: "All Schools",
+    enabled: canLoadEducationOptions,
+  });
+  const {
+    options: collegeOptions,
+    search: collegeSearch,
+    setSearch: setCollegeSearch,
+    isLoading: isCollegeOptionsLoading,
+  } = useCollegeOptions({
+    centerId: centerId ?? undefined,
+    selectedValue: collegeFilter === ALL_COLLEGE_VALUE ? null : collegeFilter,
+    includeAllOption: true,
+    allOptionValue: ALL_COLLEGE_VALUE,
+    allOptionLabel: "All Colleges",
+    enabled: canLoadEducationOptions,
+  });
 
   const { data, isLoading, isError, isFetching } = useStudents(params, {
     centerId: centerId ?? null,
@@ -168,10 +250,18 @@ export function StudentsTable({
   const hasActiveFilters =
     search.trim().length > 0 ||
     statusFilter !== ALL_STATUS_VALUE ||
+    (canLoadEducationOptions && stageFilter !== ALL_STAGE_VALUE) ||
+    (canLoadEducationOptions && gradeFilter !== ALL_GRADE_VALUE) ||
+    (canLoadEducationOptions && schoolFilter !== ALL_SCHOOL_VALUE) ||
+    (canLoadEducationOptions && collegeFilter !== ALL_COLLEGE_VALUE) ||
     (!isCenterScoped && centerTypeFilter !== ALL_CENTER_TYPE_VALUE);
   const activeFilterCount =
     (search.trim().length > 0 ? 1 : 0) +
     (statusFilter !== ALL_STATUS_VALUE ? 1 : 0) +
+    (canLoadEducationOptions && stageFilter !== ALL_STAGE_VALUE ? 1 : 0) +
+    (canLoadEducationOptions && gradeFilter !== ALL_GRADE_VALUE ? 1 : 0) +
+    (canLoadEducationOptions && schoolFilter !== ALL_SCHOOL_VALUE ? 1 : 0) +
+    (canLoadEducationOptions && collegeFilter !== ALL_COLLEGE_VALUE ? 1 : 0) +
     (!isCenterScoped && centerTypeFilter !== ALL_CENTER_TYPE_VALUE ? 1 : 0);
   const selectedIds = useMemo(
     () => Object.keys(selectedStudents),
@@ -207,6 +297,14 @@ export function StudentsTable({
   }, [centerId, courseId]);
 
   useEffect(() => {
+    if (centerId) return;
+    setStageFilter(ALL_STAGE_VALUE);
+    setGradeFilter(ALL_GRADE_VALUE);
+    setSchoolFilter(ALL_SCHOOL_VALUE);
+    setCollegeFilter(ALL_COLLEGE_VALUE);
+  }, [centerId]);
+
+  useEffect(() => {
     setSelectedStudents({});
   }, [
     centerId,
@@ -215,6 +313,10 @@ export function StudentsTable({
     perPage,
     query,
     statusFilter,
+    stageFilter,
+    gradeFilter,
+    schoolFilter,
+    collegeFilter,
     centerTypeFilter,
   ]);
 
@@ -267,6 +369,10 @@ export function StudentsTable({
           setSearch("");
           setQuery("");
           setStatusFilter(ALL_STATUS_VALUE);
+          setStageFilter(ALL_STAGE_VALUE);
+          setGradeFilter(ALL_GRADE_VALUE);
+          setSchoolFilter(ALL_SCHOOL_VALUE);
+          setCollegeFilter(ALL_COLLEGE_VALUE);
           setCenterTypeFilter(ALL_CENTER_TYPE_VALUE);
           setPage(1);
         }}
@@ -277,9 +383,9 @@ export function StudentsTable({
         }
         gridClassName={
           showCenterFilter && !isCenterScoped
-            ? "grid-cols-1 md:grid-cols-4"
+            ? "grid-cols-1 md:grid-cols-3 xl:grid-cols-4"
             : isCenterScoped
-              ? "grid-cols-1 md:grid-cols-2"
+              ? "grid-cols-1 md:grid-cols-3 xl:grid-cols-4"
               : "grid-cols-1 md:grid-cols-3"
         }
       >
@@ -390,6 +496,107 @@ export function StudentsTable({
             <SelectItem value="2">Banned</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select
+          disabled={!canLoadEducationOptions}
+          value={stageFilter}
+          onValueChange={(value) => {
+            setPage(1);
+            setStageFilter(value);
+            setGradeFilter(ALL_GRADE_VALUE);
+          }}
+        >
+          <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+            <SelectValue
+              placeholder={
+                canLoadEducationOptions ? "Stage" : "Select center first"
+              }
+            />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_STAGE_VALUE}>Stage</SelectItem>
+            {EDUCATIONAL_STAGE_OPTIONS.map((stage) => (
+              <SelectItem key={stage.value} value={stage.value}>
+                {stage.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <SearchableSelect
+          value={gradeFilter}
+          onValueChange={(value) => {
+            setPage(1);
+            setGradeFilter(value ?? ALL_GRADE_VALUE);
+          }}
+          options={gradeOptions}
+          searchValue={gradeSearch}
+          onSearchValueChange={setGradeSearch}
+          placeholder={
+            canLoadEducationOptions ? "Grade" : "Select center first"
+          }
+          searchPlaceholder="Search grades..."
+          emptyMessage={
+            canLoadEducationOptions
+              ? "No grades found"
+              : "Select a center first"
+          }
+          isLoading={isGradeOptionsLoading}
+          filterOptions={false}
+          showSearch
+          disabled={!canLoadEducationOptions}
+          triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        />
+
+        <SearchableSelect
+          value={schoolFilter}
+          onValueChange={(value) => {
+            setPage(1);
+            setSchoolFilter(value ?? ALL_SCHOOL_VALUE);
+          }}
+          options={schoolOptions}
+          searchValue={schoolSearch}
+          onSearchValueChange={setSchoolSearch}
+          placeholder={
+            canLoadEducationOptions ? "School" : "Select center first"
+          }
+          searchPlaceholder="Search schools..."
+          emptyMessage={
+            canLoadEducationOptions
+              ? "No schools found"
+              : "Select a center first"
+          }
+          isLoading={isSchoolOptionsLoading}
+          filterOptions={false}
+          showSearch
+          disabled={!canLoadEducationOptions}
+          triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        />
+
+        <SearchableSelect
+          value={collegeFilter}
+          onValueChange={(value) => {
+            setPage(1);
+            setCollegeFilter(value ?? ALL_COLLEGE_VALUE);
+          }}
+          options={collegeOptions}
+          searchValue={collegeSearch}
+          onSearchValueChange={setCollegeSearch}
+          placeholder={
+            canLoadEducationOptions ? "College" : "Select center first"
+          }
+          searchPlaceholder="Search colleges..."
+          emptyMessage={
+            canLoadEducationOptions
+              ? "No colleges found"
+              : "Select a center first"
+          }
+          isLoading={isCollegeOptionsLoading}
+          filterOptions={false}
+          showSearch
+          disabled={!canLoadEducationOptions}
+          triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+        />
       </ListingFilters>
 
       {isError ? (
@@ -415,7 +622,7 @@ export function StudentsTable({
             isFetching && !isLoading ? "opacity-60" : "opacity-100",
           )}
         >
-          <Table className="min-w-[1100px]">
+          <Table className="min-w-[1280px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
                 <TableHead className="w-8">
@@ -431,6 +638,7 @@ export function StudentsTable({
                 <TableHead className="font-medium">Student</TableHead>
                 <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">Center</TableHead>
+                <TableHead className="font-medium">Education</TableHead>
                 <TableHead className="font-medium">Activity</TableHead>
                 <TableHead className="font-medium">Last Activity</TableHead>
                 <TableHead className="font-medium">Device</TableHead>
@@ -459,6 +667,9 @@ export function StudentsTable({
                         <Skeleton className="h-4 w-20" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-12 w-36" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-4 w-24" />
                       </TableCell>
                       <TableCell>
@@ -477,7 +688,7 @@ export function StudentsTable({
                 </>
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={hasActions ? 8 : 7} className="h-48">
+                  <TableCell colSpan={hasActions ? 9 : 8} className="h-48">
                     <EmptyState
                       title={query ? "No students found" : "No students yet"}
                       description={
@@ -509,6 +720,15 @@ export function StudentsTable({
                     ? `${analytics.total_enrollments ?? 0} enrollments · ${
                         analytics.total_sessions ?? 0
                       } sessions`
+                    : "—";
+                  const gradeLabel = student.grade
+                    ? getEducationName(student.grade, "Grade")
+                    : "—";
+                  const schoolLabel = student.school
+                    ? getEducationName(student.school, "School")
+                    : "—";
+                  const collegeLabel = student.college
+                    ? getEducationName(student.college, "College")
                     : "—";
                   const lastActivityLabel = analytics?.last_activity_at
                     ? formatDateTime(analytics.last_activity_at)
@@ -622,6 +842,28 @@ export function StudentsTable({
                           "Najaah App"}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
+                        <div className="min-w-[170px] space-y-1 text-xs">
+                          <p className="truncate">
+                            <span className="font-medium text-gray-700 dark:text-gray-200">
+                              Grade:
+                            </span>{" "}
+                            {gradeLabel}
+                          </p>
+                          <p className="truncate">
+                            <span className="font-medium text-gray-700 dark:text-gray-200">
+                              School:
+                            </span>{" "}
+                            {schoolLabel}
+                          </p>
+                          <p className="truncate">
+                            <span className="font-medium text-gray-700 dark:text-gray-200">
+                              College:
+                            </span>{" "}
+                            {collegeLabel}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-500 dark:text-gray-400">
                         {activityLabel}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
@@ -718,6 +960,17 @@ export function StudentsTable({
                                     Enroll in Course
                                   </button>
                                 )}
+                                {onGenerateAccessCode && (
+                                  <button
+                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onGenerateAccessCode(student);
+                                    }}
+                                  >
+                                    Generate Access Code
+                                  </button>
+                                )}
                                 {onEdit && (
                                   <button
                                     className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -771,10 +1024,25 @@ export function StudentsTable({
             <Button
               size="sm"
               variant="outline"
+              onClick={() => onBulkGenerateAccessCodes?.(selectedStudentsList)}
+              disabled={isLoadingState}
+            >
+              Generate Access Codes
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => onBulkChangeStatus?.(selectedStudentsList)}
               disabled={isLoadingState}
             >
               Change Status
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => onBulkEnrollAndGenerate?.(selectedStudentsList)}
+              disabled={isLoadingState}
+            >
+              Enroll & Generate
             </Button>
           </div>
         </div>

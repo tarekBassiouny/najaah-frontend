@@ -40,6 +40,10 @@ export type ListStudentsParams = {
   status?: string | number;
   course_id?: number | string;
   type?: "branded" | "unbranded" | 0 | 1;
+  grade_id?: number | string;
+  school_id?: number | string;
+  college_id?: number | string;
+  stage?: number | string;
 };
 
 type RawStudentsResponse = {
@@ -84,6 +88,10 @@ export async function listStudents(
       status: params.status ?? undefined,
       course_id: params.course_id ?? undefined,
       type: params.type ?? undefined,
+      grade_id: params.grade_id ?? undefined,
+      school_id: params.school_id ?? undefined,
+      college_id: params.college_id ?? undefined,
+      stage: params.stage ?? undefined,
     },
   });
 

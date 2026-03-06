@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import {
   Dialog,
@@ -121,6 +121,7 @@ export function EnrollStudentDialog({
 }: EnrollStudentDialogProps) {
   const { centerSlug, centerId: tenantCenterId } = useTenant();
   const enrollMutation = useCreateCenterEnrollment();
+  const queryClient = useQueryClient();
   const isPlatformAdmin = !centerSlug;
   const [courseSearch, setCourseSearch] = useState("");
   const [debouncedCourseSearch, setDebouncedCourseSearch] = useState("");
@@ -138,6 +139,14 @@ export function EnrollStudentDialog({
     () => normalizeCenterId(defaultCenterId) ?? inferStudentCenterId(student),
     [defaultCenterId, student],
   );
+  const studentCenterId = normalizeCenterId(
+    student?.center_id ?? student?.center?.id ?? null,
+  );
+  const isUnbrandedStudent = studentCenterId == null;
+  const centerPickerTypeFilter = isUnbrandedStudent ? "unbranded" : undefined;
+  const centerPickerAllLabel = isUnbrandedStudent
+    ? "Select unbranded center"
+    : "Select center";
   const centerIdForQuery = normalizeCenterId(selectedCenterId);
   const hasSelectedCenter = centerIdForQuery != null;
 
@@ -214,6 +223,8 @@ export function EnrollStudentDialog({
   }, [coursesQuery.data?.pages]);
 
   const showCenterPicker = allowCenterChange && isPlatformAdmin;
+  const centerPickerDisabled =
+    Boolean(studentCenterId) || enrollMutation.isPending;
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     if (!hasSelectedCenter) {
@@ -275,6 +286,7 @@ export function EnrollStudentDialog({
       {
         onSuccess: () => {
           onSuccess?.("Student enrolled successfully.");
+          void queryClient.invalidateQueries({ queryKey: ["students"] });
           onOpenChange(false);
         },
         onError: (error) => {
@@ -315,7 +327,9 @@ export function EnrollStudentDialog({
                 className="w-full min-w-0"
                 hideWhenCenterScoped={false}
                 selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-                disabled={enrollMutation.isPending}
+                disabled={centerPickerDisabled}
+                typeFilter={centerPickerTypeFilter}
+                allLabel={centerPickerAllLabel}
               />
             </div>
           ) : null}

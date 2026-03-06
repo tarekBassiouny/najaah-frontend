@@ -12,19 +12,44 @@ import { EnrollStudentDialog } from "@/features/students/components/EnrollStuden
 import { BulkEnrollStudentsDialog } from "@/features/students/components/BulkEnrollStudentsDialog";
 import { BulkUpdateStudentStatusDialog } from "@/features/students/components/BulkUpdateStudentStatusDialog";
 import { StudentDetailsDrawer } from "@/features/students/components/StudentDetailsDrawer";
+import { BulkGenerateVideoAccessCodesDialog } from "@/features/students/components/BulkGenerateVideoAccessCodesDialog";
+import { BulkEnrollAndGenerateDialog } from "@/features/students/components/BulkEnrollAndGenerateDialog";
 import type { Student } from "@/features/students/types/student";
+import { GenerateVideoAccessCodeDialog } from "@/features/video-access/components/GenerateVideoAccessCodeDialog";
+import { can } from "@/lib/capabilities";
 
 export default function StudentsPage() {
   const tenant = useTenant();
   const centerId = tenant.centerId;
+  const [generateStudent, setGenerateStudent] = useState<Student | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deletingStudent, setDeletingStudent] = useState<Student | null>(null);
   const [createdStudent, setCreatedStudent] = useState<Student | null>(null);
   const [enrollStudent, setEnrollStudent] = useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+  const canManageVideoAccess = can("manage_video_access");
   const [bulkEnrollStudents, setBulkEnrollStudents] = useState<Student[]>([]);
   const [bulkStatusStudents, setBulkStatusStudents] = useState<Student[]>([]);
+  const [bulkGenerateStudents, setBulkGenerateStudents] = useState<Student[]>(
+    [],
+  );
+  const [bulkEnrollAndGenerateStudents, setBulkEnrollAndGenerateStudents] =
+    useState<Student[]>([]);
+  const studentPreset = generateStudent
+    ? {
+        id: generateStudent.id,
+        label:
+          generateStudent.name ??
+          generateStudent.email ??
+          `Student ${generateStudent.id}`,
+      }
+    : null;
+  const dialogCenterId =
+    centerId ??
+    generateStudent?.center_id ??
+    generateStudent?.center?.id ??
+    null;
 
   const openCreateDialog = () => {
     setEditingStudent(null);
@@ -55,8 +80,21 @@ export default function StudentsPage() {
         onEnrollCourse={(student) => {
           setEnrollStudent(student);
         }}
+        onGenerateAccessCode={
+          canManageVideoAccess
+            ? (student) => {
+                setGenerateStudent(student);
+              }
+            : undefined
+        }
         onBulkEnrollCourse={(students) => setBulkEnrollStudents(students)}
         onBulkChangeStatus={(students) => setBulkStatusStudents(students)}
+        onBulkGenerateAccessCodes={(students) =>
+          setBulkGenerateStudents(students)
+        }
+        onBulkEnrollAndGenerate={(students) =>
+          setBulkEnrollAndGenerateStudents(students)
+        }
       />
 
       <StudentFormDialog
@@ -105,6 +143,17 @@ export default function StudentsPage() {
         allowCenterChange
       />
 
+      <GenerateVideoAccessCodeDialog
+        open={Boolean(generateStudent)}
+        onOpenChange={(open) => {
+          if (!open) setGenerateStudent(null);
+        }}
+        centerId={dialogCenterId}
+        studentCenter={generateStudent?.center ?? null}
+        studentPreset={studentPreset}
+        allowCenterChange
+      />
+
       <StudentDetailsDrawer
         open={Boolean(viewingStudent)}
         onOpenChange={(open) => {
@@ -119,6 +168,26 @@ export default function StudentsPage() {
           if (!open) setBulkEnrollStudents([]);
         }}
         students={bulkEnrollStudents}
+        centerId={centerId ?? null}
+        allowCenterChange
+      />
+
+      <BulkGenerateVideoAccessCodesDialog
+        open={bulkGenerateStudents.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkGenerateStudents([]);
+        }}
+        students={bulkGenerateStudents}
+        centerId={centerId ?? null}
+        allowCenterChange
+      />
+
+      <BulkEnrollAndGenerateDialog
+        open={bulkEnrollAndGenerateStudents.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setBulkEnrollAndGenerateStudents([]);
+        }}
+        students={bulkEnrollAndGenerateStudents}
         centerId={centerId ?? null}
         allowCenterChange
       />

@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTenant } from "@/app/tenant-provider";
 import {
   SearchableSelect,
   type SearchableSelectOption,
@@ -24,9 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { listStudents } from "@/features/students/services/students.service";
 import { listVideos } from "@/features/videos/services/videos.service";
+import type { StudentCenter } from "@/features/students/types/student";
+import type { Course } from "@/features/courses/types/course";
 import {
   useGenerateVideoAccessCode,
   useSendVideoAccessCodeWhatsapp,
@@ -40,6 +44,7 @@ import { getStudentRequestApiErrorMessage } from "@/features/student-requests/li
 type FixedSelection = {
   id: string | number;
   label: string;
+  centerId?: string | number | null;
 };
 
 type GenerateVideoAccessCodeDialogProps = {
@@ -47,9 +52,11 @@ type GenerateVideoAccessCodeDialogProps = {
   onOpenChange: (_open: boolean) => void;
   centerId?: string | number | null;
   studentPreset?: FixedSelection | null;
+  studentCenter?: StudentCenter | null;
   coursePreset?: FixedSelection | null;
   videoPreset?: FixedSelection | null;
   onGenerated?: (_code: GeneratedVideoAccessCode) => void;
+  allowCenterChange?: boolean;
 };
 
 const FETCH_PAGE_SIZE = 20;
@@ -63,6 +70,24 @@ function asString(value: unknown): string | null {
     return String(value);
   }
   return null;
+}
+
+function normalizeCenterId(
+  value: string | number | null | undefined,
+): string | number | null {
+  if (value == null) return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  const trimmed = String(value).trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function isUnbrandedCenterType(type: unknown): boolean {
+  const normalized = String(type ?? "")
+    .trim()
+    .toLowerCase();
+  return normalized === "unbranded" || normalized === "0";
 }
 
 function resolveCodeStatusVariant(
@@ -82,12 +107,43 @@ export function GenerateVideoAccessCodeDialog({
   onOpenChange,
   centerId,
   studentPreset,
+  studentCenter,
   coursePreset,
   videoPreset,
   onGenerated,
+  allowCenterChange = false,
 }: GenerateVideoAccessCodeDialogProps) {
+  const { centerSlug, centerId: tenantCenterId } = useTenant();
+  const isPlatformAdmin = !centerSlug;
   const generateMutation = useGenerateVideoAccessCode();
   const sendWhatsappMutation = useSendVideoAccessCodeWhatsapp();
+
+  const studentCenterId = normalizeCenterId(studentCenter?.id ?? null);
+  const preferredCenterId =
+    studentCenterId ?? normalizeCenterId(centerId ?? tenantCenterId ?? null);
+  const [selectedCenterId, setSelectedCenterId] = useState<
+    string | number | null
+  >(preferredCenterId);
+  const showCenterPicker = allowCenterChange && isPlatformAdmin;
+  const centerContextId = normalizeCenterId(
+    selectedCenterId ?? preferredCenterId,
+  );
+  const hasCenterId = Boolean(centerContextId);
+  const isUnbrandedStudent =
+    Boolean(studentCenter) && isUnbrandedCenterType(studentCenter?.type);
+  const needsUnbrandedCenterSelection = !studentCenterId;
+  const centerPickerTypeFilter =
+    isUnbrandedStudent || needsUnbrandedCenterSelection
+      ? "unbranded"
+      : undefined;
+  const centerPickerAllLabel =
+    isUnbrandedStudent || needsUnbrandedCenterSelection
+      ? "Select unbranded center"
+      : "Select center";
+  const centerPickerDisabled =
+    Boolean(studentCenterId) ||
+    generateMutation.isPending ||
+    sendWhatsappMutation.isPending;
 
   const [studentSearch, setStudentSearch] = useState("");
   const [courseSearch, setCourseSearch] = useState("");
@@ -95,6 +151,9 @@ export function GenerateVideoAccessCodeDialog({
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedVideo, setSelectedVideo] = useState("");
+  const [selectedCourseCenterId, setSelectedCourseCenterId] = useState<
+    string | number | null
+  >(null);
   const [generatedCode, setGeneratedCode] =
     useState<GeneratedVideoAccessCode | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -103,6 +162,9 @@ export function GenerateVideoAccessCodeDialog({
 
   const cachedStudentsRef = useRef<Map<string, string>>(new Map());
   const cachedCoursesRef = useRef<Map<string, string>>(new Map());
+  const courseCenterMapRef = useRef<Map<string, string | number | null>>(
+    new Map(),
+  );
   const cachedVideosRef = useRef<Map<string, { title: string }>>(new Map());
 
   useEffect(() => {
@@ -117,16 +179,49 @@ export function GenerateVideoAccessCodeDialog({
     setSelectedStudent(studentPreset ? String(studentPreset.id) : "");
     setSelectedCourse(coursePreset ? String(coursePreset.id) : "");
     setSelectedVideo(videoPreset ? String(videoPreset.id) : "");
-  }, [open, studentPreset, coursePreset, videoPreset]);
+    setSelectedCenterId(preferredCenterId);
+  }, [open, preferredCenterId, studentPreset, coursePreset, videoPreset]);
 
-  const hasCenterId = Boolean(
-    centerId != null && String(centerId).trim().length > 0,
-  );
+  useEffect(() => {
+    setCourseSearch("");
+    setVideoSearch("");
+    setSelectedCourse("");
+    setSelectedVideo("");
+    setGeneratedCode(null);
+    setErrorMessage(null);
+    if (!studentPreset) {
+      setSelectedStudent("");
+      setStudentSearch("");
+    }
+  }, [centerContextId, studentPreset]);
+
+  useEffect(() => {
+    if (coursePreset) {
+      setSelectedCourseCenterId(
+        normalizeCenterId(coursePreset.centerId ?? null),
+      );
+      return;
+    }
+
+    if (!selectedCourse) {
+      setSelectedCourseCenterId(null);
+      return;
+    }
+
+    setSelectedCourseCenterId(
+      normalizeCenterId(courseCenterMapRef.current.get(selectedCourse) ?? null),
+    );
+  }, [selectedCourse, coursePreset]);
+
   const resolvedCourseId =
     coursePreset != null ? String(coursePreset.id).trim() : selectedCourse;
 
   const studentsQuery = useInfiniteQuery({
-    queryKey: ["video-access-code-students", centerId ?? "none", studentSearch],
+    queryKey: [
+      "video-access-code-students",
+      centerContextId ?? "none",
+      studentSearch,
+    ],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       listStudents(
@@ -135,7 +230,7 @@ export function GenerateVideoAccessCodeDialog({
           per_page: FETCH_PAGE_SIZE,
           search: studentSearch.trim() || undefined,
         },
-        { centerId },
+        { centerId: centerContextId },
       ),
     enabled: hasCenterId && !studentPreset,
     getNextPageParam: (lastPage) => {
@@ -148,11 +243,15 @@ export function GenerateVideoAccessCodeDialog({
   });
 
   const coursesQuery = useInfiniteQuery({
-    queryKey: ["video-access-code-courses", centerId ?? "none", courseSearch],
+    queryKey: [
+      "video-access-code-courses",
+      centerContextId ?? "none",
+      courseSearch,
+    ],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       listCenterCourses({
-        center_id: centerId!,
+        center_id: centerContextId!,
         page: pageParam,
         per_page: FETCH_PAGE_SIZE,
         search: courseSearch.trim() || undefined,
@@ -167,23 +266,28 @@ export function GenerateVideoAccessCodeDialog({
     staleTime: 60_000,
   });
 
+  const resolvedVideoCenterId = selectedCourseCenterId ?? centerContextId;
+
   const videosQuery = useInfiniteQuery({
     queryKey: [
       "video-access-code-videos",
-      centerId ?? "none",
+      resolvedVideoCenterId ?? "none",
       resolvedCourseId || "none",
       videoSearch,
     ],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       listVideos({
-        centerId: centerId!,
+        centerId: resolvedVideoCenterId!,
         page: pageParam,
         per_page: FETCH_PAGE_SIZE,
         course_id: resolvedCourseId || undefined,
         search: videoSearch.trim() || undefined,
       }),
-    enabled: hasCenterId && !videoPreset && resolvedCourseId.length > 0,
+    enabled:
+      Boolean(resolvedVideoCenterId) &&
+      !videoPreset &&
+      resolvedCourseId.length > 0,
     getNextPageParam: (lastPage) => {
       const page = Number(lastPage.meta?.page ?? 1);
       const perPage = Number(lastPage.meta?.per_page ?? FETCH_PAGE_SIZE);
@@ -210,10 +314,15 @@ export function GenerateVideoAccessCodeDialog({
       (page) => page.items,
     );
     courses.forEach((course) => {
-      cachedCoursesRef.current.set(
-        String(course.id),
+      const courseLabel =
         asString((course as { title?: unknown }).title) ??
-          `Course ${course.id}`,
+        `Course ${course.id}`;
+      cachedCoursesRef.current.set(String(course.id), courseLabel);
+      const centerIdFromCourse =
+        (course as Course).center_id ?? (course as Course).center?.id ?? null;
+      courseCenterMapRef.current.set(
+        String(course.id),
+        normalizeCenterId(centerIdFromCourse),
       );
     });
   }, [coursesQuery.data?.pages]);
@@ -336,7 +445,8 @@ export function GenerateVideoAccessCodeDialog({
   }, [selectedVideo, videoPreset, videosQuery.data?.pages]);
 
   const handleGenerate = () => {
-    if (!hasCenterId) {
+    const centerIdForMutation = resolvedVideoCenterId;
+    if (!centerIdForMutation) {
       setErrorMessage("Center context is required.");
       return;
     }
@@ -358,7 +468,7 @@ export function GenerateVideoAccessCodeDialog({
 
     generateMutation.mutate(
       {
-        centerId,
+        centerId: centerIdForMutation,
         studentId: selectedStudent,
         payload: {
           video_id: selectedVideo,
@@ -391,9 +501,14 @@ export function GenerateVideoAccessCodeDialog({
 
     setErrorMessage(null);
 
+    const centerIdForMutation = resolvedVideoCenterId;
+    if (!centerIdForMutation) {
+      setErrorMessage("Center context is required.");
+      return;
+    }
     sendWhatsappMutation.mutate(
       {
-        centerId,
+        centerId: centerIdForMutation,
         codeId: generatedCode.id,
         payload: { format: whatsappFormat },
       },
@@ -440,27 +555,49 @@ export function GenerateVideoAccessCodeDialog({
         ) : null}
 
         <div className="space-y-3">
-          <SearchableSelect
-            value={selectedStudent || undefined}
-            onValueChange={(value) => setSelectedStudent(value ?? "")}
-            options={studentOptions}
-            searchValue={studentSearch}
-            onSearchValueChange={setStudentSearch}
-            placeholder="Student"
-            searchPlaceholder="Search students..."
-            emptyMessage="No students found"
-            isLoading={studentsQuery.isLoading}
-            filterOptions={false}
-            disabled={!hasCenterId || Boolean(studentPreset)}
-            hasMore={Boolean(studentsQuery.hasNextPage)}
-            isLoadingMore={studentsQuery.isFetchingNextPage}
-            onReachEnd={() => {
-              if (studentsQuery.hasNextPage) {
-                void studentsQuery.fetchNextPage();
-              }
-            }}
-            triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
-          />
+          {showCenterPicker ? (
+            <CenterPicker
+              hideWhenCenterScoped={false}
+              value={selectedCenterId}
+              onValueChange={(value) => setSelectedCenterId(value)}
+              selectClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+              typeFilter={centerPickerTypeFilter}
+              allLabel={centerPickerAllLabel}
+              disabled={centerPickerDisabled}
+            />
+          ) : null}
+          {studentPreset ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                Student
+              </p>
+              <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                {studentPreset.label}
+              </p>
+            </div>
+          ) : (
+            <SearchableSelect
+              value={selectedStudent || undefined}
+              onValueChange={(value) => setSelectedStudent(value ?? "")}
+              options={studentOptions}
+              searchValue={studentSearch}
+              onSearchValueChange={setStudentSearch}
+              placeholder="Student"
+              searchPlaceholder="Search students..."
+              emptyMessage="No students found"
+              isLoading={studentsQuery.isLoading}
+              filterOptions={false}
+              disabled={!hasCenterId}
+              hasMore={Boolean(studentsQuery.hasNextPage)}
+              isLoadingMore={studentsQuery.isFetchingNextPage}
+              onReachEnd={() => {
+                if (studentsQuery.hasNextPage) {
+                  void studentsQuery.fetchNextPage();
+                }
+              }}
+              triggerClassName="bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+            />
+          )}
 
           <SearchableSelect
             value={selectedCourse || undefined}
@@ -475,9 +612,15 @@ export function GenerateVideoAccessCodeDialog({
             options={courseOptions}
             searchValue={courseSearch}
             onSearchValueChange={setCourseSearch}
-            placeholder="Course"
+            placeholder={
+              hasCenterId ? "Course" : "Select a center to load courses"
+            }
             searchPlaceholder="Search courses..."
-            emptyMessage="No courses found"
+            emptyMessage={
+              hasCenterId
+                ? "No courses found"
+                : "Select a center to load courses"
+            }
             isLoading={coursesQuery.isLoading}
             filterOptions={false}
             disabled={!hasCenterId || Boolean(coursePreset)}
@@ -504,7 +647,11 @@ export function GenerateVideoAccessCodeDialog({
             }
             isLoading={videosQuery.isLoading}
             filterOptions={false}
-            disabled={!hasCenterId || Boolean(videoPreset) || !resolvedCourseId}
+            disabled={
+              !resolvedVideoCenterId ||
+              Boolean(videoPreset) ||
+              !resolvedCourseId
+            }
             hasMore={Boolean(videosQuery.hasNextPage)}
             isLoadingMore={videosQuery.isFetchingNextPage}
             onReachEnd={() => {
@@ -555,6 +702,121 @@ export function GenerateVideoAccessCodeDialog({
                   alt="Generated QR Code"
                   className="mx-auto max-h-44 max-w-full rounded"
                 />
+              </div>
+            ) : null}
+
+            <div className="grid gap-3 text-sm sm:grid-cols-3 sm:text-xs">
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
+                  Student
+                </p>
+                <p className="mt-1 font-semibold text-gray-900 dark:text-white">
+                  {generatedCode.student?.name ??
+                    studentPreset?.label ??
+                    cachedStudentsRef.current.get(selectedStudent) ??
+                    `Student ${selectedStudent || "?"}`}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
+                  Course
+                </p>
+                <p className="mt-1 font-semibold text-gray-900 dark:text-white">
+                  {generatedCode.course?.title ??
+                    coursePreset?.label ??
+                    cachedCoursesRef.current.get(resolvedCourseId) ??
+                    `Course ${resolvedCourseId || "?"}`}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
+                  Video
+                </p>
+                <p className="mt-1 font-semibold text-gray-900 dark:text-white">
+                  {generatedCode.video?.title ??
+                    videoPreset?.label ??
+                    cachedVideosRef.current.get(selectedVideo)?.title ??
+                    `Video ${selectedVideo || "?"}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
+                  Center
+                </p>
+                <p className="mt-1 font-semibold text-gray-900 dark:text-white">
+                  {generatedCode.center?.name ??
+                    (centerContextId ? `Center ${centerContextId}` : "N/A")}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
+                  WhatsApp
+                </p>
+                <p className="mt-1 font-semibold text-gray-900 dark:text-white">
+                  {generatedCode.whatsapp_sent == null
+                    ? "Not requested"
+                    : generatedCode.whatsapp_sent
+                      ? "Sent"
+                      : "Failed"}
+                </p>
+              </div>
+            </div>
+
+            {generatedCode.generated_by?.name ||
+            generatedCode.generated_at ||
+            generatedCode.whatsapp_error ? (
+              <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                {generatedCode.generated_by?.name ? (
+                  <p>
+                    Generated by:{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {generatedCode.generated_by.name}
+                    </span>
+                  </p>
+                ) : null}
+                {generatedCode.generated_at ? (
+                  <p>
+                    Generated at:{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {new Date(generatedCode.generated_at).toLocaleString()}
+                    </span>
+                  </p>
+                ) : null}
+                {generatedCode.whatsapp_error ? (
+                  <p className="text-red-500 dark:text-red-400">
+                    WhatsApp error: {generatedCode.whatsapp_error}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {generatedCode.generated_by?.name ||
+            generatedCode.generated_at ||
+            generatedCode.whatsapp_error ? (
+              <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                {generatedCode.generated_by?.name ? (
+                  <p>
+                    Generated by:{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {generatedCode.generated_by.name}
+                    </span>
+                  </p>
+                ) : null}
+                {generatedCode.generated_at ? (
+                  <p>
+                    Generated at:{" "}
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {new Date(generatedCode.generated_at).toLocaleString()}
+                    </span>
+                  </p>
+                ) : null}
+                {generatedCode.whatsapp_error ? (
+                  <p className="text-red-500 dark:text-red-400">
+                    WhatsApp error: {generatedCode.whatsapp_error}
+                  </p>
+                ) : null}
               </div>
             ) : null}
 
@@ -614,7 +876,7 @@ export function GenerateVideoAccessCodeDialog({
           </Button>
           <Button
             onClick={handleGenerate}
-            disabled={!hasCenterId || generateMutation.isPending}
+            disabled={!resolvedVideoCenterId || generateMutation.isPending}
           >
             {generateMutation.isPending ? "Generating..." : "Generate Code"}
           </Button>

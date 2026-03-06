@@ -35,6 +35,7 @@ import { GenerateVideoAccessCodeDialog } from "@/features/video-access/component
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
 import { can } from "@/lib/capabilities";
+import { getEducationName } from "@/features/education/types/education";
 
 type PageProps = {
   params: Promise<{ centerId: string; studentId: string }>;
@@ -365,6 +366,15 @@ export default function StudentProfilePage({
   }
 
   const studentProfile = profile!;
+  const gradeLabel = studentProfile.grade
+    ? getEducationName(studentProfile.grade, "Grade")
+    : "—";
+  const schoolLabel = studentProfile.school
+    ? getEducationName(studentProfile.school, "School")
+    : "—";
+  const collegeLabel = studentProfile.college
+    ? getEducationName(studentProfile.college, "College")
+    : "—";
 
   return (
     <div className="space-y-6">
@@ -451,6 +461,40 @@ export default function StudentProfilePage({
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {studentProfile.device_changes_count}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Education</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-lg border border-gray-200/80 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/50">
+              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Grade
+              </p>
+              <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                {gradeLabel}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200/80 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/50">
+              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                School
+              </p>
+              <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                {schoolLabel}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200/80 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/50">
+              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                College
+              </p>
+              <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                {collegeLabel}
               </p>
             </div>
           </div>
@@ -876,6 +920,7 @@ export default function StudentProfilePage({
           }
         }}
         centerId={centerId}
+        studentCenter={profile?.center ?? null}
         studentPreset={{
           id: profile?.id ?? studentId,
           label: profile?.name ?? "Student",

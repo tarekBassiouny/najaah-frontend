@@ -58,6 +58,7 @@ type CenterPickerProps = {
       slug?: string | null;
     } | null,
   ) => void;
+  typeFilter?: string;
 };
 
 const ALL_CENTERS_VALUE = "__all_centers__";
@@ -72,6 +73,7 @@ export function CenterPicker({
   disabled = false,
   value,
   onValueChange,
+  typeFilter,
 }: CenterPickerProps) {
   const { centerSlug, centerId, centerName } = useTenant();
   const isPlatformAdmin = !centerSlug;
@@ -100,13 +102,14 @@ export function CenterPicker({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ["center-picker-centers", debouncedSearch],
+    queryKey: ["center-picker-centers", debouncedSearch, typeFilter ?? "none"],
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       listCenterOptions({
         page: pageParam,
         per_page: CENTER_PICKER_PAGE_SIZE,
         search: debouncedSearch || undefined,
+        type: typeFilter || undefined,
       }),
     getNextPageParam: (lastPage) => {
       const page = Number(lastPage.meta?.page ?? 1);

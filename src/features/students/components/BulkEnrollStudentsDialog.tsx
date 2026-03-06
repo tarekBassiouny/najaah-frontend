@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +19,10 @@ import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { createCenterEnrollment } from "@/features/enrollments/services/enrollments.service";
 import type { Student } from "@/features/students/types/student";
+import {
+  getEnrollErrorMessage,
+  isAlreadyEnrolledMessage,
+} from "@/features/students/lib/enrollment-utils";
 
 const FILTER_LIST_PAGE_SIZE = 20;
 const FILTER_SEARCH_DEBOUNCE_MS = 300;
@@ -36,84 +39,6 @@ type BulkEnrollStudentsDialogProps = {
 function normalizeCenterId(value: string | number | null | undefined) {
   if (value == null) return null;
   return String(value).trim().length > 0 ? value : null;
-}
-
-function extractFirstMessage(node: unknown): string | null {
-  if (typeof node === "string" && node.trim()) {
-    return node.trim();
-  }
-
-  if (Array.isArray(node)) {
-    for (const item of node) {
-      const message = extractFirstMessage(item);
-      if (message) return message;
-    }
-    return null;
-  }
-
-  if (!node || typeof node !== "object") return null;
-
-  for (const value of Object.values(node as Record<string, unknown>)) {
-    const message = extractFirstMessage(value);
-    if (message) return message;
-  }
-
-  return null;
-}
-
-function getEnrollErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const status = error.response?.status ?? 0;
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, unknown>;
-          error?: {
-            code?: string;
-            message?: string;
-            details?: unknown;
-          };
-        }
-      | undefined;
-
-    const detailsMessage = extractFirstMessage(data?.error?.details);
-    if (detailsMessage) return detailsMessage;
-
-    const validationMessage = extractFirstMessage(data?.errors);
-    if (validationMessage) return validationMessage;
-
-    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
-      return data.error.message;
-    }
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (status === 401) {
-      return "Your session is invalid. Please sign in again.";
-    }
-    if (status === 403) {
-      return "You do not have permission to enroll this student for the selected center.";
-    }
-    if (status === 404) {
-      return "Selected course was not found for this center.";
-    }
-    if (status === 422) {
-      return "Unable to create enrollment with the selected student/course.";
-    }
-  }
-
-  return "Unable to enroll students. Please try again.";
-}
-
-function isAlreadyEnrolledMessage(message: string) {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("already enrolled") ||
-    normalized.includes("already exists") ||
-    normalized.includes("already has")
-  );
 }
 
 export function BulkEnrollStudentsDialog({

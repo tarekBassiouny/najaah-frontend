@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Student } from "@/features/students/types/student";
 import { resolveStudentStatus } from "@/features/students/utils/student-status";
 import { formatDateTime } from "@/lib/format-date-time";
+import { getEducationName } from "@/features/education/types/education";
 
 type StudentDetailsDrawerProps = {
   open: boolean;
@@ -38,6 +39,13 @@ export function StudentDetailsDrawer({
   const email = student?.email ?? "—";
   const phone = student?.phone
     ? `${student?.country_code ?? ""} ${student.phone}`.trim()
+    : "—";
+  const grade = student?.grade ? getEducationName(student.grade, "Grade") : "—";
+  const school = student?.school
+    ? getEducationName(student.school, "School")
+    : "—";
+  const college = student?.college
+    ? getEducationName(student.college, "College")
     : "—";
 
   return (
@@ -129,6 +137,34 @@ export function StudentDetailsDrawer({
                   <p className="text-xs text-gray-500">Viewed Videos</p>
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {analytics?.viewed_videos ?? 0}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Education
+                </h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                  <p className="text-xs text-gray-500">Grade</p>
+                  <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                    {grade}
+                  </p>
+                </div>
+                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                  <p className="text-xs text-gray-500">School</p>
+                  <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                    {school}
+                  </p>
+                </div>
+                <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                  <p className="text-xs text-gray-500">College</p>
+                  <p className="break-words text-base font-semibold text-gray-900 dark:text-white">
+                    {college}
                   </p>
                 </div>
               </div>

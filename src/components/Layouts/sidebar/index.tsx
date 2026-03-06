@@ -151,6 +151,10 @@ export function Sidebar({ sections }: SidebarProps) {
               return null;
             }
 
+            if (isUnbrandedCenter && item.title === "Education") {
+              return null;
+            }
+
             return item;
           })
           .filter(Boolean) as SidebarItem[];

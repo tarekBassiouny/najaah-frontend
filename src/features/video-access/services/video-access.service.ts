@@ -3,6 +3,8 @@ import type {
   ApproveVideoAccessRequestPayload,
   ApproveVideoAccessRequestResult,
   BulkApproveVideoAccessRequestsPayload,
+  BulkGenerateVideoAccessCodesPayload,
+  BulkGenerateVideoAccessCodesResult,
   BulkRejectVideoAccessRequestsPayload,
   BulkSendVideoAccessCodesWhatsappPayload,
   BulkWhatsappJob,
@@ -169,6 +171,14 @@ function buildBulkJobsBasePath(centerId?: string | number | null) {
   return `/api/v1/admin/centers/${normalizeCenterId(centerId)}/bulk-whatsapp-jobs`;
 }
 
+function buildVideoAccessCodesBulkPath(centerId?: string | number | null) {
+  if (centerId == null || String(centerId).trim().length === 0) {
+    return "/api/v1/admin/video-access-codes/bulk";
+  }
+
+  return `/api/v1/admin/centers/${normalizeCenterId(centerId)}/video-access-codes/bulk`;
+}
+
 export async function listVideoAccessRequests(
   params: ListVideoAccessRequestsParams,
   centerId?: string | number | null,
@@ -283,6 +293,18 @@ export async function generateVideoAccessCode(
   );
 
   return data?.data ?? (data as unknown as GeneratedVideoAccessCode);
+}
+
+export async function bulkGenerateVideoAccessCodes(
+  payload: BulkGenerateVideoAccessCodesPayload,
+  centerId?: string | number | null,
+): Promise<BulkGenerateVideoAccessCodesResult> {
+  const url = buildVideoAccessCodesBulkPath(centerId);
+  const { data } = await http.post<
+    RawItemResponse<BulkGenerateVideoAccessCodesResult>
+  >(url, payload);
+
+  return data?.data ?? (data as unknown as BulkGenerateVideoAccessCodesResult);
 }
 
 export async function sendVideoAccessCodeWhatsapp(

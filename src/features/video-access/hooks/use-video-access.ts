@@ -7,6 +7,7 @@ import {
 import {
   approveVideoAccessRequest,
   bulkApproveVideoAccessRequests,
+  bulkGenerateVideoAccessCodes,
   bulkRejectVideoAccessRequests,
   bulkSendVideoAccessCodesWhatsapp,
   generateVideoAccessCode,
@@ -21,6 +22,8 @@ import type {
   ApproveVideoAccessRequestPayload,
   ApproveVideoAccessRequestResult,
   BulkApproveVideoAccessRequestsPayload,
+  BulkGenerateVideoAccessCodesPayload,
+  BulkGenerateVideoAccessCodesResult,
   BulkRejectVideoAccessRequestsPayload,
   BulkSendVideoAccessCodesWhatsappPayload,
   BulkWhatsappJob,
@@ -154,6 +157,25 @@ export function useBulkRejectVideoAccessRequests() {
     }): Promise<VideoAccessBulkActionResult> =>
       bulkRejectVideoAccessRequests(payload, centerId),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-access-requests"] });
+    },
+  });
+}
+
+export function useBulkGenerateVideoAccessCodes() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      payload,
+      centerId,
+    }: {
+      payload: BulkGenerateVideoAccessCodesPayload;
+      centerId?: string | number | null;
+    }): Promise<BulkGenerateVideoAccessCodesResult> =>
+      bulkGenerateVideoAccessCodes(payload, centerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-access-codes"] });
       queryClient.invalidateQueries({ queryKey: ["video-access-requests"] });
     },
   });

@@ -168,6 +168,21 @@ function SettingsIcon({ className }: { className?: string }) {
   );
 }
 
+function isUnbrandedCenterType(type: unknown) {
+  if (type == null) return false;
+
+  if (typeof type === "number") {
+    return type === 0;
+  }
+
+  if (typeof type === "string") {
+    const normalized = type.trim().toLowerCase();
+    return normalized === "0" || normalized === "unbranded";
+  }
+
+  return false;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Navigation card config                                             */
 /* ------------------------------------------------------------------ */
@@ -208,6 +223,15 @@ const SECTIONS = [
     color: "text-amber-600 dark:text-amber-400",
     bg: "bg-amber-50 dark:bg-amber-950/40",
     border: "border-amber-100 dark:border-amber-900/50",
+  },
+  {
+    title: "Education",
+    description: "Manage grades, schools, and colleges for student profiles.",
+    href: (id: string) => `/centers/${id}/education`,
+    icon: BookIcon,
+    color: "text-cyan-700 dark:text-cyan-300",
+    bg: "bg-cyan-50 dark:bg-cyan-950/40",
+    border: "border-cyan-100 dark:border-cyan-900/50",
   },
   {
     title: "Categories",
@@ -303,6 +327,7 @@ export default function CenterDetailPage({ params }: PageProps) {
   const statusVariant = centerStatusNumber === 1 ? "success" : "error";
   const statusLabel =
     center?.status_label ?? (centerStatusNumber === 1 ? "Active" : "Inactive");
+  const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
 
   return (
     <div className="space-y-8">
@@ -383,14 +408,17 @@ export default function CenterDetailPage({ params }: PageProps) {
         </h2>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SECTIONS.map((section) => {
+          {(isUnbrandedCenter
+            ? SECTIONS.filter((section) => section.title !== "Education")
+            : SECTIONS
+          ).map((section) => {
             const Icon = section.icon;
+            const href =
+              isUnbrandedCenter && section.title === "Education"
+                ? "/education"
+                : section.href(centerId);
             return (
-              <Link
-                key={section.title}
-                href={section.href(centerId)}
-                className="group"
-              >
+              <Link key={section.title} href={href} className="group">
                 <Card
                   className={`h-full border transition-all duration-200 hover:shadow-md ${section.border} hover:border-gray-300 dark:hover:border-gray-600`}
                 >

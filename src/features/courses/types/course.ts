@@ -70,6 +70,7 @@ export type CourseSummary = {
   status_label?: string | null;
   is_published?: boolean | null;
   published_at?: string | null;
+  requires_video_approval?: boolean | null;
   slug?: string | null;
   [key: string]: unknown;
 };
@@ -94,6 +95,7 @@ export type Course = {
   status_label?: string | null;
   is_published?: boolean | null;
   published_at?: string | null;
+  requires_video_approval?: boolean | null;
   slug?: string | null;
   center?: CenterSummary | null;
   category?: CategorySummary | null;
@@ -119,6 +121,7 @@ export type CreateCoursePayload = {
   instructor_id?: string | number;
   primary_instructor_id?: string | number;
   thumbnail?: File | Blob;
+  requires_video_approval?: boolean | null;
   slug?: string;
   status?: string;
   [key: string]: unknown;
@@ -133,6 +136,7 @@ export type UpdateCoursePayload = {
   price?: number | string;
   instructor_id?: string | number;
   primary_instructor_id?: string | number;
+  requires_video_approval?: boolean | null;
   slug?: string;
   [key: string]: unknown;
 };

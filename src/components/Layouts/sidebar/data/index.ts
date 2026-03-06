@@ -52,6 +52,8 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
     `/centers/${centerId}/student-requests/extra-view`,
   "/student-requests/device-change": (centerId) =>
     `/centers/${centerId}/student-requests/device-change`,
+  "/student-requests/video-access": (centerId) =>
+    `/centers/${centerId}/student-requests/video-access`,
   "/audit-logs": (centerId) => `/centers/${centerId}/audit-logs`,
 };
 
@@ -64,6 +66,22 @@ const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   { pattern: "/profile/*", capabilities: [] },
   { pattern: "/playback", capabilities: ["override_video_playback"] },
   { pattern: "/playback/*", capabilities: ["override_video_playback"] },
+  {
+    pattern: "/student-requests/video-access",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/student-requests/video-access/*",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/student-requests/video-access",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/student-requests/video-access/*",
+    capabilities: ["manage_video_access"],
+  },
   { pattern: "/devices/*", capabilities: ["manage_students"] },
 ];
 

@@ -30,6 +30,9 @@ type CenterPolicyFormProps = {
 type EditablePolicyValues = {
   default_view_limit: string;
   allow_extra_view_requests: boolean;
+  requires_video_approval: boolean;
+  video_code_expiry_days: string;
+  whatsapp_max_retries: string;
   pdf_download_permission: boolean;
   device_limit: string;
 };
@@ -39,13 +42,21 @@ type EditablePolicyKey = keyof EditablePolicyValues;
 const CENTER_POLICY_KEYS: EditablePolicyKey[] = [
   "default_view_limit",
   "allow_extra_view_requests",
+  "requires_video_approval",
+  "video_code_expiry_days",
+  "whatsapp_max_retries",
   "pdf_download_permission",
   "device_limit",
 ];
 
+const WHATSAPP_MAX_RETRIES_FALLBACK = 2;
+
 const EMPTY_EDITABLE_VALUES: EditablePolicyValues = {
   default_view_limit: "",
   allow_extra_view_requests: false,
+  requires_video_approval: false,
+  video_code_expiry_days: "",
+  whatsapp_max_retries: String(WHATSAPP_MAX_RETRIES_FALLBACK),
   pdf_download_permission: false,
   device_limit: "",
 };
@@ -83,12 +94,36 @@ function readIntegerInput(value: unknown): string {
 
 function mapResolvedSettingsToEditableValues(
   resolvedSettings: CenterResolvedSettings,
+  persistedSettings: CenterSettingsMap,
 ): EditablePolicyValues {
+  const persistedSettingsRecord = asRecord(persistedSettings);
+  const whatsappBulkSettings = asRecord(
+    persistedSettingsRecord?.whatsapp_bulk_settings,
+  );
+
+  const persistedWhatsappMaxRetries = whatsappBulkSettings?.max_retries;
+  const whatsappMaxRetries =
+    typeof persistedWhatsappMaxRetries === "number" &&
+    Number.isFinite(persistedWhatsappMaxRetries)
+      ? persistedWhatsappMaxRetries
+      : typeof persistedWhatsappMaxRetries === "string" &&
+          persistedWhatsappMaxRetries.trim().length > 0 &&
+          Number.isFinite(Number(persistedWhatsappMaxRetries))
+        ? Number(persistedWhatsappMaxRetries)
+        : WHATSAPP_MAX_RETRIES_FALLBACK;
+
   return {
     default_view_limit: readIntegerInput(resolvedSettings.default_view_limit),
     allow_extra_view_requests: readBoolean(
       resolvedSettings.allow_extra_view_requests,
     ),
+    requires_video_approval: readBoolean(
+      resolvedSettings.requires_video_approval,
+    ),
+    video_code_expiry_days: readIntegerInput(
+      resolvedSettings.video_code_expiry_days,
+    ),
+    whatsapp_max_retries: readIntegerInput(whatsappMaxRetries),
     pdf_download_permission: readBoolean(
       resolvedSettings.pdf_download_permission,
     ),
@@ -102,6 +137,8 @@ function normalizeEditableValuesForComparison(
   return {
     ...values,
     default_view_limit: values.default_view_limit.trim(),
+    video_code_expiry_days: values.video_code_expiry_days.trim(),
+    whatsapp_max_retries: values.whatsapp_max_retries.trim(),
     device_limit: values.device_limit.trim(),
   };
 }
@@ -127,6 +164,21 @@ function getCenterSettingSourceLabel(
   key: EditablePolicyKey,
   persistedSettings: CenterSettingsMap,
 ): string {
+  if (key === "whatsapp_max_retries") {
+    const persistedSettingsRecord = asRecord(persistedSettings);
+    const whatsappBulkSettings = asRecord(
+      persistedSettingsRecord?.whatsapp_bulk_settings,
+    );
+    const rawMaxRetries = whatsappBulkSettings?.max_retries;
+    const hasCustomMaxRetries =
+      (typeof rawMaxRetries === "number" && Number.isFinite(rawMaxRetries)) ||
+      (typeof rawMaxRetries === "string" && rawMaxRetries.trim().length > 0);
+
+    return hasCustomMaxRetries
+      ? "Custom for this center"
+      : "Using inherited default";
+  }
+
   return hasOwnKey(asRecord(persistedSettings), key)
     ? "Custom for this center"
     : "Using inherited default";
@@ -155,13 +207,13 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
     () => data?.settings ?? {},
     [data?.settings],
   );
-  const catalog = useMemo(() => data?.catalog ?? {}, [data?.catalog]);
 
   useEffect(() => {
     if (!data) return;
 
     const nextValues = mapResolvedSettingsToEditableValues(
       data.resolved_settings,
+      data.settings,
     );
     setFormValues(nextValues);
     setInitialValues(nextValues);
@@ -199,6 +251,39 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
       return;
     }
 
+    const videoCodeExpiryDays = parseOptionalInteger(
+      formValues.video_code_expiry_days,
+      "Video code expiry days",
+    );
+    if (!videoCodeExpiryDays.ok) {
+      setFormError(videoCodeExpiryDays.message);
+      return;
+    }
+    if (
+      typeof videoCodeExpiryDays.value === "number" &&
+      videoCodeExpiryDays.value < 1
+    ) {
+      setFormError("Video code expiry days must be at least 1.");
+      return;
+    }
+
+    const whatsappMaxRetries = parseOptionalInteger(
+      formValues.whatsapp_max_retries,
+      "WhatsApp max retries",
+    );
+    if (!whatsappMaxRetries.ok) {
+      setFormError(whatsappMaxRetries.message);
+      return;
+    }
+    const normalizedWhatsappMaxRetries =
+      typeof whatsappMaxRetries.value === "number"
+        ? whatsappMaxRetries.value
+        : WHATSAPP_MAX_RETRIES_FALLBACK;
+    if (normalizedWhatsappMaxRetries < 0) {
+      setFormError("WhatsApp max retries must be 0 or greater.");
+      return;
+    }
+
     const normalizedCurrent = normalizeEditableValuesForComparison(formValues);
     const normalizedInitial =
       normalizeEditableValuesForComparison(initialValues);
@@ -214,12 +299,12 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
     }
 
     const centerPayloadSettings: Record<string, unknown> = {};
+    const persistedSettingsRecord = asRecord(persistedSettings);
+    const existingWhatsappBulkSettings = asRecord(
+      persistedSettingsRecord?.whatsapp_bulk_settings,
+    );
 
     for (const key of changedKeys) {
-      if (catalog[key]?.scope !== "center") {
-        continue;
-      }
-
       switch (key) {
         case "default_view_limit":
           centerPayloadSettings.default_view_limit = defaultViewLimit.value;
@@ -227,6 +312,20 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
         case "allow_extra_view_requests":
           centerPayloadSettings.allow_extra_view_requests =
             formValues.allow_extra_view_requests;
+          break;
+        case "requires_video_approval":
+          centerPayloadSettings.requires_video_approval =
+            formValues.requires_video_approval;
+          break;
+        case "video_code_expiry_days":
+          centerPayloadSettings.video_code_expiry_days =
+            videoCodeExpiryDays.value;
+          break;
+        case "whatsapp_max_retries":
+          centerPayloadSettings.whatsapp_bulk_settings = {
+            ...(existingWhatsappBulkSettings ?? {}),
+            max_retries: normalizedWhatsappMaxRetries,
+          };
           break;
         case "pdf_download_permission":
           centerPayloadSettings.pdf_download_permission =
@@ -337,7 +436,7 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="default-view-limit">Default View Limit</Label>
@@ -381,9 +480,60 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                 className="h-11 rounded-xl"
               />
             </div>
+
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor="video-code-expiry-days">
+                  Video Code Expiry (Days)
+                </Label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {getCenterSettingSourceLabel(
+                    "video_code_expiry_days",
+                    persistedSettings,
+                  )}
+                </p>
+              </div>
+              <Input
+                id="video-code-expiry-days"
+                value={formValues.video_code_expiry_days}
+                onChange={(event) =>
+                  handleInputChange(
+                    "video_code_expiry_days",
+                    event.target.value,
+                  )
+                }
+                placeholder="e.g., 30"
+                inputMode="numeric"
+                className="h-11 rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <Label htmlFor="whatsapp-max-retries">
+                  WhatsApp Max Retries
+                </Label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {getCenterSettingSourceLabel(
+                    "whatsapp_max_retries",
+                    persistedSettings,
+                  )}
+                </p>
+              </div>
+              <Input
+                id="whatsapp-max-retries"
+                value={formValues.whatsapp_max_retries}
+                onChange={(event) =>
+                  handleInputChange("whatsapp_max_retries", event.target.value)
+                }
+                placeholder="e.g., 2"
+                inputMode="numeric"
+                className="h-11 rounded-xl"
+              />
+            </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <label className="space-y-2 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
               <span className="flex items-center gap-2">
                 <input
@@ -401,6 +551,28 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(
                   "allow_extra_view_requests",
+                  persistedSettings,
+                )}
+              </span>
+            </label>
+
+            <label className="space-y-2 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
+              <span className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formValues.requires_video_approval}
+                  onChange={(event) =>
+                    handleInputChange(
+                      "requires_video_approval",
+                      event.target.checked,
+                    )
+                  }
+                />
+                Require video approval
+              </span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">
+                {getCenterSettingSourceLabel(
+                  "requires_video_approval",
                   persistedSettings,
                 )}
               </span>

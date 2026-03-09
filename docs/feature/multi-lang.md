@@ -49,6 +49,6 @@
 | Document backend contract + multi-lang UX | Frontend/PM | ✅ In doc | This file captures the current plan. |
 | Build LocaleContext/provider | Frontend | ✅ Completed | Adds `setApiLocale`, storage, and `<html lang>` sync. |
 | Header locale toggle + UX cues | Frontend | ✅ Completed | Hook up new provider to header and admin forms. |
-| Landing page editor updates (EN + AR inputs) | Frontend | ❌ Pending | Need to rework hero/about/contact tabs to honor translation objects. |
-| Public landing page locale rendering | Frontend | ❌ Pending | Ensure Accept-Language/X-Locale drives the right strings and preview uses locale param. |
+| Landing page editor updates (EN + AR inputs) | Frontend | ✅ Completed | Hero/about editor with per-locale inputs and preview button now live. |
+| Public landing page locale rendering | Frontend | ✅ Completed | New `/landing/[slug]` resolver renders hero/about/contact using the request locale. |
 | QA/tests for multi-lang flow | QA | ❌ Pending | Add unit/integration coverage for context and locale-aware network requests. |

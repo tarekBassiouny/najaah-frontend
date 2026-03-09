@@ -8,6 +8,7 @@ import { Notification } from "./notification";
 import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
 import { useSidebarContext } from "../sidebar/sidebar-context";
+import { LocaleToggle } from "@/components/ui/locale-toggle";
 
 export function Header() {
   const { openSidebar } = useSidebarContext();
@@ -42,6 +43,7 @@ export function Header() {
       </div>
 
       <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+        <LocaleToggle />
         <ThemeToggleSwitch />
         <Notification />
         <UserInfo />

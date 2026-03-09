@@ -14,6 +14,7 @@ import { ModalProvider } from "@/components/ui/modal-store";
 import { ModalHost } from "@/components/ui/modal-host";
 import { tokenStorage } from "@/lib/token-storage";
 import { cancelTokenRefresh, scheduleTokenRefresh } from "@/lib/token-refresh";
+import { LocaleProvider } from "@/features/localization/locale-context";
 
 function AuthChannelSync() {
   const queryClient = useQueryClient();
@@ -84,12 +85,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthChannelSync />
         <TenantProvider>
-          <AppBootstrapProvider>
-            <ModalProvider>
-              {children}
-              <ModalHost />
-            </ModalProvider>
-          </AppBootstrapProvider>
+          <LocaleProvider>
+            <AppBootstrapProvider>
+              <ModalProvider>
+                {children}
+                <ModalHost />
+              </ModalProvider>
+            </AppBootstrapProvider>
+          </LocaleProvider>
         </TenantProvider>
       </QueryClientProvider>
     </ThemeProvider>

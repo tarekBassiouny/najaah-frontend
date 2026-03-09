@@ -5,31 +5,17 @@ import {
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import {
-  generateLandingPagePreviewToken,
-  getLandingPage,
-  publishLandingPage,
-  unpublishLandingPage,
-  updateLandingPageAbout,
-  updateLandingPageContact,
-  updateLandingPageHero,
-  updateLandingPageMeta,
-  updateLandingPageSocial,
-  updateLandingPageStyling,
-  updateLandingPageVisibility,
-  uploadLandingPageAboutImage,
-  uploadLandingPageHeroBackground,
-  uploadTestimonialImage,
   createTestimonial,
   deleteTestimonial,
-  listTestimonials,
+  fetchLandingPage,
   reorderTestimonials,
+  requestLandingPagePreviewToken,
+  updateLandingPageSection,
   updateTestimonial,
 } from "@/features/centers/services/landing-page.service";
 import type {
-  LandingPageResource,
-  LandingPageSection,
-  LandingPageSectionPayload,
-  LandingPageTestimonialPayload,
+  LandingPagePayload,
+  LandingPageTestimonial,
 } from "@/features/centers/types/landing-page";
 
 const landingPageKey = (centerId: string | number) => [
@@ -37,10 +23,34 @@ const landingPageKey = (centerId: string | number) => [
   centerId,
 ];
 
+type LandingPageSection =
+  | "meta"
+  | "hero"
+  | "about"
+  | "contact"
+  | "social"
+  | "styling"
+  | "visibility";
+
+type SectionPayload = Partial<LandingPagePayload>;
+
 type UseLandingPageOptions = Omit<
-  UseQueryOptions<LandingPageResource, unknown, LandingPageResource>,
+  UseQueryOptions<
+    LandingPagePayload | null,
+    unknown,
+    LandingPagePayload | null
+  >,
   "queryKey" | "queryFn"
 >;
+
+function syncLandingPageCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  centerId: string | number,
+  payload: LandingPagePayload | null,
+) {
+  if (!payload) return;
+  queryClient.setQueryData(landingPageKey(centerId), payload);
+}
 
 export function useLandingPage(
   centerId: string | number | undefined,
@@ -52,35 +62,11 @@ export function useLandingPage(
       if (!centerId) {
         throw new Error("Center ID is required for landing page query");
       }
-      return getLandingPage(centerId);
+      return fetchLandingPage(centerId);
     },
     enabled: Boolean(centerId),
     ...options,
   });
-}
-
-const sectionMutators: Record<
-  LandingPageSection,
-  (
-    _centerId: string | number,
-    _payload: LandingPageSectionPayload,
-  ) => Promise<LandingPageResource>
-> = {
-  meta: updateLandingPageMeta,
-  hero: updateLandingPageHero,
-  about: updateLandingPageAbout,
-  contact: updateLandingPageContact,
-  social: updateLandingPageSocial,
-  styling: updateLandingPageStyling,
-  visibility: updateLandingPageVisibility,
-};
-
-function syncLandingPageCache(
-  queryClient: ReturnType<typeof useQueryClient>,
-  centerId: string | number,
-  payload: LandingPageResource,
-) {
-  queryClient.setQueryData(landingPageKey(centerId), payload);
 }
 
 export function useLandingPageSectionMutation(
@@ -88,44 +74,13 @@ export function useLandingPageSectionMutation(
   section: LandingPageSection,
 ) {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (payload: LandingPageSectionPayload) => {
+    mutationFn: (payload: SectionPayload) => {
       if (!centerId) {
         throw new Error("Center ID is required to update landing page section");
       }
-      return sectionMutators[section](centerId, payload);
-    },
-    onSuccess: (data) => {
-      if (!centerId) return;
-      syncLandingPageCache(queryClient, centerId, data);
-    },
-  });
-}
-
-export function useLandingPagePublish(centerId: string | number | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => {
-      if (!centerId) {
-        throw new Error("Center ID is required to publish landing page");
-      }
-      return publishLandingPage(centerId);
-    },
-    onSuccess: (data) => {
-      if (!centerId) return;
-      syncLandingPageCache(queryClient, centerId, data);
-    },
-  });
-}
-
-export function useLandingPageUnpublish(centerId: string | number | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => {
-      if (!centerId) {
-        throw new Error("Center ID is required to unpublish landing page");
-      }
-      return unpublishLandingPage(centerId);
+      return updateLandingPageSection(centerId, section, payload);
     },
     onSuccess: (data) => {
       if (!centerId) return;
@@ -140,60 +95,9 @@ export function useLandingPagePreviewToken(
   return useMutation({
     mutationFn: () => {
       if (!centerId) {
-        throw new Error(
-          "Center ID is required to generate landing page preview token",
-        );
+        throw new Error("Center ID is required to request preview token");
       }
-      return generateLandingPagePreviewToken(centerId);
-    },
-  });
-}
-
-export function useLandingPageHeroBackgroundUpload(
-  centerId: string | number | undefined,
-) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (file: File) => {
-      if (!centerId) {
-        throw new Error("Center ID is required to upload hero background");
-      }
-      return uploadLandingPageHeroBackground(centerId, file);
-    },
-    onSuccess: (data) => {
-      if (!centerId) return;
-      syncLandingPageCache(queryClient, centerId, data);
-    },
-  });
-}
-
-export function useLandingPageAboutImageUpload(
-  centerId: string | number | undefined,
-) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (file: File) => {
-      if (!centerId) {
-        throw new Error("Center ID is required to upload about image");
-      }
-      return uploadLandingPageAboutImage(centerId, file);
-    },
-    onSuccess: (data) => {
-      if (!centerId) return;
-      syncLandingPageCache(queryClient, centerId, data);
-    },
-  });
-}
-
-export function useLandingPageTestimonialImageUpload(
-  centerId: string | number | undefined,
-) {
-  return useMutation({
-    mutationFn: (file: File) => {
-      if (!centerId) {
-        throw new Error("Center ID is required to upload testimonial image");
-      }
-      return uploadTestimonialImage(centerId, file);
+      return requestLandingPagePreviewToken(centerId);
     },
   });
 }
@@ -204,7 +108,7 @@ export function useLandingPageTestimonials(
   const queryClient = useQueryClient();
 
   const create = useMutation({
-    mutationFn: (payload: LandingPageTestimonialPayload) => {
+    mutationFn: (payload: LandingPageTestimonial) => {
       if (!centerId) {
         throw new Error("Center ID is required to create testimonial");
       }
@@ -222,7 +126,7 @@ export function useLandingPageTestimonials(
       payload,
     }: {
       testimonialId: number;
-      payload: LandingPageTestimonialPayload;
+      payload: LandingPageTestimonial;
     }) => {
       if (!centerId) {
         throw new Error("Center ID is required to update testimonial");
@@ -261,20 +165,10 @@ export function useLandingPageTestimonials(
     },
   });
 
-  const list = useMutation({
-    mutationFn: () => {
-      if (!centerId) {
-        throw new Error("Center ID is required to list testimonials");
-      }
-      return listTestimonials(centerId);
-    },
-  });
-
   return {
     create,
     update,
     remove,
     reorder,
-    list,
   };
 }

@@ -1,70 +1,52 @@
-export type LandingPageResolveHero = {
-  hero_title?: string | null;
-  hero_subtitle?: string | null;
-  hero_background_url?: string | null;
+import type { LocalizedString } from "@/features/centers/types/landing-page";
+
+export interface LandingPageHeroSection {
+  hero_title?: LocalizedString | null;
+  hero_subtitle?: LocalizedString | null;
   hero_cta_text?: string | null;
   hero_cta_url?: string | null;
-};
+  hero_background_url?: string | null;
+}
 
-export type LandingPageResolveAbout = {
-  about_title?: string | null;
-  about_content?: string | null;
+export interface LandingPageAboutSection {
+  about_title?: LocalizedString | null;
+  about_content?: LocalizedString | null;
   about_image_url?: string | null;
-};
+}
 
-export type LandingPageResolveContact = {
+export interface LandingPageContactSection {
   contact_email?: string | null;
   contact_phone?: string | null;
   contact_address?: string | null;
-};
+}
 
-export type LandingPageResolveSocial = {
-  social_facebook?: string | null;
-  social_twitter?: string | null;
-  social_instagram?: string | null;
-  social_youtube?: string | null;
-  social_linkedin?: string | null;
-  social_tiktok?: string | null;
-};
-
-export type LandingPageResolveStyling = {
-  primary_color?: string | null;
-  secondary_color?: string | null;
-  font_family?: string | null;
-};
-
-export type LandingPageResolveVisibility = {
+export interface LandingPageVisibility {
   show_hero?: boolean | null;
   show_about?: boolean | null;
   show_courses?: boolean | null;
   show_testimonials?: boolean | null;
   show_contact?: boolean | null;
-};
+}
 
-export type LandingPageResolveTestimonial = {
-  id: number;
-  author_name?: string | null;
-  author_title?: string | null;
-  author_image_url?: string | null;
-  content?: string | null;
-  rating?: number | null;
-};
-
-export type LandingPageResolveResource = {
+export interface LandingPageTestimonial {
   id?: number;
-  slug: string;
-  name?: string | null;
-  center_slug?: string | null;
-  courses_url?: string | null;
-  hero?: LandingPageResolveHero | null;
-  about?: LandingPageResolveAbout | null;
-  contact?: LandingPageResolveContact | null;
-  social?: LandingPageResolveSocial | null;
-  styling?: LandingPageResolveStyling | null;
-  visibility?: LandingPageResolveVisibility | null;
-  testimonials?: LandingPageResolveTestimonial[];
-  meta_title?: string | null;
-  meta_description?: string | null;
-  meta_keywords?: string | null;
+  author_name?: string;
+  author_title?: string;
+  author_image_url?: string;
+  content?: LocalizedString | null;
+  rating?: number;
+  is_active?: boolean;
+}
+
+export interface LandingPageResolveResponse {
+  slug?: string;
+  hero?: LandingPageHeroSection | null;
+  about?: LandingPageAboutSection | null;
+  contact?: LandingPageContactSection | null;
+  visibility?: LandingPageVisibility | null;
+  testimonials?: LandingPageTestimonial[] | null;
+  status?: string;
+  is_published?: boolean;
+  show_courses?: boolean;
   [key: string]: unknown;
-};
+}

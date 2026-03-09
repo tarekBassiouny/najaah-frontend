@@ -133,16 +133,10 @@ export function InstructorFormDialog({
       ? instructor.avatar_url
       : null;
 
-  const avatarDisplayNameValue =
-    instructor?.name ?? instructor?.email ?? instructor?.id;
   const avatarDisplayName =
-    avatarDisplayNameValue != null
-      ? String(
-          instructor?.name ??
-            instructor?.email ??
-            `Instructor ${instructor?.id ?? ""}`,
-        )
-      : "Instructor";
+    instructor?.name ??
+    instructor?.email ??
+    (instructor?.id != null ? `Instructor ${instructor.id}` : displayName);
 
   const avatarDisplaySrc = avatarPreview ?? avatarUrl;
 
@@ -279,20 +273,23 @@ export function InstructorFormDialog({
       return;
     }
 
-    createMutation.mutate(payload, {
-      onSuccess: (savedInstructor) => {
-        onOpenChange(false);
-        onSaved?.(savedInstructor);
-        onSuccess?.("Instructor created successfully.");
-      },
-      onError: (error) =>
-        setFormError(
-          getInstructorApiErrorMessage(
-            error,
-            "Unable to save instructor. Please try again.",
+    createMutation.mutate(
+      { payload, avatar: avatarFile ?? undefined },
+      {
+        onSuccess: (savedInstructor) => {
+          onOpenChange(false);
+          onSaved?.(savedInstructor);
+          onSuccess?.("Instructor created successfully.");
+        },
+        onError: (error) =>
+          setFormError(
+            getInstructorApiErrorMessage(
+              error,
+              "Unable to save instructor. Please try again.",
+            ),
           ),
-        ),
-    });
+      },
+    );
   };
 
   return (
@@ -339,38 +336,38 @@ export function InstructorFormDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid gap-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-900/40 md:grid-cols-2"
           >
-            {isEditMode ? (
-              <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:col-span-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-semibold uppercase text-white">
-                    {avatarDisplaySrc ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={avatarDisplaySrc}
-                        alt={`${avatarDisplayName} avatar`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      getInitials(avatarDisplayName)
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Avatar
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      JPG, PNG, or WebP. Max size 5MB.
-                    </p>
-                  </div>
+            <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:col-span-2">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-semibold uppercase text-white">
+                  {avatarDisplaySrc ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={avatarDisplaySrc}
+                      alt={`${avatarDisplayName} avatar`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    getInitials(avatarDisplayName)
+                  )}
                 </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Avatar
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    JPG, PNG, or WebP. Max size 5MB.
+                  </p>
+                </div>
+              </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <Input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleAvatarFileChange}
-                    disabled={isPending}
-                  />
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarFileChange}
+                  disabled={isPending}
+                />
+                {isEditMode ? (
                   <Button
                     type="button"
                     variant="outline"
@@ -381,15 +378,19 @@ export function InstructorFormDialog({
                       ? "Uploading..."
                       : "Upload Avatar"}
                   </Button>
-                </div>
-
-                {avatarError ? (
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    {avatarError}
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Avatar will upload with the new instructor when you submit.
                   </p>
-                ) : null}
+                )}
               </div>
-            ) : null}
+
+              {avatarError ? (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {avatarError}
+                </p>
+              ) : null}
+            </div>
 
             <FormField
               control={form.control}

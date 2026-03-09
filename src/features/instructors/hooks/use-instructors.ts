@@ -77,8 +77,13 @@ export function useCreateInstructor(context?: InstructorsApiScopeContext) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateInstructorPayload) =>
-      createInstructor(payload, context),
+    mutationFn: ({
+      payload,
+      avatar,
+    }: {
+      payload: CreateInstructorPayload;
+      avatar?: File | Blob;
+    }) => createInstructor(payload, context, avatar),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: instructorKeys.all });
     },

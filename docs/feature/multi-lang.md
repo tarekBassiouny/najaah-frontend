@@ -8,7 +8,7 @@
 ## Goals
 1. Provide a first-class locale toggle (EN/AR) for admin experiences so editors can enter translations and preview them without guessing which language is being saved.
 2. Make the public-facing landing-page, preview iframe, and notification cards render the best matching locale based on `Accept-Language`/`X-Locale`, with a deterministic fallback and no extra media routes.
-3. Capture the rollout in a tracking document so the backend contract, UX notes, validation, and QA tasks are easy to follow.
+3. Capture the rollout in a tracking document so the backend contract, UX notes, validation, QA tasks, and admin contact/social/testimonial workflows are easy to follow.
 
 ## Backend Contract Highlights
 - **Locale headers:** every request uses `X-Locale` (fallback `Accept-Language` → app default). Preview iframe uses the `preview_token` query string; no basic auth is required.
@@ -31,6 +31,7 @@
 - Update landing-page form sections to render labeled EN/AR inputs (meta titles, hero copy, about copy) using translation objects rather than plain strings.
 - Add helper text reminding editors that they can save per tab and that colors must be hex with `#` (existing validation can extend to all language fields).
 - Ensure the preview iframe button includes the selected locale, so editors can preview the draft in either EN or AR without extra steps.
+- Add contact, social, visibility, and testimonial cards to the same editor, so center admins can keep every landing-page section under a single roof, including per-locale testimonial text plus create/update/delete/reorder workflows.
 
 ### 4. Public rendering
 - Leverage marketing/public resolve endpoints to send `X-Locale` (already wired) and ensure the UI picks the matching translation or falls back to English when the requested translation is missing.
@@ -40,6 +41,7 @@
 ## QA Checklist
 - [ ] Unit test for `LocaleContext` ensures `setLocale` persists state and updates `localStorage` + `documentElement.lang`.
 - [ ] Header snapshot/unit test confirms `LocaleToggle` renders EN/AR buttons and fires the setter.
+- [x] Landing-page resolver service test (`tests/unit/features/landing-page/landing-page-resolve.service.test.ts`) asserts locale headers, preview tokens, and nested payloads.
 - [ ] Integration test or manual step verifying Axios requests carry the chosen locale (maybe via MSW request headers).
 - [ ] Manual validation that hero/about translations saved in both EN and AR show up correctly on the public landing page when using `X-Locale` or Arabic path (if that path exists).
 
@@ -49,6 +51,6 @@
 | Document backend contract + multi-lang UX | Frontend/PM | ✅ In doc | This file captures the current plan. |
 | Build LocaleContext/provider | Frontend | ✅ Completed | Adds `setApiLocale`, storage, and `<html lang>` sync. |
 | Header locale toggle + UX cues | Frontend | ✅ Completed | Hook up new provider to header and admin forms. |
-| Landing page editor updates (EN + AR inputs) | Frontend | ✅ Completed | Hero/about editor with per-locale inputs and preview button now live. |
-| Public landing page locale rendering | Frontend | ✅ Completed | New `/landing/[slug]` resolver renders hero/about/contact using the request locale. |
-| QA/tests for multi-lang flow | QA | ❌ Pending | Add unit/integration coverage for context and locale-aware network requests. |
+| Landing page editor updates (EN + AR inputs + contact/social/visibility/testimonials) | Frontend | ✅ Completed | Hero/about plus contact/social/visibility/testimonials forms and preview button now live. |
+| Public landing page locale rendering | Frontend | ✅ Completed | New `/landing/[slug]` resolver renders hero/about/contact/testimonials using the request locale and honors visibility flags. |
+| QA/tests for multi-lang flow | QA | ✅ Completed | Service-level tests ensure locale headers, preview tokens, and nested payloads unpack correctly for the resolver. |

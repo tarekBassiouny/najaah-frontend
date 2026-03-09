@@ -23,6 +23,15 @@ export interface LandingPageContact {
   contact_address?: string | null;
 }
 
+export interface LandingPageSocial {
+  social_facebook?: string | null;
+  social_twitter?: string | null;
+  social_instagram?: string | null;
+  social_youtube?: string | null;
+  social_linkedin?: string | null;
+  social_tiktok?: string | null;
+}
+
 export interface LandingPageVisibility {
   show_hero?: boolean | null;
   show_about?: boolean | null;
@@ -31,11 +40,23 @@ export interface LandingPageVisibility {
   show_contact?: boolean | null;
 }
 
+export interface LandingPageTestimonial {
+  id?: number;
+  author_name?: string;
+  author_title?: string | null;
+  author_image_url?: string | null;
+  content?: LocalizedString | null;
+  rating?: number;
+  is_active?: boolean;
+}
+
 export interface LandingPagePayload {
   hero?: LandingPageHero | null;
   about?: LandingPageAbout | null;
   contact?: LandingPageContact | null;
   visibility?: LandingPageVisibility | null;
+  social?: LandingPageSocial | null;
+  testimonials?: LandingPageTestimonial[] | null;
   status?: string;
   is_published?: boolean;
   [key: string]: unknown;

@@ -3,6 +3,7 @@ import type {
   LandingPageHero,
   LandingPageAbout,
   LandingPagePayload,
+  LandingPageTestimonial,
 } from "@/features/centers/types/landing-page";
 
 const baseLandingPagePath = (centerId: string | number) =>
@@ -40,6 +41,58 @@ export async function updateLandingPageSection(
   const response = await http.patch<LandingPageResponse<LandingPagePayload>>(
     url,
     payload,
+  );
+  return unwrap<LandingPagePayload>(response.data);
+}
+
+const landingPageTestimonialsPath = (centerId: string | number) =>
+  `${baseLandingPagePath(centerId)}/testimonials`;
+
+export async function createTestimonial(
+  centerId: string | number,
+  payload: Partial<LandingPageTestimonial>,
+) {
+  const url = landingPageTestimonialsPath(centerId);
+  const response = await http.post<LandingPageResponse<LandingPagePayload>>(
+    url,
+    payload,
+  );
+  return unwrap<LandingPagePayload>(response.data);
+}
+
+export async function updateTestimonial(
+  centerId: string | number,
+  testimonialId: number,
+  payload: Partial<LandingPageTestimonial>,
+) {
+  const url = `${landingPageTestimonialsPath(centerId)}/${testimonialId}`;
+  const response = await http.put<LandingPageResponse<LandingPagePayload>>(
+    url,
+    payload,
+  );
+  return unwrap<LandingPagePayload>(response.data);
+}
+
+export async function deleteTestimonial(
+  centerId: string | number,
+  testimonialId: number,
+) {
+  const url = `${landingPageTestimonialsPath(centerId)}/${testimonialId}`;
+  const response =
+    await http.delete<LandingPageResponse<LandingPagePayload>>(url);
+  return unwrap<LandingPagePayload>(response.data);
+}
+
+export async function reorderTestimonials(
+  centerId: string | number,
+  testimonialIds: number[],
+) {
+  const url = `${landingPageTestimonialsPath(centerId)}/reorder`;
+  const response = await http.post<LandingPageResponse<LandingPagePayload>>(
+    url,
+    {
+      testimonial_ids: testimonialIds,
+    },
   );
   return unwrap<LandingPagePayload>(response.data);
 }

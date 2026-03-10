@@ -18,6 +18,7 @@ export type Capability =
   | "manage_pdfs"
   | "manage_enrollments"
   | "manage_students"
+  | "manage_landing_pages"
   | "manage_device_change_requests"
   | "manage_extra_view_requests"
   | "manage_video_access"
@@ -49,6 +50,7 @@ const capabilityPermissions: Record<Capability, string[]> = {
   manage_pdfs: ["pdf.manage"],
   manage_enrollments: ["enrollment.manage"],
   manage_students: ["student.manage"],
+  manage_landing_pages: ["landing_page.manage"],
   manage_device_change_requests: ["device_change.manage"],
   manage_extra_view_requests: ["extra_view.manage"],
   manage_video_access: ["video.manage"],

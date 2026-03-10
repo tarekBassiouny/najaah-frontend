@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function AuditPlaybackLogsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Playback Logs"
-      description="Playback-specific audit stream."
+      title={t("pages.placeholderRoutes.auditPlaybackLogs.title")}
+      description={t("pages.placeholderRoutes.auditPlaybackLogs.description")}
       items={items}
     />
   );

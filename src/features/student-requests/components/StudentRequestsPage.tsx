@@ -14,6 +14,7 @@ import { ExtraViewRequestsTable } from "@/features/extra-view-requests/component
 import { useExtraViewRequests } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
 import { VideoAccessPanel } from "@/features/video-access/components/VideoAccessPanel";
 import { useVideoAccessRequests } from "@/features/video-access/hooks/use-video-access";
+import { useTranslation } from "@/features/localization";
 import { can } from "@/lib/capabilities";
 import {
   STUDENT_REQUEST_DEFINITIONS,
@@ -30,6 +31,7 @@ export function StudentRequestsPage({
   type,
   centerId,
 }: StudentRequestsPageProps) {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -123,28 +125,44 @@ export function StudentRequestsPage({
     return null;
   }
 
+  const tabLabels: Record<StudentRequestType, string> = {
+    enrollments: t("pages.studentRequests.tabs.enrollments"),
+    "extra-view": t("pages.studentRequests.tabs.extraView"),
+    "device-change": t("pages.studentRequests.tabs.deviceChange"),
+    "video-access": t("pages.studentRequests.tabs.videoAccess"),
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title={centerId ? "Center Student Requests" : "Student Requests"}
+        title={
+          centerId
+            ? t("pages.studentRequests.centerTitle")
+            : t("pages.studentRequests.title")
+        }
         description={
           centerId
-            ? "Manage enrollment, extra-view, device-change, and video-access requests for this center."
-            : "Manage enrollment, extra-view, device-change, and video-access requests across the system."
+            ? t("pages.studentRequests.centerDescription")
+            : t("pages.studentRequests.systemDescription")
         }
         breadcrumbs={
           centerId
             ? [
-                { label: "Centers", href: "/centers" },
-                { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-                { label: "Student Requests" },
+                { label: t("sidebar.sections.centers"), href: "/centers" },
+                {
+                  label: `${t("common.labels.center")} ${centerId}`,
+                  href: `/centers/${centerId}`,
+                },
+                { label: t("pages.studentRequests.title") },
               ]
             : undefined
         }
         actions={
           centerId ? (
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.studentRequests.backToCenter")}
+              </Button>
             </Link>
           ) : undefined
         }
@@ -163,7 +181,7 @@ export function StudentRequestsPage({
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white",
               )}
             >
-              <span>{item.label}</span>
+              <span>{tabLabels[item.type] || item.label}</span>
               <span
                 className={cn(
                   "inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold",

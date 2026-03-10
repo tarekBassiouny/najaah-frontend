@@ -5,20 +5,25 @@ import { PLATFORM_SIDEBAR } from "./sidebar.platform";
 
 export type SidebarSubItem = {
   title: string;
+  titleKey: string;
   url: string;
   capability?: Capability;
 };
 
 export type SidebarItem = {
   title: string;
+  titleKey: string;
   url?: string;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   capability?: Capability;
+  badge?: string;
+  badgeKey?: string;
   items: SidebarSubItem[];
 };
 
 export type SidebarSection = {
   label: string;
+  labelKey: string;
   items: SidebarItem[];
 };
 
@@ -45,6 +50,7 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   "/admin-users": (centerId) => `/centers/${centerId}/admin-users`,
   "/students": (centerId) => `/centers/${centerId}/students`,
   "/education": (centerId) => `/centers/${centerId}/education`,
+  "/landing-page": (centerId) => `/centers/${centerId}/landing-page`,
   "/settings": (centerId) => `/centers/${centerId}/settings`,
   "/student-requests": (centerId) => `/centers/${centerId}/student-requests`,
   "/student-requests/enrollments": (centerId) =>

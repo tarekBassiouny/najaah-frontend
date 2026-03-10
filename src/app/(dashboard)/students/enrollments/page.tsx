@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function StudentsEnrollmentsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Student Enrollments"
-      description="Enrollments scoped by student."
+      title={t("pages.placeholderRoutes.studentEnrollments.title")}
+      description={t("pages.placeholderRoutes.studentEnrollments.description")}
       items={items}
     />
   );

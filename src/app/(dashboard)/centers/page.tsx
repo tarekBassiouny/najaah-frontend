@@ -14,8 +14,10 @@ import { BulkDeleteCentersDialog } from "@/features/centers/components/BulkDelet
 import { BulkRestoreCentersDialog } from "@/features/centers/components/BulkRestoreCentersDialog";
 import { BulkRetryCenterOnboardingDialog } from "@/features/centers/components/BulkRetryCenterOnboardingDialog";
 import type { Center } from "@/features/centers/types/center";
+import { useTranslation } from "@/features/localization";
 
 export default function CentersPage() {
+  const { t } = useTranslation();
   const [statusCenter, setStatusCenter] = useState<Center | null>(null);
   const [deleteCenter, setDeleteCenter] = useState<Center | null>(null);
   const [restoreCenter, setRestoreCenter] = useState<Center | null>(null);
@@ -28,11 +30,11 @@ export default function CentersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Centers"
-        description="Manage training centers across your platform"
+        title={t("pages.centersPage.title")}
+        description={t("pages.centersPage.description")}
         actions={
           <Link href="/centers/create">
-            <Button>Add Center</Button>
+            <Button>{t("pages.centersPage.addCenter")}</Button>
           </Link>
         }
       />

@@ -10,12 +10,14 @@ import { DeletePdfDialog } from "@/features/pdfs/components/DeletePdfDialog";
 import { PdfUploadDialog } from "@/features/pdfs/components/PdfUploadDialog";
 import type { Pdf } from "@/features/pdfs/types/pdf";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
 };
 
 export default function CenterPdfsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const { showToast } = useModal();
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
@@ -26,20 +28,17 @@ export default function CenterPdfsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Center PDFs"
-        description="Manage PDFs for this center"
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "PDFs" },
-        ]}
+        title={t("pages.centerPdfs.title")}
+        description={t("pages.centerPdfs.description")}
         actions={
           <div className="flex items-center gap-2">
             <Button onClick={() => setIsUploadDialogOpen(true)}>
-              Upload PDF
+              {t("pages.pdfs.uploadPdf")}
             </Button>
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           </div>
         }

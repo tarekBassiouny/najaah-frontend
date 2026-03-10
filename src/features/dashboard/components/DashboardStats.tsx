@@ -1,6 +1,7 @@
 "use client";
 
 import { StatsCard } from "@/components/ui/stats-card";
+import { useTranslation } from "@/features/localization";
 
 type DashboardStatsProps = {
   stats?: {
@@ -18,6 +19,8 @@ type DashboardStatsProps = {
 };
 
 export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
+  const { t } = useTranslation();
+
   const activeTrend =
     typeof stats?.activeEnrollmentsChangePercent === "number"
       ? {
@@ -25,18 +28,19 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
           isPositive: (stats.activeEnrollmentsTrend ?? "up") !== "down",
         }
       : undefined;
+
   const pendingBreakdown = [
-    `Enrollments ${stats?.pendingEnrollmentRequests ?? 0}`,
-    `Device ${stats?.pendingDeviceChangeRequests ?? 0}`,
-    `Extra view ${stats?.pendingExtraViewRequests ?? 0}`,
+    `${t("pages.dashboard.stats.enrollments")} ${stats?.pendingEnrollmentRequests ?? 0}`,
+    `${t("pages.dashboard.stats.device")} ${stats?.pendingDeviceChangeRequests ?? 0}`,
+    `${t("pages.dashboard.stats.extraView")} ${stats?.pendingExtraViewRequests ?? 0}`,
   ].join(" • ");
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatsCard
-        title="Total Courses"
+        title={t("pages.dashboard.stats.totalCourses")}
         value={stats?.totalCourses ?? 0}
-        description="All published courses"
+        description={t("pages.dashboard.stats.totalCoursesDesc")}
         loading={isLoading}
         icon={
           <svg
@@ -55,9 +59,9 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
         }
       />
       <StatsCard
-        title="Total Students"
+        title={t("pages.dashboard.stats.totalStudents")}
         value={stats?.totalStudents ?? 0}
-        description="Registered students"
+        description={t("pages.dashboard.stats.totalStudentsDesc")}
         loading={isLoading}
         icon={
           <svg
@@ -76,9 +80,9 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
         }
       />
       <StatsCard
-        title="Active Enrollments"
+        title={t("pages.dashboard.stats.activeEnrollments")}
         value={stats?.activeEnrollments ?? 0}
-        description="Currently enrolled"
+        description={t("pages.dashboard.stats.activeEnrollmentsDesc")}
         loading={isLoading}
         trend={activeTrend}
         icon={
@@ -98,7 +102,7 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
         }
       />
       <StatsCard
-        title="Pending Approvals"
+        title={t("pages.dashboard.stats.pendingApprovals")}
         value={stats?.pendingApprovals ?? 0}
         description={pendingBreakdown}
         loading={isLoading}

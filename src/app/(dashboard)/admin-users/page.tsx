@@ -12,8 +12,10 @@ import { BulkUpdateAdminUserStatusDialog } from "@/features/admin-users/componen
 import { DeleteAdminUserDialog } from "@/features/admin-users/components/DeleteAdminUserDialog";
 import { UpdateAdminUserStatusDialog } from "@/features/admin-users/components/UpdateAdminUserStatusDialog";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
+import { useTranslation } from "@/features/localization";
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation();
   const { openModal } = useModal();
   const { centerSlug } = useTenant();
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null);
@@ -43,7 +45,7 @@ export default function AdminUsersPage() {
             if (!createdUser) return;
             openModal("confirmRoleChange", {
               userId: createdUser.id,
-              userName: createdUser.name ?? "Admin User",
+              userName: createdUser.name ?? t("common.labels.admin"),
               email: createdUser.email ?? "",
               addedRoles,
               removedRoles: [],
@@ -69,7 +71,7 @@ export default function AdminUsersPage() {
       }) => {
         openModal("confirmRoleChange", {
           userId: user.id,
-          userName: user.name ?? "Admin User",
+          userName: user.name ?? t("common.labels.admin"),
           email: user.email ?? "",
           addedRoles,
           removedRoles,
@@ -82,9 +84,13 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Admin Users"
-        description="Manage system administrators and permissions"
-        actions={<Button onClick={openCreateAdmin}>Add Admin</Button>}
+        title={t("pages.adminUsers.title")}
+        description={t("pages.adminUsers.description")}
+        actions={
+          <Button onClick={openCreateAdmin}>
+            {t("pages.adminUsers.addAdmin")}
+          </Button>
+        }
       />
 
       <AdminUsersTable

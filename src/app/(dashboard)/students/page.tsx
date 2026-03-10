@@ -17,8 +17,10 @@ import { BulkEnrollAndGenerateDialog } from "@/features/students/components/Bulk
 import type { Student } from "@/features/students/types/student";
 import { GenerateVideoAccessCodeDialog } from "@/features/video-access/components/GenerateVideoAccessCodeDialog";
 import { can } from "@/lib/capabilities";
+import { useTranslation } from "@/features/localization";
 
 export default function StudentsPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const centerId = tenant.centerId;
   const [generateStudent, setGenerateStudent] = useState<Student | null>(null);
@@ -59,11 +61,13 @@ export default function StudentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Students"
-        description="Manage students across centers, with optional center assignment"
+        title={t("pages.studentsPage.title")}
+        description={t("pages.studentsPage.description")}
         actions={
           <>
-            <Button onClick={openCreateDialog}>Add Student</Button>
+            <Button onClick={openCreateDialog}>
+              {t("pages.studentsPage.addStudent")}
+            </Button>
           </>
         }
       />

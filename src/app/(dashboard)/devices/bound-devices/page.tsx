@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function DevicesBoundDevicesPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Bound Devices"
-      description="Devices currently bound to students."
+      title={t("pages.placeholderRoutes.devicesBound.title")}
+      description={t("pages.placeholderRoutes.devicesBound.description")}
       items={items}
     />
   );

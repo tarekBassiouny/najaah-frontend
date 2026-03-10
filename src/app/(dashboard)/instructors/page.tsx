@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTenant } from "@/app/tenant-provider";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
+import { useTranslation } from "@/features/localization";
 import { getAdminScope } from "@/lib/user-scope";
 import { InstructorsTable } from "@/features/instructors/components/InstructorsTable";
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
@@ -14,6 +15,7 @@ import { InstructorDetailsDrawer } from "@/features/instructors/components/Instr
 import type { Instructor } from "@/features/instructors/types/instructor";
 
 export default function InstructorsPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const { data: user } = useAdminMe();
   const userScope = getAdminScope(user);
@@ -44,23 +46,23 @@ export default function InstructorsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Instructors"
-        description="Manage instructors by center."
+        title={t("pages.instructors.title")}
+        description={t("pages.instructors.descriptionByCenter")}
         actions={
           <Button
             onClick={openCreateDialog}
             disabled={!canManageCenterInstructors}
           >
-            Add Instructor
+            {t("pages.instructors.createInstructor")}
           </Button>
         }
       />
 
       {!canManageCenterInstructors ? (
         <Alert variant="default">
-          <AlertTitle>Select a center</AlertTitle>
+          <AlertTitle>{t("pages.instructors.selectCenterTitle")}</AlertTitle>
           <AlertDescription>
-            Choose a center to manage instructors.
+            {t("pages.instructors.selectCenterDescription")}
           </AlertDescription>
         </Alert>
       ) : null}

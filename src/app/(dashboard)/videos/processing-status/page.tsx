@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,14 @@ const items = [
 ];
 
 export default function VideosProcessingStatusPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Processing Status"
-      description="Monitor encoding, transcription, and DRM jobs."
+      title={t("pages.placeholderRoutes.videoProcessingStatus.title")}
+      description={t(
+        "pages.placeholderRoutes.videoProcessingStatus.description",
+      )}
       items={items}
     />
   );

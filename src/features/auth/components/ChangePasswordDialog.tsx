@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAdminChangePassword } from "@/features/auth/hooks/use-admin-change-password";
+import { useTranslation } from "@/features/localization";
 
 type ChangePasswordDialogProps = {
   open: boolean;
@@ -32,20 +33,11 @@ type ChangePasswordDialogProps = {
   onSuccess?: (_message: string) => void;
 };
 
-const schema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required."),
-    newPassword: z
-      .string()
-      .min(8, "New password must be at least 8 characters."),
-    confirmPassword: z.string().min(1, "Please confirm your new password."),
-  })
-  .refine((values) => values.newPassword === values.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Passwords do not match.",
-  });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
 
 type BackendErrorData = {
   message?: string;
@@ -119,7 +111,10 @@ function mapFieldErrors(
   return hasFieldError;
 }
 
-function extractErrorMessage(error: unknown): string {
+function extractErrorMessage(
+  error: unknown,
+  t: (_key: string) => string,
+): string {
   if (isAxiosError<BackendErrorData>(error)) {
     const data = error.response?.data;
 
@@ -140,7 +135,7 @@ function extractErrorMessage(error: unknown): string {
     }
   }
 
-  return "Unable to change password. Please try again.";
+  return t("pages.changePassword.genericError");
 }
 
 export function ChangePasswordDialog({
@@ -148,8 +143,26 @@ export function ChangePasswordDialog({
   onOpenChange,
   onSuccess,
 }: ChangePasswordDialogProps) {
+  const { t } = useTranslation();
   const [formError, setFormError] = useState<string | null>(null);
   const mutation = useAdminChangePassword();
+
+  const schema = z
+    .object({
+      currentPassword: z
+        .string()
+        .min(1, t("pages.changePassword.validation.currentRequired")),
+      newPassword: z
+        .string()
+        .min(8, t("pages.changePassword.validation.newMinLength")),
+      confirmPassword: z
+        .string()
+        .min(1, t("pages.changePassword.validation.confirmRequired")),
+    })
+    .refine((values) => values.newPassword === values.confirmPassword, {
+      path: ["confirmPassword"],
+      message: t("pages.changePassword.validation.passwordsDoNotMatch"),
+    });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -186,7 +199,7 @@ export function ChangePasswordDialog({
       {
         onSuccess: () => {
           onOpenChange(false);
-          onSuccess?.("Password changed successfully.");
+          onSuccess?.(t("pages.changePassword.successMessage"));
         },
         onError: (error) => {
           const data = isAxiosError<BackendErrorData>(error)
@@ -198,7 +211,7 @@ export function ChangePasswordDialog({
             mapFieldErrors(data?.errors, form.setError);
 
           if (!hasFieldError) {
-            setFormError(extractErrorMessage(error));
+            setFormError(extractErrorMessage(error, t));
           }
         },
       },
@@ -215,15 +228,15 @@ export function ChangePasswordDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
+          <DialogTitle>{t("pages.changePassword.title")}</DialogTitle>
           <DialogDescription>
-            Update your account password using your current password.
+            {t("pages.changePassword.description")}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not change password</AlertTitle>
+            <AlertTitle>{t("pages.changePassword.couldNotChange")}</AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -235,12 +248,16 @@ export function ChangePasswordDialog({
               name="currentPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Current Password</FormLabel>
+                  <FormLabel>
+                    {t("pages.changePassword.currentPassword")}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="current-password"
-                      placeholder="Current password"
+                      placeholder={t(
+                        "pages.changePassword.currentPasswordPlaceholder",
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -254,12 +271,14 @@ export function ChangePasswordDialog({
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel>{t("pages.changePassword.newPassword")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="new-password"
-                      placeholder="At least 8 characters"
+                      placeholder={t(
+                        "pages.changePassword.newPasswordPlaceholder",
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -273,12 +292,16 @@ export function ChangePasswordDialog({
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormLabel>
+                    {t("pages.changePassword.confirmNewPassword")}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       autoComplete="new-password"
-                      placeholder="Repeat new password"
+                      placeholder={t(
+                        "pages.changePassword.confirmPasswordPlaceholder",
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -294,13 +317,15 @@ export function ChangePasswordDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={mutation.isPending}
               >
-                Cancel
+                {t("pages.changePassword.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={mutation.isPending || !form.formState.isValid}
               >
-                {mutation.isPending ? "Saving..." : "Update Password"}
+                {mutation.isPending
+                  ? t("pages.changePassword.saving")
+                  : t("pages.changePassword.updatePassword")}
               </Button>
             </DialogFooter>
           </form>

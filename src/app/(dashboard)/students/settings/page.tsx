@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function StudentsSettingsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Student Settings"
-      description="Per-student preferences and access rules."
+      title={t("pages.placeholderRoutes.studentSettings.title")}
+      description={t("pages.placeholderRoutes.studentSettings.description")}
       items={items}
     />
   );

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { Badge } from "@/components/ui/badge";
 import { hasCapability, type Capability } from "@/lib/capabilities";
 import { getAuthPermissions } from "@/lib/auth-state";
 import { cn } from "@/lib/utils";
@@ -15,23 +16,29 @@ import { useCenter } from "@/features/centers/hooks/use-centers";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { useTenant } from "@/app/tenant-provider";
 import { getAdminScope } from "@/lib/user-scope";
+import { useTranslation } from "@/features/localization";
 
 type SidebarSubItem = {
   title: string;
+  titleKey: string;
   url: string;
   capability?: Capability;
 };
 
 type SidebarItem = {
   title: string;
+  titleKey: string;
   url?: string;
   icon?: ComponentType<PropsType>;
   capability?: Capability;
+  badge?: string;
+  badgeKey?: string;
   items: SidebarSubItem[];
 };
 
 type SidebarSection = {
   label: string;
+  labelKey: string;
   items: SidebarItem[];
 };
 
@@ -73,10 +80,44 @@ function isPathActive(pathname: string, url?: string) {
   return current === target || current.startsWith(target + "/");
 }
 
+type SidebarItemLabelProps = {
+  title: string;
+  titleKey: string;
+  badge?: string;
+  badgeKey?: string;
+  t: (_key: string) => string;
+};
+
+function SidebarItemLabel({
+  title,
+  titleKey,
+  badge,
+  badgeKey,
+  t,
+}: SidebarItemLabelProps) {
+  const displayTitle = t(titleKey) || title;
+  const displayBadge = badgeKey ? t(badgeKey) || badge : badge;
+
+  return (
+    <span className="flex items-center gap-2">
+      <span>{displayTitle}</span>
+      {displayBadge ? (
+        <Badge
+          variant="outline"
+          className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
+        >
+          {displayBadge}
+        </Badge>
+      ) : null}
+    </span>
+  );
+}
+
 export function Sidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
   const { isOpen, isMobile, closeSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { t } = useTranslation();
   const {
     centerSlug: tenantCenterSlug,
     centerName: tenantCenterName,
@@ -127,7 +168,15 @@ export function Sidebar({ sections }: SidebarProps) {
     return resolvedSections
       .map((section) => {
         const items = section.items
-          .filter((item) => !(isUnbrandedCenter && item.title === "Surveys"))
+          .filter(
+            (item) =>
+              !(
+                isUnbrandedCenter &&
+                (item.title === "Surveys" ||
+                  item.title === "Education" ||
+                  item.title === "Landing Page")
+              ),
+          )
           .map((item) => {
             if (item.items?.length) {
               const subItems = item.items.filter((subItem) =>
@@ -148,10 +197,6 @@ export function Sidebar({ sections }: SidebarProps) {
               item.capability &&
               !hasCapability(item.capability, permissions)
             ) {
-              return null;
-            }
-
-            if (isUnbrandedCenter && item.title === "Education") {
               return null;
             }
 
@@ -212,7 +257,7 @@ export function Sidebar({ sections }: SidebarProps) {
                       className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                     >
                       <ArrowLeftIcon className="h-4 w-4" />
-                      Back to Centers
+                      {t("sidebar.backToCenters")}
                     </Link>
 
                     {isMobile && (
@@ -251,10 +296,10 @@ export function Sidebar({ sections }: SidebarProps) {
                   </div>
                   <div className="min-w-0">
                     <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                      Center
+                      {t("common.labels.center")}
                     </span>
                     <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
-                      {centerName ?? "Center"}
+                      {centerName ?? t("common.labels.center")}
                     </span>
                   </div>
                 </Link>
@@ -281,7 +326,7 @@ export function Sidebar({ sections }: SidebarProps) {
                   </div>
                   <div className="min-w-0">
                     <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                      Center
+                      {t("common.labels.center")}
                     </span>
                     <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
                       {subdomainCenterName}
@@ -316,7 +361,7 @@ export function Sidebar({ sections }: SidebarProps) {
                     />
                   </div>
                   <span className="text-lg font-bold text-gray-900 dark:text-white">
-                    Najaah Admin
+                    {t("sidebar.najaahAdmin")}
                   </span>
                 </Link>
 
@@ -338,7 +383,7 @@ export function Sidebar({ sections }: SidebarProps) {
             {filteredSections.map((section) => (
               <div key={section.label} className="mb-6">
                 <h3 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
-                  {section.label}
+                  {t(section.labelKey) || section.label}
                 </h3>
 
                 <ul className="space-y-2">
@@ -369,7 +414,13 @@ export function Sidebar({ sections }: SidebarProps) {
                           >
                             <span className="flex items-center gap-3">
                               {Icon ? <Icon className="h-5 w-5" /> : null}
-                              <span>{item.title}</span>
+                              <SidebarItemLabel
+                                title={item.title}
+                                titleKey={item.titleKey}
+                                badge={item.badge}
+                                badgeKey={item.badgeKey}
+                                t={t}
+                              />
                             </span>
                             <ChevronUp
                               className={cn(
@@ -391,7 +442,7 @@ export function Sidebar({ sections }: SidebarProps) {
                                       subItem.url,
                                     )}
                                   >
-                                    {subItem.title}
+                                    {t(subItem.titleKey) || subItem.title}
                                   </MenuItem>
                                 </li>
                               ))}
@@ -410,7 +461,13 @@ export function Sidebar({ sections }: SidebarProps) {
                           className="flex items-center gap-3"
                         >
                           {Icon ? <Icon className="h-5 w-5" /> : null}
-                          <span>{item.title}</span>
+                          <SidebarItemLabel
+                            title={item.title}
+                            titleKey={item.titleKey}
+                            badge={item.badge}
+                            badgeKey={item.badgeKey}
+                            t={t}
+                          />
                         </MenuItem>
                       </li>
                     );

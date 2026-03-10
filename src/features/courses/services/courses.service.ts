@@ -63,6 +63,43 @@ function appendIfPresent(
   formData.append(key, String(value));
 }
 
+function normalizeIdArray(
+  values: Array<string | number> | undefined,
+): Array<string | number> {
+  if (!Array.isArray(values)) return [];
+
+  const seen = new Set<string>();
+  const normalized: Array<string | number> = [];
+
+  values.forEach((value) => {
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) return;
+    } else if (typeof value === "string") {
+      if (!value.trim()) return;
+    } else {
+      return;
+    }
+
+    const key = String(value).trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    normalized.push(typeof value === "string" ? key : value);
+  });
+
+  return normalized;
+}
+
+function appendArrayIfPresent(
+  formData: FormData,
+  key: string,
+  values: Array<string | number> | undefined,
+) {
+  const normalized = normalizeIdArray(values);
+  normalized.forEach((value) => {
+    formData.append(`${key}[]`, String(value));
+  });
+}
+
 function toCreateCourseFormData(payload: CreateCoursePayload): FormData {
   const formData = new FormData();
 
@@ -94,6 +131,14 @@ function toCreateCourseFormData(payload: CreateCoursePayload): FormData {
     "requires_video_approval",
     payload.requires_video_approval,
   );
+  appendIfPresent(
+    formData,
+    "show_for_all_students",
+    payload.show_for_all_students,
+  );
+  appendArrayIfPresent(formData, "grade_ids", payload.grade_ids);
+  appendArrayIfPresent(formData, "school_ids", payload.school_ids);
+  appendArrayIfPresent(formData, "college_ids", payload.college_ids);
 
   if (isBlobLike(payload.thumbnail)) {
     formData.append("thumbnail", payload.thumbnail);

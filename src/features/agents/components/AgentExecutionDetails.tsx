@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime } from "@/lib/format-date-time";
+import { useTranslation } from "@/features/localization";
 import { AGENT_STATUS_LABELS, AGENT_TYPE_LABELS } from "../types/agent";
 
 type AgentExecutionDetailsProps = {
@@ -28,6 +29,7 @@ function prettyJson(value: unknown) {
 export function AgentExecutionDetails({
   executionId,
 }: AgentExecutionDetailsProps) {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useAgentExecution(executionId, {
     enabled: Boolean(executionId),
     refetchInterval: (query) => {
@@ -54,11 +56,13 @@ export function AgentExecutionDetails({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Execution #${executionId}`}
-        description="Track status, steps, and payloads for this agent run."
+        title={t("pages.agents.details.title", { id: executionId })}
+        description={t("pages.agents.details.description")}
         actions={
           <Link href="/agents/executions">
-            <Button variant="outline">Back to executions</Button>
+            <Button variant="outline">
+              {t("pages.agents.details.backToExecutions")}
+            </Button>
           </Link>
         }
       />
@@ -72,7 +76,7 @@ export function AgentExecutionDetails({
 
       {isError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
-          Failed to load execution details.
+          {t("pages.agents.details.loadFailed")}
         </div>
       ) : null}
 
@@ -103,31 +107,31 @@ export function AgentExecutionDetails({
             <CardContent className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <p>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  Target:
+                  {t("pages.agents.details.target")}:
                 </span>{" "}
                 {data.targetName ?? data.targetId ?? data.targetType ?? "—"}
               </p>
               <p>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  Started:
+                  {t("pages.agents.details.started")}:
                 </span>{" "}
                 {formatDateTime(data.startedAt ?? data.createdAt)}
               </p>
               <p>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  Completed:
+                  {t("pages.agents.details.completed")}:
                 </span>{" "}
                 {data.completedAt ? formatDateTime(data.completedAt) : "—"}
               </p>
               <p>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  Initiated by:
+                  {t("pages.agents.details.initiatedBy")}:
                 </span>{" "}
-                {data.initiatedBy?.name ?? "System"}
+                {data.initiatedBy?.name ?? t("pages.agents.details.system")}
               </p>
               <p>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  Progress:
+                  {t("pages.agents.details.progress")}:
                 </span>{" "}
                 {progress}%
               </p>
@@ -136,7 +140,7 @@ export function AgentExecutionDetails({
 
           <Card>
             <CardHeader>
-              <CardTitle>Execution Steps</CardTitle>
+              <CardTitle>{t("pages.agents.details.executionSteps")}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.stepsCompleted?.length ? (
@@ -165,7 +169,7 @@ export function AgentExecutionDetails({
                 </ul>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No step details available.
+                  {t("pages.agents.details.noStepsAvailable")}
                 </p>
               )}
             </CardContent>
@@ -174,7 +178,7 @@ export function AgentExecutionDetails({
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="min-w-0">
               <CardHeader>
-                <CardTitle>Context</CardTitle>
+                <CardTitle>{t("pages.agents.details.context")}</CardTitle>
               </CardHeader>
               <CardContent className="min-w-0">
                 <pre className="max-h-[60vh] w-full overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100 sm:max-h-[28rem]">
@@ -185,7 +189,7 @@ export function AgentExecutionDetails({
 
             <Card className="min-w-0">
               <CardHeader>
-                <CardTitle>Result</CardTitle>
+                <CardTitle>{t("pages.agents.details.result")}</CardTitle>
               </CardHeader>
               <CardContent className="min-w-0">
                 <pre className="max-h-[60vh] w-full overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100 sm:max-h-[28rem]">

@@ -19,6 +19,7 @@ import { SurveysTable } from "@/features/surveys/components/SurveysTable";
 import { UpdateSurveyStatusDialog } from "@/features/surveys/components/UpdateSurveyStatusDialog";
 import type { Survey } from "@/features/surveys/types/survey";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useTranslation } from "@/features/localization";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -48,6 +49,7 @@ function isUnbrandedCenterType(type: unknown) {
 }
 
 export default function CenterSurveysPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const { centerId } = use(params);
   const parsedCenterId = Number(centerId);
@@ -97,17 +99,12 @@ export default function CenterSurveysPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Center Surveys"
+        title={t("pages.centerSurveys.title")}
         description={
           isUnbrandedCenter
-            ? "Surveys are not available for unbranded centers."
-            : "Manage surveys for this center"
+            ? t("pages.centerSurveys.descriptionUnbranded")
+            : t("pages.centerSurveys.description")
         }
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Surveys" },
-        ]}
         actions={
           <>
             {!isUnbrandedCenter ? (
@@ -117,11 +114,13 @@ export default function CenterSurveysPage({ params }: PageProps) {
                   setIsFormOpen(true);
                 }}
               >
-                Create Center Survey
+                {t("pages.centerSurveys.createSurvey")}
               </Button>
             ) : null}
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           </>
         }
@@ -129,9 +128,9 @@ export default function CenterSurveysPage({ params }: PageProps) {
 
       {isUnbrandedCenter ? (
         <Alert>
-          <AlertTitle>Surveys disabled</AlertTitle>
+          <AlertTitle>{t("pages.centerSurveys.disabledTitle")}</AlertTitle>
           <AlertDescription>
-            Unbranded centers cannot create or manage surveys.
+            {t("pages.centerSurveys.disabledDescription")}
           </AlertDescription>
         </Alert>
       ) : null}

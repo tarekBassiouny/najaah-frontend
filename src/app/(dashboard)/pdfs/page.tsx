@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/app/tenant-provider";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import { PdfsTable } from "@/features/pdfs/components/PdfsTable";
 import type { Pdf } from "@/features/pdfs/types/pdf";
 
 export default function PdfsPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const centerId = tenant.centerId ?? null;
   const { showToast } = useModal();
@@ -34,8 +36,8 @@ export default function PdfsPage() {
   const openUploadDialog = () => {
     if (!centerId) {
       setInfoModal({
-        title: "Select a center",
-        description: "Choose a center before uploading PDFs.",
+        title: t("pages.pdfs.selectCenterTitle"),
+        description: t("pages.pdfs.selectCenterDescription"),
       });
       return;
     }
@@ -46,9 +48,13 @@ export default function PdfsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="PDFs"
-        description="Manage PDF documents for your learning center"
-        actions={<Button onClick={openUploadDialog}>Upload PDF</Button>}
+        title={t("pages.pdfs.title")}
+        description={t("pages.pdfs.descriptionCenter")}
+        actions={
+          <Button onClick={openUploadDialog}>
+            {t("pages.pdfs.uploadPdf")}
+          </Button>
+        }
       />
 
       <PdfsTable
@@ -105,7 +111,7 @@ export default function PdfsPage() {
           <DialogHeader>
             <DialogTitle>{infoModal?.title ?? "Action"}</DialogTitle>
             <DialogDescription>
-              {infoModal?.description ?? "This action is not available yet."}
+              {infoModal?.description ?? t("pages.pdfs.actionUnavailable")}
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

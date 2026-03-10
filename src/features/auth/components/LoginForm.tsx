@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAdminLogin } from "@/features/auth/hooks/use-admin-login";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
+import { useTranslation } from "@/features/localization";
 import { isAxiosError } from "axios";
 import { type ApiErrorResponse } from "@/types/auth";
 import { getAdminScope, getCenterAdminHomeUrl } from "@/lib/user-scope";
@@ -24,22 +25,29 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TenantIdentityBadge } from "@/components/ui/tenant-identity-badge";
 
-const schema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(1, "Password is required"),
-  rememberMe: z.boolean().default(false),
-});
+type FormValues = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+};
 
-type FormValues = z.infer<typeof schema>;
 type MessageTone = "default" | "destructive";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [formMessage, setFormMessage] = useState<string | null>(null);
-  const [messageTitle, setMessageTitle] = useState<string>("Unable to sign in");
+  const [messageTitle, setMessageTitle] = useState<string>("");
   const [messageTone, setMessageTone] = useState<MessageTone>("destructive");
   const { data: user } = useAdminMe();
+
+  const schema = z.object({
+    email: z.string().email(t("forms.validation.email")),
+    password: z.string().min(1, t("forms.validation.required")),
+    rememberMe: z.boolean().default(false),
+  });
+
   const loginMutation = useAdminLogin({
     onSuccess: (result) => {
       setFormMessage(null);
@@ -52,8 +60,8 @@ export function LoginForm() {
     },
     onError: (error) => {
       setMessageTone("destructive");
-      setMessageTitle("Unable to sign in");
-      setFormMessage(extractErrorMessage(error));
+      setMessageTitle(t("pages.login.unableToSignIn"));
+      setFormMessage(extractErrorMessage(error, t));
     },
   });
 
@@ -81,20 +89,18 @@ export function LoginForm() {
   useEffect(() => {
     if (reason === "session_expired") {
       setMessageTone("default");
-      setMessageTitle("Session expired");
-      setFormMessage("Your session expired. Please sign in again.");
+      setMessageTitle(t("pages.login.sessionExpiredTitle"));
+      setFormMessage(t("pages.login.sessionExpiredMessage"));
       return;
     }
 
     if (reason === "password_reset") {
       setMessageTone("default");
-      setMessageTitle("Password updated");
-      setFormMessage(
-        "Password set successfully. Sign in with your new password.",
-      );
+      setMessageTitle(t("pages.login.passwordUpdatedTitle"));
+      setFormMessage(t("pages.login.passwordUpdatedMessage"));
       return;
     }
-  }, [reason]);
+  }, [reason, t]);
 
   useEffect(() => {
     if (!user) return;
@@ -121,10 +127,10 @@ export function LoginForm() {
 
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold text-dark dark:text-white">
-          Admin Login
+          {t("pages.login.title")}
         </h1>
         <p className="text-sm text-dark-6 dark:text-dark-5">
-          Sign in to manage the LMS admin panel.
+          {t("pages.login.subtitle")}
         </p>
       </div>
 
@@ -142,11 +148,11 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("pages.login.email")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="admin@example.com"
+                    placeholder={t("pages.login.emailPlaceholder")}
                     autoComplete="email"
                     {...field}
                   />
@@ -161,11 +167,11 @@ export function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("pages.login.password")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t("pages.login.passwordPlaceholder")}
                     autoComplete="current-password"
                     {...field}
                   />
@@ -195,7 +201,7 @@ export function LoginForm() {
                       htmlFor="rememberMe"
                       className="!mt-0 cursor-pointer text-sm font-normal"
                     >
-                      Remember me for 30 days
+                      {t("pages.login.rememberMe")}
                     </FormLabel>
                   </div>
 
@@ -203,7 +209,7 @@ export function LoginForm() {
                     href="/forgot-password"
                     className="text-sm font-medium text-primary hover:text-primary/80 hover:underline"
                   >
-                    Forgot password?
+                    {t("pages.login.forgotPassword")}
                   </Link>
                 </div>
               </FormItem>
@@ -215,7 +221,9 @@ export function LoginForm() {
             className="w-full"
             disabled={loginMutation.isPending}
           >
-            {loginMutation.isPending ? "Signing in..." : "Sign In"}
+            {loginMutation.isPending
+              ? t("pages.login.signingIn")
+              : t("pages.login.signIn")}
           </Button>
         </form>
       </Form>
@@ -223,7 +231,10 @@ export function LoginForm() {
   );
 }
 
-function extractErrorMessage(error: unknown) {
+function extractErrorMessage(
+  error: unknown,
+  t: (_key: string) => string,
+): string {
   if (isAxiosError<ApiErrorResponse>(error)) {
     const responseMessage =
       error.response?.data?.message || error.response?.data?.errors;
@@ -239,9 +250,9 @@ function extractErrorMessage(error: unknown) {
     }
 
     if (error.response?.status === 401) {
-      return "Invalid credentials. Please check your email and password.";
+      return t("pages.login.invalidCredentials");
     }
   }
 
-  return "Something went wrong while signing in. Please try again.";
+  return t("pages.login.genericError");
 }

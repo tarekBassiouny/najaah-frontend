@@ -15,6 +15,7 @@ const GRADE_OPTIONS_DEBOUNCE_MS = 300;
 type UseGradeOptionsParams = {
   centerId: string | number | undefined;
   selectedValue?: string | null;
+  selectedValues?: string[];
   stage?: number | string;
   isActive?: boolean;
   includeAllOption?: boolean;
@@ -33,6 +34,7 @@ function getGradeLabel(grade: Grade) {
 export function useGradeOptions({
   centerId,
   selectedValue,
+  selectedValues,
   stage,
   isActive,
   includeAllOption = false,
@@ -93,21 +95,30 @@ export function useGradeOptions({
       description: grade.stage_label ?? undefined,
     }));
 
-    const selectedKey = selectedValue ?? null;
-    const isDefaultSelected =
-      selectedKey === allOptionValue || selectedKey === noneOptionValue;
-    if (
-      selectedKey &&
-      !isDefaultSelected &&
-      !items.some((item) => item.value === selectedKey)
-    ) {
+    const selectedKeys = Array.from(
+      new Set(
+        [
+          ...(selectedValue ? [selectedValue] : []),
+          ...(Array.isArray(selectedValues) ? selectedValues : []),
+        ]
+          .map((value) => String(value).trim())
+          .filter(Boolean),
+      ),
+    );
+
+    selectedKeys.forEach((selectedKey) => {
+      const isDefaultSelected =
+        selectedKey === allOptionValue || selectedKey === noneOptionValue;
+      if (isDefaultSelected) return;
+      if (items.some((item) => item.value === selectedKey)) return;
+
       const cachedLabel = cachedGradesRef.current.get(selectedKey);
       items.unshift({
         value: selectedKey,
         label: cachedLabel ?? `Grade #${selectedKey}`,
         description: undefined,
       });
-    }
+    });
 
     return [...defaults, ...items];
   }, [
@@ -119,6 +130,7 @@ export function useGradeOptions({
     noneOptionValue,
     query.data,
     selectedValue,
+    selectedValues,
   ]);
 
   return {

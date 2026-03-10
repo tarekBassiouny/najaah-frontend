@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { CentersTable } from "@/features/centers/components/CentersTable";
+import { useTranslation } from "@/features/localization";
 import { UpdateCenterStatusDialog } from "@/features/centers/components/UpdateCenterStatusDialog";
 import { BulkUpdateCenterStatusDialog } from "@/features/centers/components/BulkUpdateCenterStatusDialog";
 import { DeleteCenterDialog } from "@/features/centers/components/DeleteCenterDialog";
@@ -16,6 +17,7 @@ import { BulkRetryCenterOnboardingDialog } from "@/features/centers/components/B
 import type { Center } from "@/features/centers/types/center";
 
 export default function CentersListPage() {
+  const { t } = useTranslation();
   const [statusCenter, setStatusCenter] = useState<Center | null>(null);
   const [deleteCenter, setDeleteCenter] = useState<Center | null>(null);
   const [restoreCenter, setRestoreCenter] = useState<Center | null>(null);
@@ -28,11 +30,11 @@ export default function CentersListPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Centers"
-        description="Manage training centers across your platform"
+        title={t("pages.centersPage.title")}
+        description={t("pages.centersPage.description")}
         actions={
           <Link href="/centers/create">
-            <Button>Add Center</Button>
+            <Button>{t("pages.centersPage.addCenter")}</Button>
           </Link>
         }
       />

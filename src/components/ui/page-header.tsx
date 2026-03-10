@@ -32,18 +32,14 @@ export function PageHeader({
   const { t } = useTranslation();
 
   const displayTitle = titleKey ? t(titleKey) : title;
-  const displayDescription = descriptionKey
-    ? t(descriptionKey)
-    : description;
+  const displayDescription = descriptionKey ? t(descriptionKey) : description;
 
   return (
     <div className={cn("space-y-4", className)} {...props}>
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-x-1 text-sm text-gray-500 rtl:flex-row-reverse dark:text-gray-400">
+        <nav className="flex items-center gap-x-1 text-sm text-gray-500 dark:text-gray-400 rtl:flex-row-reverse">
           {breadcrumbs.map((crumb, index) => {
-            const crumbLabel = crumb.labelKey
-              ? t(crumb.labelKey)
-              : crumb.label;
+            const crumbLabel = crumb.labelKey ? t(crumb.labelKey) : crumb.label;
 
             return (
               <span key={index} className="flex items-center">

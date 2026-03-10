@@ -77,7 +77,9 @@ export function UserInfo() {
   const displayName = user.name || t("common.labels.user");
   const displayEmail = user.email || "";
   const displayRole =
-    getRoleLabel(user.role) ?? getRoleLabel(user.roles?.[0]) ?? t("common.labels.admin");
+    getRoleLabel(user.role) ??
+    getRoleLabel(user.roles?.[0]) ??
+    t("common.labels.admin");
   const avatarUrl = user.avatar;
 
   return (
@@ -158,7 +160,9 @@ export function UserInfo() {
             className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
           >
             <LogOutIcon className="h-4 w-4" />
-            <span>{isLoggingOut ? t("header.loggingOut") : t("header.logOut")}</span>
+            <span>
+              {isLoggingOut ? t("header.loggingOut") : t("header.logOut")}
+            </span>
           </button>
         </div>
       </DropdownContent>

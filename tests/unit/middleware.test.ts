@@ -51,11 +51,14 @@ describe("proxy", () => {
   });
 
   it("uses the forwarded center host when the internal request url is local", () => {
-    const request = new NextRequest("http://127.0.0.1:3000/?preview_token=abc", {
-      headers: {
-        host: "branded1.najaah.local:3000",
+    const request = new NextRequest(
+      "http://127.0.0.1:3000/?preview_token=abc",
+      {
+        headers: {
+          host: "branded1.najaah.local:3000",
+        },
       },
-    });
+    );
 
     const response = proxy(request);
 

@@ -94,7 +94,9 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("pages.dashboard.sections.recentAgentExecutions")}</CardTitle>
+          <CardTitle>
+            {t("pages.dashboard.sections.recentAgentExecutions")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <AgentExecutionHistory />

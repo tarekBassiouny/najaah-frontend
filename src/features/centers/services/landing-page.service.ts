@@ -1,10 +1,14 @@
 import { http } from "@/lib/http";
 import type {
+  LandingPageLayout,
   LandingPageMeta,
   LandingPageHero,
   LandingPageAbout,
   LandingPageContact,
   LandingPagePayload,
+  LandingPageSectionId,
+  LandingPageSectionLayouts,
+  LandingPageSectionStyles,
   LandingPageSocial,
   LandingPageStyling,
   LandingPageTestimonial,
@@ -198,6 +202,21 @@ export type LandingPagePreviewResponse = {
   expires_in_minutes?: number;
 };
 
+export type LandingPageLayoutOrderPayload = Pick<
+  LandingPageLayout,
+  "section_order"
+>;
+
+export type LandingPageLayoutVariantsPayload = Pick<
+  LandingPageLayout,
+  "section_layouts"
+>;
+
+export type LandingPageLayoutStylesPayload = Pick<
+  LandingPageLayout,
+  "section_styles"
+>;
+
 export async function publishLandingPage(
   centerId: string | number,
   apiKey?: string,
@@ -221,6 +240,57 @@ export async function unpublishLandingPage(
     undefined,
     withTenantApiKey(apiKey),
   );
+  return normalizeLandingPagePayload(unwrap<LandingPagePayload>(response.data));
+}
+
+export async function updateLandingPageLayoutOrder(
+  centerId: string | number,
+  sectionOrder: LandingPageSectionId[],
+  apiKey?: string,
+) {
+  const url = `${baseLandingPagePath(centerId)}/layout/order`;
+  const response = await http.patch<LandingPageResponse<LandingPagePayload>>(
+    url,
+    {
+      section_order: sectionOrder,
+    } satisfies LandingPageLayoutOrderPayload,
+    withTenantApiKey(apiKey),
+  );
+
+  return normalizeLandingPagePayload(unwrap<LandingPagePayload>(response.data));
+}
+
+export async function updateLandingPageLayoutVariants(
+  centerId: string | number,
+  sectionLayouts: LandingPageSectionLayouts,
+  apiKey?: string,
+) {
+  const url = `${baseLandingPagePath(centerId)}/layout/variants`;
+  const response = await http.patch<LandingPageResponse<LandingPagePayload>>(
+    url,
+    {
+      section_layouts: sectionLayouts,
+    } satisfies LandingPageLayoutVariantsPayload,
+    withTenantApiKey(apiKey),
+  );
+
+  return normalizeLandingPagePayload(unwrap<LandingPagePayload>(response.data));
+}
+
+export async function updateLandingPageLayoutStyles(
+  centerId: string | number,
+  sectionStyles: LandingPageSectionStyles,
+  apiKey?: string,
+) {
+  const url = `${baseLandingPagePath(centerId)}/layout/styles`;
+  const response = await http.patch<LandingPageResponse<LandingPagePayload>>(
+    url,
+    {
+      section_styles: sectionStyles,
+    } satisfies LandingPageLayoutStylesPayload,
+    withTenantApiKey(apiKey),
+  );
+
   return normalizeLandingPagePayload(unwrap<LandingPagePayload>(response.data));
 }
 

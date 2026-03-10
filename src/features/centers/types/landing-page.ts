@@ -3,6 +3,92 @@ export type LocalizedString = {
   ar?: string | null;
 };
 
+export const LANDING_PAGE_SECTION_IDS = [
+  "hero",
+  "about",
+  "courses",
+  "testimonials",
+  "contact",
+] as const;
+
+export type LandingPageSectionId = (typeof LANDING_PAGE_SECTION_IDS)[number];
+
+export type LandingPageHeroLayoutVariant = "default" | "split";
+export type LandingPageAboutLayoutVariant = "default" | "split";
+export type LandingPageCoursesLayoutVariant = "default" | "grid";
+export type LandingPageTestimonialsLayoutVariant = "default" | "cards";
+export type LandingPageContactLayoutVariant = "default" | "split";
+
+export type LandingPageTextAlign = "left" | "center" | "right";
+export type LandingPageContentWidth = "narrow" | "medium" | "wide";
+export type LandingPageImageFit = "cover" | "contain";
+export type LandingPageTestimonialsCardStyle = "soft" | "outline" | "solid";
+export type LandingPageContactStyleLayout = "cards" | "stacked";
+
+export const DEFAULT_LANDING_PAGE_SECTION_ORDER: LandingPageSectionId[] = [
+  "hero",
+  "about",
+  "courses",
+  "testimonials",
+  "contact",
+];
+
+export const LANDING_PAGE_LAYOUT_VARIANT_OPTIONS = {
+  hero: ["default", "split"],
+  about: ["default", "split"],
+  courses: ["default", "grid"],
+  testimonials: ["default", "cards"],
+  contact: ["default", "split"],
+} as const satisfies Record<LandingPageSectionId, readonly string[]>;
+
+export interface LandingPageHeroSectionStyle {
+  text_align?: LandingPageTextAlign | null;
+  overlay_opacity?: number | null;
+  content_width?: LandingPageContentWidth | null;
+}
+
+export interface LandingPageAboutSectionStyle {
+  text_align?: LandingPageTextAlign | null;
+  image_fit?: LandingPageImageFit | null;
+}
+
+export interface LandingPageCoursesSectionStyle {
+  columns_desktop?: number | null;
+  columns_mobile?: number | null;
+}
+
+export interface LandingPageTestimonialsSectionStyle {
+  card_style?: LandingPageTestimonialsCardStyle | null;
+  columns_desktop?: number | null;
+}
+
+export interface LandingPageContactSectionStyle {
+  layout?: LandingPageContactStyleLayout | null;
+  show_map?: boolean | null;
+}
+
+export interface LandingPageSectionLayouts {
+  hero?: LandingPageHeroLayoutVariant | null;
+  about?: LandingPageAboutLayoutVariant | null;
+  courses?: LandingPageCoursesLayoutVariant | null;
+  testimonials?: LandingPageTestimonialsLayoutVariant | null;
+  contact?: LandingPageContactLayoutVariant | null;
+}
+
+export interface LandingPageSectionStyles {
+  hero?: LandingPageHeroSectionStyle | null;
+  about?: LandingPageAboutSectionStyle | null;
+  courses?: LandingPageCoursesSectionStyle | null;
+  testimonials?: LandingPageTestimonialsSectionStyle | null;
+  contact?: LandingPageContactSectionStyle | null;
+}
+
+export interface LandingPageLayout {
+  section_order?: LandingPageSectionId[] | null;
+  section_layouts?: LandingPageSectionLayouts | null;
+  section_styles?: LandingPageSectionStyles | null;
+}
+
 export interface LandingPageMeta {
   meta_title?: string | null;
   meta_description?: string | null;
@@ -72,6 +158,7 @@ export interface LandingPagePayload {
   visibility?: LandingPageVisibility | null;
   social?: LandingPageSocial | null;
   styling?: LandingPageStyling | null;
+  layout?: LandingPageLayout | null;
   testimonials?: LandingPageTestimonial[] | null;
   status?: string | number | null;
   status_label?: string | null;

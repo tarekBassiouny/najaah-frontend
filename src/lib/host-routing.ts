@@ -69,7 +69,9 @@ function getCandidateDomains(appDomain?: string | null) {
   const defaults = ["najaah.local", "najaah.me"];
   const envDomain = normalizeAppDomain(appDomain);
 
-  return Array.from(new Set([envDomain, ...defaults].filter(Boolean))) as string[];
+  return Array.from(
+    new Set([envDomain, ...defaults].filter(Boolean)),
+  ) as string[];
 }
 
 export function resolveBaseDomain(

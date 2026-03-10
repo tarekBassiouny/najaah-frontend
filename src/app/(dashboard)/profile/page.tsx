@@ -111,18 +111,39 @@ function useResolveStatus() {
       toText(user.status_key)?.toLowerCase() ?? toText(user.status) ?? "";
     const normalized = String(key).trim().toLowerCase();
 
-    const statusMap: Record<string, { label: string; variant: BadgeVariant }> = {
-      "0": { label: t("pages.profile.statusLabels.inactive"), variant: "warning" },
-      "1": { label: t("pages.profile.statusLabels.active"), variant: "success" },
-      "2": { label: t("pages.profile.statusLabels.banned"), variant: "error" },
-      inactive: { label: t("pages.profile.statusLabels.inactive"), variant: "warning" },
-      active: { label: t("pages.profile.statusLabels.active"), variant: "success" },
-      banned: { label: t("pages.profile.statusLabels.banned"), variant: "error" },
-    };
+    const statusMap: Record<string, { label: string; variant: BadgeVariant }> =
+      {
+        "0": {
+          label: t("pages.profile.statusLabels.inactive"),
+          variant: "warning",
+        },
+        "1": {
+          label: t("pages.profile.statusLabels.active"),
+          variant: "success",
+        },
+        "2": {
+          label: t("pages.profile.statusLabels.banned"),
+          variant: "error",
+        },
+        inactive: {
+          label: t("pages.profile.statusLabels.inactive"),
+          variant: "warning",
+        },
+        active: {
+          label: t("pages.profile.statusLabels.active"),
+          variant: "success",
+        },
+        banned: {
+          label: t("pages.profile.statusLabels.banned"),
+          variant: "error",
+        },
+      };
 
     const fallback =
       toText(user.status_label) ??
-      (normalized ? toReadableText(normalized) : t("pages.profile.statusLabels.unknown"));
+      (normalized
+        ? toReadableText(normalized)
+        : t("pages.profile.statusLabels.unknown"));
 
     return statusMap[normalized] ?? { label: fallback, variant: "secondary" };
   };
@@ -163,7 +184,10 @@ function useResolveFlagLabel() {
   const { t } = useTranslation();
 
   return (value: unknown): string => {
-    if (typeof value === "boolean") return value ? t("pages.profile.flagLabels.yes") : t("pages.profile.flagLabels.no");
+    if (typeof value === "boolean")
+      return value
+        ? t("pages.profile.flagLabels.yes")
+        : t("pages.profile.flagLabels.no");
 
     const raw = toText(value)?.toLowerCase();
     if (!raw) return t("pages.profile.flagLabels.no");
@@ -261,7 +285,9 @@ export default function ProfilePage() {
               }}
               disabled={isFetching}
             >
-              {isFetching ? t("pages.profile.retrying") : t("pages.profile.retry")}
+              {isFetching
+                ? t("pages.profile.retrying")
+                : t("pages.profile.retry")}
             </Button>
           </CardContent>
         </Card>
@@ -330,7 +356,9 @@ export default function ProfilePage() {
               }}
               disabled={isFetching}
             >
-              {isFetching ? t("pages.profile.refreshing") : t("pages.profile.refresh")}
+              {isFetching
+                ? t("pages.profile.refreshing")
+                : t("pages.profile.refresh")}
             </Button>
           </div>
         }
@@ -346,17 +374,21 @@ export default function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>{toText(user.name) ?? t("common.labels.admin")}</CardTitle>
-          <CardDescription>
-            {toText(user.email) ?? "—"}
-          </CardDescription>
+          <CardDescription>{toText(user.email) ?? "—"}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-2">
           <Badge variant={status.variant}>{status.label}</Badge>
-          {resolveFlagLabel(user.is_system_super_admin) === t("pages.profile.flagLabels.yes") ? (
-            <Badge variant="default">{t("pages.profile.badges.systemSuperAdmin")}</Badge>
+          {resolveFlagLabel(user.is_system_super_admin) ===
+          t("pages.profile.flagLabels.yes") ? (
+            <Badge variant="default">
+              {t("pages.profile.badges.systemSuperAdmin")}
+            </Badge>
           ) : null}
-          {resolveFlagLabel(user.is_center_super_admin) === t("pages.profile.flagLabels.yes") ? (
-            <Badge variant="info">{t("pages.profile.badges.centerSuperAdmin")}</Badge>
+          {resolveFlagLabel(user.is_center_super_admin) ===
+          t("pages.profile.flagLabels.yes") ? (
+            <Badge variant="info">
+              {t("pages.profile.badges.centerSuperAdmin")}
+            </Badge>
           ) : null}
           {roles.length > 0
             ? roles.map((role) => (
@@ -372,13 +404,28 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>{t("pages.profile.cards.identity")}</CardTitle>
-            <CardDescription>{t("pages.profile.cards.identityDesc")}</CardDescription>
+            <CardDescription>
+              {t("pages.profile.cards.identityDesc")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProfileField label={t("pages.profile.fields.adminId")} value={String(user.id)} mono />
-            <ProfileField label={t("pages.profile.fields.name")} value={toText(user.name) ?? "—"} />
-            <ProfileField label={t("pages.profile.fields.email")} value={toText(user.email) ?? "—"} />
-            <ProfileField label={t("pages.profile.fields.phone")} value={toText(user.phone) ?? "—"} />
+            <ProfileField
+              label={t("pages.profile.fields.adminId")}
+              value={String(user.id)}
+              mono
+            />
+            <ProfileField
+              label={t("pages.profile.fields.name")}
+              value={toText(user.name) ?? "—"}
+            />
+            <ProfileField
+              label={t("pages.profile.fields.email")}
+              value={toText(user.email) ?? "—"}
+            />
+            <ProfileField
+              label={t("pages.profile.fields.phone")}
+              value={toText(user.phone) ?? "—"}
+            />
             <ProfileField
               label={t("pages.profile.fields.username")}
               value={toText(user.username) ?? "—"}
@@ -398,13 +445,22 @@ export default function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProfileField label={t("pages.profile.fields.status")} value={status.label} />
-            <ProfileField label={t("pages.profile.fields.scopeType")} value={resolveScopeLabel(user)} />
+            <ProfileField
+              label={t("pages.profile.fields.status")}
+              value={status.label}
+            />
+            <ProfileField
+              label={t("pages.profile.fields.scopeType")}
+              value={resolveScopeLabel(user)}
+            />
             <ProfileField
               label={t("pages.profile.fields.scopeCenterId")}
               value={toText(user.scope_center_id) ?? "—"}
             />
-            <ProfileField label={t("pages.profile.fields.center")} value={resolveCenterLabel(user)} />
+            <ProfileField
+              label={t("pages.profile.fields.center")}
+              value={resolveCenterLabel(user)}
+            />
             <ProfileField
               label={t("pages.profile.fields.permissionCount")}
               value={String(permissionCount)}

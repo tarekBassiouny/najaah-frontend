@@ -85,7 +85,10 @@ function useStatusStyles() {
   return {
     pending: { variant: "warning" as const, label: t("common.status.pending") },
     running: { variant: "info" as const, label: t("common.status.running") },
-    completed: { variant: "success" as const, label: t("common.status.completed") },
+    completed: {
+      variant: "success" as const,
+      label: t("common.status.completed"),
+    },
     failed: { variant: "error" as const, label: t("common.status.failed") },
   };
 }
@@ -102,8 +105,10 @@ function useFormatTimeAgo() {
     const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffMins < 1) return t("common.time.justNow");
-    if (diffMins < 60) return t("common.time.minuteAgo", { count: String(diffMins) });
-    if (diffHours < 24) return t("common.time.hourAgo", { count: String(diffHours) });
+    if (diffMins < 60)
+      return t("common.time.minuteAgo", { count: String(diffMins) });
+    if (diffHours < 24)
+      return t("common.time.hourAgo", { count: String(diffHours) });
     return t("common.time.dayAgo", { count: String(diffDays) });
   };
 }
@@ -113,7 +118,9 @@ function ExecutionItem({ execution }: { execution: AgentExecution }) {
   const formatTimeAgo = useFormatTimeAgo();
   const { t } = useTranslation();
 
-  const status = statusStyles[execution.status as keyof typeof statusStyles] ?? {
+  const status = statusStyles[
+    execution.status as keyof typeof statusStyles
+  ] ?? {
     variant: "secondary" as const,
     label: execution.status,
   };
@@ -157,7 +164,8 @@ function ExecutionItem({ execution }: { execution: AgentExecution }) {
 
         <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
           {formatTimeAgo(execution.createdAt)}
-          {execution.initiatedBy && ` ${t("common.labels.by")} ${execution.initiatedBy.name}`}
+          {execution.initiatedBy &&
+            ` ${t("common.labels.by")} ${execution.initiatedBy.name}`}
         </p>
       </div>
 
@@ -228,7 +236,8 @@ export function AgentExecutionHistory({
         <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
           <Link href="/agents/executions">
             <Button variant="outline" size="sm" className="w-full">
-              {t("pages.dashboard.agents.viewAllExecutions")} ({data.meta.total})
+              {t("pages.dashboard.agents.viewAllExecutions")} ({data.meta.total}
+              )
             </Button>
           </Link>
         </div>

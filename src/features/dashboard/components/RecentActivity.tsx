@@ -215,7 +215,8 @@ export function RecentActivity({
                     {activity.description}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {getRelativeTime(activity)} {t("common.labels.by")} {actorName}
+                    {getRelativeTime(activity)} {t("common.labels.by")}{" "}
+                    {actorName}
                   </p>
                 </div>
               </div>

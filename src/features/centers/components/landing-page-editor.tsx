@@ -15,6 +15,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -47,21 +54,33 @@ import {
   uploadHeroBackground,
   uploadTestimonialImage,
   unpublishLandingPage,
+  updateLandingPageLayoutOrder,
+  updateLandingPageLayoutStyles,
+  updateLandingPageLayoutVariants,
   updateLandingPageSection,
   updateTestimonial,
   type LandingPagePreviewResponse,
 } from "@/features/centers/services/landing-page.service";
 import type {
+  LandingPageLayout,
   LandingPageAbout,
   LandingPageContact,
   LandingPageHero,
   LandingPageMeta,
   LandingPagePayload,
+  LandingPageSectionId,
+  LandingPageSectionLayouts,
+  LandingPageSectionStyles,
   LandingPageSocial,
   LandingPageStyling,
   LandingPageTestimonial,
   LandingPageVisibility,
   LocalizedString,
+} from "@/features/centers/types/landing-page";
+import {
+  DEFAULT_LANDING_PAGE_SECTION_ORDER,
+  LANDING_PAGE_LAYOUT_VARIANT_OPTIONS,
+  LANDING_PAGE_SECTION_IDS,
 } from "@/features/centers/types/landing-page";
 
 const emptyLocalized: LocalizedString = { en: "", ar: "" };
@@ -75,6 +94,7 @@ type TabId =
   | "about"
   | "contact"
   | "social"
+  | "layout"
   | "styling"
   | "visibility"
   | "testimonials";
@@ -83,6 +103,12 @@ type Notice = {
   variant: "default" | "success" | "destructive";
   title: string;
   description?: string;
+};
+
+type LayoutMutationFailure = {
+  __tag: "layout-mutation-failure";
+  cause: unknown;
+  partialPayload: LandingPagePayload | null;
 };
 
 const editorTabs: Array<{
@@ -119,6 +145,12 @@ const editorTabs: Array<{
       "Maintain the public social links that appear on the landing page.",
   },
   {
+    id: "layout",
+    label: "Layout",
+    description:
+      "Control section order, layout variants, and section-level style presets.",
+  },
+  {
     id: "styling",
     label: "Styling",
     description:
@@ -146,6 +178,14 @@ const socialFieldDefinitions = [
   { id: "social-linkedin", label: "LinkedIn", field: "social_linkedin" },
   { id: "social-tiktok", label: "TikTok", field: "social_tiktok" },
 ] as const;
+
+const layoutSectionLabels: Record<LandingPageSectionId, string> = {
+  hero: "Hero",
+  about: "About",
+  courses: "Courses",
+  testimonials: "Testimonials",
+  contact: "Contact",
+};
 
 const visibilityFieldDefinitions = [
   {
@@ -252,6 +292,93 @@ function normalizeVisibility(
   };
 }
 
+function normalizeLayout(value?: LandingPageLayout | null): LandingPageLayout {
+  return {
+    section_order:
+      value?.section_order?.length === LANDING_PAGE_SECTION_IDS.length
+        ? [...value.section_order]
+        : [...DEFAULT_LANDING_PAGE_SECTION_ORDER],
+    section_layouts: {
+      hero: value?.section_layouts?.hero ?? "default",
+      about: value?.section_layouts?.about ?? "default",
+      courses: value?.section_layouts?.courses ?? "default",
+      testimonials: value?.section_layouts?.testimonials ?? "default",
+      contact: value?.section_layouts?.contact ?? "default",
+    },
+    section_styles: {
+      hero: {
+        text_align: value?.section_styles?.hero?.text_align ?? null,
+        overlay_opacity: value?.section_styles?.hero?.overlay_opacity ?? null,
+        content_width: value?.section_styles?.hero?.content_width ?? null,
+      },
+      about: {
+        text_align: value?.section_styles?.about?.text_align ?? null,
+        image_fit: value?.section_styles?.about?.image_fit ?? null,
+      },
+      courses: {
+        columns_desktop:
+          value?.section_styles?.courses?.columns_desktop ?? null,
+        columns_mobile: value?.section_styles?.courses?.columns_mobile ?? null,
+      },
+      testimonials: {
+        card_style: value?.section_styles?.testimonials?.card_style ?? null,
+        columns_desktop:
+          value?.section_styles?.testimonials?.columns_desktop ?? null,
+      },
+      contact: {
+        layout: value?.section_styles?.contact?.layout ?? null,
+        show_map: value?.section_styles?.contact?.show_map ?? null,
+      },
+    },
+  };
+}
+
+function moveSection(
+  sectionOrder: LandingPageSectionId[],
+  index: number,
+  direction: -1 | 1,
+) {
+  const nextIndex = index + direction;
+  if (nextIndex < 0 || nextIndex >= sectionOrder.length) {
+    return sectionOrder;
+  }
+
+  const nextOrder = [...sectionOrder];
+  const [item] = nextOrder.splice(index, 1);
+  nextOrder.splice(nextIndex, 0, item);
+  return nextOrder;
+}
+
+function normalizeOptionalNumberInput(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const nextValue = Number(trimmed);
+  return Number.isFinite(nextValue) ? nextValue : null;
+}
+
+function isSectionVisible(
+  section: LandingPageSectionId,
+  visibility: LandingPageVisibility,
+) {
+  switch (section) {
+    case "hero":
+      return Boolean(visibility.show_hero);
+    case "about":
+      return Boolean(visibility.show_about);
+    case "courses":
+      return Boolean(visibility.show_courses);
+    case "testimonials":
+      return Boolean(visibility.show_testimonials);
+    case "contact":
+      return Boolean(visibility.show_contact);
+    default:
+      return true;
+  }
+}
+
 function createSuccessNotice(title: string, description?: string): Notice {
   return {
     variant: "success",
@@ -272,6 +399,17 @@ function createErrorNotice(
       getAdminApiFirstFieldError(error) ??
       getAdminApiErrorMessage(error, fallbackDescription),
   };
+}
+
+function isLayoutMutationFailure(
+  error: unknown,
+): error is LayoutMutationFailure {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "__tag" in error &&
+    error.__tag === "layout-mutation-failure"
+  );
 }
 
 function resolvePreviewUrl(
@@ -598,6 +736,9 @@ export function LandingPageEditor({ centerId }: Props) {
   const [socialDraft, setSocialDraft] = useState<LandingPageSocial>(() =>
     normalizeSocial(undefined),
   );
+  const [layoutDraft, setLayoutDraft] = useState<LandingPageLayout>(() =>
+    normalizeLayout(undefined),
+  );
   const [stylingDraft, setStylingDraft] = useState<LandingPageStyling>(() =>
     normalizeStyling(undefined),
   );
@@ -674,6 +815,7 @@ export function LandingPageEditor({ centerId }: Props) {
     setAboutDraft(normalizeAbout(landing.about));
     setContactDraft(normalizeContact(landing.contact));
     setSocialDraft(normalizeSocial(landing.social));
+    setLayoutDraft(normalizeLayout(landing.layout as LandingPageLayout | null));
     setStylingDraft(normalizeStyling(landing.styling as LandingPageStyling));
     setVisibilityDraft(normalizeVisibility(landing.visibility));
 
@@ -718,6 +860,26 @@ export function LandingPageEditor({ centerId }: Props) {
   const handlePreviewLocaleChange = (nextLocale: Locale) => {
     setPreviewLocale(nextLocale);
     setPreviewUrl((current) => updatePreviewUrlLocale(current, nextLocale));
+  };
+
+  const handleMoveLayoutSection = (index: number, direction: -1 | 1) => {
+    setLayoutDraft((current) => ({
+      ...current,
+      section_order: moveSection(
+        current.section_order ?? DEFAULT_LANDING_PAGE_SECTION_ORDER,
+        index,
+        direction,
+      ),
+    }));
+  };
+
+  const handleSaveLayout = () => {
+    layoutMutation.mutate({
+      section_order:
+        layoutDraft.section_order ?? DEFAULT_LANDING_PAGE_SECTION_ORDER,
+      section_layouts: layoutDraft.section_layouts ?? {},
+      section_styles: layoutDraft.section_styles ?? {},
+    });
   };
 
   const updateLandingCache = (payload: LandingPagePayload | null) => {
@@ -1187,6 +1349,72 @@ export function LandingPageEditor({ centerId }: Props) {
     },
   });
 
+  const layoutMutation = useMutation({
+    mutationFn: async (payload: LandingPageLayout) => {
+      const sectionOrder =
+        payload.section_order ?? DEFAULT_LANDING_PAGE_SECTION_ORDER;
+      const sectionLayouts = payload.section_layouts ?? {};
+      const sectionStyles = payload.section_styles ?? {};
+      let nextPayload: LandingPagePayload | null = null;
+
+      try {
+        nextPayload = await updateLandingPageLayoutOrder(
+          centerId,
+          sectionOrder,
+        );
+
+        nextPayload =
+          (await updateLandingPageLayoutVariants(
+            centerId,
+            sectionLayouts as LandingPageSectionLayouts,
+          )) ?? nextPayload;
+
+        nextPayload =
+          (await updateLandingPageLayoutStyles(
+            centerId,
+            sectionStyles as LandingPageSectionStyles,
+          )) ?? nextPayload;
+
+        return nextPayload;
+      } catch (error) {
+        throw {
+          __tag: "layout-mutation-failure",
+          cause: error,
+          partialPayload: nextPayload,
+        } satisfies LayoutMutationFailure;
+      }
+    },
+    onSuccess(data) {
+      updateLandingCache(data);
+      setSectionNotice(
+        "layout",
+        createSuccessNotice(
+          "Layout saved",
+          "Section order, variants, and style overrides were updated.",
+        ),
+      );
+    },
+    onError(error) {
+      const sourceError = isLayoutMutationFailure(error) ? error.cause : error;
+
+      if (isLayoutMutationFailure(error) && error.partialPayload) {
+        updateLandingCache(error.partialPayload);
+        void queryClient.invalidateQueries({
+          queryKey: ["landing-page", centerId],
+        });
+      }
+
+      setSectionNotice(
+        "layout",
+        createErrorNotice(
+          sourceError,
+          "Layout save failed",
+          "Unable to save the landing-page layout configuration.",
+        ),
+      );
+    },
+  });
+
   const aboutImageMutation = useMutation({
     mutationFn: (file: File) =>
       uploadAboutImage(centerId, {
@@ -1629,9 +1857,8 @@ export function LandingPageEditor({ centerId }: Props) {
             <div className="space-y-2">
               <CardTitle>Preview iframe</CardTitle>
               <CardDescription>
-                Review the branded landing page in{" "}
-                {previewLocale.toUpperCase()} with the current draft token
-                before publishing.
+                Review the branded landing page in {previewLocale.toUpperCase()}{" "}
+                with the current draft token before publishing.
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -1640,9 +1867,7 @@ export function LandingPageEditor({ centerId }: Props) {
                   key={`iframe-locale-${localeCode}`}
                   type="button"
                   size="sm"
-                  variant={
-                    previewLocale === localeCode ? "default" : "outline"
-                  }
+                  variant={previewLocale === localeCode ? "default" : "outline"}
                   className="rounded-full"
                   onClick={() => handlePreviewLocaleChange(localeCode)}
                 >
@@ -2107,6 +2332,571 @@ export function LandingPageEditor({ centerId }: Props) {
                   disabled={socialMutation.isPending}
                 >
                   {socialMutation.isPending ? "Saving..." : "Save Social"}
+                </Button>
+              </div>
+            </>
+          ) : null}
+
+          {activeTab === "layout" ? (
+            <>
+              <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                    Section order
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Move sections up or down to control the final public page
+                    order. Hidden sections keep their saved position and render
+                    only when enabled from the Visibility tab.
+                  </p>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {(
+                    layoutDraft.section_order ??
+                    DEFAULT_LANDING_PAGE_SECTION_ORDER
+                  ).map((sectionId, index) => (
+                    <div
+                      key={`order-${sectionId}`}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-800"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline">{index + 1}</Badge>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {layoutSectionLabels[sectionId]}
+                          </p>
+                          <Badge
+                            variant={
+                              isSectionVisible(sectionId, visibilityDraft)
+                                ? "success"
+                                : "secondary"
+                            }
+                          >
+                            {isSectionVisible(sectionId, visibilityDraft)
+                              ? "Visible"
+                              : "Hidden"}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Variant:{" "}
+                          {layoutDraft.section_layouts?.[sectionId] ??
+                            LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId][0]}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={index === 0}
+                          onClick={() => handleMoveLayoutSection(index, -1)}
+                        >
+                          Up
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={
+                            index ===
+                            (
+                              layoutDraft.section_order ??
+                              DEFAULT_LANDING_PAGE_SECTION_ORDER
+                            ).length -
+                              1
+                          }
+                          onClick={() => handleMoveLayoutSection(index, 1)}
+                        >
+                          Down
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                {(
+                  layoutDraft.section_order ??
+                  DEFAULT_LANDING_PAGE_SECTION_ORDER
+                ).map((sectionId) => (
+                  <div
+                    key={`layout-section-${sectionId}`}
+                    className="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-800"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                          {layoutSectionLabels[sectionId]}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Configure the variant and style overrides for this
+                          section.
+                        </p>
+                      </div>
+                      <Badge variant="outline">{sectionId.toUpperCase()}</Badge>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>{layoutSectionLabels[sectionId]} variant</Label>
+                      <Select
+                        value={
+                          layoutDraft.section_layouts?.[sectionId] ??
+                          LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId][0]
+                        }
+                        onValueChange={(nextValue) =>
+                          setLayoutDraft((current) => ({
+                            ...current,
+                            section_layouts: {
+                              ...(current.section_layouts ?? {}),
+                              [sectionId]: nextValue,
+                            } as LandingPageSectionLayouts,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId].map(
+                            (option) => (
+                              <SelectItem key={option} value={option}>
+                                {option.charAt(0).toUpperCase() +
+                                  option.slice(1)}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {sectionId === "hero" ? (
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label>Text align</Label>
+                          <Select
+                            value={
+                              layoutDraft.section_styles?.hero?.text_align ??
+                              "inherit"
+                            }
+                            onValueChange={(nextValue) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  hero: {
+                                    ...(current.section_styles?.hero ?? {}),
+                                    text_align:
+                                      nextValue === "inherit"
+                                        ? null
+                                        : nextValue,
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="inherit">
+                                Inherit default
+                              </SelectItem>
+                              <SelectItem value="left">Left</SelectItem>
+                              <SelectItem value="center">Center</SelectItem>
+                              <SelectItem value="right">Right</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="hero-overlay-opacity">
+                            Overlay opacity
+                          </Label>
+                          <Input
+                            id="hero-overlay-opacity"
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value={
+                              layoutDraft.section_styles?.hero
+                                ?.overlay_opacity ?? ""
+                            }
+                            onChange={(event) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  hero: {
+                                    ...(current.section_styles?.hero ?? {}),
+                                    overlay_opacity:
+                                      normalizeOptionalNumberInput(
+                                        event.currentTarget.value,
+                                      ),
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                            placeholder="0.6"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Content width</Label>
+                          <Select
+                            value={
+                              layoutDraft.section_styles?.hero?.content_width ??
+                              "inherit"
+                            }
+                            onValueChange={(nextValue) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  hero: {
+                                    ...(current.section_styles?.hero ?? {}),
+                                    content_width:
+                                      nextValue === "inherit"
+                                        ? null
+                                        : nextValue,
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="inherit">
+                                Inherit default
+                              </SelectItem>
+                              <SelectItem value="narrow">Narrow</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="wide">Wide</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {sectionId === "about" ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Text align</Label>
+                          <Select
+                            value={
+                              layoutDraft.section_styles?.about?.text_align ??
+                              "inherit"
+                            }
+                            onValueChange={(nextValue) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  about: {
+                                    ...(current.section_styles?.about ?? {}),
+                                    text_align:
+                                      nextValue === "inherit"
+                                        ? null
+                                        : nextValue,
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="inherit">
+                                Inherit default
+                              </SelectItem>
+                              <SelectItem value="left">Left</SelectItem>
+                              <SelectItem value="center">Center</SelectItem>
+                              <SelectItem value="right">Right</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Image fit</Label>
+                          <Select
+                            value={
+                              layoutDraft.section_styles?.about?.image_fit ??
+                              "inherit"
+                            }
+                            onValueChange={(nextValue) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  about: {
+                                    ...(current.section_styles?.about ?? {}),
+                                    image_fit:
+                                      nextValue === "inherit"
+                                        ? null
+                                        : nextValue,
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="inherit">
+                                Inherit default
+                              </SelectItem>
+                              <SelectItem value="cover">Cover</SelectItem>
+                              <SelectItem value="contain">Contain</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {sectionId === "courses" ? (
+                      <div className="space-y-4">
+                        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
+                          Courses remains a design-only placeholder until the
+                          landing payload includes real course card data.
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="courses-columns-desktop">
+                              Desktop columns
+                            </Label>
+                            <Input
+                              id="courses-columns-desktop"
+                              type="number"
+                              min="1"
+                              max="4"
+                              value={
+                                layoutDraft.section_styles?.courses
+                                  ?.columns_desktop ?? ""
+                              }
+                              onChange={(event) =>
+                                setLayoutDraft((current) => ({
+                                  ...current,
+                                  section_styles: {
+                                    ...(current.section_styles ?? {}),
+                                    courses: {
+                                      ...(current.section_styles?.courses ??
+                                        {}),
+                                      columns_desktop:
+                                        normalizeOptionalNumberInput(
+                                          event.currentTarget.value,
+                                        ),
+                                    },
+                                  } as LandingPageSectionStyles,
+                                }))
+                              }
+                              placeholder="3"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="courses-columns-mobile">
+                              Mobile columns
+                            </Label>
+                            <Input
+                              id="courses-columns-mobile"
+                              type="number"
+                              min="1"
+                              max="2"
+                              value={
+                                layoutDraft.section_styles?.courses
+                                  ?.columns_mobile ?? ""
+                              }
+                              onChange={(event) =>
+                                setLayoutDraft((current) => ({
+                                  ...current,
+                                  section_styles: {
+                                    ...(current.section_styles ?? {}),
+                                    courses: {
+                                      ...(current.section_styles?.courses ??
+                                        {}),
+                                      columns_mobile:
+                                        normalizeOptionalNumberInput(
+                                          event.currentTarget.value,
+                                        ),
+                                    },
+                                  } as LandingPageSectionStyles,
+                                }))
+                              }
+                              placeholder="1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {sectionId === "testimonials" ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label>Card style</Label>
+                          <Select
+                            value={
+                              layoutDraft.section_styles?.testimonials
+                                ?.card_style ?? "inherit"
+                            }
+                            onValueChange={(nextValue) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  testimonials: {
+                                    ...(current.section_styles?.testimonials ??
+                                      {}),
+                                    card_style:
+                                      nextValue === "inherit"
+                                        ? null
+                                        : nextValue,
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="inherit">
+                                Inherit default
+                              </SelectItem>
+                              <SelectItem value="soft">Soft</SelectItem>
+                              <SelectItem value="outline">Outline</SelectItem>
+                              <SelectItem value="solid">Solid</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="testimonials-columns-desktop">
+                            Desktop columns
+                          </Label>
+                          <Input
+                            id="testimonials-columns-desktop"
+                            type="number"
+                            min="1"
+                            max="4"
+                            value={
+                              layoutDraft.section_styles?.testimonials
+                                ?.columns_desktop ?? ""
+                            }
+                            onChange={(event) =>
+                              setLayoutDraft((current) => ({
+                                ...current,
+                                section_styles: {
+                                  ...(current.section_styles ?? {}),
+                                  testimonials: {
+                                    ...(current.section_styles?.testimonials ??
+                                      {}),
+                                    columns_desktop:
+                                      normalizeOptionalNumberInput(
+                                        event.currentTarget.value,
+                                      ),
+                                  },
+                                } as LandingPageSectionStyles,
+                              }))
+                            }
+                            placeholder="2"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {sectionId === "contact" ? (
+                      <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Contact style</Label>
+                            <Select
+                              value={
+                                layoutDraft.section_styles?.contact?.layout ??
+                                "inherit"
+                              }
+                              onValueChange={(nextValue) =>
+                                setLayoutDraft((current) => ({
+                                  ...current,
+                                  section_styles: {
+                                    ...(current.section_styles ?? {}),
+                                    contact: {
+                                      ...(current.section_styles?.contact ??
+                                        {}),
+                                      layout:
+                                        nextValue === "inherit"
+                                          ? null
+                                          : nextValue,
+                                    },
+                                  } as LandingPageSectionStyles,
+                                }))
+                              }
+                            >
+                              <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="inherit">
+                                  Inherit default
+                                </SelectItem>
+                                <SelectItem value="cards">Cards</SelectItem>
+                                <SelectItem value="stacked">Stacked</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <label className="flex items-start gap-3 rounded-xl border border-gray-200 px-4 py-4 dark:border-gray-800">
+                            <input
+                              type="checkbox"
+                              className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              checked={Boolean(
+                                layoutDraft.section_styles?.contact?.show_map,
+                              )}
+                              onChange={(event) =>
+                                setLayoutDraft((current) => ({
+                                  ...current,
+                                  section_styles: {
+                                    ...(current.section_styles ?? {}),
+                                    contact: {
+                                      ...(current.section_styles?.contact ??
+                                        {}),
+                                      show_map: event.currentTarget.checked,
+                                    },
+                                  } as LandingPageSectionStyles,
+                                }))
+                              }
+                            />
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                Show map placeholder
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                This is a layout hint only for now. No embed URL
+                                or coordinate data exists in the landing payload
+                                yet.
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  onClick={handleSaveLayout}
+                  disabled={layoutMutation.isPending}
+                >
+                  {layoutMutation.isPending ? "Saving..." : "Save Layout"}
                 </Button>
               </div>
             </>

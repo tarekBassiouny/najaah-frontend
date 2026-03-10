@@ -40,7 +40,9 @@ export function proxy(request: NextRequest) {
   }
 
   url.pathname =
-    pathname === "/ar" ? "/landing-page-najaah-ar.html" : "/landing-page-najaah.html";
+    pathname === "/ar"
+      ? "/landing-page-najaah-ar.html"
+      : "/landing-page-najaah.html";
 
   return NextResponse.rewrite(url);
 }

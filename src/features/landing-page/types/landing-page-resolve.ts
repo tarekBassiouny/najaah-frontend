@@ -1,4 +1,5 @@
 import type {
+  LandingPageLayout,
   LandingPageMeta,
   LandingPageSocial,
   LandingPageStyling,
@@ -63,6 +64,7 @@ export interface LandingPageResolveResponse {
   contact?: LandingPageContactSection | null;
   social?: LandingPageSocial | null;
   styling?: LandingPageStyling | null;
+  layout?: LandingPageLayout | null;
   visibility?: LandingPageVisibility | null;
   testimonials?: LandingPageTestimonial[] | null;
   status?: string;

@@ -4,26 +4,26 @@ export default function LandingPageLoading() {
       <section className="bg-[linear-gradient(135deg,#0f172a_0%,#4f46e5_100%)]">
         <div className="mx-auto max-w-6xl px-6 py-14 md:py-20">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.18fr),340px]">
-            <div className="rounded-[36px] border border-white/15 bg-slate-950/42 p-8 shadow-2xl backdrop-blur-xl md:p-10">
+            <div className="bg-slate-950/42 rounded-[36px] border border-white/15 p-8 shadow-2xl backdrop-blur-xl md:p-10">
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 animate-pulse rounded-2xl bg-white/15" />
                   <div className="space-y-3">
-                    <div className="h-8 w-56 animate-pulse rounded-full bg-white/12" />
+                    <div className="bg-white/12 h-8 w-56 animate-pulse rounded-full" />
                     <div className="h-6 w-44 animate-pulse rounded-full bg-white/10" />
                   </div>
                 </div>
-                <div className="h-10 w-28 animate-pulse rounded-full bg-white/12" />
+                <div className="bg-white/12 h-10 w-28 animate-pulse rounded-full" />
               </div>
 
               <div className="mt-10 space-y-5">
-                <div className="h-14 w-full max-w-2xl animate-pulse rounded-3xl bg-white/14" />
+                <div className="bg-white/14 h-14 w-full max-w-2xl animate-pulse rounded-3xl" />
                 <div className="h-6 w-full max-w-xl animate-pulse rounded-full bg-white/10" />
                 <div className="h-6 w-full max-w-lg animate-pulse rounded-full bg-white/10" />
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <div className="h-12 w-40 animate-pulse rounded-full bg-white/14" />
+                <div className="bg-white/14 h-12 w-40 animate-pulse rounded-full" />
                 <div className="h-12 w-36 animate-pulse rounded-full bg-white/10" />
               </div>
 
@@ -34,9 +34,9 @@ export default function LandingPageLoading() {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-white/12 bg-white/10 p-5 backdrop-blur-xl">
-              <div className="rounded-[26px] border border-white/10 bg-slate-950/24 p-5">
-                <div className="h-6 w-28 animate-pulse rounded-full bg-white/12" />
+            <div className="border-white/12 rounded-[32px] border bg-white/10 p-5 backdrop-blur-xl">
+              <div className="bg-slate-950/24 rounded-[26px] border border-white/10 p-5">
+                <div className="bg-white/12 h-6 w-28 animate-pulse rounded-full" />
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                   <div className="h-24 animate-pulse rounded-3xl bg-white/10" />
                   <div className="h-24 animate-pulse rounded-3xl bg-white/10" />
@@ -76,7 +76,7 @@ export default function LandingPageLoading() {
           </div>
 
           <div className="rounded-[34px] border border-slate-200 bg-slate-950 p-6 md:p-8">
-            <div className="h-4 w-24 animate-pulse rounded-full bg-white/12" />
+            <div className="bg-white/12 h-4 w-24 animate-pulse rounded-full" />
             <div className="mt-5 h-12 w-56 animate-pulse rounded-3xl bg-white/10" />
             <div className="mt-8 flex flex-wrap gap-3">
               <div className="h-10 w-24 animate-pulse rounded-full bg-white/10" />

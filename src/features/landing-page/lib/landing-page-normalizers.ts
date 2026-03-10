@@ -2,6 +2,7 @@ import type {
   LandingPageAbout,
   LandingPageContact,
   LandingPageHero,
+  LandingPageLayout,
   LandingPageMeta,
   LandingPagePayload,
   LandingPageSocial,
@@ -9,6 +10,19 @@ import type {
   LandingPageTestimonial,
   LandingPageVisibility,
   LocalizedString,
+} from "@/features/centers/types/landing-page";
+import {
+  DEFAULT_LANDING_PAGE_SECTION_ORDER,
+  LANDING_PAGE_LAYOUT_VARIANT_OPTIONS,
+  LANDING_PAGE_SECTION_IDS,
+  type LandingPageAboutSectionStyle,
+  type LandingPageContactSectionStyle,
+  type LandingPageCoursesSectionStyle,
+  type LandingPageHeroSectionStyle,
+  type LandingPageSectionId,
+  type LandingPageSectionLayouts,
+  type LandingPageSectionStyles,
+  type LandingPageTestimonialsSectionStyle,
 } from "@/features/centers/types/landing-page";
 import type {
   LandingPageResolveCenter,
@@ -37,7 +51,38 @@ function readBoolean(value: unknown): boolean | undefined {
 }
 
 function readNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+function readNullableBoolean(value: unknown): boolean | null | undefined {
+  if (value === null) {
+    return null;
+  }
+
+  return readBoolean(value);
+}
+
+function readNullableNumber(value: unknown): number | null | undefined {
+  if (value === null) {
+    return null;
+  }
+
+  return readNumber(value);
+}
+
+function readNullableEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+): T | null | undefined {
+  if (value === null) {
+    return null;
+  }
+
+  return typeof value === "string" && allowed.includes(value as T)
+    ? (value as T)
+    : undefined;
 }
 
 function normalizeLocalizedValue(
@@ -269,6 +314,168 @@ function normalizeCenter(value: unknown): LandingPageResolveCenter | null {
   };
 }
 
+function normalizeSectionOrder(value: unknown): LandingPageSectionId[] {
+  if (!Array.isArray(value)) {
+    return [...DEFAULT_LANDING_PAGE_SECTION_ORDER];
+  }
+
+  const normalized = value.filter(
+    (item): item is LandingPageSectionId =>
+      typeof item === "string" &&
+      LANDING_PAGE_SECTION_IDS.includes(item as LandingPageSectionId),
+  );
+
+  if (
+    normalized.length !== LANDING_PAGE_SECTION_IDS.length ||
+    new Set(normalized).size !== LANDING_PAGE_SECTION_IDS.length
+  ) {
+    return [...DEFAULT_LANDING_PAGE_SECTION_ORDER];
+  }
+
+  return normalized;
+}
+
+function normalizeSectionLayouts(value: unknown): LandingPageSectionLayouts {
+  const record = asRecord(value);
+
+  return {
+    hero:
+      readNullableEnum(
+        record?.hero,
+        LANDING_PAGE_LAYOUT_VARIANT_OPTIONS.hero,
+      ) ?? "default",
+    about:
+      readNullableEnum(
+        record?.about,
+        LANDING_PAGE_LAYOUT_VARIANT_OPTIONS.about,
+      ) ?? "default",
+    courses:
+      readNullableEnum(
+        record?.courses,
+        LANDING_PAGE_LAYOUT_VARIANT_OPTIONS.courses,
+      ) ?? "default",
+    testimonials:
+      readNullableEnum(
+        record?.testimonials,
+        LANDING_PAGE_LAYOUT_VARIANT_OPTIONS.testimonials,
+      ) ?? "default",
+    contact:
+      readNullableEnum(
+        record?.contact,
+        LANDING_PAGE_LAYOUT_VARIANT_OPTIONS.contact,
+      ) ?? "default",
+  };
+}
+
+function normalizeHeroSectionStyle(
+  value: unknown,
+): LandingPageHeroSectionStyle {
+  const record = asRecord(value);
+  if (!record) {
+    return {};
+  }
+
+  return {
+    text_align: readNullableEnum(record.text_align, [
+      "left",
+      "center",
+      "right",
+    ]),
+    overlay_opacity: readNullableNumber(record.overlay_opacity),
+    content_width: readNullableEnum(record.content_width, [
+      "narrow",
+      "medium",
+      "wide",
+    ]),
+  };
+}
+
+function normalizeAboutSectionStyle(
+  value: unknown,
+): LandingPageAboutSectionStyle {
+  const record = asRecord(value);
+  if (!record) {
+    return {};
+  }
+
+  return {
+    text_align: readNullableEnum(record.text_align, [
+      "left",
+      "center",
+      "right",
+    ]),
+    image_fit: readNullableEnum(record.image_fit, ["cover", "contain"]),
+  };
+}
+
+function normalizeCoursesSectionStyle(
+  value: unknown,
+): LandingPageCoursesSectionStyle {
+  const record = asRecord(value);
+  if (!record) {
+    return {};
+  }
+
+  return {
+    columns_desktop: readNullableNumber(record.columns_desktop),
+    columns_mobile: readNullableNumber(record.columns_mobile),
+  };
+}
+
+function normalizeTestimonialsSectionStyle(
+  value: unknown,
+): LandingPageTestimonialsSectionStyle {
+  const record = asRecord(value);
+  if (!record) {
+    return {};
+  }
+
+  return {
+    card_style: readNullableEnum(record.card_style, [
+      "soft",
+      "outline",
+      "solid",
+    ]),
+    columns_desktop: readNullableNumber(record.columns_desktop),
+  };
+}
+
+function normalizeContactSectionStyle(
+  value: unknown,
+): LandingPageContactSectionStyle {
+  const record = asRecord(value);
+  if (!record) {
+    return {};
+  }
+
+  return {
+    layout: readNullableEnum(record.layout, ["cards", "stacked"]),
+    show_map: readNullableBoolean(record.show_map),
+  };
+}
+
+function normalizeSectionStyles(value: unknown): LandingPageSectionStyles {
+  const record = asRecord(value);
+
+  return {
+    hero: normalizeHeroSectionStyle(record?.hero),
+    about: normalizeAboutSectionStyle(record?.about),
+    courses: normalizeCoursesSectionStyle(record?.courses),
+    testimonials: normalizeTestimonialsSectionStyle(record?.testimonials),
+    contact: normalizeContactSectionStyle(record?.contact),
+  };
+}
+
+function normalizeLayout(value: unknown): LandingPageLayout {
+  const record = asRecord(value);
+
+  return {
+    section_order: normalizeSectionOrder(record?.section_order),
+    section_layouts: normalizeSectionLayouts(record?.section_layouts),
+    section_styles: normalizeSectionStyles(record?.section_styles),
+  };
+}
+
 export function normalizeLandingPagePayload(
   payload: unknown,
 ): LandingPagePayload | null {
@@ -294,6 +501,7 @@ export function normalizeLandingPagePayload(
     contact: normalizeContact(record.contact),
     social: normalizeSocial(record.social),
     styling: normalizeStyling(record.styling),
+    layout: normalizeLayout(record.layout),
     visibility: normalizeVisibility(record.visibility),
     testimonials: normalizeTestimonials(record.testimonials),
   };
@@ -318,10 +526,10 @@ export function normalizeLandingPageResolveResponse(
     hero: normalizeHero(record.hero),
     about: normalizeAbout(record.about),
     contact: normalizeContact(record.contact),
+    layout: normalizeLayout(record.layout),
     visibility,
     testimonials: normalizeTestimonials(record.testimonials),
-    status:
-      typeof record.status === "string" ? record.status : undefined,
+    status: typeof record.status === "string" ? record.status : undefined,
     is_published: readBoolean(record.is_published),
     show_courses: visibility?.show_courses ?? undefined,
     meta: normalizeResolveMeta(record.meta),

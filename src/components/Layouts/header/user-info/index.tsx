@@ -12,6 +12,7 @@ import { useAdminLogout } from "@/features/auth/hooks/use-admin-logout";
 import { tokenStorage } from "@/lib/token-storage";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/features/localization";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -48,6 +49,7 @@ export function UserInfo() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { mutate: logout, isPending: isLoggingOut } = useAdminLogout({
     onSuccess: () => {
       tokenStorage.clear();
@@ -72,16 +74,18 @@ export function UserInfo() {
     );
   }
 
-  const displayName = user.name || "User";
+  const displayName = user.name || t("common.labels.user");
   const displayEmail = user.email || "";
   const displayRole =
-    getRoleLabel(user.role) ?? getRoleLabel(user.roles?.[0]) ?? "Admin";
+    getRoleLabel(user.role) ??
+    getRoleLabel(user.roles?.[0]) ??
+    t("common.labels.admin");
   const avatarUrl = user.avatar;
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
       <DropdownTrigger className="flex items-center gap-2 rounded-lg p-1 outline-none ring-primary ring-offset-2 transition-colors hover:bg-gray-100 focus-visible:ring-2 dark:ring-offset-gray-900 dark:hover:bg-gray-800">
-        <span className="sr-only">My Account</span>
+        <span className="sr-only">{t("header.myAccount")}</span>
 
         {avatarUrl ? (
           <Image
@@ -145,7 +149,7 @@ export function UserInfo() {
             className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <UserIcon className="h-4 w-4" />
-            <span>View profile</span>
+            <span>{t("header.viewProfile")}</span>
           </Link>
         </div>
 
@@ -156,7 +160,9 @@ export function UserInfo() {
             className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/20"
           >
             <LogOutIcon className="h-4 w-4" />
-            <span>{isLoggingOut ? "Logging out..." : "Log out"}</span>
+            <span>
+              {isLoggingOut ? t("header.loggingOut") : t("header.logOut")}
+            </span>
           </button>
         </div>
       </DropdownContent>

@@ -18,6 +18,7 @@ import {
   CenterPrimaryAdminForm,
   type TierValue,
 } from "@/features/centers/components/forms";
+import { useTranslation } from "@/features/localization";
 
 type CenterType = "branded" | "unbranded";
 
@@ -30,6 +31,7 @@ type ProfileData = {
 };
 
 export default function CentersCreatePage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const createCenterMutation = useCreateCenter();
   const uploadLogoMutation = useUploadCenterLogo();
@@ -55,17 +57,17 @@ export default function CentersCreatePage() {
     event.preventDefault();
 
     if (!profileData.slug.trim()) {
-      setErrorMessage("Slug is required.");
+      setErrorMessage(t("pages.centerCreate.validation.slugRequired"));
       return;
     }
 
     if (profileData.type === "branded" && !primaryColor.trim()) {
-      setErrorMessage("Primary color is required for branded centers.");
+      setErrorMessage(t("pages.centerCreate.validation.primaryColorRequired"));
       return;
     }
 
     if (!adminName.trim() || !adminEmail.trim()) {
-      setErrorMessage("Admin name and email are required.");
+      setErrorMessage(t("pages.centerCreate.validation.adminRequired"));
       return;
     }
 
@@ -103,7 +105,7 @@ export default function CentersCreatePage() {
                   setErrorMessage(
                     getCenterApiErrorMessage(
                       error,
-                      "Center created, but logo upload failed. You can upload it from center settings.",
+                      t("pages.centerCreate.errors.logoUploadFailed"),
                     ),
                   );
                   router.push(`/centers/${createdCenter.id}/settings`);
@@ -119,7 +121,7 @@ export default function CentersCreatePage() {
           setErrorMessage(
             getCenterApiErrorMessage(
               error,
-              "Failed to create center. Please try again.",
+              t("pages.centerCreate.errors.createFailed"),
             ),
           );
         },
@@ -140,11 +142,11 @@ export default function CentersCreatePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Create Center"
-        description="Set up a new learning center with required onboarding details"
+        title={t("pages.centersPage.addCenter")}
+        description={t("pages.centerCreate.description")}
         actions={
           <Link href="/centers">
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common.actions.cancel")}</Button>
           </Link>
         }
       />
@@ -154,7 +156,7 @@ export default function CentersCreatePage() {
           <div className="space-y-6 lg:col-span-2">
             {errorMessage ? (
               <Alert variant="destructive">
-                <AlertTitle>Unable to create center</AlertTitle>
+                <AlertTitle>{t("pages.centerCreate.errors.unable")}</AlertTitle>
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             ) : null}
@@ -183,7 +185,7 @@ export default function CentersCreatePage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>{t("common.labels.actions")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -191,10 +193,12 @@ export default function CentersCreatePage() {
                   className="w-full"
                   disabled={isPending || !isFormValid}
                 >
-                  {isPending ? "Creating..." : "Create Center"}
+                  {isPending
+                    ? t("pages.centerCreate.creating")
+                    : t("pages.centersPage.addCenter")}
                 </Button>
                 <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-                  API key is no longer returned in create response.
+                  {t("pages.centerCreate.apiKeyHint")}
                 </p>
               </CardContent>
             </Card>

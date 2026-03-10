@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/ui/modal-store";
 import { PageHeader } from "@/components/ui/page-header";
+import { useTranslation } from "@/features/localization";
 import { RoleFormDialog } from "@/features/roles/components/RoleFormDialog";
 import { RolesTable } from "@/features/roles/components/RolesTable";
 import { can } from "@/lib/capabilities";
@@ -15,6 +16,7 @@ type PageProps = {
 };
 
 export default function CenterRolesPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const { showToast } = useModal();
   const canManageWrite = can("manage_roles");
@@ -25,17 +27,12 @@ export default function CenterRolesPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Roles"
+        title={t("pages.rolesPage.title")}
         description={
           canManageWrite
-            ? "Manage user roles and access levels for this center."
-            : "View roles and permissions. Updates require manage_roles permission."
+            ? t("pages.centerRoles.descriptionWrite")
+            : t("pages.centerRoles.descriptionReadOnly")
         }
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Roles" },
-        ]}
         actions={
           <>
             {canManageWrite ? (
@@ -45,11 +42,13 @@ export default function CenterRolesPage({ params }: PageProps) {
                   setFormOpen(true);
                 }}
               >
-                Add Role
+                {t("pages.rolesPage.addRole")}
               </Button>
             ) : null}
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           </>
         }

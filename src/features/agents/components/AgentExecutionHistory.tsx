@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 import Link from "next/link";
 import { type AgentExecution, AGENT_TYPE_LABELS } from "../types/agent";
 
@@ -13,19 +14,6 @@ type AgentExecutionHistoryProps = {
   limit?: number;
   showViewAll?: boolean;
   className?: string;
-};
-
-const statusStyles: Record<
-  string,
-  {
-    variant: "info" | "success" | "warning" | "error" | "secondary";
-    label: string;
-  }
-> = {
-  pending: { variant: "warning", label: "Pending" },
-  running: { variant: "info", label: "Running" },
-  completed: { variant: "success", label: "Completed" },
-  failed: { variant: "error", label: "Failed" },
 };
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -91,23 +79,49 @@ const typeIcons: Record<string, React.ReactNode> = {
   ),
 };
 
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+function useStatusStyles() {
+  const { t } = useTranslation();
 
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
+  return {
+    pending: { variant: "warning" as const, label: t("common.status.pending") },
+    running: { variant: "info" as const, label: t("common.status.running") },
+    completed: {
+      variant: "success" as const,
+      label: t("common.status.completed"),
+    },
+    failed: { variant: "error" as const, label: t("common.status.failed") },
+  };
+}
+
+function useFormatTimeAgo() {
+  const { t } = useTranslation();
+
+  return (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return t("common.time.justNow");
+    if (diffMins < 60)
+      return t("common.time.minuteAgo", { count: String(diffMins) });
+    if (diffHours < 24)
+      return t("common.time.hourAgo", { count: String(diffHours) });
+    return t("common.time.dayAgo", { count: String(diffDays) });
+  };
 }
 
 function ExecutionItem({ execution }: { execution: AgentExecution }) {
-  const status = statusStyles[execution.status] ?? {
-    variant: "secondary",
+  const statusStyles = useStatusStyles();
+  const formatTimeAgo = useFormatTimeAgo();
+  const { t } = useTranslation();
+
+  const status = statusStyles[
+    execution.status as keyof typeof statusStyles
+  ] ?? {
+    variant: "secondary" as const,
     label: execution.status,
   };
   const icon = typeIcons[execution.agentType] ?? typeIcons.content_publishing;
@@ -150,7 +164,8 @@ function ExecutionItem({ execution }: { execution: AgentExecution }) {
 
         <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
           {formatTimeAgo(execution.createdAt)}
-          {execution.initiatedBy && ` by ${execution.initiatedBy.name}`}
+          {execution.initiatedBy &&
+            ` ${t("common.labels.by")} ${execution.initiatedBy.name}`}
         </p>
       </div>
 
@@ -182,6 +197,7 @@ export function AgentExecutionHistory({
   showViewAll = true,
   className,
 }: AgentExecutionHistoryProps) {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useAgentExecutions({ perPage: limit });
 
   if (isLoading) {
@@ -192,7 +208,7 @@ export function AgentExecutionHistory({
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
         <p className="text-sm text-red-600 dark:text-red-400">
-          Failed to load agent executions
+          {t("pages.dashboard.agents.loadFailed")}
         </p>
       </div>
     );
@@ -201,8 +217,8 @@ export function AgentExecutionHistory({
   if (!data?.data?.length) {
     return (
       <EmptyState
-        title="No agent executions yet"
-        description="Agent workflow executions will appear here"
+        title={t("pages.dashboard.agents.noExecutions")}
+        description={t("pages.dashboard.agents.noExecutionsDesc")}
         className={cn("py-8", className)}
       />
     );
@@ -220,7 +236,8 @@ export function AgentExecutionHistory({
         <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
           <Link href="/agents/executions">
             <Button variant="outline" size="sm" className="w-full">
-              View all executions ({data.meta.total})
+              {t("pages.dashboard.agents.viewAllExecutions")} ({data.meta.total}
+              )
             </Button>
           </Link>
         </div>

@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { PageHeader } from "@/components/ui/page-header";
+import { useTranslation } from "@/features/localization";
 import { RolePermissionsForm } from "@/features/role-permissions/components/RolePermissionsForm";
 import { can } from "@/lib/capabilities";
 
@@ -10,23 +11,27 @@ type PageProps = {
 };
 
 export default function CenterRolePermissionsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId, roleId } = use(params);
   const canManageWrite = can("manage_roles");
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Role Permissions"
+        title={t("pages.rolePermissions.title")}
         description={
           canManageWrite
-            ? "Manage permissions assigned to this role."
-            : "View role permissions. Updates require role.manage permission."
+            ? t("pages.rolePermissions.descriptionWrite")
+            : t("pages.centerRolePermissions.descriptionReadOnly")
         }
         breadcrumbs={[
-          { label: "Centers", href: "/centers" },
+          { label: t("common.labels.centers"), href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Roles", href: `/centers/${centerId}/roles` },
-          { label: "Permissions" },
+          {
+            label: t("pages.rolesPage.title"),
+            href: `/centers/${centerId}/roles`,
+          },
+          { label: t("pages.permissions.title") },
         ]}
       />
 

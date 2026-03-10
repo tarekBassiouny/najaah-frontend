@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTranslation } from "@/features/localization";
 import { CategoriesTable } from "@/features/categories/components/CategoriesTable";
 import { CategoryFormDialog } from "@/features/categories/components/CategoryFormDialog";
 import { DeleteCategoryDialog } from "@/features/categories/components/DeleteCategoryDialog";
@@ -17,6 +18,7 @@ type PageProps = {
 };
 
 export default function CenterCategoriesPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -34,13 +36,8 @@ export default function CenterCategoriesPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Center Categories"
-        description="Manage categories for this center"
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Categories" },
-        ]}
+        title={t("pages.centerCategories.title")}
+        description={t("pages.centerCategories.description")}
         actions={
           <>
             <Button
@@ -49,10 +46,12 @@ export default function CenterCategoriesPage({ params }: PageProps) {
                 setIsFormOpen(true);
               }}
             >
-              Create Category
+              {t("pages.categories.createCategory")}
             </Button>
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           </>
         }

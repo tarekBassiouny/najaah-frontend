@@ -1,0 +1,977 @@
+{
+  "common": {
+    "actions": {
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "edit": "تعديل",
+      "create": "إنشاء",
+      "add": "إضافة",
+      "remove": "إزالة",
+      "update": "تحديث",
+      "submit": "إرسال",
+      "confirm": "تأكيد",
+      "close": "إغلاق",
+      "back": "رجوع",
+      "next": "التالي",
+      "previous": "السابق",
+      "search": "بحث",
+      "filter": "تصفية",
+      "export": "تصدير",
+      "import": "استيراد",
+      "refresh": "تحديث",
+      "retry": "إعادة المحاولة",
+      "view": "عرض",
+      "download": "تحميل",
+      "upload": "رفع",
+      "copy": "نسخ",
+      "loading": "جاري التحميل...",
+      "saving": "جاري الحفظ...",
+      "deleting": "جاري الحذف...",
+      "viewAll": "عرض الكل"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "pending": "قيد الانتظار",
+      "running": "قيد التشغيل",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض",
+      "completed": "مكتمل",
+      "failed": "فشل",
+      "cancelled": "ملغي",
+      "draft": "مسودة",
+      "published": "منشور",
+      "archived": "مؤرشف",
+      "enabled": "مفعّل",
+      "disabled": "معطّل"
+    },
+    "labels": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "address": "العنوان",
+      "description": "الوصف",
+      "status": "الحالة",
+      "type": "النوع",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "actions": "الإجراءات",
+      "details": "التفاصيل",
+      "settings": "الإعدادات",
+      "all": "الكل",
+      "none": "لا شيء",
+      "yes": "نعم",
+      "no": "لا",
+      "or": "أو",
+      "and": "و",
+      "of": "من",
+      "to": "إلى",
+      "from": "من",
+      "by": "بواسطة",
+      "center": "المركز",
+      "centers": "المراكز",
+      "user": "مستخدم",
+      "admin": "مشرف",
+      "system": "النظام"
+    },
+    "messages": {
+      "saveSuccess": "تم حفظ التغييرات بنجاح",
+      "saveFailed": "فشل في حفظ التغييرات",
+      "deleteSuccess": "تم الحذف بنجاح",
+      "deleteFailed": "فشل في الحذف",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا العنصر؟",
+      "loadFailed": "فشل في تحميل البيانات",
+      "noResults": "لا توجد نتائج",
+      "noData": "لا توجد بيانات متاحة",
+      "required": "هذا الحقل مطلوب",
+      "invalidEmail": "يرجى إدخال بريد إلكتروني صحيح",
+      "missingCenterContext": "سياق المركز مفقود. قم بتحديث الصفحة لإعادة تحميل نطاق المركز.",
+      "refreshingData": "جاري تحديث البيانات..."
+    },
+    "pagination": {
+      "showing": "عرض",
+      "of": "من",
+      "results": "نتيجة",
+      "page": "صفحة",
+      "perPage": "لكل صفحة",
+      "first": "الأولى",
+      "last": "الأخيرة",
+      "next": "التالي",
+      "previous": "السابق"
+    },
+    "time": {
+      "justNow": "الآن",
+      "minuteAgo": "منذ {count} د",
+      "hourAgo": "منذ {count} س",
+      "dayAgo": "منذ {count} ي",
+      "minutesAgo": "منذ {count} دقيقة",
+      "hoursAgo": "منذ {count} ساعة",
+      "daysAgo": "منذ {count} يوم",
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "oneDayAgo": "منذ يوم واحد",
+      "unknownTime": "وقت غير معروف"
+    }
+  },
+  "header": {
+    "myAccount": "حسابي",
+    "viewProfile": "عرض الملف الشخصي",
+    "logOut": "تسجيل الخروج",
+    "loggingOut": "جاري تسجيل الخروج..."
+  },
+  "sidebar": {
+    "sections": {
+      "admin": "الإدارة"
+    },
+    "items": {
+      "dashboard": "لوحة التحكم",
+      "analytics": "التحليلات",
+      "analysis": "التحليل",
+      "centers": "المراكز",
+      "categories": "التصنيفات",
+      "courses": "الدورات",
+      "surveys": "الاستبيانات",
+      "agents": "الوكلاء",
+      "rolesAndPermissions": "الأدوار والصلاحيات",
+      "roles": "الأدوار",
+      "admins": "المشرفون",
+      "students": "الطلاب",
+      "education": "التعليم",
+      "instructors": "المدربون",
+      "studentRequests": "طلبات الطلاب",
+      "videos": "الفيديوهات",
+      "pdfs": "ملفات PDF",
+      "landingPage": "الصفحة الرئيسية",
+      "settings": "الإعدادات",
+      "auditLog": "سجل التدقيق",
+      "auditLogs": "سجلات التدقيق"
+    },
+    "backToCenters": "العودة إلى المراكز",
+    "najaahAdmin": "نجاح للإدارة"
+  },
+  "pages": {
+    "profile": {
+      "title": "ملفي الشخصي",
+      "descriptionLoading": "تفاصيل الحساب محملة من /api/v1/admin/auth/me.",
+      "description": "إدارة تفاصيل حساب المشرف المسجل حالياً.",
+      "editInfo": "تعديل المعلومات",
+      "changePassword": "تغيير كلمة المرور",
+      "refresh": "تحديث",
+      "refreshing": "جاري التحديث...",
+      "success": "نجاح",
+      "couldNotLoad": "تعذر تحميل الملف الشخصي",
+      "couldNotLoadDesc": "فشل طلب الملف الشخصي. حاول مرة أخرى لجلب أحدث بيانات حسابك.",
+      "retry": "إعادة المحاولة",
+      "retrying": "جاري إعادة المحاولة...",
+      "unavailable": "الملف الشخصي غير متاح",
+      "unavailableDesc": "لا توجد بيانات للملف الشخصي متاحة حالياً لهذه الجلسة.",
+      "cards": {
+        "identity": "الهوية",
+        "identityDesc": "السمات الأساسية للحساب.",
+        "accessScope": "الوصول والنطاق",
+        "accessScopeDesc": "الصلاحيات والنطاق وسياق التعيين.",
+        "activity": "النشاط",
+        "activityDesc": "طوابع المصادقة والتدقيق الزمنية."
+      },
+      "fields": {
+        "adminId": "رقم المشرف",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "username": "اسم المستخدم",
+        "countryCode": "رمز الدولة",
+        "status": "الحالة",
+        "scopeType": "نوع النطاق",
+        "scopeCenterId": "رقم مركز النطاق",
+        "center": "المركز",
+        "permissionCount": "عدد الصلاحيات",
+        "systemSuperAdmin": "مشرف النظام الأعلى",
+        "centerSuperAdmin": "مشرف المركز الأعلى",
+        "lastActive": "آخر نشاط",
+        "createdAt": "تاريخ الإنشاء",
+        "updatedAt": "تاريخ التحديث"
+      },
+      "scopeTypes": {
+        "system": "النظام",
+        "platform": "المنصة",
+        "center": "المركز"
+      },
+      "badges": {
+        "systemSuperAdmin": "مشرف النظام الأعلى",
+        "centerSuperAdmin": "مشرف المركز الأعلى"
+      },
+      "statusLabels": {
+        "active": "نشط",
+        "inactive": "غير نشط",
+        "banned": "محظور",
+        "unknown": "غير معروف"
+      },
+      "flagLabels": {
+        "yes": "نعم",
+        "no": "لا"
+      },
+      "fallbacks": {
+        "role": "الدور",
+        "centerWithId": "(المعرف: {id})",
+        "centerIdOnly": "المركز #{id}"
+      }
+    },
+    "adminUsers": {
+      "title": "مستخدمو الإدارة",
+      "description": "إدارة مشرفي النظام والصلاحيات",
+      "addAdmin": "إضافة مشرف"
+    },
+    "rolesPage": {
+      "title": "الأدوار",
+      "descriptionWrite": "إدارة أدوار المستخدمين ومستويات الوصول.",
+      "descriptionReadOnly": "عرض الأدوار والصلاحيات. التحديثات تتطلب وصول نطاق النظام.",
+      "addRole": "إضافة دور"
+    },
+    "centersPage": {
+      "title": "المراكز",
+      "description": "إدارة مراكز التدريب على المنصة",
+      "addCenter": "إضافة مركز"
+    },
+    "coursesPage": {
+      "title": "الدورات",
+      "description": "اختر مركزاً لإدارة الدورات المرتبطة بنطاق المركز.",
+      "createCourse": "إنشاء دورة",
+      "centerContextRequired": "يتطلب إدارة الدورات اختيار سياق مركز أولاً."
+    },
+    "studentsPage": {
+      "title": "الطلاب",
+      "description": "إدارة الطلاب عبر المراكز، مع إمكانية التعيين الاختياري للمركز",
+      "addStudent": "إضافة طالب"
+    },
+    "videosPage": {
+      "title": "الفيديوهات",
+      "descriptionWrite": "إدارة محتوى الفيديو لمركزك التعليمي",
+      "descriptionReadOnly": "عرض مكتبة الفيديو. إدارة الفيديوهات تتطلب صلاحية video.manage.",
+      "addVideo": "إضافة فيديو",
+      "selectCenterFirst": "اختر مركزاً أولاً",
+      "selectFailedVideos": "اختر فيديوهات مصدر الرفع الفاشلة لإعادة المحاولة."
+    },
+    "courseCreate": {
+      "description": "إنشاء الدورة مرتبط بنطاق المركز.",
+      "selectCenterPrompt": "اختر مركزاً لإنشاء دورة."
+    },
+    "courseDetails": {
+      "title": "تفاصيل الدورة",
+      "description": "تفاصيل الدورة مرتبطة بنطاق المركز.",
+      "selectCenterPrompt": "اختر مركزاً للوصول إلى هذه الدورة."
+    },
+    "permissions": {
+      "title": "الصلاحيات",
+      "descriptionWrite": "عرض دليل الصلاحيات المستخدم في تعيين الأدوار.",
+      "descriptionReadOnly": "عرض دليل الصلاحيات المشترك. تحديث الأدوار يتطلب نطاق النظام."
+    },
+    "rolePermissions": {
+      "title": "صلاحيات الدور",
+      "descriptionWrite": "إدارة الصلاحيات المعيّنة لهذا الدور.",
+      "descriptionReadOnly": "عرض صلاحيات الدور. التحديثات تتطلب نطاق النظام."
+    },
+    "centerCourseCreate": {
+      "description": "إنشاء دورة داخل هذا المركز"
+    },
+    "centerCourseEdit": {
+      "scopeLabel": "تعديل الدورة",
+      "title": "تعديل الدورة",
+      "description": "تحديث دورة هذا المركز",
+      "notFoundTitle": "الدورة غير موجودة",
+      "notFoundDescription": "الدورة التي تحاول تعديلها غير موجودة أو لم تعد متاحة في هذا المركز.",
+      "goToCourses": "الانتقال إلى الدورات",
+      "backToCourses": "العودة إلى الدورات",
+      "loadFailed": "فشل تحميل هذه الدورة. يرجى المحاولة مرة أخرى."
+    },
+    "centerCreate": {
+      "description": "إعداد مركز تعليمي جديد مع بيانات التهيئة المطلوبة",
+      "creating": "جارٍ الإنشاء...",
+      "apiKeyHint": "لم يعد مفتاح API يُعاد في استجابة الإنشاء.",
+      "validation": {
+        "slugRequired": "حقل الرابط المختصر مطلوب.",
+        "primaryColorRequired": "اللون الأساسي مطلوب للمراكز المميّزة.",
+        "adminRequired": "اسم المشرف والبريد الإلكتروني مطلوبان."
+      },
+      "errors": {
+        "unable": "تعذر إنشاء المركز",
+        "createFailed": "فشل إنشاء المركز. يرجى المحاولة مرة أخرى.",
+        "logoUploadFailed": "تم إنشاء المركز، لكن فشل رفع الشعار. يمكنك رفعه من إعدادات المركز."
+      }
+    },
+    "settingsPage": {
+      "title": "الإعدادات",
+      "descriptionPlatformLevel": "تتم إدارة إعدادات منصة التعلم العامة من مساحة إدارة المنصة.",
+      "platformScopeRequiredTitle": "يتطلب نطاق المنصة",
+      "platformScopeRequiredDesc": "لا يمكن تعديل إعدادات النظام إلا من مساحة إدارة المنصة.",
+      "platformScopeRequiredHint": "لإعدادات المركز، استخدم قسم إعدادات المركز.",
+      "registryTitle": "سجل النظام",
+      "registryDescription": "تحكم في الإعدادات الافتراضية العامة التي تحدد سلوك القيم البديلة عبر كل المراكز.",
+      "platformScopeBadge": "نطاق المنصة",
+      "heroTitle": "سجل واحد للإعدادات الافتراضية والقيم البديلة وسياسات المنصة.",
+      "heroDescription": "تُستخدم هذه القيم في حل سياسات المراكز. أي تغيير في مفاتيح مثل timezone أو support_email يؤثر على كل مركز يرث القيم الافتراضية العامة.",
+      "cards": {
+        "systemKeys": {
+          "title": "مفاتيح النظام",
+          "description": "خزّن كائنات JSON موحدة لإعدادات تدعم آلية القيم البديلة."
+        },
+        "safeEditing": {
+          "title": "تحرير آمن",
+          "description": "حدّث المفاتيح الحالية مباشرة. أنشئ مفتاحًا جديدًا فقط عند عدم وجود مفتاح مطابق."
+        },
+        "visibility": {
+          "title": "إمكانية الظهور",
+          "description": "حدد القيم العامة بوضوح. أصبحت حالة الظهور معروضة مباشرة داخل السجل."
+        }
+      },
+      "registryUpdated": "تم تحديث السجل"
+    },
+    "settingsPlaceholders": {
+      "center": {
+        "title": "إعدادات المركز",
+        "description": "القيم الافتراضية المطبقة على جميع المراكز.",
+        "items": {
+          "defaults": {
+            "title": "الإعدادات الافتراضية",
+            "description": "المنطقة الزمنية واللغة وأنظمة التقييم."
+          },
+          "escalations": {
+            "title": "مسارات التصعيد",
+            "description": "تحديد من يتم إشعاره عند حوادث المركز."
+          },
+          "automation": {
+            "title": "الأتمتة",
+            "description": "قواعد التهيئة التلقائية والمزامنة."
+          }
+        }
+      },
+      "course": {
+        "title": "إعدادات الدورات",
+        "description": "قواعد عامة لتقديم الدورات.",
+        "items": {
+          "templates": {
+            "title": "القوالب",
+            "description": "قوالب افتراضية للمنهج وخطط التقييم."
+          },
+          "publishing": {
+            "title": "النشر",
+            "description": "مسارات المراجعة ونوافذ الجدولة."
+          },
+          "access": {
+            "title": "الوصول",
+            "description": "حدود التسجيل والمتطلبات السابقة."
+          }
+        }
+      },
+      "student": {
+        "title": "إعدادات الطلاب",
+        "description": "القيم الافتراضية لوصول الطالب والخصوصية.",
+        "items": {
+          "authentication": {
+            "title": "المصادقة",
+            "description": "سياسات التحقق متعدد العوامل وقيود تسجيل الدخول."
+          },
+          "privacy": {
+            "title": "الخصوصية",
+            "description": "إعدادات الاحتفاظ بالبيانات والتصدير."
+          },
+          "engagement": {
+            "title": "التفاعل",
+            "description": "وتيرة التذكيرات وقواعد التواصل."
+          }
+        }
+      },
+      "video": {
+        "title": "إعدادات الفيديو",
+        "description": "القيم الافتراضية لترميز الفيديو والتشغيل.",
+        "items": {
+          "encoding": {
+            "title": "الترميز",
+            "description": "مستويات البت وإعدادات برامج الترميز."
+          },
+          "captions": {
+            "title": "الترجمة النصية",
+            "description": "إعدادات افتراضية للترجمة النصية واللغات المطلوبة."
+          },
+          "drm": {
+            "title": "حماية DRM",
+            "description": "تدوير المفاتيح وفترات صلاحية الرموز."
+          }
+        }
+      }
+    },
+    "centerCourses": {
+      "title": "دورات المركز",
+      "description": "إدارة الدورات لهذا المركز",
+      "backToCenter": "العودة للمركز",
+      "createCourse": "إنشاء دورة"
+    },
+    "centerStudents": {
+      "title": "الطلاب",
+      "description": "إدارة طلاب هذا المركز، مع إمكانية التعيين للمركز",
+      "addStudent": "إضافة طالب",
+      "backToCenter": "العودة للمركز"
+    },
+    "centerVideos": {
+      "title": "فيديوهات المركز",
+      "descriptionWrite": "إدارة الفيديوهات لهذا المركز.",
+      "descriptionReadOnly": "عرض فيديوهات المركز. إدارة الفيديوهات تتطلب صلاحية video.manage.",
+      "addVideo": "إضافة فيديو",
+      "backToCenter": "العودة للمركز",
+      "selectFailedVideos": "اختر الفيديوهات الفاشلة من مصدر الرفع لإعادة المحاولة."
+    },
+    "centerAdminUsers": {
+      "description": "إدارة المشرفين والصلاحيات لهذا المركز"
+    },
+    "centerAnalytics": {
+      "description": "تتبع الأداء عبر الدورات والمتعلمين والأجهزة والوسائط لهذا المركز."
+    },
+    "centerAuditLogs": {
+      "description": "سجل تدقيق للقراءة فقط لنشاط المركز."
+    },
+    "centerCategories": {
+      "title": "تصنيفات المركز",
+      "description": "إدارة التصنيفات لهذا المركز"
+    },
+    "centerEducation": {
+      "description": "إدارة الصفوف والمدارس والكليات لهذا المركز.",
+      "redirectingUnbranded": "جارٍ التحويل إلى إدارة التعليم على مستوى النظام لهذا المركز غير المميز.",
+      "loadFailed": "فشل تحميل صفحة تعليم المركز. يرجى المحاولة مرة أخرى."
+    },
+    "centerInstructors": {
+      "description": "إدارة المدربين لهذا المركز."
+    },
+    "centerDetails": {
+      "descriptionFallback": "نظرة عامة على المركز وإدارته"
+    },
+    "centerLandingPage": {
+      "title": "الصفحة الرئيسية للمركز",
+      "description": "إدارة تجربة الصفحة العامة لهذا المركز المميز.",
+      "descriptionUnbranded": "إدارة التجربة العامة للصفحة للمراكز المميزة.",
+      "notFoundDesc": "الصفحة التي تحاول فتحها تخص مركزاً لم يعد موجوداً.",
+      "loadFailed": "فشل تحميل هذا المركز. يرجى المحاولة مرة أخرى.",
+      "unbrandedNotice": "يمكن إعداد الصفحات الرئيسية للمراكز المميزة فقط. المراكز غير المميزة تستخدم صفحة النظام المشتركة.",
+      "unbrandedHint": "حوّل هذا المركز إلى مركز مميز قبل فتح محرر الصفحة الرئيسية."
+    },
+    "centerPdfs": {
+      "title": "ملفات PDF للمركز",
+      "description": "إدارة ملفات PDF لهذا المركز"
+    },
+    "centerRolePermissions": {
+      "descriptionReadOnly": "عرض صلاحيات الدور. التحديثات تتطلب صلاحية role.manage."
+    },
+    "centerCourseDetail": {
+      "loadFailedDescription": "قد تكون هذه الدورة محذوفة أو ليس لديك صلاحية لعرضها."
+    },
+    "centerStudentProfile": {
+      "notFoundTitle": "الطالب غير موجود",
+      "notFoundDescription": "ملف الطالب المطلوب غير موجود أو لم يعد متاحاً في هذا المركز.",
+      "goToStudents": "الانتقال إلى الطلاب",
+      "backToStudents": "العودة إلى الطلاب",
+      "loadFailed": "فشل تحميل ملف الطالب. يرجى المحاولة مرة أخرى."
+    },
+    "centerRoles": {
+      "descriptionWrite": "إدارة أدوار المستخدمين ومستويات الوصول لهذا المركز.",
+      "descriptionReadOnly": "عرض الأدوار والصلاحيات. التحديثات تتطلب صلاحية manage_roles."
+    },
+    "centerSettings": {
+      "title": "إعدادات {name}",
+      "titleFallback": "إعدادات المركز",
+      "description": "إدارة تفاصيل المركز والحالة وعمليات التهيئة",
+      "notFoundTitle": "المركز غير موجود",
+      "notFoundDesc": "المركز المطلوب غير موجود أو لم يعد متاحاً.",
+      "workspaceNotFoundDesc": "المركز المرتبط بمساحة العمل هذه غير متاح أو لم يعد موجوداً.",
+      "goToCenters": "الذهاب للمراكز",
+      "goToDashboard": "الانتقال إلى لوحة التحكم",
+      "loadFailed": "فشل في تحميل إعدادات المركز.",
+      "backToCenters": "العودة للمراكز",
+      "back": "رجوع",
+      "tier": "المستوى",
+      "centerContextRequired": "سياق المركز مطلوب لإدارة الإعدادات.",
+      "workspaceDescription": "إدارة العلامة التجارية للمركز وتفضيلات التشغيل"
+    },
+    "centerSurveys": {
+      "title": "استبيانات المركز",
+      "description": "إدارة الاستبيانات لهذا المركز",
+      "descriptionUnbranded": "الاستبيانات غير متاحة للمراكز غير المميزة.",
+      "createSurvey": "إنشاء استبيان للمركز",
+      "disabledTitle": "الاستبيانات معطلة",
+      "disabledDescription": "لا يمكن للمراكز غير المميزة إنشاء أو إدارة الاستبيانات."
+    },
+    "placeholderRoutes": {
+      "auditDeviceLogs": {
+        "title": "سجلات الأجهزة",
+        "description": "سجل تدقيق لدورة حياة الجهاز."
+      },
+      "auditLogs": {
+        "title": "سجلات التدقيق",
+        "description": "مسارات تدقيق على مستوى النظام."
+      },
+      "auditPlaybackLogs": {
+        "title": "سجلات التشغيل",
+        "description": "تيار تدقيق خاص بالتشغيل."
+      },
+      "auditSystemLogs": {
+        "title": "سجلات النظام",
+        "description": "تغييرات المنصة والإعدادات."
+      },
+      "coursesList": {
+        "title": "قائمة الدورات",
+        "description": "استعرض الدورات وقم بتصفية النتائج."
+      },
+      "courseSections": {
+        "title": "الأقسام",
+        "description": "تنظيم أقسام الدورات وجداولها."
+      },
+      "courseUploadSessions": {
+        "title": "جلسات الرفع",
+        "description": "قائمة انتظار ومتابعة رفع الجلسات المجمعة."
+      },
+      "devicesBound": {
+        "title": "الأجهزة المرتبطة",
+        "description": "الأجهزة المرتبطة حالياً بالطلاب."
+      },
+      "devicesPendingApprovals": {
+        "title": "الموافقات المعلقة",
+        "description": "مراجعة الأجهزة بانتظار الموافقة."
+      },
+      "pdfLibrary": {
+        "title": "مكتبة PDF",
+        "description": "مكتبة المستندات المرفوعة."
+      },
+      "playback": {
+        "title": "التشغيل",
+        "description": "مراقبة وضوابط جلسات التشغيل."
+      },
+      "playbackSessions": {
+        "title": "جلسات التشغيل",
+        "description": "فحص الجلسات النشطة والسابقة."
+      },
+      "playbackViewLimits": {
+        "title": "حدود المشاهدة",
+        "description": "تكوين ومراقبة حدود المشاهدة."
+      },
+      "playbackViolations": {
+        "title": "مخالفات التشغيل",
+        "description": "مراجعة سلوك التشغيل المشبوه."
+      },
+      "studentDevices": {
+        "title": "أجهزة الطلاب",
+        "description": "الأجهزة المسجلة لكل طالب."
+      },
+      "studentEnrollments": {
+        "title": "تسجيلات الطلاب",
+        "description": "التسجيلات ضمن نطاق الطالب."
+      },
+      "studentList": {
+        "title": "قائمة الطلاب",
+        "description": "بحث وتصفية جميع الطلاب."
+      },
+      "studentSettings": {
+        "title": "إعدادات الطلاب",
+        "description": "تفضيلات كل طالب وقواعد الوصول."
+      },
+      "videoLibrary": {
+        "title": "مكتبة الفيديو",
+        "description": "استعرض كل الفيديوهات المرفوعة مع الفلاتر."
+      },
+      "videoProcessingStatus": {
+        "title": "حالة المعالجة",
+        "description": "مراقبة مهام الترميز والتفريغ وDRM."
+      },
+      "videoUploadQueue": {
+        "title": "قائمة انتظار الرفع",
+        "description": "متابعة عمليات الرفع الجارية."
+      }
+    },
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "description": {
+        "platform": "نظرة عامة على جميع المراكز. اختر مركزاً لتحديد نطاق البيانات.",
+        "center": "نظرة عامة على مؤشرات لوحة تحكم مركزك والنشاط الأخير."
+      },
+      "stats": {
+        "totalCourses": "إجمالي الدورات",
+        "totalCoursesDesc": "جميع الدورات المنشورة",
+        "totalStudents": "إجمالي الطلاب",
+        "totalStudentsDesc": "الطلاب المسجلون",
+        "activeEnrollments": "التسجيلات النشطة",
+        "activeEnrollmentsDesc": "المسجلون حالياً",
+        "pendingApprovals": "الموافقات المعلقة",
+        "enrollments": "التسجيلات",
+        "device": "الجهاز",
+        "extraView": "مشاهدة إضافية"
+      },
+      "sections": {
+        "quickActions": "إجراءات سريعة",
+        "recentActivity": "النشاط الأخير",
+        "recentAgentExecutions": "آخر عمليات الوكلاء"
+      },
+      "quickActions": {
+        "addCourse": "إضافة دورة",
+        "addCourseDesc": "إنشاء دورة جديدة",
+        "uploadVideo": "رفع فيديو",
+        "uploadVideoDesc": "إضافة محتوى فيديو",
+        "enrollStudents": "تسجيل طلاب",
+        "enrollStudentsDesc": "إضافة تسجيلات",
+        "viewRequests": "عرض الطلبات",
+        "viewRequestsDesc": "الموافقات المعلقة"
+      },
+      "recentActivity": {
+        "noActivity": "لا يوجد نشاط حديث",
+        "noActivityDesc": "سيظهر النشاط هنا بمجرد اتخاذ إجراءات."
+      },
+      "agents": {
+        "noExecutions": "لا توجد عمليات وكلاء بعد",
+        "noExecutionsDesc": "ستظهر عمليات سير عمل الوكلاء هنا",
+        "viewAllExecutions": "عرض جميع العمليات",
+        "loadFailed": "فشل في تحميل عمليات الوكلاء"
+      },
+      "errors": {
+        "loadFailed": "فشل في تحميل بيانات لوحة التحكم."
+      }
+    },
+    "centers": {
+      "title": "المراكز",
+      "description": "إدارة جميع المراكز على المنصة",
+      "createCenter": "إنشاء مركز",
+      "editCenter": "تعديل المركز",
+      "centerDetails": "تفاصيل المركز"
+    },
+    "courses": {
+      "title": "الدورات",
+      "description": "إدارة الدورات والمناهج",
+      "createCourse": "إنشاء دورة",
+      "editCourse": "تعديل الدورة"
+    },
+    "students": {
+      "title": "الطلاب",
+      "description": "إدارة حسابات الطلاب",
+      "createStudent": "إضافة طالب",
+      "editStudent": "تعديل بيانات الطالب"
+    },
+    "instructors": {
+      "title": "المدربون",
+      "description": "إدارة ملفات المدربين",
+      "descriptionByCenter": "إدارة المدربين حسب المركز.",
+      "createInstructor": "إضافة مدرب",
+      "editInstructor": "تعديل بيانات المدرب",
+      "selectCenterTitle": "اختر مركزاً",
+      "selectCenterDescription": "اختر مركزاً لإدارة المدربين."
+    },
+    "categories": {
+      "title": "التصنيفات",
+      "description": "إدارة تصنيفات الدورات",
+      "descriptionSelectCenter": "إدارة التصنيفات لكل مركز. اختر مركزاً للبدء.",
+      "descriptionCenter": "إدارة تصنيفات الدورات لمركزك التعليمي",
+      "selectCenterPrompt": "اختر مركزاً من المحدد أعلى اليمين لإدارة التصنيفات.",
+      "createCategory": "إنشاء تصنيف"
+    },
+    "videos": {
+      "title": "الفيديوهات",
+      "description": "إدارة محتوى الفيديو"
+    },
+    "pdfs": {
+      "title": "ملفات PDF",
+      "description": "إدارة مستندات PDF",
+      "descriptionCenter": "إدارة مستندات PDF لمركزك التعليمي",
+      "uploadPdf": "رفع PDF",
+      "selectCenterTitle": "اختر مركزاً",
+      "selectCenterDescription": "اختر مركزاً قبل رفع ملفات PDF.",
+      "actionUnavailable": "هذا الإجراء غير متاح حالياً."
+    },
+    "surveys": {
+      "title": "الاستبيانات",
+      "description": "إدارة الاستبيانات والاستطلاعات",
+      "descriptionPlatform": "إدارة استبيانات النظام والمراكز",
+      "addSurvey": "إضافة استبيان"
+    },
+    "analytics": {
+      "title": "التحليلات",
+      "description": "عرض تحليلات وتقارير المنصة",
+      "dashboardDescription": "تتبع الأداء عبر الدورات والمتعلمين والأجهزة والوسائط."
+    },
+    "agents": {
+      "title": "الوكلاء",
+      "description": "إدارة وكلاء الذكاء الاصطناعي وعملياتهم",
+      "executions": {
+        "title": "عمليات الوكلاء",
+        "description": "مراقبة وتشغيل سير العمل في الخلفية مع التوجيهات.",
+        "openExecution": "فتح العملية",
+        "searchPlaceholder": "البحث في العمليات الأخيرة...",
+        "noExecutionsFound": "لا توجد عمليات",
+        "open": "فتح",
+        "runAgent": "تشغيل الوكيل",
+        "checkingAgents": "جاري التحقق من الوكلاء المتاحين...",
+        "noAgentsAvailable": "لا يوجد وكلاء متاحون لدورك",
+        "executionCount": "عملية واحدة",
+        "executionsCount": "{count} عملية",
+        "loadFailed": "فشل في تحميل عمليات الوكلاء. يرجى المحاولة مرة أخرى.",
+        "noExecutionsTitle": "لا توجد عمليات",
+        "noExecutionsDescription": "جرب تعديل الفلاتر المحددة أو تشغيل عملية وكيل جديدة.",
+        "quickView": "عرض سريع",
+        "recentlyExecuted": "تم تنفيذه مؤخراً"
+      },
+      "details": {
+        "title": "العملية #{id}",
+        "description": "تتبع الحالة والخطوات والحمولات لهذا التشغيل.",
+        "backToExecutions": "العودة للعمليات",
+        "loadFailed": "فشل في تحميل تفاصيل العملية.",
+        "target": "الهدف",
+        "started": "بدأ",
+        "completed": "اكتمل",
+        "initiatedBy": "بواسطة",
+        "system": "النظام",
+        "progress": "التقدم",
+        "executionSteps": "خطوات التنفيذ",
+        "noStepsAvailable": "لا تتوفر تفاصيل للخطوات.",
+        "context": "السياق",
+        "result": "النتيجة"
+      },
+      "execute": {
+        "title": "تشغيل الوكيل",
+        "description": "بدء عملية مع اختيارات موجهة بدلاً من المعرفات اليدوية.",
+        "agentType": "نوع الوكيل",
+        "loadingAgents": "جاري تحميل الوكلاء المتاحين...",
+        "selectAgentType": "اختر نوع الوكيل",
+        "center": "المركز",
+        "course": "الدورة",
+        "selectCourse": "اختر الدورة",
+        "selectCenterFirst": "اختر المركز أولاً",
+        "searchCourses": "البحث في الدورات...",
+        "noCoursesFound": "لا توجد دورات",
+        "selectCenterToLoadCourses": "اختر المركز لتحميل الدورات",
+        "students": "الطلاب",
+        "selected": "محدد",
+        "searchStudents": "البحث عن الطلاب بالاسم أو البريد أو الهاتف",
+        "selectCourseFirst": "اختر الدورة أولاً",
+        "chooseACourse": "اختر دورة لتحميل الطلاب.",
+        "noStudentsFound": "لا يوجد طلاب للدورة المحددة.",
+        "loadMoreStudents": "تحميل المزيد من الطلاب",
+        "loadingMore": "جاري التحميل...",
+        "moreStudents": "+{count} إضافي",
+        "advancedContext": "سياق متقدم (اختياري)",
+        "hide": "إخفاء",
+        "show": "إظهار",
+        "advancedContextPlaceholder": "{\"priority\": \"high\"}",
+        "advancedContextHint": "استخدم هذا فقط عندما تحتاج مفاتيح إضافية.",
+        "cancel": "إلغاء",
+        "starting": "جاري البدء...",
+        "errors": {
+          "agentTypeRequired": "نوع الوكيل مطلوب.",
+          "selectCenterFirst": "اختر مركزاً أولاً.",
+          "selectCourseFirst": "اختر دورة قبل تشغيل هذا الوكيل.",
+          "selectStudents": "اختر طالباً واحداً على الأقل.",
+          "contextMustBeObject": "السياق المتقدم يجب أن يكون كائن JSON.",
+          "contextMustBeValidJson": "السياق المتقدم يجب أن يكون JSON صالح.",
+          "unableToRun": "تعذر تشغيل الوكيل. يرجى المحاولة مرة أخرى."
+        }
+      },
+      "filters": {
+        "center": "المركز",
+        "status": "الحالة",
+        "filterByStatus": "تصفية حسب الحالة",
+        "allStatuses": "كل الحالات",
+        "agentType": "نوع الوكيل",
+        "filterByAgentType": "تصفية حسب نوع الوكيل",
+        "allAgentTypes": "كل أنواع الوكلاء"
+      },
+      "types": {
+        "contentPublishing": "نشر المحتوى",
+        "enrollment": "التسجيل",
+        "analytics": "التحليلات",
+        "notification": "الإشعارات"
+      },
+      "tableHeaders": {
+        "id": "المعرف",
+        "agent": "الوكيل",
+        "status": "الحالة",
+        "target": "الهدف",
+        "started": "البداية",
+        "actions": "الإجراءات"
+      }
+    },
+    "roles": {
+      "title": "الأدوار والصلاحيات",
+      "description": "إدارة أدوار المستخدمين وصلاحياتهم"
+    },
+    "admins": {
+      "title": "المشرفون",
+      "description": "إدارة حسابات المشرفين"
+    },
+    "studentRequests": {
+      "title": "طلبات الطلاب",
+      "centerTitle": "طلبات طلاب المركز",
+      "description": "إدارة طلبات التسجيل وتغيير الأجهزة",
+      "centerDescription": "إدارة طلبات التسجيل والمشاهدة الإضافية وتغيير الأجهزة والوصول للفيديو لهذا المركز.",
+      "systemDescription": "إدارة طلبات التسجيل والمشاهدة الإضافية وتغيير الأجهزة والوصول للفيديو عبر النظام.",
+      "backToCenter": "العودة للمركز",
+      "tabs": {
+        "enrollments": "التسجيلات",
+        "extraView": "مشاهدة إضافية",
+        "deviceChange": "تغيير الجهاز",
+        "videoAccess": "الوصول للفيديو"
+      }
+    },
+    "education": {
+      "title": "التعليم",
+      "description": "إدارة الإعدادات التعليمية",
+      "descriptionByCenter": "إدارة الصفوف والمدارس والكليات حسب المركز.",
+      "descriptionForProfiles": "إدارة الصفوف والمدارس والكليات لملفات الطلاب.",
+      "selectCenterPrompt": "اختر مركزاً من المحدد لإدارة القوائم التعليمية."
+    },
+    "settings": {
+      "title": "الإعدادات",
+      "description": "تكوين إعدادات النظام"
+    },
+    "auditLogs": {
+      "title": "سجلات التدقيق",
+      "description": "عرض سجلات تدقيق النظام",
+      "descriptionAdmin": "سجل تدقيق للقراءة فقط لنشاط المشرفين."
+    },
+    "landingPage": {
+      "title": "الصفحة الرئيسية",
+      "description": "تكوين الصفحة الرئيسية للمركز"
+    },
+    "login": {
+      "title": "تسجيل دخول المشرف",
+      "subtitle": "سجل الدخول لإدارة لوحة تحكم نظام التعلم.",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "admin@example.com",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "••••••••",
+      "rememberMe": "تذكرني لمدة 30 يوم",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signIn": "تسجيل الدخول",
+      "signingIn": "جاري تسجيل الدخول...",
+      "unableToSignIn": "تعذر تسجيل الدخول",
+      "sessionExpiredTitle": "انتهت الجلسة",
+      "sessionExpiredMessage": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+      "passwordUpdatedTitle": "تم تحديث كلمة المرور",
+      "passwordUpdatedMessage": "تم تعيين كلمة المرور بنجاح. سجل الدخول بكلمة المرور الجديدة.",
+      "invalidCredentials": "بيانات غير صحيحة. يرجى التحقق من البريد وكلمة المرور.",
+      "genericError": "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى."
+    },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "أدخل بريدك الإلكتروني وسنرسل تعليمات إعادة التعيين.",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "admin@example.com",
+      "sendResetLink": "إرسال رابط إعادة التعيين",
+      "sending": "جاري الإرسال...",
+      "backToLogin": "العودة لتسجيل الدخول",
+      "checkYourEmail": "تحقق من بريدك الإلكتروني",
+      "unableToContinue": "تعذر المتابعة",
+      "successMessage": "إذا كان هناك حساب بهذا البريد، تم إرسال تعليمات إعادة التعيين.",
+      "genericError": "تعذر إرسال تعليمات إعادة التعيين. يرجى المحاولة مرة أخرى."
+    },
+    "resetPassword": {
+      "title": "تعيين كلمة المرور",
+      "subtitle": "أنشئ كلمة مرورك لتفعيل حساب المشرف.",
+      "email": "البريد الإلكتروني",
+      "newPassword": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "8 أحرف على الأقل",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أعد كتابة كلمة المرور",
+      "setPassword": "تعيين كلمة المرور",
+      "saving": "جاري الحفظ...",
+      "success": "نجاح",
+      "unableToContinue": "تعذر المتابعة",
+      "successMessage": "تم تعيين كلمة المرور بنجاح. جاري التحويل لتسجيل الدخول...",
+      "invalidLinkTitle": "رابط غير صالح",
+      "invalidLinkMessage": "هذا الرابط يفتقر لبيانات مطلوبة. اطلب بريد إعادة تعيين جديد.",
+      "backToLogin": "العودة لتسجيل الدخول",
+      "genericError": "تعذر إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "passwordMinLength": "كلمة المرور يجب أن تكون 8 أحرف على الأقل.",
+        "confirmRequired": "يرجى تأكيد كلمة المرور.",
+        "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين."
+      }
+    },
+    "changePassword": {
+      "title": "تغيير كلمة المرور",
+      "description": "حدث كلمة مرور حسابك باستخدام كلمة المرور الحالية.",
+      "currentPassword": "كلمة المرور الحالية",
+      "currentPasswordPlaceholder": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "8 أحرف على الأقل",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+      "confirmPasswordPlaceholder": "أعد كتابة كلمة المرور الجديدة",
+      "cancel": "إلغاء",
+      "updatePassword": "تحديث كلمة المرور",
+      "saving": "جاري الحفظ...",
+      "couldNotChange": "تعذر تغيير كلمة المرور",
+      "successMessage": "تم تغيير كلمة المرور بنجاح.",
+      "genericError": "تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "currentRequired": "كلمة المرور الحالية مطلوبة.",
+        "newMinLength": "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.",
+        "confirmRequired": "يرجى تأكيد كلمة المرور الجديدة.",
+        "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين."
+      }
+    },
+    "editProfile": {
+      "title": "تعديل معلومات الملف الشخصي",
+      "description": "حدث اسمك ومعلومات الاتصال.",
+      "name": "الاسم",
+      "namePlaceholder": "اسم المشرف",
+      "phone": "الهاتف",
+      "phonePlaceholder": "1225291841",
+      "phoneHint": "الرقم الأساسي فقط (10 أرقام). لا تضمن رمز الدولة أو 0 في البداية.",
+      "countryCode": "رمز الدولة",
+      "countryCodePlaceholder": "+20",
+      "cancel": "إلغاء",
+      "saveChanges": "حفظ التغييرات",
+      "saving": "جاري الحفظ...",
+      "couldNotUpdate": "تعذر تحديث الملف الشخصي",
+      "successMessage": "تم تحديث الملف الشخصي بنجاح.",
+      "genericError": "تعذر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "nameMinLength": "الاسم يجب أن يكون حرفين على الأقل.",
+        "phoneFormat": "استخدم رقم الهاتف الأساسي فقط (10 أرقام، بدون 0 في البداية).",
+        "countryCodeFormat": "رمز الدولة يجب أن يكون بتنسيق +NN (مثال +20)."
+      }
+    }
+  },
+  "tables": {
+    "headers": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "status": "الحالة",
+      "type": "النوع",
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "تاريخ التحديث",
+      "actions": "الإجراءات"
+    },
+    "empty": {
+      "title": "لا توجد بيانات",
+      "description": "لا توجد عناصر للعرض"
+    }
+  },
+  "forms": {
+    "validation": {
+      "required": "هذا الحقل مطلوب",
+      "email": "يرجى إدخال بريد إلكتروني صحيح",
+      "minLength": "يجب أن يكون على الأقل {min} حرف",
+      "maxLength": "يجب ألا يزيد عن {max} حرف",
+      "pattern": "تنسيق غير صحيح"
+    },
+    "placeholders": {
+      "search": "بحث...",
+      "selectOption": "اختر خياراً",
+      "enterValue": "أدخل قيمة"
+    }
+  },
+  "badges": {
+    "beta": "تجريبي",
+    "new": "جديد",
+    "pro": "احترافي"
+  },
+  "errors": {
+    "general": "حدث خطأ ما",
+    "notFound": "غير موجود",
+    "unauthorized": "غير مصرح",
+    "forbidden": "الوصول مرفوض",
+    "serverError": "خطأ في الخادم"
+  }
+}

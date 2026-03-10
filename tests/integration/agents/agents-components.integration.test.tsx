@@ -36,7 +36,7 @@ describe("agents components (integration with MSW)", () => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("Execution #99")).toBeInTheDocument();
+    expect(screen.getByText("#99")).toBeInTheDocument();
   });
 
   it("renders execution details page data", async () => {

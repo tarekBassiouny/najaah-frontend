@@ -70,6 +70,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
     if (typeof document !== "undefined") {
       document.documentElement.lang = locale;
+      document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
     }
   }, [locale]);
 

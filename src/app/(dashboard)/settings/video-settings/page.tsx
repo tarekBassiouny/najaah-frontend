@@ -1,25 +1,34 @@
-import { PlaceholderPage } from "@/components/ui/placeholder-page";
+"use client";
 
-const items = [
-  {
-    title: "Encoding",
-    description: "Bitrate ladders and codec presets.",
-  },
-  {
-    title: "Captions",
-    description: "Caption defaults and required languages.",
-  },
-  {
-    title: "DRM",
-    description: "Key rotation and token lifetimes.",
-  },
-];
+import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 export default function SettingsVideoSettingsPage() {
+  const { t } = useTranslation();
+
+  const items = [
+    {
+      title: t("pages.settingsPlaceholders.video.items.encoding.title"),
+      description: t(
+        "pages.settingsPlaceholders.video.items.encoding.description",
+      ),
+    },
+    {
+      title: t("pages.settingsPlaceholders.video.items.captions.title"),
+      description: t(
+        "pages.settingsPlaceholders.video.items.captions.description",
+      ),
+    },
+    {
+      title: t("pages.settingsPlaceholders.video.items.drm.title"),
+      description: t("pages.settingsPlaceholders.video.items.drm.description"),
+    },
+  ];
+
   return (
     <PlaceholderPage
-      title="Video Settings"
-      description="Defaults for video encoding and playback."
+      title={t("pages.settingsPlaceholders.video.title")}
+      description={t("pages.settingsPlaceholders.video.description")}
       items={items}
     />
   );

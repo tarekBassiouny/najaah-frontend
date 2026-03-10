@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTenant } from "@/app/tenant-provider";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useTranslation } from "@/features/localization";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import {
   CenterProfileForm,
@@ -15,6 +16,7 @@ import {
 } from "@/features/centers/components/forms";
 
 export default function CentersSettingsPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const centerId = tenant.centerId;
 
@@ -31,7 +33,7 @@ export default function CentersSettingsPage() {
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Center context is required to manage settings.
+            {t("pages.centerSettings.centerContextRequired")}
           </p>
         </CardContent>
       </Card>
@@ -53,10 +55,13 @@ export default function CentersSettingsPage() {
   if (isMissingCenter || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Center Settings"
-        title="Center not found"
-        description="The center linked to this workspace is unavailable or no longer exists."
-        primaryAction={{ href: "/dashboard", label: "Go to Dashboard" }}
+        scopeLabel={t("pages.centerSettings.titleFallback")}
+        title={t("pages.centerSettings.notFoundTitle")}
+        description={t("pages.centerSettings.workspaceNotFoundDesc")}
+        primaryAction={{
+          href: "/dashboard",
+          label: t("pages.centerSettings.goToDashboard"),
+        }}
       />
     );
   }
@@ -66,7 +71,7 @@ export default function CentersSettingsPage() {
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Failed to load center settings.
+            {t("pages.centerSettings.loadFailed")}
           </p>
         </CardContent>
       </Card>
@@ -76,8 +81,8 @@ export default function CentersSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Center Settings"
-        description="Manage your center's branding and operational preferences"
+        title={t("pages.centerSettings.titleFallback")}
+        description={t("pages.centerSettings.workspaceDescription")}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

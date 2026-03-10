@@ -100,6 +100,16 @@ describe("http client", () => {
     expect(config.headers.Authorization).toBeUndefined();
   });
 
+  it("preserves an explicit tenant api key override", () => {
+    const config = state.requestInterceptor?.({
+      headers: { "X-Api-Key": "center-api-key" },
+    });
+
+    expect(config.headers["X-Api-Key"]).toBe("center-api-key");
+    expect(config.headers["X-Locale"]).toBe("en");
+    expect(config.headers.Authorization).toBe("Bearer access-token");
+  });
+
   it("retries once on 401 with refreshed token", async () => {
     state.createdClient.mockResolvedValueOnce({ data: { ok: true } });
 

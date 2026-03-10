@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useTranslation } from "@/features/localization";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import {
   CenterProfileForm,
@@ -57,6 +58,7 @@ function resolveStatusVariant(
 }
 
 export default function CenterSettingsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const {
     data: center,
@@ -88,10 +90,13 @@ export default function CenterSettingsPage({ params }: PageProps) {
   if (isMissingCenter || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Center Settings"
-        title="Center not found"
-        description="The center you requested does not exist or is no longer available."
-        primaryAction={{ href: "/centers", label: "Go to Centers" }}
+        scopeLabel={t("pages.centerSettings.titleFallback")}
+        title={t("pages.centerSettings.notFoundTitle")}
+        description={t("pages.centerSettings.notFoundDesc")}
+        primaryAction={{
+          href: "/centers",
+          label: t("pages.centerSettings.goToCenters"),
+        }}
       />
     );
   }
@@ -101,10 +106,12 @@ export default function CenterSettingsPage({ params }: PageProps) {
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Failed to load center settings.
+            {t("pages.centerSettings.loadFailed")}
           </p>
           <Link href="/centers" className="mt-4 inline-block">
-            <Button variant="outline">Back to Centers</Button>
+            <Button variant="outline">
+              {t("pages.centerSettings.backToCenters")}
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -116,19 +123,13 @@ export default function CenterSettingsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${centerData.name ?? `Center ${centerData.id}`} Settings`}
-        description="Manage center details, status, and onboarding operations"
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          {
-            label: centerData.name ?? `Center ${centerData.id}`,
-            href: `/centers/${centerData.id}`,
-          },
-          { label: "Settings" },
-        ]}
+        title={t("pages.centerSettings.title", {
+          name: centerData.name ?? `Center ${centerData.id}`,
+        })}
+        description={t("pages.centerSettings.description")}
         actions={
           <Link href={`/centers/${centerData.id}`}>
-            <Button variant="outline">Back</Button>
+            <Button variant="outline">{t("pages.centerSettings.back")}</Button>
           </Link>
         }
       />
@@ -143,7 +144,8 @@ export default function CenterSettingsPage({ params }: PageProps) {
             {toTitleCase(String(centerData.type ?? "unbranded"))}
           </Badge>
           <Badge variant="outline">
-            Tier: {toTitleCase(String(centerData.tier ?? "standard"))}
+            {t("pages.centerSettings.tier")}:{" "}
+            {toTitleCase(String(centerData.tier ?? "standard"))}
           </Badge>
           <span className="text-sm text-gray-500 dark:text-gray-400">
             ID: {centerData.id}

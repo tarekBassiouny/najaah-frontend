@@ -17,6 +17,7 @@ import type { SurveyResultsTab } from "@/features/surveys/components/SurveyResul
 import { SurveysTable } from "@/features/surveys/components/SurveysTable";
 import { UpdateSurveyStatusDialog } from "@/features/surveys/components/UpdateSurveyStatusDialog";
 import type { Survey } from "@/features/surveys/types/survey";
+import { useTranslation } from "@/features/localization";
 
 function parseResultsTab(value: string | null): SurveyResultsTab | undefined {
   if (value === "overview") return "overview";
@@ -27,6 +28,7 @@ function parseResultsTab(value: string | null): SurveyResultsTab | undefined {
 }
 
 export default function SurveysPage() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSurvey, setEditingSurvey] = useState<Survey | null>(null);
@@ -66,8 +68,8 @@ export default function SurveysPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Surveys"
-        description="Manage system and center surveys"
+        title={t("pages.surveys.title")}
+        description={t("pages.surveys.descriptionPlatform")}
         actions={
           <Button
             onClick={() => {
@@ -75,7 +77,7 @@ export default function SurveysPage() {
               setIsFormOpen(true);
             }}
           >
-            Add Survey
+            {t("pages.surveys.addSurvey")}
           </Button>
         }
       />

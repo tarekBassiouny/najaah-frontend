@@ -1,4 +1,10 @@
-import type { LocalizedString } from "@/features/centers/types/landing-page";
+import type {
+  LandingPageLayout,
+  LandingPageMeta,
+  LandingPageSocial,
+  LandingPageStyling,
+  LocalizedString,
+} from "@/features/centers/types/landing-page";
 
 export interface LandingPageHeroSection {
   hero_title?: LocalizedString | null;
@@ -31,18 +37,34 @@ export interface LandingPageVisibility {
 export interface LandingPageTestimonial {
   id?: number;
   author_name?: string;
-  author_title?: string;
-  author_image_url?: string;
+  author_title?: string | null;
+  author_image_url?: string | null;
   content?: LocalizedString | null;
   rating?: number;
   is_active?: boolean;
 }
 
+export interface LandingPageResolveCenter {
+  name?: string | null;
+  slug?: string | null;
+  logo_url?: string | null;
+  description?: string | null;
+}
+
+export interface LandingPageResolveMeta extends LandingPageMeta {
+  is_preview?: boolean;
+}
+
 export interface LandingPageResolveResponse {
   slug?: string;
+  center?: LandingPageResolveCenter | null;
+  meta?: LandingPageResolveMeta | null;
   hero?: LandingPageHeroSection | null;
   about?: LandingPageAboutSection | null;
   contact?: LandingPageContactSection | null;
+  social?: LandingPageSocial | null;
+  styling?: LandingPageStyling | null;
+  layout?: LandingPageLayout | null;
   visibility?: LandingPageVisibility | null;
   testimonials?: LandingPageTestimonial[] | null;
   status?: string;

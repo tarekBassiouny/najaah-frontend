@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function PdfsLibraryPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="PDF Library"
-      description="Library of uploaded documents."
+      title={t("pages.placeholderRoutes.pdfLibrary.title")}
+      description={t("pages.placeholderRoutes.pdfLibrary.description")}
       items={items}
     />
   );

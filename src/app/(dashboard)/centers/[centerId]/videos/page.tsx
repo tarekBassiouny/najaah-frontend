@@ -15,6 +15,7 @@ import { VideoRetryUploadDialog } from "@/features/videos/components/VideoRetryU
 import type { Video } from "@/features/videos/types/video";
 import { can } from "@/lib/capabilities";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 
 function normalizeStatus(value: unknown) {
   if (typeof value !== "string") return "";
@@ -49,6 +50,7 @@ type PageProps = {
 };
 
 export default function CenterVideosPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const { centerId } = use(params);
   const canManageVideos = can("manage_videos");
@@ -83,7 +85,7 @@ export default function CenterVideosPage({ params }: PageProps) {
   const handleOpenBulkRetry = (videos: Video[]) => {
     const eligibleVideos = videos.filter((video) => canRetryVideoUpload(video));
     if (eligibleVideos.length === 0) {
-      showToast("Select failed upload-source videos to retry.", "error");
+      showToast(t("pages.centerVideos.selectFailedVideos"), "error");
       return;
     }
 
@@ -122,24 +124,23 @@ export default function CenterVideosPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Center Videos"
+        title={t("pages.centerVideos.title")}
         description={
           canManageVideos
-            ? "Manage videos for this center."
-            : "View center videos. Managing videos requires video.manage permission."
+            ? t("pages.centerVideos.descriptionWrite")
+            : t("pages.centerVideos.descriptionReadOnly")
         }
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Videos" },
-        ]}
         actions={
           <div className="flex items-center gap-2">
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerVideos.backToCenter")}
+              </Button>
             </Link>
             {canManageVideos ? (
-              <Button onClick={openCreateDialog}>Add Video</Button>
+              <Button onClick={openCreateDialog}>
+                {t("pages.centerVideos.addVideo")}
+              </Button>
             ) : null}
           </div>
         }

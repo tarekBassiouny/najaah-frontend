@@ -23,6 +23,13 @@ describe("resolveHostTenant", () => {
     expect(result.centerSlug).toBe("center-01");
   });
 
+  it("recognizes najaah.me center hosts even when local app domain is configured", () => {
+    const result = resolveHostTenant("center-01.najaah.me", "najaah.local");
+
+    expect(result.kind).toBe("center");
+    expect(result.centerSlug).toBe("center-01");
+  });
+
   it("treats localhost and ip as admin context", () => {
     expect(resolveHostTenant("localhost:3000", "najaah.me").kind).toBe("admin");
     expect(resolveHostTenant("127.0.0.1:3000", "najaah.me").kind).toBe("admin");

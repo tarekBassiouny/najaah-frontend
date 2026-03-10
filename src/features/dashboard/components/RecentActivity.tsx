@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useTranslation } from "@/features/localization";
 import type { DashboardActivity } from "@/features/dashboard/types/dashboard";
 
 type RecentActivityProps = {
@@ -41,24 +42,28 @@ function getActivityKind(action?: string | null): ActivityKind {
   return "other";
 }
 
-function getRelativeTime(activity: DashboardActivity) {
-  if (activity.created_at) {
-    try {
-      return formatDistanceToNow(new Date(activity.created_at), {
-        addSuffix: true,
-      });
-    } catch {
-      // Fallback below
+function useRelativeTime() {
+  const { t } = useTranslation();
+
+  return (activity: DashboardActivity) => {
+    if (activity.created_at) {
+      try {
+        return formatDistanceToNow(new Date(activity.created_at), {
+          addSuffix: true,
+        });
+      } catch {
+        // Fallback below
+      }
     }
-  }
 
-  if (typeof activity.days_ago === "number") {
-    if (activity.days_ago === 0) return "today";
-    if (activity.days_ago === 1) return "1 day ago";
-    return `${activity.days_ago} days ago`;
-  }
+    if (typeof activity.days_ago === "number") {
+      if (activity.days_ago === 0) return t("common.time.today");
+      if (activity.days_ago === 1) return t("common.time.oneDayAgo");
+      return t("common.time.daysAgo", { count: String(activity.days_ago) });
+    }
 
-  return "Unknown time";
+    return t("common.time.unknownTime");
+  };
 }
 
 const activityIcons: Record<ActivityKind, React.ReactNode> = {
@@ -138,11 +143,14 @@ export function RecentActivity({
   activities = [],
   isLoading,
 }: RecentActivityProps) {
+  const { t } = useTranslation();
+  const getRelativeTime = useRelativeTime();
+
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>{t("pages.dashboard.sections.recentActivity")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -165,12 +173,12 @@ export function RecentActivity({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>{t("pages.dashboard.sections.recentActivity")}</CardTitle>
         </CardHeader>
         <CardContent>
           <EmptyState
-            title="No recent activity"
-            description="Activity will appear here once actions are taken."
+            title={t("pages.dashboard.recentActivity.noActivity")}
+            description={t("pages.dashboard.recentActivity.noActivityDesc")}
             className="py-8"
           />
         </CardContent>
@@ -181,13 +189,13 @@ export function RecentActivity({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+        <CardTitle>{t("pages.dashboard.sections.recentActivity")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => {
             const kind = getActivityKind(activity.action);
-            const actorName = activity.actor?.name ?? "System";
+            const actorName = activity.actor?.name ?? t("common.labels.system");
 
             return (
               <div
@@ -207,7 +215,8 @@ export function RecentActivity({
                     {activity.description}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {getRelativeTime(activity)} by {actorName}
+                    {getRelativeTime(activity)} {t("common.labels.by")}{" "}
+                    {actorName}
                   </p>
                 </div>
               </div>

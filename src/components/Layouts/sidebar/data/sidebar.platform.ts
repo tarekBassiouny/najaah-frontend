@@ -4,12 +4,14 @@ import { iconFromTitle } from "./icon-map";
 
 type SidebarSubItem = {
   title: string;
+  titleKey: string;
   url: string;
   capability?: Capability;
 };
 
 type SidebarItem = {
   title: string;
+  titleKey: string;
   url?: string;
   icon?: (typeof Icons)[keyof typeof Icons];
   capability?: Capability;
@@ -18,15 +20,18 @@ type SidebarItem = {
 
 type SidebarSection = {
   label: string;
+  labelKey: string;
   items: SidebarItem[];
 };
 
 export const PLATFORM_SIDEBAR: SidebarSection[] = [
   {
     label: "ADMIN",
+    labelKey: "sidebar.sections.admin",
     items: [
       {
         title: "Dashboard",
+        titleKey: "sidebar.items.dashboard",
         capability: "view_dashboard",
         icon: iconFromTitle("Dashboard"),
         url: "/dashboard",
@@ -34,6 +39,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Analysis",
+        titleKey: "sidebar.items.analysis",
         capability: "manage_analytics",
         icon: iconFromTitle("Analysis"),
         url: "/analytics",
@@ -41,6 +47,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Centers",
+        titleKey: "sidebar.items.centers",
         capability: "manage_centers",
         icon: iconFromTitle("Centers"),
         url: "/centers",
@@ -48,6 +55,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Surveys",
+        titleKey: "sidebar.items.surveys",
         capability: "manage_surveys",
         icon: iconFromTitle("Surveys"),
         url: "/surveys",
@@ -55,6 +63,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Agents",
+        titleKey: "sidebar.items.agents",
         capability: "view_agents",
         icon: iconFromTitle("Agents"),
         url: "/agents/executions",
@@ -62,6 +71,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Roles & Permissions",
+        titleKey: "sidebar.items.rolesAndPermissions",
         capability: "manage_roles",
         icon: iconFromTitle("Roles & Permissions"),
         url: "/roles",
@@ -69,6 +79,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Admins",
+        titleKey: "sidebar.items.admins",
         capability: "manage_admin_users",
         icon: iconFromTitle("Admins"),
         url: "/admin-users",
@@ -76,6 +87,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Students",
+        titleKey: "sidebar.items.students",
         capability: "manage_students",
         icon: iconFromTitle("Students"),
         url: "/students",
@@ -83,6 +95,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Education",
+        titleKey: "sidebar.items.education",
         capability: "manage_students",
         icon: iconFromTitle("Education"),
         url: "/education",
@@ -90,6 +103,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Instructors",
+        titleKey: "sidebar.items.instructors",
         capability: "manage_instructors",
         icon: iconFromTitle("Instructors"),
         url: "/instructors",
@@ -97,6 +111,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Student Requests",
+        titleKey: "sidebar.items.studentRequests",
         capability: "manage_enrollments",
         icon: iconFromTitle("Student Requests"),
         url: "/student-requests",
@@ -104,6 +119,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Settings",
+        titleKey: "sidebar.items.settings",
         capability: "view_settings",
         icon: iconFromTitle("Settings"),
         url: "/settings",
@@ -111,6 +127,7 @@ export const PLATFORM_SIDEBAR: SidebarSection[] = [
       },
       {
         title: "Audit Log",
+        titleKey: "sidebar.items.auditLog",
         capability: "view_audit_logs",
         icon: iconFromTitle("Audit Log"),
         url: "/audit-logs",

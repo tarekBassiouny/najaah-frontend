@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,14 @@ const items = [
 ];
 
 export default function CoursesUploadSessionsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Upload Sessions"
-      description="Queue and monitor bulk session uploads."
+      title={t("pages.placeholderRoutes.courseUploadSessions.title")}
+      description={t(
+        "pages.placeholderRoutes.courseUploadSessions.description",
+      )}
       items={items}
     />
   );

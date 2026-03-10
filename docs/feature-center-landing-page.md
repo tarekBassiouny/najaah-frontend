@@ -8,7 +8,8 @@
 
 ## Admin Experience Plan
 ### Navigation & Shell
-- Add “Landing Page” card to the center overview grid; link points to `/centers/[centerId]/landing-page`.
+- Add “Landing Page” card to the center overview grid; link points to `/centers/[centerId]/landing-page` for branded centers only.
+  Unbranded centers should not surface the link because they rely on the shared system landing experience.
 - Reuse dashboard layout (breadcrumbs: Centers → {center} → Landing Page).
 - Gate entire page with `landing_page.manage`; center context derived from route params.
 - Header shows center name/slug, publish state, and primary actions: `Preview`, `Publish`, `Unpublish`.

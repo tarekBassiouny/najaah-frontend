@@ -32,6 +32,7 @@ import { useStudentProfile } from "@/features/students/hooks/use-students";
 import { useGrantExtraViewsToStudent } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
 import { PlaybackSessionsModal } from "@/features/playback-sessions/components/PlaybackSessionsModal";
 import { GenerateVideoAccessCodeDialog } from "@/features/video-access/components/GenerateVideoAccessCodeDialog";
+import { useTranslation } from "@/features/localization";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
 import { can } from "@/lib/capabilities";
@@ -165,6 +166,7 @@ export default function StudentProfilePage({
   params,
   searchParams,
 }: PageProps) {
+  const { t } = useTranslation();
   const { centerId, studentId } = use(params);
   const { from, courseId } = use(searchParams);
   const { showToast } = useModal();
@@ -339,12 +341,12 @@ export default function StudentProfilePage({
   if (isMissingProfile || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Student"
-        title="Student not found"
-        description="The student profile you requested does not exist or is no longer available in this center."
+        scopeLabel={t("pages.studentsPage.title")}
+        title={t("pages.centerStudentProfile.notFoundTitle")}
+        description={t("pages.centerStudentProfile.notFoundDescription")}
         primaryAction={{
           href: `/centers/${centerId}/students`,
-          label: "Go to Students",
+          label: t("pages.centerStudentProfile.goToStudents"),
         }}
       />
     );
@@ -355,10 +357,12 @@ export default function StudentProfilePage({
       <Card>
         <CardContent className="space-y-4 py-8 text-center">
           <p className="text-sm text-red-600 dark:text-red-400">
-            Failed to load student profile. Please try again.
+            {t("pages.centerStudentProfile.loadFailed")}
           </p>
           <Link href={`/centers/${centerId}/students`}>
-            <Button variant="outline">Back to Students</Button>
+            <Button variant="outline">
+              {t("pages.centerStudentProfile.backToStudents")}
+            </Button>
           </Link>
         </CardContent>
       </Card>

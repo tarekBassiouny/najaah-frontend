@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTranslation } from "@/features/localization";
 import { InstructorsTable } from "@/features/instructors/components/InstructorsTable";
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import { DeleteInstructorDialog } from "@/features/instructors/components/DeleteInstructorDialog";
@@ -16,6 +17,7 @@ type PageProps = {
 };
 
 export default function CenterInstructorsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(
@@ -31,13 +33,8 @@ export default function CenterInstructorsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Instructors"
-        description="Manage instructors for this center."
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Instructors" },
-        ]}
+        title={t("pages.instructors.title")}
+        description={t("pages.centerInstructors.description")}
         actions={
           <>
             <Button
@@ -46,10 +43,12 @@ export default function CenterInstructorsPage({ params }: PageProps) {
                 setIsFormOpen(true);
               }}
             >
-              Add Instructor
+              {t("pages.instructors.createInstructor")}
             </Button>
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           </>
         }

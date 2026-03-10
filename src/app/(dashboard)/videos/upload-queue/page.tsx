@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function VideosUploadQueuePage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Upload Queue"
-      description="Track uploads in progress."
+      title={t("pages.placeholderRoutes.videoUploadQueue.title")}
+      description={t("pages.placeholderRoutes.videoUploadQueue.description")}
       items={items}
     />
   );

@@ -30,7 +30,9 @@ import {
   useUpdateCenterCourse,
   useUploadCourseThumbnail,
 } from "@/features/courses/hooks/use-courses";
+import { CourseEducationTargetingSection } from "@/features/courses/components/CourseEducationTargetingSection";
 import {
+  getAdminApiFieldErrors,
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
   isAdminApiNotFoundError,
@@ -42,6 +44,13 @@ import { useInstructorOptions } from "@/features/instructors/hooks/use-instructo
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import { PlusIcon } from "@/components/icons/plus";
+import { useTranslation } from "@/features/localization";
+import {
+  getCourseEducationTargetingValues,
+  hasAnyEducationTarget,
+  toCourseEducationTargetingPayload,
+  type CourseEducationTargetingValues,
+} from "@/features/courses/utils/education-targeting";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -107,7 +116,32 @@ function mapCourseVideoApprovalToOverride(
   return "inherit";
 }
 
+function isEducationTargetingFieldKey(key: string) {
+  return (
+    key === "show_for_all_students" ||
+    key === "grade_ids" ||
+    key.startsWith("grade_ids.") ||
+    key === "school_ids" ||
+    key.startsWith("school_ids.") ||
+    key === "college_ids" ||
+    key.startsWith("college_ids.")
+  );
+}
+
+function getEducationTargetingError(
+  errors: Record<string, string[]>,
+): string | null {
+  for (const [key, messages] of Object.entries(errors)) {
+    if (!isEducationTargetingFieldKey(key)) continue;
+    const firstMessage = messages[0];
+    if (firstMessage) return firstMessage;
+  }
+
+  return null;
+}
+
 export default function CenterCourseEditPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId, courseId } = use(params);
   const router = useRouter();
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -195,6 +229,18 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
   const [currentThumbnailFailed, setCurrentThumbnailFailed] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [educationTargeting, setEducationTargeting] =
+    useState<CourseEducationTargetingValues>({
+      showForAllStudents: true,
+      gradeIds: [],
+      schoolIds: [],
+      collegeIds: [],
+    });
+  const [
+    educationTargetingValidationError,
+    setEducationTargetingValidationError,
+  ] = useState<string | null>(null);
 
   useEffect(() => {
     if (!course) return;
@@ -226,14 +272,53 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     });
     setCurrentThumbnailUrl(course.thumbnail_url ?? course.thumbnail ?? "");
     setCurrentThumbnailFailed(false);
+    setEducationTargeting(getCourseEducationTargetingValues(course));
+    setFieldErrors({});
+    setEducationTargetingValidationError(null);
   }, [course]);
 
   useEffect(() => {
     setCurrentThumbnailFailed(false);
   }, [currentThumbnailUrl]);
 
+  const educationTargetingFieldError = getEducationTargetingError(fieldErrors);
+  const educationTargetingError =
+    educationTargetingValidationError ?? educationTargetingFieldError;
+
+  const handleEducationTargetingChange = (
+    nextValues: CourseEducationTargetingValues,
+  ) => {
+    setEducationTargeting(nextValues);
+    setEducationTargetingValidationError(null);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.show_for_all_students;
+      delete next.grade_ids;
+      delete next.school_ids;
+      delete next.college_ids;
+      Object.keys(next).forEach((key) => {
+        if (isEducationTargetingFieldKey(key)) {
+          delete next[key];
+        }
+      });
+      return next;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+    setEducationTargetingValidationError(null);
+
+    if (
+      !educationTargeting.showForAllStudents &&
+      !hasAnyEducationTarget(educationTargeting)
+    ) {
+      setEducationTargetingValidationError(
+        "Select at least one grade, school, or college for targeted visibility.",
+      );
+      return;
+    }
 
     const titleTranslations: Record<string, string> = {};
     if (formData.title.trim()) {
@@ -277,11 +362,31 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           category_id: formData.categoryId
             ? Number(formData.categoryId)
             : undefined,
+          ...toCourseEducationTargetingPayload(educationTargeting),
         },
       },
       {
         onSuccess: () => {
           router.push(`/centers/${centerId}/courses/${courseId}`);
+        },
+        onError: (mutationError) => {
+          const errors = getAdminApiFieldErrors(mutationError) as
+            | Record<string, string[] | string>
+            | undefined;
+
+          if (!errors) {
+            setFieldErrors({});
+            return;
+          }
+
+          const normalizedErrors = Object.fromEntries(
+            Object.entries(errors).map(([key, value]) => [
+              key,
+              Array.isArray(value) ? value.map(String) : [String(value)],
+            ]),
+          );
+
+          setFieldErrors(normalizedErrors);
         },
       },
     );
@@ -383,12 +488,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   if (isMissingCourse || isAdminApiNotFoundError(courseError)) {
     return (
       <AppNotFoundState
-        scopeLabel="Edit Course"
-        title="Course not found"
-        description="The course you are trying to edit does not exist or is no longer available in this center."
+        scopeLabel={t("pages.centerCourseEdit.scopeLabel")}
+        title={t("pages.centerCourseEdit.notFoundTitle")}
+        description={t("pages.centerCourseEdit.notFoundDescription")}
         primaryAction={{
           href: `/centers/${centerId}/courses`,
-          label: "Go to Courses",
+          label: t("pages.centerCourseEdit.goToCourses"),
         }}
       />
     );
@@ -399,10 +504,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-red-600 dark:text-red-400">
-            Failed to load this course. Please try again.
+            {t("pages.centerCourseEdit.loadFailed")}
           </p>
           <Link href={`/centers/${centerId}/courses`}>
-            <Button variant="outline">Back to Courses</Button>
+            <Button variant="outline">
+              {t("pages.centerCourseEdit.backToCourses")}
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -412,21 +519,24 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Edit Course"
-        description="Update this center course"
+        title={t("pages.centerCourseEdit.title")}
+        description={t("pages.centerCourseEdit.description")}
         breadcrumbs={[
-          { label: "Centers", href: "/centers" },
+          { label: t("common.labels.centers"), href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Courses", href: `/centers/${centerId}/courses` },
+          {
+            label: t("pages.coursesPage.title"),
+            href: `/centers/${centerId}/courses`,
+          },
           {
             label: course?.title ?? `Course ${courseId}`,
             href: `/centers/${centerId}/courses/${courseId}`,
           },
-          { label: "Edit" },
+          { label: t("common.actions.edit") },
         ]}
         actions={
           <Link href={`/centers/${centerId}/courses/${courseId}`}>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common.actions.cancel")}</Button>
           </Link>
         }
       />
@@ -610,8 +720,8 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                           className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
                           onClick={() => setIsCategoryDialogOpen(true)}
                           disabled={!centerId}
-                          aria-label="Create a category"
-                          title="Create a category"
+                          aria-label={t("pages.categories.createCategory")}
+                          title={t("pages.categories.createCategory")}
                         >
                           <PlusIcon className="h-4 w-4" />
                         </Button>
@@ -649,8 +759,8 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                           className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
                           onClick={() => setIsInstructorDialogOpen(true)}
                           disabled={!centerId}
-                          aria-label="Create an instructor"
-                          title="Create an instructor"
+                          aria-label={t("pages.instructors.createInstructor")}
+                          title={t("pages.instructors.createInstructor")}
                         >
                           <PlusIcon className="h-4 w-4" />
                         </Button>
@@ -658,6 +768,14 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                     />
                   </div>
                 </div>
+
+                <CourseEducationTargetingSection
+                  centerId={centerId}
+                  values={educationTargeting}
+                  onChange={handleEducationTargetingChange}
+                  disabled={isPending}
+                  error={educationTargetingError}
+                />
               </CardContent>
             </Card>
 

@@ -26,6 +26,24 @@ const mockedHttp = http as unknown as {
   post: ReturnType<typeof vi.fn>;
 };
 
+const defaultLayout = {
+  section_order: ["hero", "about", "courses", "testimonials", "contact"],
+  section_layouts: {
+    hero: "default",
+    about: "default",
+    courses: "default",
+    testimonials: "default",
+    contact: "default",
+  },
+  section_styles: {
+    hero: {},
+    about: {},
+    courses: {},
+    testimonials: {},
+    contact: {},
+  },
+};
+
 describe("landing-page.service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -69,6 +87,7 @@ describe("landing-page.service", () => {
       styling: null,
       visibility: null,
       testimonials: null,
+      layout: defaultLayout,
     });
 
     expect(mockedHttp.get).toHaveBeenCalledWith(
@@ -115,6 +134,7 @@ describe("landing-page.service", () => {
         show_testimonials: undefined,
         show_contact: undefined,
       },
+      layout: defaultLayout,
     });
 
     expect(mockedHttp.patch).toHaveBeenCalledWith(
@@ -171,6 +191,7 @@ describe("landing-page.service", () => {
       styling: null,
       testimonials: null,
       visibility: null,
+      layout: defaultLayout,
     });
 
     expect(mockedHttp.post).toHaveBeenCalledWith(
@@ -201,6 +222,7 @@ describe("landing-page.service", () => {
       styling: null,
       testimonials: null,
       visibility: null,
+      layout: defaultLayout,
     });
 
     expect(mockedHttp.post).toHaveBeenCalledWith(
@@ -259,6 +281,7 @@ describe("landing-page.service", () => {
         styling: null,
         visibility: null,
         testimonials: null,
+        layout: defaultLayout,
       },
     });
 

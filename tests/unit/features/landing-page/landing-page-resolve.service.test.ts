@@ -15,6 +15,24 @@ vi.mock("axios", () => {
 
 const mockedGet = axios.get as MockedFunction<typeof axios.get>;
 
+const defaultLayout = {
+  section_order: ["hero", "about", "courses", "testimonials", "contact"],
+  section_layouts: {
+    hero: "default",
+    about: "default",
+    courses: "default",
+    testimonials: "default",
+    contact: "default",
+  },
+  section_styles: {
+    hero: {},
+    about: {},
+    courses: {},
+    testimonials: {},
+    contact: {},
+  },
+};
+
 describe("resolveLandingPage", () => {
   beforeEach(() => {
     mockedGet.mockReset();
@@ -85,6 +103,7 @@ describe("resolveLandingPage", () => {
       social: null,
       styling: null,
       center: null,
+      layout: defaultLayout,
     });
   });
 });

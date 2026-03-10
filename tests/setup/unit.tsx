@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderOptions } from "@testing-library/react";
+import { LocaleProvider } from "@/features/localization";
 import React, { type PropsWithChildren } from "react";
 import { vi, beforeAll } from "vitest";
 
@@ -69,7 +70,9 @@ export function renderWithQueryProvider(
 ) {
   const queryClient = createQueryClient();
   const Wrapper: React.FC<PropsWithChildren> = ({ children }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <LocaleProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </LocaleProvider>
   );
 
   return render(ui, { wrapper: Wrapper, ...options });

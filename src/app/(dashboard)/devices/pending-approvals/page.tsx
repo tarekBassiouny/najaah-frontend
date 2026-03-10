@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,14 @@ const items = [
 ];
 
 export default function DevicesPendingApprovalsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Pending Approvals"
-      description="Review devices awaiting approval."
+      title={t("pages.placeholderRoutes.devicesPendingApprovals.title")}
+      description={t(
+        "pages.placeholderRoutes.devicesPendingApprovals.description",
+      )}
       items={items}
     />
   );

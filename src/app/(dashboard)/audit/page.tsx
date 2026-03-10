@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function AuditPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Audit Logs"
-      description="System-wide audit trails."
+      title={t("pages.placeholderRoutes.auditLogs.title")}
+      description={t("pages.placeholderRoutes.auditLogs.description")}
       items={items}
     />
   );

@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function PlaybackViewLimitsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="View Limits"
-      description="Configure and monitor view limits."
+      title={t("pages.placeholderRoutes.playbackViewLimits.title")}
+      description={t("pages.placeholderRoutes.playbackViewLimits.description")}
       items={items}
     />
   );

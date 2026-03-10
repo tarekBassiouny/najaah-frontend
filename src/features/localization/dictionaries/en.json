@@ -252,6 +252,53 @@
       "selectCenterFirst": "Select a center first",
       "selectFailedVideos": "Select failed upload-source videos to retry."
     },
+    "courseCreate": {
+      "description": "Course creation is center-scoped.",
+      "selectCenterPrompt": "Select a center to create a course."
+    },
+    "courseDetails": {
+      "title": "Course Details",
+      "description": "Course details are center-scoped.",
+      "selectCenterPrompt": "Select a center to access this course."
+    },
+    "permissions": {
+      "title": "Permissions",
+      "descriptionWrite": "View the permission catalog used for role assignment.",
+      "descriptionReadOnly": "View the shared permission catalog. Role updates require system-scoped access."
+    },
+    "rolePermissions": {
+      "title": "Role Permissions",
+      "descriptionWrite": "Manage permissions assigned to this role.",
+      "descriptionReadOnly": "View role permissions. Updates require system-scoped access."
+    },
+    "centerCourseCreate": {
+      "description": "Create a course inside this center"
+    },
+    "centerCourseEdit": {
+      "scopeLabel": "Edit Course",
+      "title": "Edit Course",
+      "description": "Update this center course",
+      "notFoundTitle": "Course not found",
+      "notFoundDescription": "The course you are trying to edit does not exist or is no longer available in this center.",
+      "goToCourses": "Go to Courses",
+      "backToCourses": "Back to Courses",
+      "loadFailed": "Failed to load this course. Please try again."
+    },
+    "centerCreate": {
+      "description": "Set up a new learning center with required onboarding details",
+      "creating": "Creating...",
+      "apiKeyHint": "API key is no longer returned in create response.",
+      "validation": {
+        "slugRequired": "Slug is required.",
+        "primaryColorRequired": "Primary color is required for branded centers.",
+        "adminRequired": "Admin name and email are required."
+      },
+      "errors": {
+        "unable": "Unable to create center",
+        "createFailed": "Failed to create center. Please try again.",
+        "logoUploadFailed": "Center created, but logo upload failed. You can upload it from center settings."
+      }
+    },
     "settingsPage": {
       "title": "Settings",
       "descriptionPlatformLevel": "Global LMS configuration is managed at platform level.",
@@ -373,17 +420,169 @@
       "backToCenter": "Back to Center",
       "selectFailedVideos": "Select failed upload-source videos to retry."
     },
+    "centerAdminUsers": {
+      "description": "Manage administrators and permissions for this center"
+    },
+    "centerAnalytics": {
+      "description": "Track performance across courses, learners, devices, and media for this center."
+    },
+    "centerAuditLogs": {
+      "description": "Read-only audit trail for center activity."
+    },
+    "centerCategories": {
+      "title": "Center Categories",
+      "description": "Manage categories for this center"
+    },
+    "centerEducation": {
+      "description": "Manage grades, schools, and colleges for this center.",
+      "redirectingUnbranded": "Redirecting to system education management for this unbranded center.",
+      "loadFailed": "Failed to load center education page. Please try again."
+    },
+    "centerInstructors": {
+      "description": "Manage instructors for this center."
+    },
+    "centerDetails": {
+      "descriptionFallback": "Center overview and management"
+    },
+    "centerLandingPage": {
+      "title": "Center landing page",
+      "description": "Manage the public landing experience for this branded center.",
+      "descriptionUnbranded": "Manage the public landing experience for branded centers.",
+      "notFoundDesc": "The landing page you are trying to open belongs to a center that no longer exists.",
+      "loadFailed": "Failed to load this center. Please try again.",
+      "unbrandedNotice": "Landing pages are only configurable for branded centers. Unbranded centers fall back to the shared system landing experience.",
+      "unbrandedHint": "Convert this center to branded before opening the landing-page editor."
+    },
+    "centerPdfs": {
+      "title": "Center PDFs",
+      "description": "Manage PDFs for this center"
+    },
+    "centerRolePermissions": {
+      "descriptionReadOnly": "View role permissions. Updates require role.manage permission."
+    },
+    "centerCourseDetail": {
+      "loadFailedDescription": "This course may have been deleted or you may not have permission to view it."
+    },
+    "centerStudentProfile": {
+      "notFoundTitle": "Student not found",
+      "notFoundDescription": "The student profile you requested does not exist or is no longer available in this center.",
+      "goToStudents": "Go to Students",
+      "backToStudents": "Back to Students",
+      "loadFailed": "Failed to load student profile. Please try again."
+    },
+    "centerRoles": {
+      "descriptionWrite": "Manage user roles and access levels for this center.",
+      "descriptionReadOnly": "View roles and permissions. Updates require manage_roles permission."
+    },
     "centerSettings": {
       "title": "{name} Settings",
       "titleFallback": "Center Settings",
       "description": "Manage center details, status, and onboarding operations",
       "notFoundTitle": "Center not found",
       "notFoundDesc": "The center you requested does not exist or is no longer available.",
+      "workspaceNotFoundDesc": "The center linked to this workspace is unavailable or no longer exists.",
       "goToCenters": "Go to Centers",
+      "goToDashboard": "Go to Dashboard",
       "loadFailed": "Failed to load center settings.",
       "backToCenters": "Back to Centers",
       "back": "Back",
-      "tier": "Tier"
+      "tier": "Tier",
+      "centerContextRequired": "Center context is required to manage settings.",
+      "workspaceDescription": "Manage your center's branding and operational preferences"
+    },
+    "centerSurveys": {
+      "title": "Center Surveys",
+      "description": "Manage surveys for this center",
+      "descriptionUnbranded": "Surveys are not available for unbranded centers.",
+      "createSurvey": "Create Center Survey",
+      "disabledTitle": "Surveys disabled",
+      "disabledDescription": "Unbranded centers cannot create or manage surveys."
+    },
+    "placeholderRoutes": {
+      "auditDeviceLogs": {
+        "title": "Device Logs",
+        "description": "Audit trail for device lifecycle."
+      },
+      "auditLogs": {
+        "title": "Audit Logs",
+        "description": "System-wide audit trails."
+      },
+      "auditPlaybackLogs": {
+        "title": "Playback Logs",
+        "description": "Playback-specific audit stream."
+      },
+      "auditSystemLogs": {
+        "title": "System Logs",
+        "description": "Platform and configuration changes."
+      },
+      "coursesList": {
+        "title": "Course List",
+        "description": "Browse and filter available courses."
+      },
+      "courseSections": {
+        "title": "Sections",
+        "description": "Organize course sections and their schedules."
+      },
+      "courseUploadSessions": {
+        "title": "Upload Sessions",
+        "description": "Queue and monitor bulk session uploads."
+      },
+      "devicesBound": {
+        "title": "Bound Devices",
+        "description": "Devices currently bound to students."
+      },
+      "devicesPendingApprovals": {
+        "title": "Pending Approvals",
+        "description": "Review devices awaiting approval."
+      },
+      "pdfLibrary": {
+        "title": "PDF Library",
+        "description": "Library of uploaded documents."
+      },
+      "playback": {
+        "title": "Playback",
+        "description": "Monitoring and controls for playback sessions."
+      },
+      "playbackSessions": {
+        "title": "Playback Sessions",
+        "description": "Inspect active and historical sessions."
+      },
+      "playbackViewLimits": {
+        "title": "View Limits",
+        "description": "Configure and monitor view limits."
+      },
+      "playbackViolations": {
+        "title": "Playback Violations",
+        "description": "Review suspicious playback behavior."
+      },
+      "studentDevices": {
+        "title": "Student Devices",
+        "description": "Devices registered per student."
+      },
+      "studentEnrollments": {
+        "title": "Student Enrollments",
+        "description": "Enrollments scoped by student."
+      },
+      "studentList": {
+        "title": "Student List",
+        "description": "Search and filter all students."
+      },
+      "studentSettings": {
+        "title": "Student Settings",
+        "description": "Per-student preferences and access rules."
+      },
+      "videoLibrary": {
+        "title": "Video Library",
+        "description": "Browse all uploaded videos with filters."
+      },
+      "videoProcessingStatus": {
+        "title": "Processing Status",
+        "description": "Monitor encoding, transcription, and DRM jobs."
+      },
+      "videoUploadQueue": {
+        "title": "Upload Queue",
+        "description": "Track uploads in progress."
+      }
     },
     "dashboard": {
       "title": "Dashboard",
@@ -454,12 +653,19 @@
     "instructors": {
       "title": "Instructors",
       "description": "Manage instructor profiles",
+      "descriptionByCenter": "Manage instructors by center.",
       "createInstructor": "Create Instructor",
-      "editInstructor": "Edit Instructor"
+      "editInstructor": "Edit Instructor",
+      "selectCenterTitle": "Select a center",
+      "selectCenterDescription": "Choose a center to manage instructors."
     },
     "categories": {
       "title": "Categories",
-      "description": "Manage course categories"
+      "description": "Manage course categories",
+      "descriptionSelectCenter": "Manage categories for each center. Select a center to begin.",
+      "descriptionCenter": "Manage course categories for your learning center",
+      "selectCenterPrompt": "Select a center from the top-right picker to manage categories.",
+      "createCategory": "Create Category"
     },
     "videos": {
       "title": "Videos",
@@ -467,15 +673,23 @@
     },
     "pdfs": {
       "title": "PDFs",
-      "description": "Manage PDF documents"
+      "description": "Manage PDF documents",
+      "descriptionCenter": "Manage PDF documents for your learning center",
+      "uploadPdf": "Upload PDF",
+      "selectCenterTitle": "Select a center",
+      "selectCenterDescription": "Choose a center before uploading PDFs.",
+      "actionUnavailable": "This action is not available yet."
     },
     "surveys": {
       "title": "Surveys",
-      "description": "Manage surveys and questionnaires"
+      "description": "Manage surveys and questionnaires",
+      "descriptionPlatform": "Manage system and center surveys",
+      "addSurvey": "Add Survey"
     },
     "analytics": {
       "title": "Analytics",
-      "description": "View platform analytics and reports"
+      "description": "View platform analytics and reports",
+      "dashboardDescription": "Track performance across courses, learners, devices, and media."
     },
     "agents": {
       "title": "Agents",
@@ -495,7 +709,10 @@
     },
     "education": {
       "title": "Education",
-      "description": "Manage educational settings"
+      "description": "Manage educational settings",
+      "descriptionByCenter": "Manage grades, schools, and colleges by center.",
+      "descriptionForProfiles": "Manage grades, schools, and colleges for student profiles.",
+      "selectCenterPrompt": "Select a center from the picker to manage educational lookups."
     },
     "settings": {
       "title": "Settings",
@@ -503,7 +720,8 @@
     },
     "auditLogs": {
       "title": "Audit Logs",
-      "description": "View system audit logs"
+      "description": "View system audit logs",
+      "descriptionAdmin": "Read-only audit trail for admin activity."
     },
     "landingPage": {
       "title": "Landing Page",

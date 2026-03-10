@@ -35,6 +35,7 @@ import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 import { PlusIcon } from "@/components/icons/plus";
 
@@ -84,6 +85,7 @@ function extractErrorMessage(error: unknown): string {
 }
 
 export default function CenterCoursesCreatePage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const router = useRouter();
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -309,17 +311,20 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Create Course"
-        description="Create a course inside this center"
+        title={t("pages.coursesPage.createCourse")}
+        description={t("pages.centerCourseCreate.description")}
         breadcrumbs={[
-          { label: "Centers", href: "/centers" },
+          { label: t("common.labels.centers"), href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Courses", href: `/centers/${centerId}/courses` },
-          { label: "Create" },
+          {
+            label: t("pages.coursesPage.title"),
+            href: `/centers/${centerId}/courses`,
+          },
+          { label: t("common.actions.create") },
         ]}
         actions={
           <Link href={`/centers/${centerId}/courses`}>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common.actions.cancel")}</Button>
           </Link>
         }
       />
@@ -540,8 +545,8 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                           className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
                           onClick={() => setIsCategoryDialogOpen(true)}
                           disabled={!centerId}
-                          aria-label="Create a category"
-                          title="Create a category"
+                          aria-label={t("pages.categories.createCategory")}
+                          title={t("pages.categories.createCategory")}
                         >
                           <PlusIcon className="h-4 w-4" />
                         </Button>
@@ -586,8 +591,8 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                           className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
                           onClick={() => setIsInstructorDialogOpen(true)}
                           disabled={!centerId}
-                          aria-label="Create an instructor"
-                          title="Create an instructor"
+                          aria-label={t("pages.instructors.createInstructor")}
+                          title={t("pages.instructors.createInstructor")}
                         >
                           <PlusIcon className="h-4 w-4" />
                         </Button>

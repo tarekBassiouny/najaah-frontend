@@ -3,6 +3,7 @@
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { cn } from "@/lib/utils";
 import { SetStateActionType } from "@/types/set-state-action-type";
+import { useLocale } from "@/features/localization/locale-context";
 import {
   createContext,
   type PropsWithChildren,
@@ -86,7 +87,31 @@ export function DropdownContent({
   className,
   ignoreOutsideClickSelector,
 }: DropdownContentProps) {
+  const { locale } = useLocale();
   const { isOpen, handleClose } = useDropdownContext();
+  const isRtl = locale === "ar";
+
+  const alignClass =
+    align === "center"
+      ? "left-1/2 -translate-x-1/2"
+      : align === "end"
+        ? isRtl
+          ? "left-0"
+          : "right-0"
+        : isRtl
+          ? "right-0"
+          : "left-0";
+
+  const originClass =
+    align === "center"
+      ? "origin-top"
+      : align === "end"
+        ? isRtl
+          ? "origin-top-left"
+          : "origin-top-right"
+        : isRtl
+          ? "origin-top-right"
+          : "origin-top-left";
 
   const contentRef = useClickOutside<HTMLDivElement>(
     () => {
@@ -116,12 +141,11 @@ export function DropdownContent({
       role="menu"
       aria-orientation="vertical"
       className={cn(
-        "fade-in-0 zoom-in-95 pointer-events-auto absolute z-99 mt-2 min-w-[8rem] origin-top-right rounded-lg",
-        {
-          "animate-in right-0": align === "end",
-          "left-0": align === "start",
-          "left-1/2 -translate-x-1/2": align === "center",
-        },
+        "animate-in fade-in-0 zoom-in-95 pointer-events-auto absolute z-99 mt-2 max-h-[min(24rem,calc(100vh-2rem))] min-w-[8rem] overflow-y-auto overscroll-contain rounded-lg",
+        isRtl &&
+          "[&_[role='menuitem']]:!text-right [&_a]:!text-right [&_button]:!text-right",
+        alignClass,
+        originClass,
         className,
       )}
     >

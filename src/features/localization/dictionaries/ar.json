@@ -252,6 +252,53 @@
       "selectCenterFirst": "اختر مركزاً أولاً",
       "selectFailedVideos": "اختر فيديوهات مصدر الرفع الفاشلة لإعادة المحاولة."
     },
+    "courseCreate": {
+      "description": "إنشاء الدورة مرتبط بنطاق المركز.",
+      "selectCenterPrompt": "اختر مركزاً لإنشاء دورة."
+    },
+    "courseDetails": {
+      "title": "تفاصيل الدورة",
+      "description": "تفاصيل الدورة مرتبطة بنطاق المركز.",
+      "selectCenterPrompt": "اختر مركزاً للوصول إلى هذه الدورة."
+    },
+    "permissions": {
+      "title": "الصلاحيات",
+      "descriptionWrite": "عرض دليل الصلاحيات المستخدم في تعيين الأدوار.",
+      "descriptionReadOnly": "عرض دليل الصلاحيات المشترك. تحديث الأدوار يتطلب نطاق النظام."
+    },
+    "rolePermissions": {
+      "title": "صلاحيات الدور",
+      "descriptionWrite": "إدارة الصلاحيات المعيّنة لهذا الدور.",
+      "descriptionReadOnly": "عرض صلاحيات الدور. التحديثات تتطلب نطاق النظام."
+    },
+    "centerCourseCreate": {
+      "description": "إنشاء دورة داخل هذا المركز"
+    },
+    "centerCourseEdit": {
+      "scopeLabel": "تعديل الدورة",
+      "title": "تعديل الدورة",
+      "description": "تحديث دورة هذا المركز",
+      "notFoundTitle": "الدورة غير موجودة",
+      "notFoundDescription": "الدورة التي تحاول تعديلها غير موجودة أو لم تعد متاحة في هذا المركز.",
+      "goToCourses": "الانتقال إلى الدورات",
+      "backToCourses": "العودة إلى الدورات",
+      "loadFailed": "فشل تحميل هذه الدورة. يرجى المحاولة مرة أخرى."
+    },
+    "centerCreate": {
+      "description": "إعداد مركز تعليمي جديد مع بيانات التهيئة المطلوبة",
+      "creating": "جارٍ الإنشاء...",
+      "apiKeyHint": "لم يعد مفتاح API يُعاد في استجابة الإنشاء.",
+      "validation": {
+        "slugRequired": "حقل الرابط المختصر مطلوب.",
+        "primaryColorRequired": "اللون الأساسي مطلوب للمراكز المميّزة.",
+        "adminRequired": "اسم المشرف والبريد الإلكتروني مطلوبان."
+      },
+      "errors": {
+        "unable": "تعذر إنشاء المركز",
+        "createFailed": "فشل إنشاء المركز. يرجى المحاولة مرة أخرى.",
+        "logoUploadFailed": "تم إنشاء المركز، لكن فشل رفع الشعار. يمكنك رفعه من إعدادات المركز."
+      }
+    },
     "settingsPage": {
       "title": "الإعدادات",
       "descriptionPlatformLevel": "تتم إدارة إعدادات منصة التعلم العامة من مساحة إدارة المنصة.",
@@ -373,17 +420,169 @@
       "backToCenter": "العودة للمركز",
       "selectFailedVideos": "اختر الفيديوهات الفاشلة من مصدر الرفع لإعادة المحاولة."
     },
+    "centerAdminUsers": {
+      "description": "إدارة المشرفين والصلاحيات لهذا المركز"
+    },
+    "centerAnalytics": {
+      "description": "تتبع الأداء عبر الدورات والمتعلمين والأجهزة والوسائط لهذا المركز."
+    },
+    "centerAuditLogs": {
+      "description": "سجل تدقيق للقراءة فقط لنشاط المركز."
+    },
+    "centerCategories": {
+      "title": "تصنيفات المركز",
+      "description": "إدارة التصنيفات لهذا المركز"
+    },
+    "centerEducation": {
+      "description": "إدارة الصفوف والمدارس والكليات لهذا المركز.",
+      "redirectingUnbranded": "جارٍ التحويل إلى إدارة التعليم على مستوى النظام لهذا المركز غير المميز.",
+      "loadFailed": "فشل تحميل صفحة تعليم المركز. يرجى المحاولة مرة أخرى."
+    },
+    "centerInstructors": {
+      "description": "إدارة المدربين لهذا المركز."
+    },
+    "centerDetails": {
+      "descriptionFallback": "نظرة عامة على المركز وإدارته"
+    },
+    "centerLandingPage": {
+      "title": "الصفحة الرئيسية للمركز",
+      "description": "إدارة تجربة الصفحة العامة لهذا المركز المميز.",
+      "descriptionUnbranded": "إدارة التجربة العامة للصفحة للمراكز المميزة.",
+      "notFoundDesc": "الصفحة التي تحاول فتحها تخص مركزاً لم يعد موجوداً.",
+      "loadFailed": "فشل تحميل هذا المركز. يرجى المحاولة مرة أخرى.",
+      "unbrandedNotice": "يمكن إعداد الصفحات الرئيسية للمراكز المميزة فقط. المراكز غير المميزة تستخدم صفحة النظام المشتركة.",
+      "unbrandedHint": "حوّل هذا المركز إلى مركز مميز قبل فتح محرر الصفحة الرئيسية."
+    },
+    "centerPdfs": {
+      "title": "ملفات PDF للمركز",
+      "description": "إدارة ملفات PDF لهذا المركز"
+    },
+    "centerRolePermissions": {
+      "descriptionReadOnly": "عرض صلاحيات الدور. التحديثات تتطلب صلاحية role.manage."
+    },
+    "centerCourseDetail": {
+      "loadFailedDescription": "قد تكون هذه الدورة محذوفة أو ليس لديك صلاحية لعرضها."
+    },
+    "centerStudentProfile": {
+      "notFoundTitle": "الطالب غير موجود",
+      "notFoundDescription": "ملف الطالب المطلوب غير موجود أو لم يعد متاحاً في هذا المركز.",
+      "goToStudents": "الانتقال إلى الطلاب",
+      "backToStudents": "العودة إلى الطلاب",
+      "loadFailed": "فشل تحميل ملف الطالب. يرجى المحاولة مرة أخرى."
+    },
+    "centerRoles": {
+      "descriptionWrite": "إدارة أدوار المستخدمين ومستويات الوصول لهذا المركز.",
+      "descriptionReadOnly": "عرض الأدوار والصلاحيات. التحديثات تتطلب صلاحية manage_roles."
+    },
     "centerSettings": {
       "title": "إعدادات {name}",
       "titleFallback": "إعدادات المركز",
       "description": "إدارة تفاصيل المركز والحالة وعمليات التهيئة",
       "notFoundTitle": "المركز غير موجود",
       "notFoundDesc": "المركز المطلوب غير موجود أو لم يعد متاحاً.",
+      "workspaceNotFoundDesc": "المركز المرتبط بمساحة العمل هذه غير متاح أو لم يعد موجوداً.",
       "goToCenters": "الذهاب للمراكز",
+      "goToDashboard": "الانتقال إلى لوحة التحكم",
       "loadFailed": "فشل في تحميل إعدادات المركز.",
       "backToCenters": "العودة للمراكز",
       "back": "رجوع",
-      "tier": "المستوى"
+      "tier": "المستوى",
+      "centerContextRequired": "سياق المركز مطلوب لإدارة الإعدادات.",
+      "workspaceDescription": "إدارة العلامة التجارية للمركز وتفضيلات التشغيل"
+    },
+    "centerSurveys": {
+      "title": "استبيانات المركز",
+      "description": "إدارة الاستبيانات لهذا المركز",
+      "descriptionUnbranded": "الاستبيانات غير متاحة للمراكز غير المميزة.",
+      "createSurvey": "إنشاء استبيان للمركز",
+      "disabledTitle": "الاستبيانات معطلة",
+      "disabledDescription": "لا يمكن للمراكز غير المميزة إنشاء أو إدارة الاستبيانات."
+    },
+    "placeholderRoutes": {
+      "auditDeviceLogs": {
+        "title": "سجلات الأجهزة",
+        "description": "سجل تدقيق لدورة حياة الجهاز."
+      },
+      "auditLogs": {
+        "title": "سجلات التدقيق",
+        "description": "مسارات تدقيق على مستوى النظام."
+      },
+      "auditPlaybackLogs": {
+        "title": "سجلات التشغيل",
+        "description": "تيار تدقيق خاص بالتشغيل."
+      },
+      "auditSystemLogs": {
+        "title": "سجلات النظام",
+        "description": "تغييرات المنصة والإعدادات."
+      },
+      "coursesList": {
+        "title": "قائمة الدورات",
+        "description": "استعرض الدورات وقم بتصفية النتائج."
+      },
+      "courseSections": {
+        "title": "الأقسام",
+        "description": "تنظيم أقسام الدورات وجداولها."
+      },
+      "courseUploadSessions": {
+        "title": "جلسات الرفع",
+        "description": "قائمة انتظار ومتابعة رفع الجلسات المجمعة."
+      },
+      "devicesBound": {
+        "title": "الأجهزة المرتبطة",
+        "description": "الأجهزة المرتبطة حالياً بالطلاب."
+      },
+      "devicesPendingApprovals": {
+        "title": "الموافقات المعلقة",
+        "description": "مراجعة الأجهزة بانتظار الموافقة."
+      },
+      "pdfLibrary": {
+        "title": "مكتبة PDF",
+        "description": "مكتبة المستندات المرفوعة."
+      },
+      "playback": {
+        "title": "التشغيل",
+        "description": "مراقبة وضوابط جلسات التشغيل."
+      },
+      "playbackSessions": {
+        "title": "جلسات التشغيل",
+        "description": "فحص الجلسات النشطة والسابقة."
+      },
+      "playbackViewLimits": {
+        "title": "حدود المشاهدة",
+        "description": "تكوين ومراقبة حدود المشاهدة."
+      },
+      "playbackViolations": {
+        "title": "مخالفات التشغيل",
+        "description": "مراجعة سلوك التشغيل المشبوه."
+      },
+      "studentDevices": {
+        "title": "أجهزة الطلاب",
+        "description": "الأجهزة المسجلة لكل طالب."
+      },
+      "studentEnrollments": {
+        "title": "تسجيلات الطلاب",
+        "description": "التسجيلات ضمن نطاق الطالب."
+      },
+      "studentList": {
+        "title": "قائمة الطلاب",
+        "description": "بحث وتصفية جميع الطلاب."
+      },
+      "studentSettings": {
+        "title": "إعدادات الطلاب",
+        "description": "تفضيلات كل طالب وقواعد الوصول."
+      },
+      "videoLibrary": {
+        "title": "مكتبة الفيديو",
+        "description": "استعرض كل الفيديوهات المرفوعة مع الفلاتر."
+      },
+      "videoProcessingStatus": {
+        "title": "حالة المعالجة",
+        "description": "مراقبة مهام الترميز والتفريغ وDRM."
+      },
+      "videoUploadQueue": {
+        "title": "قائمة انتظار الرفع",
+        "description": "متابعة عمليات الرفع الجارية."
+      }
     },
     "dashboard": {
       "title": "لوحة التحكم",
@@ -454,12 +653,19 @@
     "instructors": {
       "title": "المدربون",
       "description": "إدارة ملفات المدربين",
+      "descriptionByCenter": "إدارة المدربين حسب المركز.",
       "createInstructor": "إضافة مدرب",
-      "editInstructor": "تعديل بيانات المدرب"
+      "editInstructor": "تعديل بيانات المدرب",
+      "selectCenterTitle": "اختر مركزاً",
+      "selectCenterDescription": "اختر مركزاً لإدارة المدربين."
     },
     "categories": {
       "title": "التصنيفات",
-      "description": "إدارة تصنيفات الدورات"
+      "description": "إدارة تصنيفات الدورات",
+      "descriptionSelectCenter": "إدارة التصنيفات لكل مركز. اختر مركزاً للبدء.",
+      "descriptionCenter": "إدارة تصنيفات الدورات لمركزك التعليمي",
+      "selectCenterPrompt": "اختر مركزاً من المحدد أعلى اليمين لإدارة التصنيفات.",
+      "createCategory": "إنشاء تصنيف"
     },
     "videos": {
       "title": "الفيديوهات",
@@ -467,15 +673,23 @@
     },
     "pdfs": {
       "title": "ملفات PDF",
-      "description": "إدارة مستندات PDF"
+      "description": "إدارة مستندات PDF",
+      "descriptionCenter": "إدارة مستندات PDF لمركزك التعليمي",
+      "uploadPdf": "رفع PDF",
+      "selectCenterTitle": "اختر مركزاً",
+      "selectCenterDescription": "اختر مركزاً قبل رفع ملفات PDF.",
+      "actionUnavailable": "هذا الإجراء غير متاح حالياً."
     },
     "surveys": {
       "title": "الاستبيانات",
-      "description": "إدارة الاستبيانات والاستطلاعات"
+      "description": "إدارة الاستبيانات والاستطلاعات",
+      "descriptionPlatform": "إدارة استبيانات النظام والمراكز",
+      "addSurvey": "إضافة استبيان"
     },
     "analytics": {
       "title": "التحليلات",
-      "description": "عرض تحليلات وتقارير المنصة"
+      "description": "عرض تحليلات وتقارير المنصة",
+      "dashboardDescription": "تتبع الأداء عبر الدورات والمتعلمين والأجهزة والوسائط."
     },
     "agents": {
       "title": "الوكلاء",
@@ -495,7 +709,10 @@
     },
     "education": {
       "title": "التعليم",
-      "description": "إدارة الإعدادات التعليمية"
+      "description": "إدارة الإعدادات التعليمية",
+      "descriptionByCenter": "إدارة الصفوف والمدارس والكليات حسب المركز.",
+      "descriptionForProfiles": "إدارة الصفوف والمدارس والكليات لملفات الطلاب.",
+      "selectCenterPrompt": "اختر مركزاً من المحدد لإدارة القوائم التعليمية."
     },
     "settings": {
       "title": "الإعدادات",
@@ -503,7 +720,8 @@
     },
     "auditLogs": {
       "title": "سجلات التدقيق",
-      "description": "عرض سجلات تدقيق النظام"
+      "description": "عرض سجلات تدقيق النظام",
+      "descriptionAdmin": "سجل تدقيق للقراءة فقط لنشاط المشرفين."
     },
     "landingPage": {
       "title": "الصفحة الرئيسية",

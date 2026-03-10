@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -17,10 +20,12 @@ const items = [
 ];
 
 export default function VideosLibraryPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Video Library"
-      description="Browse all uploaded videos with filters."
+      title={t("pages.placeholderRoutes.videoLibrary.title")}
+      description={t("pages.placeholderRoutes.videoLibrary.description")}
       items={items}
     />
   );

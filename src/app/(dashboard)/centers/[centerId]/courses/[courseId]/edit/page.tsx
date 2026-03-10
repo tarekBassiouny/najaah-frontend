@@ -42,6 +42,7 @@ import { useInstructorOptions } from "@/features/instructors/hooks/use-instructo
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import { PlusIcon } from "@/components/icons/plus";
+import { useTranslation } from "@/features/localization";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -108,6 +109,7 @@ function mapCourseVideoApprovalToOverride(
 }
 
 export default function CenterCourseEditPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId, courseId } = use(params);
   const router = useRouter();
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -383,12 +385,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   if (isMissingCourse || isAdminApiNotFoundError(courseError)) {
     return (
       <AppNotFoundState
-        scopeLabel="Edit Course"
-        title="Course not found"
-        description="The course you are trying to edit does not exist or is no longer available in this center."
+        scopeLabel={t("pages.centerCourseEdit.scopeLabel")}
+        title={t("pages.centerCourseEdit.notFoundTitle")}
+        description={t("pages.centerCourseEdit.notFoundDescription")}
         primaryAction={{
           href: `/centers/${centerId}/courses`,
-          label: "Go to Courses",
+          label: t("pages.centerCourseEdit.goToCourses"),
         }}
       />
     );
@@ -399,10 +401,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
       <Card>
         <CardContent className="py-10 text-center">
           <p className="text-sm text-red-600 dark:text-red-400">
-            Failed to load this course. Please try again.
+            {t("pages.centerCourseEdit.loadFailed")}
           </p>
           <Link href={`/centers/${centerId}/courses`}>
-            <Button variant="outline">Back to Courses</Button>
+            <Button variant="outline">
+              {t("pages.centerCourseEdit.backToCourses")}
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -412,21 +416,24 @@ export default function CenterCourseEditPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Edit Course"
-        description="Update this center course"
+        title={t("pages.centerCourseEdit.title")}
+        description={t("pages.centerCourseEdit.description")}
         breadcrumbs={[
-          { label: "Centers", href: "/centers" },
+          { label: t("common.labels.centers"), href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Courses", href: `/centers/${centerId}/courses` },
+          {
+            label: t("pages.coursesPage.title"),
+            href: `/centers/${centerId}/courses`,
+          },
           {
             label: course?.title ?? `Course ${courseId}`,
             href: `/centers/${centerId}/courses/${courseId}`,
           },
-          { label: "Edit" },
+          { label: t("common.actions.edit") },
         ]}
         actions={
           <Link href={`/centers/${centerId}/courses/${courseId}`}>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t("common.actions.cancel")}</Button>
           </Link>
         }
       />
@@ -610,8 +617,8 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                           className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
                           onClick={() => setIsCategoryDialogOpen(true)}
                           disabled={!centerId}
-                          aria-label="Create a category"
-                          title="Create a category"
+                          aria-label={t("pages.categories.createCategory")}
+                          title={t("pages.categories.createCategory")}
                         >
                           <PlusIcon className="h-4 w-4" />
                         </Button>
@@ -649,8 +656,8 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                           className="h-8 w-8 rounded-md border border-dashed border-primary/50 text-primary hover:bg-primary/5"
                           onClick={() => setIsInstructorDialogOpen(true)}
                           disabled={!centerId}
-                          aria-label="Create an instructor"
-                          title="Create an instructor"
+                          aria-label={t("pages.instructors.createInstructor")}
+                          title={t("pages.instructors.createInstructor")}
                         >
                           <PlusIcon className="h-4 w-4" />
                         </Button>

@@ -45,7 +45,7 @@ export default function AdminUsersPage() {
             if (!createdUser) return;
             openModal("confirmRoleChange", {
               userId: createdUser.id,
-              userName: createdUser.name ?? "Admin User",
+              userName: createdUser.name ?? t("common.labels.admin"),
               email: createdUser.email ?? "",
               addedRoles,
               removedRoles: [],
@@ -71,7 +71,7 @@ export default function AdminUsersPage() {
       }) => {
         openModal("confirmRoleChange", {
           userId: user.id,
-          userName: user.name ?? "Admin User",
+          userName: user.name ?? t("common.labels.admin"),
           email: user.email ?? "",
           addedRoles,
           removedRoles,

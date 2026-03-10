@@ -70,9 +70,9 @@ function toText(value: unknown): string | null {
   return null;
 }
 
-function toDateLabel(value: unknown): string {
+function toDateLabel(value: unknown, emptyLabel: string): string {
   const text = toText(value);
-  return text ? formatDateTime(text) : "—";
+  return text ? formatDateTime(text) : emptyLabel;
 }
 
 function toRoleLabel(
@@ -159,7 +159,7 @@ function useResolveScopeLabel() {
 
   return (user: AdminUser): string => {
     const raw = toText(user.scope_type);
-    if (!raw) return "—";
+    if (!raw) return t("common.labels.none");
 
     const normalized = raw.toLowerCase();
     if (normalized === "system" || normalized === "platform") {
@@ -178,6 +178,7 @@ function resolveCenterLabel(
   user: AdminUser,
   centerWithIdLabel: string,
   centerIdFallbackLabel: string,
+  emptyLabel: string,
 ): string {
   const centerName = toText(user.center?.name);
   const centerId = toText(user.center_id);
@@ -188,7 +189,7 @@ function resolveCenterLabel(
   if (centerName) return centerName;
   if (centerId) return centerIdFallbackLabel.replace("{id}", centerId);
 
-  return "—";
+  return emptyLabel;
 }
 
 function useResolveFlagLabel() {
@@ -259,6 +260,7 @@ export default function ProfilePage() {
   const resolveStatus = useResolveStatus();
   const resolveScopeLabel = useResolveScopeLabel();
   const resolveFlagLabel = useResolveFlagLabel();
+  const emptyLabel = t("common.labels.none");
 
   if (isLoading) {
     return (
@@ -385,7 +387,7 @@ export default function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>{toText(user.name) ?? t("common.labels.admin")}</CardTitle>
-          <CardDescription>{toText(user.email) ?? "—"}</CardDescription>
+          <CardDescription>{toText(user.email) ?? emptyLabel}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-2">
           <Badge variant={status.variant}>{status.label}</Badge>
@@ -427,23 +429,23 @@ export default function ProfilePage() {
             />
             <ProfileField
               label={t("pages.profile.fields.name")}
-              value={toText(user.name) ?? "—"}
+              value={toText(user.name) ?? emptyLabel}
             />
             <ProfileField
               label={t("pages.profile.fields.email")}
-              value={toText(user.email) ?? "—"}
+              value={toText(user.email) ?? emptyLabel}
             />
             <ProfileField
               label={t("pages.profile.fields.phone")}
-              value={toText(user.phone) ?? "—"}
+              value={toText(user.phone) ?? emptyLabel}
             />
             <ProfileField
               label={t("pages.profile.fields.username")}
-              value={toText(user.username) ?? "—"}
+              value={toText(user.username) ?? emptyLabel}
             />
             <ProfileField
               label={t("pages.profile.fields.countryCode")}
-              value={toText(user.country_code) ?? "—"}
+              value={toText(user.country_code) ?? emptyLabel}
             />
           </CardContent>
         </Card>
@@ -466,7 +468,7 @@ export default function ProfilePage() {
             />
             <ProfileField
               label={t("pages.profile.fields.scopeCenterId")}
-              value={toText(user.scope_center_id) ?? "—"}
+              value={toText(user.scope_center_id) ?? emptyLabel}
             />
             <ProfileField
               label={t("pages.profile.fields.center")}
@@ -474,6 +476,7 @@ export default function ProfilePage() {
                 user,
                 t("pages.profile.fallbacks.centerWithId"),
                 t("pages.profile.fallbacks.centerIdOnly"),
+                emptyLabel,
               )}
             />
             <ProfileField
@@ -503,20 +506,20 @@ export default function ProfilePage() {
           <ProfileField
             label={t("pages.profile.fields.lastActive")}
             value={
-              toDateLabel(user.last_active_at) !== "—"
-                ? toDateLabel(user.last_active_at)
-                : toDateLabel(user.last_active)
+              toDateLabel(user.last_active_at, emptyLabel) !== emptyLabel
+                ? toDateLabel(user.last_active_at, emptyLabel)
+                : toDateLabel(user.last_active, emptyLabel)
             }
             mono
           />
           <ProfileField
             label={t("pages.profile.fields.createdAt")}
-            value={toDateLabel(user.created_at)}
+            value={toDateLabel(user.created_at, emptyLabel)}
             mono
           />
           <ProfileField
             label={t("pages.profile.fields.updatedAt")}
-            value={toDateLabel(user.updated_at)}
+            value={toDateLabel(user.updated_at, emptyLabel)}
             mono
           />
         </CardContent>

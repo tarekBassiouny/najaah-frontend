@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -16,10 +19,12 @@ const items = [
 ];
 
 export default function PlaybackViolationsPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Playback Violations"
-      description="Review suspicious playback behavior."
+      title={t("pages.placeholderRoutes.playbackViolations.title")}
+      description={t("pages.placeholderRoutes.playbackViolations.description")}
       items={items}
     />
   );

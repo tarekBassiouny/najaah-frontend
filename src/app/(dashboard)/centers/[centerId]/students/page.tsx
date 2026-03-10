@@ -16,6 +16,7 @@ import { BulkUpdateStudentStatusDialog } from "@/features/students/components/Bu
 import { StudentDetailsDrawer } from "@/features/students/components/StudentDetailsDrawer";
 import { GenerateVideoAccessCodeDialog } from "@/features/video-access/components/GenerateVideoAccessCodeDialog";
 import { can } from "@/lib/capabilities";
+import { useTranslation } from "@/features/localization";
 import type { Student } from "@/features/students/types/student";
 
 type PageProps = {
@@ -23,6 +24,7 @@ type PageProps = {
 };
 
 export default function CenterStudentsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -44,13 +46,8 @@ export default function CenterStudentsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Students"
-        description="Manage students for this center, with optional center assignment"
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Students" },
-        ]}
+        title={t("pages.centerStudents.title")}
+        description={t("pages.centerStudents.description")}
         actions={
           <>
             <Button
@@ -59,10 +56,12 @@ export default function CenterStudentsPage({ params }: PageProps) {
                 setIsFormOpen(true);
               }}
             >
-              Add Student
+              {t("pages.studentsPage.addStudent")}
             </Button>
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerStudents.backToCenter")}
+              </Button>
             </Link>
           </>
         }

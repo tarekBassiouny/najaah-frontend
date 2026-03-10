@@ -37,6 +37,7 @@ import {
   getAdminResponseMessage,
   isAdminApiNotFoundError,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 import type { InstructorSummary } from "@/features/courses/types/course";
 
 type PageProps = {
@@ -85,6 +86,8 @@ function getInstructorLabel(
 }
 
 export default function CenterCourseDetailPage({ params }: PageProps) {
+  const { t, locale } = useTranslation();
+  const isRtl = locale === "ar";
   const { centerId, courseId } = use(params);
   const pathname = usePathname();
   const router = useRouter();
@@ -393,11 +396,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     return (
       <AppNotFoundState
         scopeLabel="Course"
-        title="Course not found"
-        description="The course you requested does not exist or is no longer available in this center."
+        title={t("pages.centerCourseEdit.notFoundTitle")}
+        description={t("pages.centerCourseEdit.notFoundDescription")}
         primaryAction={{
           href: `/centers/${centerId}/courses`,
-          label: "Go to Courses",
+          label: t("pages.centerCourseEdit.goToCourses"),
         }}
       />
     );
@@ -409,11 +412,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="mb-4 text-gray-500 dark:text-gray-400">
-              This course may have been deleted or you may not have permission
-              to view it.
+              {t("pages.centerCourseDetail.loadFailedDescription")}
             </p>
             <Link href={`/centers/${centerId}/courses`}>
-              <Button>Back to Courses</Button>
+              <Button>{t("pages.centerCourseEdit.backToCourses")}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -497,8 +499,20 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         <div className="min-w-0 flex-1 space-y-6">
           <Card>
             <CardContent className="space-y-4 py-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2">
+              <div
+                className={cn(
+                  "flex gap-4 sm:items-start sm:justify-between",
+                  isRtl
+                    ? "flex-col-reverse sm:flex-row"
+                    : "flex-col sm:flex-row",
+                )}
+              >
+                <div
+                  className={cn(
+                    "space-y-2",
+                    isRtl ? "text-right" : "text-left",
+                  )}
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                       {courseTitle}
@@ -520,7 +534,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     </p>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div
+                  className={cn(
+                    "flex flex-wrap items-center gap-2",
+                    isRtl ? "justify-end" : "justify-start",
+                  )}
+                >
                   <CoursePublishAction course={courseData} />
                 </div>
               </div>

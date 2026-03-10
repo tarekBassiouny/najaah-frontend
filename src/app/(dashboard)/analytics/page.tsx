@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { useTenant } from "@/app/tenant-provider";
 import { setTenantState } from "@/lib/tenant-store";
+import { useTranslation } from "@/features/localization";
 import { AnalyticsFiltersBar } from "@/features/analytics/components/AnalyticsFiltersBar";
 import { AnalyticsOverviewPanel } from "@/features/analytics/components/AnalyticsOverviewPanel";
 import { AnalyticsCoursesMediaPanel } from "@/features/analytics/components/AnalyticsCoursesMediaPanel";
@@ -32,6 +33,7 @@ function getDefaultDateRange() {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const isPlatformAdmin = !tenant.centerSlug;
   const [sessionDefaultRange] = useState(() => getDefaultDateRange());
@@ -77,8 +79,8 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytics"
-        description="Track performance across courses, learners, devices, and media."
+        title={t("pages.analytics.title")}
+        description={t("pages.analytics.dashboardDescription")}
       />
 
       <AnalyticsFiltersBar

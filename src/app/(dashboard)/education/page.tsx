@@ -6,9 +6,11 @@ import { useTenant } from "@/app/tenant-provider";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { EducationPanel } from "@/features/education/components/EducationPanel";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
+import { useTranslation } from "@/features/localization";
 import { getAdminScope } from "@/lib/user-scope";
 
 export default function EducationPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const { data: currentAdmin } = useAdminMe();
   const adminScope = getAdminScope(currentAdmin);
@@ -21,8 +23,8 @@ export default function EducationPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Education"
-          description="Manage grades, schools, and colleges by center."
+          title={t("pages.education.title")}
+          description={t("pages.education.descriptionByCenter")}
           actions={
             isSystemAdmin ? <CenterPicker className="w-52" /> : undefined
           }
@@ -30,7 +32,7 @@ export default function EducationPage() {
         <Card>
           <CardContent className="py-10 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a center from the picker to manage educational lookups.
+              {t("pages.education.selectCenterPrompt")}
             </p>
           </CardContent>
         </Card>
@@ -41,8 +43,8 @@ export default function EducationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Education"
-        description="Manage grades, schools, and colleges for student profiles."
+        title={t("pages.education.title")}
+        description={t("pages.education.descriptionForProfiles")}
         actions={isSystemAdmin ? <CenterPicker className="w-52" /> : undefined}
       />
 

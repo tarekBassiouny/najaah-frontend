@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/components/ui/modal-store";
 import { useAuth } from "@/features/auth/context/auth-context";
+import { useTranslation } from "@/features/localization";
 import { can } from "@/lib/capabilities";
 import { AdminUsersTable } from "@/features/admin-users/components/AdminUsersTable";
 import { BulkAssignRolesDialog } from "@/features/admin-users/components/BulkAssignRolesDialog";
@@ -19,6 +20,7 @@ type PageProps = {
 };
 
 export default function CenterAdminUsersPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const { openModal } = useModal();
   const { user: currentUser } = useAuth();
@@ -56,7 +58,7 @@ export default function CenterAdminUsersPage({ params }: PageProps) {
                 if (!createdUser) return;
                 openModal("confirmRoleChange", {
                   userId: createdUser.id,
-                  userName: createdUser.name ?? "Admin User",
+                  userName: createdUser.name ?? t("common.labels.admin"),
                   email: createdUser.email ?? "",
                   addedRoles,
                   removedRoles: [],
@@ -85,7 +87,7 @@ export default function CenterAdminUsersPage({ params }: PageProps) {
       }) => {
         openModal("confirmRoleChange", {
           userId: user.id,
-          userName: user.name ?? "Admin User",
+          userName: user.name ?? t("common.labels.admin"),
           email: user.email ?? "",
           addedRoles,
           removedRoles,
@@ -99,18 +101,17 @@ export default function CenterAdminUsersPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Admin Users"
-        description="Manage administrators and permissions for this center"
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Admins" },
-        ]}
+        title={t("pages.adminUsers.title")}
+        description={t("pages.centerAdminUsers.description")}
         actions={
           <>
-            <Button onClick={openCreateAdmin}>Add Admin</Button>
+            <Button onClick={openCreateAdmin}>
+              {t("pages.adminUsers.addAdmin")}
+            </Button>
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           </>
         }

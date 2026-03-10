@@ -29,23 +29,31 @@ export function PageHeader({
   className,
   ...props
 }: PageHeaderProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const isRtl = locale === "ar";
 
   const displayTitle = titleKey ? t(titleKey) : title;
   const displayDescription = descriptionKey ? t(descriptionKey) : description;
+  const orderedBreadcrumbs =
+    breadcrumbs && isRtl ? [...breadcrumbs].reverse() : breadcrumbs;
 
   return (
     <div className={cn("space-y-4", className)} {...props}>
-      {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-x-1 text-sm text-gray-500 dark:text-gray-400 rtl:flex-row-reverse">
-          {breadcrumbs.map((crumb, index) => {
+      {orderedBreadcrumbs && orderedBreadcrumbs.length > 0 && (
+        <nav
+          className={cn(
+            "flex items-center gap-x-1 text-sm text-gray-500 dark:text-gray-400",
+            isRtl && "justify-end",
+          )}
+        >
+          {orderedBreadcrumbs.map((crumb, index) => {
             const crumbLabel = crumb.labelKey ? t(crumb.labelKey) : crumb.label;
 
             return (
               <span key={index} className="flex items-center">
                 {index > 0 && (
                   <svg
-                    className="mx-1 h-4 w-4 rtl:rotate-180"
+                    className="mx-1 h-4 w-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -54,7 +62,7 @@ export function PageHeader({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M9 5l7 7-7 7"
+                      d={isRtl ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}
                     />
                   </svg>
                 )}
@@ -76,7 +84,14 @@ export function PageHeader({
         </nav>
       )}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        className={cn(
+          "flex gap-4 sm:items-center sm:justify-between",
+          isRtl
+            ? "flex-col-reverse items-end text-right sm:flex-row"
+            : "flex-col items-start text-left sm:flex-row",
+        )}
+      >
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             {displayTitle}
@@ -87,7 +102,16 @@ export function PageHeader({
             </p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && (
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-2",
+              isRtl ? "justify-end" : "justify-start",
+            )}
+          >
+            {actions}
+          </div>
+        )}
       </div>
     </div>
   );

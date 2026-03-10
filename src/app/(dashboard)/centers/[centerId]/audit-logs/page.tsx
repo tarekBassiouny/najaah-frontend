@@ -4,6 +4,7 @@ import { use } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/features/localization";
 import { AuditLogsTable } from "@/features/audit-logs/components/AuditLogsTable";
 
 type PageProps = {
@@ -11,21 +12,19 @@ type PageProps = {
 };
 
 export default function CenterAuditLogsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Audit Logs"
-        description="Read-only audit trail for center activity."
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Audit Logs" },
-        ]}
+        title={t("pages.auditLogs.title")}
+        description={t("pages.centerAuditLogs.description")}
         actions={
           <Link href={`/centers/${centerId}`}>
-            <Button variant="outline">Back to Center</Button>
+            <Button variant="outline">
+              {t("pages.centerCourses.backToCenter")}
+            </Button>
           </Link>
         }
       />

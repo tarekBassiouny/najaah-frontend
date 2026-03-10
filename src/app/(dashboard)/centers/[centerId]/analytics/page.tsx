@@ -4,6 +4,7 @@ import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/features/localization";
 import { AnalyticsFiltersBar } from "@/features/analytics/components/AnalyticsFiltersBar";
 import { AnalyticsOverviewPanel } from "@/features/analytics/components/AnalyticsOverviewPanel";
 import { AnalyticsCoursesMediaPanel } from "@/features/analytics/components/AnalyticsCoursesMediaPanel";
@@ -36,6 +37,7 @@ function getDefaultDateRange() {
 }
 
 export default function CenterAnalyticsPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const [sessionDefaultRange] = useState(() => getDefaultDateRange());
 
@@ -73,16 +75,13 @@ export default function CenterAnalyticsPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytics"
-        description="Track performance across courses, learners, devices, and media for this center."
-        breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Analytics" },
-        ]}
+        title={t("pages.analytics.title")}
+        description={t("pages.centerAnalytics.description")}
         actions={
           <Link href={`/centers/${centerId}`}>
-            <Button variant="outline">Back to Center</Button>
+            <Button variant="outline">
+              {t("pages.centerCourses.backToCenter")}
+            </Button>
           </Link>
         }
       />

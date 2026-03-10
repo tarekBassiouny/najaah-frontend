@@ -10,9 +10,11 @@ import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { CategoriesTable } from "@/features/categories/components/CategoriesTable";
 import { CategoryFormDialog } from "@/features/categories/components/CategoryFormDialog";
 import { DeleteCategoryDialog } from "@/features/categories/components/DeleteCategoryDialog";
+import { useTranslation } from "@/features/localization";
 import type { Category } from "@/features/categories/types/category";
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const centerId = tenant.centerId;
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -31,14 +33,14 @@ export default function CategoriesPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Categories"
-          description="Manage categories for each center. Select a center to begin."
+          title={t("pages.categories.title")}
+          description={t("pages.categories.descriptionSelectCenter")}
           actions={<CenterPicker className="w-52" />}
         />
         <Card>
           <CardContent className="py-10 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a center from the top-right picker to manage categories.
+              {t("pages.categories.selectCenterPrompt")}
             </p>
           </CardContent>
         </Card>
@@ -49,12 +51,14 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Categories"
-        description="Manage course categories for your learning center"
+        title={t("pages.categories.title")}
+        description={t("pages.categories.descriptionCenter")}
         actions={
           <>
             <CenterPicker className="hidden md:block md:w-52" />
-            <Button onClick={handleOpenCreate}>Create Category</Button>
+            <Button onClick={handleOpenCreate}>
+              {t("pages.categories.createCategory")}
+            </Button>
           </>
         }
       />

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, type ComponentType } from "react";
+import { use, type ComponentType } from "react";
 import Link from "next/link";
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
+import { useTranslation } from "@/features/localization";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { getAdminScope } from "@/lib/user-scope";
 
@@ -270,21 +271,11 @@ const SECTIONS = [
 /* ------------------------------------------------------------------ */
 
 export default function CenterDetailPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const { data: center, isLoading, isError, error } = useCenter(centerId);
   const { data: currentAdmin } = useAdminMe();
   const userScope = getAdminScope(currentAdmin);
-
-  // Build breadcrumbs based on user scope
-  const breadcrumbs = useMemo(() => {
-    const crumbs = [];
-    // Only show "Centers" link for system admins
-    if (userScope.isSystemAdmin) {
-      crumbs.push({ label: "Centers", href: "/centers" });
-    }
-    crumbs.push({ label: center?.name ?? `Center ${centerId}` });
-    return crumbs;
-  }, [userScope.isSystemAdmin, center?.name, centerId]);
 
   if (isLoading) {
     return (
@@ -321,10 +312,13 @@ export default function CenterDetailPage({ params }: PageProps) {
   if (isMissingCenter || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Center"
-        title="Center not found"
-        description="The center you requested does not exist or is no longer available."
-        primaryAction={{ href: "/centers", label: "Go to Centers" }}
+        scopeLabel={t("common.labels.center")}
+        title={t("pages.centerSettings.notFoundTitle")}
+        description={t("pages.centerSettings.notFoundDesc")}
+        primaryAction={{
+          href: "/centers",
+          label: t("pages.centerSettings.goToCenters"),
+        }}
       />
     );
   }
@@ -334,10 +328,12 @@ export default function CenterDetailPage({ params }: PageProps) {
       <Card>
         <CardContent className="space-y-4 py-10 text-center">
           <p className="text-sm text-red-600 dark:text-red-400">
-            Failed to load this center. Please try again.
+            {t("pages.centerLandingPage.loadFailed")}
           </p>
           <Link href="/centers">
-            <Button variant="outline">Back to Centers</Button>
+            <Button variant="outline">
+              {t("pages.centerSettings.backToCenters")}
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -362,15 +358,18 @@ export default function CenterDetailPage({ params }: PageProps) {
       <PageHeader
         title={center?.name ?? `Center ${centerId}`}
         description={
-          center?.slug ? `/${center.slug}` : "Center overview and management"
+          center?.slug
+            ? `/${center.slug}`
+            : t("pages.centerDetails.descriptionFallback")
         }
-        breadcrumbs={breadcrumbs}
         actions={
           <div className="flex items-center gap-2">
             {/* Only show "Back to Centers" for system admins */}
             {userScope.isSystemAdmin && (
               <Link href="/centers">
-                <Button variant="outline">Back to Centers</Button>
+                <Button variant="outline">
+                  {t("pages.centerSettings.backToCenters")}
+                </Button>
               </Link>
             )}
             <Link href={`/centers/${centerId}/settings`}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use } from "react";
 import Link from "next/link";
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { LandingPageEditor } from "@/features/centers/components/landing-page-editor";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useTranslation } from "@/features/localization";
 import {
   getAdminApiErrorMessage,
   isAdminApiNotFoundError,
 } from "@/lib/admin-response";
-import { getAdminScope } from "@/lib/user-scope";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
@@ -37,27 +36,10 @@ function isUnbrandedCenterType(type: unknown) {
 }
 
 export default function LandingPageRoute({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const { data: center, isLoading, isError, error } = useCenter(centerId);
-  const { data: currentAdmin } = useAdminMe();
-  const adminScope = getAdminScope(currentAdmin);
   const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
-
-  const breadcrumbs = useMemo(() => {
-    const crumbs = [];
-
-    if (adminScope.isSystemAdmin) {
-      crumbs.push({ label: "Centers", href: "/centers" });
-    }
-
-    crumbs.push({
-      label: center?.name ?? `Center ${centerId}`,
-      href: `/centers/${centerId}`,
-    });
-    crumbs.push({ label: "Landing Page" });
-
-    return crumbs;
-  }, [adminScope.isSystemAdmin, center?.name, centerId]);
 
   if (isLoading) {
     return (
@@ -73,10 +55,13 @@ export default function LandingPageRoute({ params }: PageProps) {
   if (isMissingCenter || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Center"
-        title="Center not found"
-        description="The landing page you are trying to open belongs to a center that no longer exists."
-        primaryAction={{ href: "/centers", label: "Go to Centers" }}
+        scopeLabel={t("common.labels.center")}
+        title={t("pages.centerSettings.notFoundTitle")}
+        description={t("pages.centerLandingPage.notFoundDesc")}
+        primaryAction={{
+          href: "/centers",
+          label: t("pages.centerSettings.goToCenters"),
+        }}
       />
     );
   }
@@ -88,11 +73,13 @@ export default function LandingPageRoute({ params }: PageProps) {
           <p className="text-sm text-red-600 dark:text-red-400">
             {getAdminApiErrorMessage(
               error,
-              "Failed to load this center. Please try again.",
+              t("pages.centerLandingPage.loadFailed"),
             )}
           </p>
           <Link href="/centers">
-            <Button variant="outline">Go to Centers</Button>
+            <Button variant="outline">
+              {t("pages.centerSettings.goToCenters")}
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -105,32 +92,31 @@ export default function LandingPageRoute({ params }: PageProps) {
         <PageHeader
           title={
             <span className="flex items-center gap-2">
-              <span>Center landing page</span>
+              <span>{t("pages.centerLandingPage.title")}</span>
               <Badge
                 variant="outline"
                 className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
               >
-                Beta
+                {t("badges.beta")}
               </Badge>
             </span>
           }
-          description="Manage the public landing experience for branded centers."
-          breadcrumbs={breadcrumbs}
+          description={t("pages.centerLandingPage.descriptionUnbranded")}
           actions={
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t("pages.centerCourses.backToCenter")}
+              </Button>
             </Link>
           }
         />
         <Card>
           <CardContent className="space-y-2 py-6">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Landing pages are only configurable for branded centers. Unbranded
-              centers fall back to the shared system landing experience.
+              {t("pages.centerLandingPage.unbrandedNotice")}
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500">
-              Convert this center to branded before opening the landing-page
-              editor.
+              {t("pages.centerLandingPage.unbrandedHint")}
             </p>
           </CardContent>
         </Card>
@@ -143,20 +129,21 @@ export default function LandingPageRoute({ params }: PageProps) {
       <PageHeader
         title={
           <span className="flex items-center gap-2">
-            <span>Center landing page</span>
+            <span>{t("pages.centerLandingPage.title")}</span>
             <Badge
               variant="outline"
               className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
             >
-              Beta
+              {t("badges.beta")}
             </Badge>
           </span>
         }
-        description="Manage the public landing experience for this branded center."
-        breadcrumbs={breadcrumbs}
+        description={t("pages.centerLandingPage.description")}
         actions={
           <Link href={`/centers/${centerId}`}>
-            <Button variant="outline">Back to Center</Button>
+            <Button variant="outline">
+              {t("pages.centerCourses.backToCenter")}
+            </Button>
           </Link>
         }
       />

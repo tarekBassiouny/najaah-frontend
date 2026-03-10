@@ -1,4 +1,7 @@
+"use client";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useTranslation } from "@/features/localization";
 
 const items = [
   {
@@ -17,10 +20,12 @@ const items = [
 ];
 
 export default function CoursesListPage() {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderPage
-      title="Course List"
-      description="Browse and filter available courses."
+      title={t("pages.placeholderRoutes.coursesList.title")}
+      description={t("pages.placeholderRoutes.coursesList.description")}
       items={items}
     />
   );

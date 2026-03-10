@@ -296,6 +296,23 @@ function resolvePreviewUrl(
   }
 }
 
+function updatePreviewUrlLocale(
+  previewUrl: string | null | undefined,
+  locale: string,
+) {
+  if (!previewUrl) {
+    return null;
+  }
+
+  try {
+    const resolvedPreviewUrl = new URL(previewUrl);
+    resolvedPreviewUrl.searchParams.set("locale", locale);
+    return resolvedPreviewUrl.toString();
+  } catch {
+    return previewUrl;
+  }
+}
+
 function resolvePublishState(landing?: LandingPagePayload | null) {
   const isPublished =
     landing?.is_published === true ||
@@ -607,6 +624,7 @@ export function LandingPageEditor({ centerId }: Props) {
   const [statusNotice, setStatusNotice] = useState<Notice | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewExpiresAt, setPreviewExpiresAt] = useState<string | null>(null);
+  const [previewLocale, setPreviewLocale] = useState<Locale>(locale);
   const [heroImageFile, setHeroImageFile] = useState<File | null>(null);
   const [aboutImageFile, setAboutImageFile] = useState<File | null>(null);
   const [newTestimonialImageFile, setNewTestimonialImageFile] =
@@ -678,6 +696,11 @@ export function LandingPageEditor({ centerId }: Props) {
     });
   }, [landing]);
 
+  useEffect(() => {
+    setPreviewLocale(locale);
+    setPreviewUrl((current) => updatePreviewUrlLocale(current, locale));
+  }, [locale]);
+
   const setSectionNotice = (tab: TabId, notice: Notice | null) => {
     setSectionNotices((current) => {
       const next = { ...current };
@@ -690,6 +713,11 @@ export function LandingPageEditor({ centerId }: Props) {
 
       return next;
     });
+  };
+
+  const handlePreviewLocaleChange = (nextLocale: Locale) => {
+    setPreviewLocale(nextLocale);
+    setPreviewUrl((current) => updatePreviewUrlLocale(current, nextLocale));
   };
 
   const updateLandingCache = (payload: LandingPagePayload | null) => {
@@ -1082,7 +1110,7 @@ export function LandingPageEditor({ centerId }: Props) {
   const previewMutation = useMutation({
     mutationFn: () => requestLandingPagePreviewToken(centerId),
     onSuccess(result) {
-      const nextPreviewUrl = resolvePreviewUrl(result, locale);
+      const nextPreviewUrl = resolvePreviewUrl(result, previewLocale);
 
       if (!nextPreviewUrl) {
         setStatusNotice({
@@ -1538,7 +1566,7 @@ export function LandingPageEditor({ centerId }: Props) {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-4">
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
                 Status
@@ -1567,6 +1595,28 @@ export function LandingPageEditor({ centerId }: Props) {
                   : "Generate preview to load the iframe."}
               </p>
             </div>
+
+            <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                Preview locale
+              </p>
+              <div className="mt-3 flex gap-2">
+                {SUPPORTED_LOCALES.map((localeCode) => (
+                  <Button
+                    key={localeCode}
+                    type="button"
+                    size="sm"
+                    variant={
+                      previewLocale === localeCode ? "default" : "outline"
+                    }
+                    className="rounded-full"
+                    onClick={() => handlePreviewLocaleChange(localeCode)}
+                  >
+                    {localeCode.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <SectionNotice notice={statusNotice} />
@@ -1575,12 +1625,31 @@ export function LandingPageEditor({ centerId }: Props) {
 
       {previewUrl ? (
         <Card>
-          <CardHeader>
-            <CardTitle>Preview iframe</CardTitle>
-            <CardDescription>
-              Review the branded landing page with the current locale and draft
-              token before publishing.
-            </CardDescription>
+          <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <CardTitle>Preview iframe</CardTitle>
+              <CardDescription>
+                Review the branded landing page in{" "}
+                {previewLocale.toUpperCase()} with the current draft token
+                before publishing.
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              {SUPPORTED_LOCALES.map((localeCode) => (
+                <Button
+                  key={`iframe-locale-${localeCode}`}
+                  type="button"
+                  size="sm"
+                  variant={
+                    previewLocale === localeCode ? "default" : "outline"
+                  }
+                  className="rounded-full"
+                  onClick={() => handlePreviewLocaleChange(localeCode)}
+                >
+                  {localeCode.toUpperCase()}
+                </Button>
+              ))}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">

@@ -24,12 +24,18 @@ import {
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateCenterCourse } from "@/features/courses/hooks/use-courses";
+import { CourseEducationTargetingSection } from "@/features/courses/components/CourseEducationTargetingSection";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { CategoryFormDialog } from "@/features/categories/components/CategoryFormDialog";
 import type { Category } from "@/features/categories/types/category";
 import { InstructorFormDialog } from "@/features/instructors/components/InstructorFormDialog";
 import type { Instructor } from "@/features/instructors/types/instructor";
+import {
+  hasAnyEducationTarget,
+  toCourseEducationTargetingPayload,
+  type CourseEducationTargetingValues,
+} from "@/features/courses/utils/education-targeting";
 import {
   getAdminApiFieldErrors,
   getAdminApiErrorMessage,
@@ -82,6 +88,30 @@ function extractErrorMessage(error: unknown): string {
     error,
     "Failed to create course. Please try again.",
   );
+}
+
+function isEducationTargetingFieldKey(key: string) {
+  return (
+    key === "show_for_all_students" ||
+    key === "grade_ids" ||
+    key.startsWith("grade_ids.") ||
+    key === "school_ids" ||
+    key.startsWith("school_ids.") ||
+    key === "college_ids" ||
+    key.startsWith("college_ids.")
+  );
+}
+
+function getEducationTargetingError(
+  errors: Record<string, string[]>,
+): string | null {
+  for (const [key, messages] of Object.entries(errors)) {
+    if (!isEducationTargetingFieldKey(key)) continue;
+    const firstMessage = messages[0];
+    if (firstMessage) return firstMessage;
+  }
+
+  return null;
 }
 
 export default function CenterCoursesCreatePage({ params }: PageProps) {
@@ -145,6 +175,17 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [educationTargeting, setEducationTargeting] =
+    useState<CourseEducationTargetingValues>({
+      showForAllStudents: true,
+      gradeIds: [],
+      schoolIds: [],
+      collegeIds: [],
+    });
+  const [
+    educationTargetingValidationError,
+    setEducationTargetingValidationError,
+  ] = useState<string | null>(null);
   const handleCategorySaved = (category: Category) => {
     void refetchCategoryOptions?.();
     setFormData((prev) => ({
@@ -162,10 +203,44 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
   const categoryError = fieldErrors.category_id?.[0] ?? null;
   const difficultyError = fieldErrors.difficulty?.[0] ?? null;
+  const educationTargetingFieldError = getEducationTargetingError(fieldErrors);
+  const educationTargetingError =
+    educationTargetingValidationError ?? educationTargetingFieldError;
+
+  const handleEducationTargetingChange = (
+    nextValues: CourseEducationTargetingValues,
+  ) => {
+    setEducationTargeting(nextValues);
+    setEducationTargetingValidationError(null);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.show_for_all_students;
+      delete next.grade_ids;
+      delete next.school_ids;
+      delete next.college_ids;
+      Object.keys(next).forEach((key) => {
+        if (isEducationTargetingFieldKey(key)) {
+          delete next[key];
+        }
+      });
+      return next;
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
+    setEducationTargetingValidationError(null);
+
+    if (
+      !educationTargeting.showForAllStudents &&
+      !hasAnyEducationTarget(educationTargeting)
+    ) {
+      setEducationTargetingValidationError(
+        "Select at least one grade, school, or college for targeted visibility.",
+      );
+      return;
+    }
 
     const titleTranslations: Record<string, string> = {
       en: formData.title,
@@ -205,6 +280,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
             ? Number(formData.categoryId)
             : undefined,
           thumbnail: thumbnailFile ?? undefined,
+          ...toCourseEducationTargetingPayload(educationTargeting),
         },
       },
       {
@@ -603,6 +679,14 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                     </p>
                   </div>
                 </div>
+
+                <CourseEducationTargetingSection
+                  centerId={centerId}
+                  values={educationTargeting}
+                  onChange={handleEducationTargetingChange}
+                  disabled={isPending}
+                  error={educationTargetingError}
+                />
               </CardContent>
             </Card>
 

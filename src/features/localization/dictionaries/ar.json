@@ -693,7 +693,103 @@
     },
     "agents": {
       "title": "الوكلاء",
-      "description": "إدارة وكلاء الذكاء الاصطناعي وعملياتهم"
+      "description": "إدارة وكلاء الذكاء الاصطناعي وعملياتهم",
+      "executions": {
+        "title": "عمليات الوكلاء",
+        "description": "مراقبة وتشغيل سير العمل في الخلفية مع التوجيهات.",
+        "openExecution": "فتح العملية",
+        "searchPlaceholder": "البحث في العمليات الأخيرة...",
+        "noExecutionsFound": "لا توجد عمليات",
+        "open": "فتح",
+        "runAgent": "تشغيل الوكيل",
+        "checkingAgents": "جاري التحقق من الوكلاء المتاحين...",
+        "noAgentsAvailable": "لا يوجد وكلاء متاحون لدورك",
+        "executionCount": "عملية واحدة",
+        "executionsCount": "{count} عملية",
+        "loadFailed": "فشل في تحميل عمليات الوكلاء. يرجى المحاولة مرة أخرى.",
+        "noExecutionsTitle": "لا توجد عمليات",
+        "noExecutionsDescription": "جرب تعديل الفلاتر المحددة أو تشغيل عملية وكيل جديدة.",
+        "quickView": "عرض سريع",
+        "recentlyExecuted": "تم تنفيذه مؤخراً"
+      },
+      "details": {
+        "title": "العملية #{id}",
+        "description": "تتبع الحالة والخطوات والحمولات لهذا التشغيل.",
+        "backToExecutions": "العودة للعمليات",
+        "loadFailed": "فشل في تحميل تفاصيل العملية.",
+        "target": "الهدف",
+        "started": "بدأ",
+        "completed": "اكتمل",
+        "initiatedBy": "بواسطة",
+        "system": "النظام",
+        "progress": "التقدم",
+        "executionSteps": "خطوات التنفيذ",
+        "noStepsAvailable": "لا تتوفر تفاصيل للخطوات.",
+        "context": "السياق",
+        "result": "النتيجة"
+      },
+      "execute": {
+        "title": "تشغيل الوكيل",
+        "description": "بدء عملية مع اختيارات موجهة بدلاً من المعرفات اليدوية.",
+        "agentType": "نوع الوكيل",
+        "loadingAgents": "جاري تحميل الوكلاء المتاحين...",
+        "selectAgentType": "اختر نوع الوكيل",
+        "center": "المركز",
+        "course": "الدورة",
+        "selectCourse": "اختر الدورة",
+        "selectCenterFirst": "اختر المركز أولاً",
+        "searchCourses": "البحث في الدورات...",
+        "noCoursesFound": "لا توجد دورات",
+        "selectCenterToLoadCourses": "اختر المركز لتحميل الدورات",
+        "students": "الطلاب",
+        "selected": "محدد",
+        "searchStudents": "البحث عن الطلاب بالاسم أو البريد أو الهاتف",
+        "selectCourseFirst": "اختر الدورة أولاً",
+        "chooseACourse": "اختر دورة لتحميل الطلاب.",
+        "noStudentsFound": "لا يوجد طلاب للدورة المحددة.",
+        "loadMoreStudents": "تحميل المزيد من الطلاب",
+        "loadingMore": "جاري التحميل...",
+        "moreStudents": "+{count} إضافي",
+        "advancedContext": "سياق متقدم (اختياري)",
+        "hide": "إخفاء",
+        "show": "إظهار",
+        "advancedContextPlaceholder": "{\"priority\": \"high\"}",
+        "advancedContextHint": "استخدم هذا فقط عندما تحتاج مفاتيح إضافية.",
+        "cancel": "إلغاء",
+        "starting": "جاري البدء...",
+        "errors": {
+          "agentTypeRequired": "نوع الوكيل مطلوب.",
+          "selectCenterFirst": "اختر مركزاً أولاً.",
+          "selectCourseFirst": "اختر دورة قبل تشغيل هذا الوكيل.",
+          "selectStudents": "اختر طالباً واحداً على الأقل.",
+          "contextMustBeObject": "السياق المتقدم يجب أن يكون كائن JSON.",
+          "contextMustBeValidJson": "السياق المتقدم يجب أن يكون JSON صالح.",
+          "unableToRun": "تعذر تشغيل الوكيل. يرجى المحاولة مرة أخرى."
+        }
+      },
+      "filters": {
+        "center": "المركز",
+        "status": "الحالة",
+        "filterByStatus": "تصفية حسب الحالة",
+        "allStatuses": "كل الحالات",
+        "agentType": "نوع الوكيل",
+        "filterByAgentType": "تصفية حسب نوع الوكيل",
+        "allAgentTypes": "كل أنواع الوكلاء"
+      },
+      "types": {
+        "contentPublishing": "نشر المحتوى",
+        "enrollment": "التسجيل",
+        "analytics": "التحليلات",
+        "notification": "الإشعارات"
+      },
+      "tableHeaders": {
+        "id": "المعرف",
+        "agent": "الوكيل",
+        "status": "الحالة",
+        "target": "الهدف",
+        "started": "البداية",
+        "actions": "الإجراءات"
+      }
     },
     "roles": {
       "title": "الأدوار والصلاحيات",
@@ -705,7 +801,17 @@
     },
     "studentRequests": {
       "title": "طلبات الطلاب",
-      "description": "إدارة طلبات التسجيل وتغيير الأجهزة"
+      "centerTitle": "طلبات طلاب المركز",
+      "description": "إدارة طلبات التسجيل وتغيير الأجهزة",
+      "centerDescription": "إدارة طلبات التسجيل والمشاهدة الإضافية وتغيير الأجهزة والوصول للفيديو لهذا المركز.",
+      "systemDescription": "إدارة طلبات التسجيل والمشاهدة الإضافية وتغيير الأجهزة والوصول للفيديو عبر النظام.",
+      "backToCenter": "العودة للمركز",
+      "tabs": {
+        "enrollments": "التسجيلات",
+        "extraView": "مشاهدة إضافية",
+        "deviceChange": "تغيير الجهاز",
+        "videoAccess": "الوصول للفيديو"
+      }
     },
     "education": {
       "title": "التعليم",
@@ -728,14 +834,103 @@
       "description": "تكوين الصفحة الرئيسية للمركز"
     },
     "login": {
-      "title": "تسجيل الدخول",
-      "subtitle": "أدخل بيانات الاعتماد للوصول إلى حسابك",
+      "title": "تسجيل دخول المشرف",
+      "subtitle": "سجل الدخول لإدارة لوحة تحكم نظام التعلم.",
       "email": "البريد الإلكتروني",
+      "emailPlaceholder": "admin@example.com",
       "password": "كلمة المرور",
-      "rememberMe": "تذكرني",
+      "passwordPlaceholder": "••••••••",
+      "rememberMe": "تذكرني لمدة 30 يوم",
       "forgotPassword": "نسيت كلمة المرور؟",
       "signIn": "تسجيل الدخول",
-      "signingIn": "جاري تسجيل الدخول..."
+      "signingIn": "جاري تسجيل الدخول...",
+      "unableToSignIn": "تعذر تسجيل الدخول",
+      "sessionExpiredTitle": "انتهت الجلسة",
+      "sessionExpiredMessage": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+      "passwordUpdatedTitle": "تم تحديث كلمة المرور",
+      "passwordUpdatedMessage": "تم تعيين كلمة المرور بنجاح. سجل الدخول بكلمة المرور الجديدة.",
+      "invalidCredentials": "بيانات غير صحيحة. يرجى التحقق من البريد وكلمة المرور.",
+      "genericError": "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى."
+    },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "أدخل بريدك الإلكتروني وسنرسل تعليمات إعادة التعيين.",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "admin@example.com",
+      "sendResetLink": "إرسال رابط إعادة التعيين",
+      "sending": "جاري الإرسال...",
+      "backToLogin": "العودة لتسجيل الدخول",
+      "checkYourEmail": "تحقق من بريدك الإلكتروني",
+      "unableToContinue": "تعذر المتابعة",
+      "successMessage": "إذا كان هناك حساب بهذا البريد، تم إرسال تعليمات إعادة التعيين.",
+      "genericError": "تعذر إرسال تعليمات إعادة التعيين. يرجى المحاولة مرة أخرى."
+    },
+    "resetPassword": {
+      "title": "تعيين كلمة المرور",
+      "subtitle": "أنشئ كلمة مرورك لتفعيل حساب المشرف.",
+      "email": "البريد الإلكتروني",
+      "newPassword": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "8 أحرف على الأقل",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أعد كتابة كلمة المرور",
+      "setPassword": "تعيين كلمة المرور",
+      "saving": "جاري الحفظ...",
+      "success": "نجاح",
+      "unableToContinue": "تعذر المتابعة",
+      "successMessage": "تم تعيين كلمة المرور بنجاح. جاري التحويل لتسجيل الدخول...",
+      "invalidLinkTitle": "رابط غير صالح",
+      "invalidLinkMessage": "هذا الرابط يفتقر لبيانات مطلوبة. اطلب بريد إعادة تعيين جديد.",
+      "backToLogin": "العودة لتسجيل الدخول",
+      "genericError": "تعذر إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "passwordMinLength": "كلمة المرور يجب أن تكون 8 أحرف على الأقل.",
+        "confirmRequired": "يرجى تأكيد كلمة المرور.",
+        "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين."
+      }
+    },
+    "changePassword": {
+      "title": "تغيير كلمة المرور",
+      "description": "حدث كلمة مرور حسابك باستخدام كلمة المرور الحالية.",
+      "currentPassword": "كلمة المرور الحالية",
+      "currentPasswordPlaceholder": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "8 أحرف على الأقل",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+      "confirmPasswordPlaceholder": "أعد كتابة كلمة المرور الجديدة",
+      "cancel": "إلغاء",
+      "updatePassword": "تحديث كلمة المرور",
+      "saving": "جاري الحفظ...",
+      "couldNotChange": "تعذر تغيير كلمة المرور",
+      "successMessage": "تم تغيير كلمة المرور بنجاح.",
+      "genericError": "تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "currentRequired": "كلمة المرور الحالية مطلوبة.",
+        "newMinLength": "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.",
+        "confirmRequired": "يرجى تأكيد كلمة المرور الجديدة.",
+        "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين."
+      }
+    },
+    "editProfile": {
+      "title": "تعديل معلومات الملف الشخصي",
+      "description": "حدث اسمك ومعلومات الاتصال.",
+      "name": "الاسم",
+      "namePlaceholder": "اسم المشرف",
+      "phone": "الهاتف",
+      "phonePlaceholder": "1225291841",
+      "phoneHint": "الرقم الأساسي فقط (10 أرقام). لا تضمن رمز الدولة أو 0 في البداية.",
+      "countryCode": "رمز الدولة",
+      "countryCodePlaceholder": "+20",
+      "cancel": "إلغاء",
+      "saveChanges": "حفظ التغييرات",
+      "saving": "جاري الحفظ...",
+      "couldNotUpdate": "تعذر تحديث الملف الشخصي",
+      "successMessage": "تم تحديث الملف الشخصي بنجاح.",
+      "genericError": "تعذر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
+      "validation": {
+        "nameMinLength": "الاسم يجب أن يكون حرفين على الأقل.",
+        "phoneFormat": "استخدم رقم الهاتف الأساسي فقط (10 أرقام، بدون 0 في البداية).",
+        "countryCodeFormat": "رمز الدولة يجب أن يكون بتنسيق +NN (مثال +20)."
+      }
     }
   },
   "tables": {

@@ -693,7 +693,103 @@
     },
     "agents": {
       "title": "Agents",
-      "description": "Manage AI agents and executions"
+      "description": "Manage AI agents and executions",
+      "executions": {
+        "title": "Agent Executions",
+        "description": "Monitor and run background workflows with guided actions.",
+        "openExecution": "Open execution",
+        "searchPlaceholder": "Search recent executions...",
+        "noExecutionsFound": "No executions found",
+        "open": "Open",
+        "runAgent": "Run Agent",
+        "checkingAgents": "Checking available agents...",
+        "noAgentsAvailable": "No agents available for your role",
+        "executionCount": "{count} execution",
+        "executionsCount": "{count} executions",
+        "loadFailed": "Failed to load agent executions. Please try again.",
+        "noExecutionsTitle": "No executions found",
+        "noExecutionsDescription": "Try adjusting the selected filters or run a new agent execution.",
+        "quickView": "Quick view",
+        "recentlyExecuted": "Recently executed"
+      },
+      "details": {
+        "title": "Execution #{id}",
+        "description": "Track status, steps, and payloads for this agent run.",
+        "backToExecutions": "Back to executions",
+        "loadFailed": "Failed to load execution details.",
+        "target": "Target",
+        "started": "Started",
+        "completed": "Completed",
+        "initiatedBy": "Initiated by",
+        "system": "System",
+        "progress": "Progress",
+        "executionSteps": "Execution Steps",
+        "noStepsAvailable": "No step details available.",
+        "context": "Context",
+        "result": "Result"
+      },
+      "execute": {
+        "title": "Run Agent",
+        "description": "Start an execution with guided selections instead of manual IDs.",
+        "agentType": "Agent Type",
+        "loadingAgents": "Loading available agents...",
+        "selectAgentType": "Select agent type",
+        "center": "Center",
+        "course": "Course",
+        "selectCourse": "Select course",
+        "selectCenterFirst": "Select center first",
+        "searchCourses": "Search courses...",
+        "noCoursesFound": "No courses found",
+        "selectCenterToLoadCourses": "Select center to load courses",
+        "students": "Students",
+        "selected": "selected",
+        "searchStudents": "Search students by name, email, or phone",
+        "selectCourseFirst": "Select course first",
+        "chooseACourse": "Choose a course to load students.",
+        "noStudentsFound": "No students found for the selected course.",
+        "loadMoreStudents": "Load more students",
+        "loadingMore": "Loading more...",
+        "moreStudents": "+{count} more",
+        "advancedContext": "Advanced context (optional)",
+        "hide": "Hide",
+        "show": "Show",
+        "advancedContextPlaceholder": "{\"priority\": \"high\"}",
+        "advancedContextHint": "Use this only when you need extra keys beyond the guided selections.",
+        "cancel": "Cancel",
+        "starting": "Starting...",
+        "errors": {
+          "agentTypeRequired": "Agent type is required.",
+          "selectCenterFirst": "Select a center first.",
+          "selectCourseFirst": "Select a course before running this agent.",
+          "selectStudents": "Select at least one student.",
+          "contextMustBeObject": "Advanced context must be a JSON object.",
+          "contextMustBeValidJson": "Advanced context must be valid JSON.",
+          "unableToRun": "Unable to run agent. Please try again."
+        }
+      },
+      "filters": {
+        "center": "Center",
+        "status": "Status",
+        "filterByStatus": "Filter by status",
+        "allStatuses": "All statuses",
+        "agentType": "Agent Type",
+        "filterByAgentType": "Filter by agent type",
+        "allAgentTypes": "All agent types"
+      },
+      "types": {
+        "contentPublishing": "Content Publishing",
+        "enrollment": "Enrollment",
+        "analytics": "Analytics",
+        "notification": "Notification"
+      },
+      "tableHeaders": {
+        "id": "ID",
+        "agent": "Agent",
+        "status": "Status",
+        "target": "Target",
+        "started": "Started",
+        "actions": "Actions"
+      }
     },
     "roles": {
       "title": "Roles & Permissions",
@@ -705,7 +801,17 @@
     },
     "studentRequests": {
       "title": "Student Requests",
-      "description": "Manage student enrollment and device requests"
+      "centerTitle": "Center Student Requests",
+      "description": "Manage student enrollment and device requests",
+      "centerDescription": "Manage enrollment, extra-view, device-change, and video-access requests for this center.",
+      "systemDescription": "Manage enrollment, extra-view, device-change, and video-access requests across the system.",
+      "backToCenter": "Back to Center",
+      "tabs": {
+        "enrollments": "Enrollments",
+        "extraView": "Extra View",
+        "deviceChange": "Device Change",
+        "videoAccess": "Video Access"
+      }
     },
     "education": {
       "title": "Education",
@@ -728,14 +834,103 @@
       "description": "Configure center landing page"
     },
     "login": {
-      "title": "Sign In",
-      "subtitle": "Enter your credentials to access your account",
+      "title": "Admin Login",
+      "subtitle": "Sign in to manage the LMS admin panel.",
       "email": "Email",
+      "emailPlaceholder": "admin@example.com",
       "password": "Password",
-      "rememberMe": "Remember me",
+      "passwordPlaceholder": "••••••••",
+      "rememberMe": "Remember me for 30 days",
       "forgotPassword": "Forgot password?",
       "signIn": "Sign In",
-      "signingIn": "Signing in..."
+      "signingIn": "Signing in...",
+      "unableToSignIn": "Unable to sign in",
+      "sessionExpiredTitle": "Session expired",
+      "sessionExpiredMessage": "Your session expired. Please sign in again.",
+      "passwordUpdatedTitle": "Password updated",
+      "passwordUpdatedMessage": "Password set successfully. Sign in with your new password.",
+      "invalidCredentials": "Invalid credentials. Please check your email and password.",
+      "genericError": "Something went wrong while signing in. Please try again."
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your admin email and we will send password reset instructions.",
+      "email": "Email",
+      "emailPlaceholder": "admin@example.com",
+      "sendResetLink": "Send Reset Link",
+      "sending": "Sending...",
+      "backToLogin": "Back to login",
+      "checkYourEmail": "Check your email",
+      "unableToContinue": "Unable to continue",
+      "successMessage": "If an account exists for this email, reset instructions have been sent.",
+      "genericError": "Unable to send reset instructions. Please try again."
+    },
+    "resetPassword": {
+      "title": "Set Password",
+      "subtitle": "Create your password to activate your admin account.",
+      "email": "Email",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "At least 8 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Repeat password",
+      "setPassword": "Set Password",
+      "saving": "Saving...",
+      "success": "Success",
+      "unableToContinue": "Unable to continue",
+      "successMessage": "Password set successfully. Redirecting to login...",
+      "invalidLinkTitle": "Invalid reset link",
+      "invalidLinkMessage": "This link is missing required data. Request a new password reset email.",
+      "backToLogin": "Back to Login",
+      "genericError": "Unable to reset password. Please try again.",
+      "validation": {
+        "passwordMinLength": "Password must be at least 8 characters.",
+        "confirmRequired": "Please confirm your password.",
+        "passwordsDoNotMatch": "Passwords do not match."
+      }
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "description": "Update your account password using your current password.",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "At least 8 characters",
+      "confirmNewPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Repeat new password",
+      "cancel": "Cancel",
+      "updatePassword": "Update Password",
+      "saving": "Saving...",
+      "couldNotChange": "Could not change password",
+      "successMessage": "Password changed successfully.",
+      "genericError": "Unable to change password. Please try again.",
+      "validation": {
+        "currentRequired": "Current password is required.",
+        "newMinLength": "New password must be at least 8 characters.",
+        "confirmRequired": "Please confirm your new password.",
+        "passwordsDoNotMatch": "Passwords do not match."
+      }
+    },
+    "editProfile": {
+      "title": "Edit Profile Info",
+      "description": "Update your name and contact information.",
+      "name": "Name",
+      "namePlaceholder": "Admin name",
+      "phone": "Phone",
+      "phonePlaceholder": "1225291841",
+      "phoneHint": "Base number only (10 digits). Do not include country code or a leading 0.",
+      "countryCode": "Country Code",
+      "countryCodePlaceholder": "+20",
+      "cancel": "Cancel",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "couldNotUpdate": "Could not update profile",
+      "successMessage": "Profile updated successfully.",
+      "genericError": "Unable to update profile. Please try again.",
+      "validation": {
+        "nameMinLength": "Name must be at least 2 characters.",
+        "phoneFormat": "Use base mobile number only (10 digits, no leading 0).",
+        "countryCodeFormat": "Country code must be in +NN format (for example +20)."
+      }
     }
   },
   "tables": {

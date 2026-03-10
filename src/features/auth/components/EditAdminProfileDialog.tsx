@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useUpdateAdminProfile } from "@/features/auth/hooks/use-admin-profile-update";
+import { useTranslation } from "@/features/localization";
 import type { AdminProfileUpdatePayload, AdminUser } from "@/types/auth";
 
 const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
@@ -38,27 +39,11 @@ function normalizeCountryCode(value?: string) {
   return value?.replace(/\s+/g, "").trim() ?? "";
 }
 
-const schema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
-  phone: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
-      "Use base mobile number only (10 digits, no leading 0).",
-    ),
-  countryCode: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) => !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
-      "Country code must be in +NN format (for example +20).",
-    ),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  name: string;
+  phone?: string;
+  countryCode?: string;
+};
 
 type EditAdminProfileDialogProps = {
   open: boolean;
@@ -148,7 +133,10 @@ function mapFieldErrors(
   return hasFieldError;
 }
 
-function extractErrorMessage(error: unknown): string {
+function extractErrorMessage(
+  error: unknown,
+  t: (_key: string) => string,
+): string {
   if (isAxiosError<BackendErrorData>(error)) {
     const data = error.response?.data;
 
@@ -169,7 +157,7 @@ function extractErrorMessage(error: unknown): string {
     }
   }
 
-  return "Unable to update profile. Please try again.";
+  return t("pages.editProfile.genericError");
 }
 
 function toText(value: unknown): string {
@@ -185,8 +173,33 @@ export function EditAdminProfileDialog({
   user,
   onSuccess,
 }: EditAdminProfileDialogProps) {
+  const { t } = useTranslation();
   const [formError, setFormError] = useState<string | null>(null);
   const mutation = useUpdateAdminProfile();
+
+  const schema = z.object({
+    name: z
+      .string()
+      .trim()
+      .min(2, t("pages.editProfile.validation.nameMinLength")),
+    phone: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
+        t("pages.editProfile.validation.phoneFormat"),
+      ),
+    countryCode: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) =>
+          !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
+        t("pages.editProfile.validation.countryCodeFormat"),
+      ),
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -245,7 +258,7 @@ export function EditAdminProfileDialog({
     mutation.mutate(payload, {
       onSuccess: () => {
         onOpenChange(false);
-        onSuccess?.("Profile updated successfully.");
+        onSuccess?.(t("pages.editProfile.successMessage"));
       },
       onError: (error) => {
         const data = isAxiosError<BackendErrorData>(error)
@@ -257,7 +270,7 @@ export function EditAdminProfileDialog({
           mapFieldErrors(data?.errors, form.setError);
 
         if (!hasFieldError) {
-          setFormError(extractErrorMessage(error));
+          setFormError(extractErrorMessage(error, t));
         }
       },
     });
@@ -273,15 +286,15 @@ export function EditAdminProfileDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Profile Info</DialogTitle>
+          <DialogTitle>{t("pages.editProfile.title")}</DialogTitle>
           <DialogDescription>
-            Update your name and contact information.
+            {t("pages.editProfile.description")}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not update profile</AlertTitle>
+            <AlertTitle>{t("pages.editProfile.couldNotUpdate")}</AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -293,9 +306,12 @@ export function EditAdminProfileDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("pages.editProfile.name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Admin name" {...field} />
+                    <Input
+                      placeholder={t("pages.editProfile.namePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -307,13 +323,15 @@ export function EditAdminProfileDialog({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>{t("pages.editProfile.phone")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="1225291841" {...field} />
+                    <Input
+                      placeholder={t("pages.editProfile.phonePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <p className="text-xs text-gray-400">
-                    Base number only (10 digits). Do not include country code or
-                    a leading 0.
+                    {t("pages.editProfile.phoneHint")}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -325,9 +343,14 @@ export function EditAdminProfileDialog({
               name="countryCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country Code</FormLabel>
+                  <FormLabel>{t("pages.editProfile.countryCode")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="+20" {...field} />
+                    <Input
+                      placeholder={t(
+                        "pages.editProfile.countryCodePlaceholder",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -341,13 +364,15 @@ export function EditAdminProfileDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={mutation.isPending}
               >
-                Cancel
+                {t("pages.editProfile.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={mutation.isPending || !form.formState.isValid}
               >
-                {mutation.isPending ? "Saving..." : "Save Changes"}
+                {mutation.isPending
+                  ? t("pages.editProfile.saving")
+                  : t("pages.editProfile.saveChanges")}
               </Button>
             </DialogFooter>
           </form>

@@ -32,6 +32,7 @@ import {
 import { formatDateTime } from "@/lib/format-date-time";
 import { useTenant } from "@/app/tenant-provider";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
+import { useTranslation } from "@/features/localization";
 import {
   useAgentExecutions,
   useAvailableAgents,
@@ -77,6 +78,7 @@ function buildExecutionLabel(params: {
 
 export function AgentExecutionsTable() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { centerId, centerSlug } = useTenant();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
@@ -161,13 +163,13 @@ export function AgentExecutionsTable() {
     ) {
       options.unshift({
         value: selectedExecutionId,
-        label: `Execution #${selectedExecutionId}`,
-        description: "Recently executed",
+        label: `#${selectedExecutionId}`,
+        description: t("pages.agents.executions.recentlyExecuted"),
       });
     }
 
     return options;
-  }, [items, selectedExecutionId]);
+  }, [items, selectedExecutionId, t]);
 
   const clearFilters = () => {
     setStatus(ALL_STATUS_VALUE);
@@ -183,8 +185,8 @@ export function AgentExecutionsTable() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Agent Executions"
-        description="Monitor and run background workflows with guided actions."
+        title={t("pages.agents.executions.title")}
+        description={t("pages.agents.executions.description")}
         actions={
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <div className="w-full min-w-[18rem] sm:w-96">
@@ -192,9 +194,11 @@ export function AgentExecutionsTable() {
                 value={selectedExecutionId}
                 onValueChange={setSelectedExecutionId}
                 options={executionOptions}
-                placeholder="Open execution"
-                searchPlaceholder="Search recent executions..."
-                emptyMessage="No executions found"
+                placeholder={t("pages.agents.executions.openExecution")}
+                searchPlaceholder={t(
+                  "pages.agents.executions.searchPlaceholder",
+                )}
+                emptyMessage={t("pages.agents.executions.noExecutionsFound")}
               />
             </div>
             <Button
@@ -202,20 +206,20 @@ export function AgentExecutionsTable() {
               onClick={handleOpenExecution}
               disabled={!selectedExecutionId}
             >
-              Open
+              {t("pages.agents.executions.open")}
             </Button>
             <Button
               onClick={() => setIsRunDialogOpen(true)}
               disabled={!canExecuteAgents || isLoadingAgents}
               title={
                 isLoadingAgents
-                  ? "Checking available agents..."
+                  ? t("pages.agents.executions.checkingAgents")
                   : !canExecuteAgents
-                    ? "No agents available for your role"
+                    ? t("pages.agents.executions.noAgentsAvailable")
                     : undefined
               }
             >
-              Run Agent
+              {t("pages.agents.executions.runAgent")}
             </Button>
           </div>
         }
@@ -229,12 +233,16 @@ export function AgentExecutionsTable() {
           hasActiveFilters={hasActiveFilters}
           onClear={clearFilters}
           clearDisabled={!hasActiveFilters || isFetching}
-          summary={`${total} execution${total === 1 ? "" : "s"}`}
+          summary={
+            total === 1
+              ? t("pages.agents.executions.executionCount", { count: total })
+              : t("pages.agents.executions.executionsCount", { count: total })
+          }
           gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
         >
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Center
+              {t("pages.agents.filters.center")}
             </p>
             <CenterPicker
               className="w-full min-w-0"
@@ -244,7 +252,7 @@ export function AgentExecutionsTable() {
 
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Status
+              {t("pages.agents.filters.status")}
             </p>
             <Select
               value={status}
@@ -254,21 +262,33 @@ export function AgentExecutionsTable() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue
+                  placeholder={t("pages.agents.filters.filterByStatus")}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="running">Running</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
+                <SelectItem value={ALL_STATUS_VALUE}>
+                  {t("pages.agents.filters.allStatuses")}
+                </SelectItem>
+                <SelectItem value="pending">
+                  {AGENT_STATUS_LABELS["pending"]}
+                </SelectItem>
+                <SelectItem value="running">
+                  {AGENT_STATUS_LABELS["running"]}
+                </SelectItem>
+                <SelectItem value="completed">
+                  {AGENT_STATUS_LABELS["completed"]}
+                </SelectItem>
+                <SelectItem value="failed">
+                  {AGENT_STATUS_LABELS["failed"]}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Agent Type
+              {t("pages.agents.filters.agentType")}
             </p>
             <Select
               value={agentType}
@@ -278,18 +298,26 @@ export function AgentExecutionsTable() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Filter by agent type" />
+                <SelectValue
+                  placeholder={t("pages.agents.filters.filterByAgentType")}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL_AGENT_TYPE_VALUE}>
-                  All agent types
+                  {t("pages.agents.filters.allAgentTypes")}
                 </SelectItem>
                 <SelectItem value="content_publishing">
-                  Content Publishing
+                  {t("pages.agents.types.contentPublishing")}
                 </SelectItem>
-                <SelectItem value="enrollment">Enrollment</SelectItem>
-                <SelectItem value="analytics">Analytics</SelectItem>
-                <SelectItem value="notification">Notification</SelectItem>
+                <SelectItem value="enrollment">
+                  {t("pages.agents.types.enrollment")}
+                </SelectItem>
+                <SelectItem value="analytics">
+                  {t("pages.agents.types.analytics")}
+                </SelectItem>
+                <SelectItem value="notification">
+                  {t("pages.agents.types.notification")}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -297,15 +325,15 @@ export function AgentExecutionsTable() {
 
         {isError ? (
           <div className="border-b border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
-            Failed to load agent executions. Please try again.
+            {t("pages.agents.executions.loadFailed")}
           </div>
         ) : null}
 
         {showEmptyState ? (
           <div className="p-6">
             <EmptyState
-              title="No executions found"
-              description="Try adjusting the selected filters or run a new agent execution."
+              title={t("pages.agents.executions.noExecutionsTitle")}
+              description={t("pages.agents.executions.noExecutionsDescription")}
             />
           </div>
         ) : (
@@ -313,12 +341,16 @@ export function AgentExecutionsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Agent</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Started</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("pages.agents.tableHeaders.id")}</TableHead>
+                  <TableHead>{t("pages.agents.tableHeaders.agent")}</TableHead>
+                  <TableHead>{t("pages.agents.tableHeaders.status")}</TableHead>
+                  <TableHead>{t("pages.agents.tableHeaders.target")}</TableHead>
+                  <TableHead>
+                    {t("pages.agents.tableHeaders.started")}
+                  </TableHead>
+                  <TableHead className="text-right">
+                    {t("pages.agents.tableHeaders.actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -394,7 +426,7 @@ export function AgentExecutionsTable() {
                               router.push(`/agents/executions/${execution.id}`);
                             }}
                           >
-                            Quick view
+                            {t("pages.agents.executions.quickView")}
                           </Button>
                         </TableCell>
                       </TableRow>

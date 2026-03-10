@@ -15,6 +15,7 @@ const SCHOOL_OPTIONS_DEBOUNCE_MS = 300;
 type UseSchoolOptionsParams = {
   centerId: string | number | undefined;
   selectedValue?: string | null;
+  selectedValues?: string[];
   type?: number | string;
   isActive?: boolean;
   includeAllOption?: boolean;
@@ -33,6 +34,7 @@ function getSchoolLabel(school: School) {
 export function useSchoolOptions({
   centerId,
   selectedValue,
+  selectedValues,
   type,
   isActive,
   includeAllOption = false,
@@ -93,21 +95,30 @@ export function useSchoolOptions({
       description: school.type_label ?? undefined,
     }));
 
-    const selectedKey = selectedValue ?? null;
-    const isDefaultSelected =
-      selectedKey === allOptionValue || selectedKey === noneOptionValue;
-    if (
-      selectedKey &&
-      !isDefaultSelected &&
-      !items.some((item) => item.value === selectedKey)
-    ) {
+    const selectedKeys = Array.from(
+      new Set(
+        [
+          ...(selectedValue ? [selectedValue] : []),
+          ...(Array.isArray(selectedValues) ? selectedValues : []),
+        ]
+          .map((value) => String(value).trim())
+          .filter(Boolean),
+      ),
+    );
+
+    selectedKeys.forEach((selectedKey) => {
+      const isDefaultSelected =
+        selectedKey === allOptionValue || selectedKey === noneOptionValue;
+      if (isDefaultSelected) return;
+      if (items.some((item) => item.value === selectedKey)) return;
+
       const cachedLabel = cachedSchoolsRef.current.get(selectedKey);
       items.unshift({
         value: selectedKey,
         label: cachedLabel ?? `School #${selectedKey}`,
         description: undefined,
       });
-    }
+    });
 
     return [...defaults, ...items];
   }, [
@@ -119,6 +130,7 @@ export function useSchoolOptions({
     noneOptionValue,
     query.data,
     selectedValue,
+    selectedValues,
   ]);
 
   return {

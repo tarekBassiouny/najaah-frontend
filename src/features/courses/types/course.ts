@@ -72,6 +72,10 @@ export type CourseSummary = {
   is_published?: boolean | null;
   published_at?: string | null;
   requires_video_approval?: boolean | null;
+  show_for_all_students?: boolean | null;
+  grade_ids?: Array<string | number> | null;
+  school_ids?: Array<string | number> | null;
+  college_ids?: Array<string | number> | null;
   slug?: string | null;
   [key: string]: unknown;
 };
@@ -97,6 +101,10 @@ export type Course = {
   is_published?: boolean | null;
   published_at?: string | null;
   requires_video_approval?: boolean | null;
+  show_for_all_students?: boolean | null;
+  grade_ids?: Array<string | number> | null;
+  school_ids?: Array<string | number> | null;
+  college_ids?: Array<string | number> | null;
   slug?: string | null;
   center?: CenterSummary | null;
   category?: CategorySummary | null;
@@ -123,6 +131,10 @@ export type CreateCoursePayload = {
   primary_instructor_id?: string | number;
   thumbnail?: File | Blob;
   requires_video_approval?: boolean | null;
+  show_for_all_students?: boolean;
+  grade_ids?: Array<string | number>;
+  school_ids?: Array<string | number>;
+  college_ids?: Array<string | number>;
   slug?: string;
   status?: string;
   [key: string]: unknown;
@@ -138,6 +150,10 @@ export type UpdateCoursePayload = {
   instructor_id?: string | number;
   primary_instructor_id?: string | number;
   requires_video_approval?: boolean | null;
+  show_for_all_students?: boolean;
+  grade_ids?: Array<string | number>;
+  school_ids?: Array<string | number>;
+  college_ids?: Array<string | number>;
   slug?: string;
   [key: string]: unknown;
 };

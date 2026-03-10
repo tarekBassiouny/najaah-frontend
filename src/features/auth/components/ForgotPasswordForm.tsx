@@ -7,6 +7,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { isAxiosError } from "axios";
 import { useAdminPasswordForgot } from "@/features/auth/hooks/use-admin-password-forgot";
+import { useTranslation } from "@/features/localization";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,11 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TenantIdentityBadge } from "@/components/ui/tenant-identity-badge";
 
-const schema = z.object({
-  email: z.string().trim().email("Enter a valid email address."),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = { email: string };
 type MessageTone = "default" | "destructive";
 
 function getFirstValidationMessage(details: unknown): string | null {
@@ -47,7 +44,10 @@ function getFirstValidationMessage(details: unknown): string | null {
   return null;
 }
 
-function extractErrorMessage(error: unknown) {
+function extractErrorMessage(
+  error: unknown,
+  t: (_key: string) => string,
+): string {
   if (isAxiosError(error)) {
     const data = error.response?.data as
       | {
@@ -78,23 +78,26 @@ function extractErrorMessage(error: unknown) {
     }
   }
 
-  return "Unable to send reset instructions. Please try again.";
+  return t("pages.forgotPassword.genericError");
 }
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation();
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<MessageTone>("default");
+
+  const schema = z.object({
+    email: z.string().trim().email(t("forms.validation.email")),
+  });
 
   const mutation = useAdminPasswordForgot({
     onSuccess: () => {
       setMessageTone("default");
-      setFormMessage(
-        "If an account exists for this email, reset instructions have been sent.",
-      );
+      setFormMessage(t("pages.forgotPassword.successMessage"));
     },
     onError: (error) => {
       setMessageTone("destructive");
-      setFormMessage(extractErrorMessage(error));
+      setFormMessage(extractErrorMessage(error, t));
     },
   });
 
@@ -116,10 +119,10 @@ export function ForgotPasswordForm() {
 
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold text-dark dark:text-white">
-          Forgot Password
+          {t("pages.forgotPassword.title")}
         </h1>
         <p className="text-sm text-dark-6 dark:text-dark-5">
-          Enter your admin email and we will send password reset instructions.
+          {t("pages.forgotPassword.subtitle")}
         </p>
       </div>
 
@@ -127,8 +130,8 @@ export function ForgotPasswordForm() {
         <Alert variant={messageTone} className="mt-6">
           <AlertTitle>
             {messageTone === "default"
-              ? "Check your email"
-              : "Unable to continue"}
+              ? t("pages.forgotPassword.checkYourEmail")
+              : t("pages.forgotPassword.unableToContinue")}
           </AlertTitle>
           <AlertDescription>{formMessage}</AlertDescription>
         </Alert>
@@ -141,11 +144,11 @@ export function ForgotPasswordForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("pages.forgotPassword.email")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="admin@example.com"
+                    placeholder={t("pages.forgotPassword.emailPlaceholder")}
                     autoComplete="email"
                     {...field}
                   />
@@ -160,7 +163,9 @@ export function ForgotPasswordForm() {
             className="w-full"
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "Sending..." : "Send Reset Link"}
+            {mutation.isPending
+              ? t("pages.forgotPassword.sending")
+              : t("pages.forgotPassword.sendResetLink")}
           </Button>
 
           <div className="text-center text-sm">
@@ -168,7 +173,7 @@ export function ForgotPasswordForm() {
               href="/login"
               className="text-primary hover:text-primary/80 hover:underline"
             >
-              Back to login
+              {t("pages.forgotPassword.backToLogin")}
             </Link>
           </div>
         </form>

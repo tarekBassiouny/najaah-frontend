@@ -26,6 +26,7 @@ import {
   useRemoveCourseInstructor,
   useUpdateCenterCourse,
 } from "@/features/courses/hooks/use-courses";
+import { CourseEducationTargetingSection } from "@/features/courses/components/CourseEducationTargetingSection";
 import { CoursePublishAction } from "@/features/courses/components/CoursePublishAction";
 import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsTable";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
@@ -33,12 +34,19 @@ import { useInstructorOptions } from "@/features/instructors/hooks/use-instructo
 import { CourseSectionsOverview } from "@/features/sections/components/CourseSectionsOverview";
 import { formatDateTime } from "@/lib/format-date-time";
 import {
+  getAdminApiFieldErrors,
   getAdminApiErrorMessage,
   getAdminResponseMessage,
   isAdminApiNotFoundError,
 } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
 import type { InstructorSummary } from "@/features/courses/types/course";
+import {
+  getCourseEducationTargetingValues,
+  hasAnyEducationTarget,
+  toCourseEducationTargetingPayload,
+  type CourseEducationTargetingValues,
+} from "@/features/courses/utils/education-targeting";
 
 type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
@@ -85,6 +93,30 @@ function getInstructorLabel(
   return `Instructor #${instructor.id}`;
 }
 
+function isEducationTargetingFieldKey(key: string) {
+  return (
+    key === "show_for_all_students" ||
+    key === "grade_ids" ||
+    key.startsWith("grade_ids.") ||
+    key === "school_ids" ||
+    key.startsWith("school_ids.") ||
+    key === "college_ids" ||
+    key.startsWith("college_ids.")
+  );
+}
+
+function getEducationTargetingError(
+  errors: Record<string, string[]>,
+): string | null {
+  for (const [key, messages] of Object.entries(errors)) {
+    if (!isEducationTargetingFieldKey(key)) continue;
+    const firstMessage = messages[0];
+    if (firstMessage) return firstMessage;
+  }
+
+  return null;
+}
+
 export default function CenterCourseDetailPage({ params }: PageProps) {
   const { t, locale } = useTranslation();
   const isRtl = locale === "ar";
@@ -128,6 +160,20 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     description: "",
     category_id: "none",
   });
+  const [settingsFieldErrors, setSettingsFieldErrors] = useState<
+    Record<string, string[]>
+  >({});
+  const [educationTargeting, setEducationTargeting] =
+    useState<CourseEducationTargetingValues>({
+      showForAllStudents: true,
+      gradeIds: [],
+      schoolIds: [],
+      collegeIds: [],
+    });
+  const [
+    educationTargetingValidationError,
+    setEducationTargetingValidationError,
+  ] = useState<string | null>(null);
   const {
     options: categoryOptions,
     search: categorySearch,
@@ -168,6 +214,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       description: String(record.description ?? ""),
       category_id: resolveCategoryId(record),
     });
+    setEducationTargeting(getCourseEducationTargetingValues(course));
+    setSettingsFieldErrors({});
+    setEducationTargetingValidationError(null);
   }, [course]);
 
   useEffect(() => {
@@ -219,22 +268,84 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     });
   };
 
+  const educationTargetingFieldError =
+    getEducationTargetingError(settingsFieldErrors);
+  const educationTargetingError =
+    educationTargetingValidationError ?? educationTargetingFieldError;
+
+  const handleEducationTargetingChange = (
+    nextValues: CourseEducationTargetingValues,
+  ) => {
+    setEducationTargeting(nextValues);
+    setEducationTargetingValidationError(null);
+    setSettingsFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.show_for_all_students;
+      delete next.grade_ids;
+      delete next.school_ids;
+      delete next.college_ids;
+      Object.keys(next).forEach((key) => {
+        if (isEducationTargetingFieldKey(key)) {
+          delete next[key];
+        }
+      });
+      return next;
+    });
+  };
+
   const handleSettingsSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    updateCourse({
-      centerId,
-      courseId,
-      payload: {
-        title: settingsForm.title || undefined,
-        slug: settingsForm.slug || undefined,
-        description: settingsForm.description || undefined,
-        category_id:
-          settingsForm.category_id !== "none"
-            ? settingsForm.category_id
-            : undefined,
+    setSettingsFieldErrors({});
+    setEducationTargetingValidationError(null);
+
+    if (
+      !educationTargeting.showForAllStudents &&
+      !hasAnyEducationTarget(educationTargeting)
+    ) {
+      setEducationTargetingValidationError(
+        "Select at least one grade, school, or college for targeted visibility.",
+      );
+      return;
+    }
+
+    updateCourse(
+      {
+        centerId,
+        courseId,
+        payload: {
+          title: settingsForm.title || undefined,
+          slug: settingsForm.slug || undefined,
+          description: settingsForm.description || undefined,
+          category_id:
+            settingsForm.category_id !== "none"
+              ? settingsForm.category_id
+              : undefined,
+          ...toCourseEducationTargetingPayload(educationTargeting),
+        },
       },
-    });
+      {
+        onError: (mutationError) => {
+          const errors = getAdminApiFieldErrors(mutationError) as
+            | Record<string, string[] | string>
+            | undefined;
+
+          if (!errors) {
+            setSettingsFieldErrors({});
+            return;
+          }
+
+          const normalizedErrors = Object.fromEntries(
+            Object.entries(errors).map(([key, value]) => [
+              key,
+              Array.isArray(value) ? value.map(String) : [String(value)],
+            ]),
+          );
+
+          setSettingsFieldErrors(normalizedErrors);
+        },
+      },
+    );
   };
 
   const handleSettingsChange =
@@ -669,6 +780,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       />
                     </div>
 
+                    <CourseEducationTargetingSection
+                      centerId={centerId}
+                      values={educationTargeting}
+                      onChange={handleEducationTargetingChange}
+                      disabled={isSavingSettings}
+                      error={educationTargetingError}
+                    />
+
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
                         type="submit"
@@ -690,6 +809,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                             description: String(record.description ?? ""),
                             category_id: resolveCategoryId(record),
                           });
+                          setEducationTargeting(
+                            getCourseEducationTargetingValues(course),
+                          );
+                          setSettingsFieldErrors({});
+                          setEducationTargetingValidationError(null);
                         }}
                       >
                         Reset

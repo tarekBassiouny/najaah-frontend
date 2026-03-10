@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { isAxiosError } from "axios";
 import { useAdminPasswordReset } from "@/features/auth/hooks/use-admin-password-reset";
+import { useTranslation } from "@/features/localization";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,17 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TenantIdentityBadge } from "@/components/ui/tenant-identity-badge";
 
-const schema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters."),
-    confirmPassword: z.string().min(1, "Please confirm your password."),
-  })
-  .refine((values) => values.password === values.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Passwords do not match.",
-  });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = { password: string; confirmPassword: string };
 
 function getFirstValidationMessage(details: unknown): string | null {
   if (!details || typeof details !== "object") return null;
@@ -52,7 +43,10 @@ function getFirstValidationMessage(details: unknown): string | null {
   return null;
 }
 
-function extractErrorMessage(error: unknown) {
+function extractErrorMessage(
+  error: unknown,
+  t: (_key: string) => string,
+): string {
   if (isAxiosError(error)) {
     const data = error.response?.data as
       | {
@@ -83,14 +77,29 @@ function extractErrorMessage(error: unknown) {
     }
   }
 
-  return "Unable to reset password. Please try again.";
+  return t("pages.resetPassword.genericError");
 }
 
 export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const schema = z
+    .object({
+      password: z
+        .string()
+        .min(8, t("pages.resetPassword.validation.passwordMinLength")),
+      confirmPassword: z
+        .string()
+        .min(1, t("pages.resetPassword.validation.confirmRequired")),
+    })
+    .refine((values) => values.password === values.confirmPassword, {
+      path: ["confirmPassword"],
+      message: t("pages.resetPassword.validation.passwordsDoNotMatch"),
+    });
 
   const token = useMemo(
     () => searchParams.get("token")?.trim() ?? "",
@@ -106,7 +115,7 @@ export function ResetPasswordForm() {
   const mutation = useAdminPasswordReset({
     onSuccess: () => {
       setIsSuccess(true);
-      setFormMessage("Password set successfully. Redirecting to login...");
+      setFormMessage(t("pages.resetPassword.successMessage"));
 
       const params = new URLSearchParams({
         reason: "password_reset",
@@ -119,7 +128,7 @@ export function ResetPasswordForm() {
     },
     onError: (error) => {
       setIsSuccess(false);
-      setFormMessage(extractErrorMessage(error));
+      setFormMessage(extractErrorMessage(error, t));
     },
   });
 
@@ -140,7 +149,7 @@ export function ResetPasswordForm() {
   const onSubmit = (values: FormValues) => {
     if (!hasValidLink) {
       setIsSuccess(false);
-      setFormMessage("Invalid or expired reset link.");
+      setFormMessage(t("pages.resetPassword.invalidLinkMessage"));
       return;
     }
 
@@ -158,17 +167,19 @@ export function ResetPasswordForm() {
 
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold text-dark dark:text-white">
-          Set Password
+          {t("pages.resetPassword.title")}
         </h1>
         <p className="text-sm text-dark-6 dark:text-dark-5">
-          Create your password to activate your admin account.
+          {t("pages.resetPassword.subtitle")}
         </p>
       </div>
 
       {formMessage ? (
         <Alert variant={isSuccess ? "default" : "destructive"} className="mt-6">
           <AlertTitle>
-            {isSuccess ? "Success" : "Unable to continue"}
+            {isSuccess
+              ? t("pages.resetPassword.success")
+              : t("pages.resetPassword.unableToContinue")}
           </AlertTitle>
           <AlertDescription>{formMessage}</AlertDescription>
         </Alert>
@@ -177,15 +188,14 @@ export function ResetPasswordForm() {
       {!hasValidLink ? (
         <div className="mt-6 space-y-4">
           <Alert variant="destructive">
-            <AlertTitle>Invalid reset link</AlertTitle>
+            <AlertTitle>{t("pages.resetPassword.invalidLinkTitle")}</AlertTitle>
             <AlertDescription>
-              This link is missing required data. Request a new password reset
-              email.
+              {t("pages.resetPassword.invalidLinkMessage")}
             </AlertDescription>
           </Alert>
 
           <Button className="w-full" onClick={() => router.push("/login")}>
-            Back to Login
+            {t("pages.resetPassword.backToLogin")}
           </Button>
         </div>
       ) : (
@@ -195,7 +205,7 @@ export function ResetPasswordForm() {
             className="mt-6 space-y-6"
           >
             <div className="space-y-2">
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t("pages.resetPassword.email")}</FormLabel>
               <Input value={email} disabled readOnly />
             </div>
 
@@ -204,11 +214,13 @@ export function ResetPasswordForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel>{t("pages.resetPassword.newPassword")}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="At least 8 characters"
+                      placeholder={t(
+                        "pages.resetPassword.newPasswordPlaceholder",
+                      )}
                       autoComplete="new-password"
                       {...field}
                     />
@@ -223,11 +235,15 @@ export function ResetPasswordForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>
+                    {t("pages.resetPassword.confirmPassword")}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Repeat password"
+                      placeholder={t(
+                        "pages.resetPassword.confirmPasswordPlaceholder",
+                      )}
                       autoComplete="new-password"
                       {...field}
                     />
@@ -242,7 +258,9 @@ export function ResetPasswordForm() {
               className="w-full"
               disabled={mutation.isPending || isSuccess}
             >
-              {mutation.isPending ? "Saving..." : "Set Password"}
+              {mutation.isPending
+                ? t("pages.resetPassword.saving")
+                : t("pages.resetPassword.setPassword")}
             </Button>
           </form>
         </Form>

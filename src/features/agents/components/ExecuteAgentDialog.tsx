@@ -30,6 +30,7 @@ import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { listStudents } from "@/features/students/services/students.service";
 import { useTenant } from "@/app/tenant-provider";
+import { useTranslation } from "@/features/localization";
 import {
   useAvailableAgents,
   useExecuteAgent,
@@ -80,7 +81,10 @@ function extractFirstMessage(node: unknown): string | null {
   return null;
 }
 
-function getExecuteErrorMessage(error: unknown) {
+function getExecuteErrorMessage(
+  error: unknown,
+  t: (_key: string) => string,
+): string {
   if (isAxiosError(error)) {
     const data = error.response?.data as
       | {
@@ -108,7 +112,7 @@ function getExecuteErrorMessage(error: unknown) {
     }
   }
 
-  return "Unable to run agent. Please try again.";
+  return t("pages.agents.execute.errors.unableToRun");
 }
 
 export function ExecuteAgentDialog({
@@ -116,6 +120,7 @@ export function ExecuteAgentDialog({
   onOpenChange,
   onExecuted,
 }: ExecuteAgentDialogProps) {
+  const { t } = useTranslation();
   const { centerId: tenantCenterId, centerSlug } = useTenant();
   const isPlatformAdmin = !centerSlug;
 
@@ -400,22 +405,22 @@ export function ExecuteAgentDialog({
     setErrorMessage(null);
 
     if (!agentType) {
-      setErrorMessage("Agent type is required.");
+      setErrorMessage(t("pages.agents.execute.errors.agentTypeRequired"));
       return;
     }
 
     if (!hasSelectedCenter) {
-      setErrorMessage("Select a center first.");
+      setErrorMessage(t("pages.agents.execute.errors.selectCenterFirst"));
       return;
     }
 
     if (requiresCourse && !selectedCourse) {
-      setErrorMessage("Select a course before running this agent.");
+      setErrorMessage(t("pages.agents.execute.errors.selectCourseFirst"));
       return;
     }
 
     if (requiresStudents && selectedStudentIds.size === 0) {
-      setErrorMessage("Select at least one student.");
+      setErrorMessage(t("pages.agents.execute.errors.selectStudents"));
       return;
     }
 
@@ -431,13 +436,15 @@ export function ExecuteAgentDialog({
       try {
         const parsed = JSON.parse(trimmedContext);
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-          setErrorMessage("Advanced context must be a JSON object.");
+          setErrorMessage(t("pages.agents.execute.errors.contextMustBeObject"));
           return;
         }
 
         advancedContext = parsed as Record<string, unknown>;
       } catch {
-        setErrorMessage("Advanced context must be valid JSON.");
+        setErrorMessage(
+          t("pages.agents.execute.errors.contextMustBeValidJson"),
+        );
         return;
       }
     }
@@ -468,7 +475,7 @@ export function ExecuteAgentDialog({
       onOpenChange(false);
       onExecuted?.(execution.id);
     } catch (error) {
-      setErrorMessage(getExecuteErrorMessage(error));
+      setErrorMessage(getExecuteErrorMessage(error, t));
     }
   };
 
@@ -476,22 +483,22 @@ export function ExecuteAgentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Run Agent</DialogTitle>
+          <DialogTitle>{t("pages.agents.execute.title")}</DialogTitle>
           <DialogDescription>
-            Start an execution with guided selections instead of manual IDs.
+            {t("pages.agents.execute.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Agent Type</Label>
+            <Label>{t("pages.agents.execute.agentType")}</Label>
             <Select value={agentType} onValueChange={setAgentType}>
               <SelectTrigger>
                 <SelectValue
                   placeholder={
                     isLoadingAgents
-                      ? "Loading available agents..."
-                      : "Select agent type"
+                      ? t("pages.agents.execute.loadingAgents")
+                      : t("pages.agents.execute.selectAgentType")
                   }
                 />
               </SelectTrigger>
@@ -506,7 +513,7 @@ export function ExecuteAgentDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Center</Label>
+            <Label>{t("pages.agents.execute.center")}</Label>
             <CenterPicker
               className="w-full min-w-0"
               hideWhenCenterScoped={false}
@@ -518,7 +525,7 @@ export function ExecuteAgentDialog({
 
           {requiresCourse ? (
             <div className="space-y-2">
-              <Label>Course</Label>
+              <Label>{t("pages.agents.execute.course")}</Label>
               <SearchableSelect
                 value={selectedCourse}
                 onValueChange={setSelectedCourse}
@@ -526,13 +533,15 @@ export function ExecuteAgentDialog({
                 searchValue={courseSearch}
                 onSearchValueChange={setCourseSearch}
                 placeholder={
-                  hasSelectedCenter ? "Select course" : "Select center first"
+                  hasSelectedCenter
+                    ? t("pages.agents.execute.selectCourse")
+                    : t("pages.agents.execute.selectCenterFirst")
                 }
-                searchPlaceholder="Search courses..."
+                searchPlaceholder={t("pages.agents.execute.searchCourses")}
                 emptyMessage={
                   hasSelectedCenter
-                    ? "No courses found"
-                    : "Select center to load courses"
+                    ? t("pages.agents.execute.noCoursesFound")
+                    : t("pages.agents.execute.selectCenterToLoadCourses")
                 }
                 isLoading={coursesQuery.isLoading}
                 disabled={!hasSelectedCenter || isPending}
@@ -551,9 +560,9 @@ export function ExecuteAgentDialog({
           {requiresStudents ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <Label>Students</Label>
+                <Label>{t("pages.agents.execute.students")}</Label>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {selectedStudentIds.size} selected
+                  {selectedStudentIds.size} {t("pages.agents.execute.selected")}
                 </span>
               </div>
 
@@ -562,8 +571,8 @@ export function ExecuteAgentDialog({
                 onChange={(event) => setStudentSearch(event.target.value)}
                 placeholder={
                   selectedCourse
-                    ? "Search students by name, email, or phone"
-                    : "Select course first"
+                    ? t("pages.agents.execute.searchStudents")
+                    : t("pages.agents.execute.selectCourseFirst")
                 }
                 disabled={!selectedCourse || isPending}
               />
@@ -571,7 +580,7 @@ export function ExecuteAgentDialog({
               <div className="max-h-56 overflow-y-auto rounded-md border border-gray-200 dark:border-gray-700">
                 {!selectedCourse ? (
                   <div className="p-4 text-sm text-gray-500 dark:text-gray-400">
-                    Choose a course to load students.
+                    {t("pages.agents.execute.chooseACourse")}
                   </div>
                 ) : studentsQuery.isLoading ? (
                   <div className="space-y-2 p-3">
@@ -581,7 +590,7 @@ export function ExecuteAgentDialog({
                   </div>
                 ) : students.length === 0 ? (
                   <div className="p-4 text-sm text-gray-500 dark:text-gray-400">
-                    No students found for the selected course.
+                    {t("pages.agents.execute.noStudentsFound")}
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -630,8 +639,8 @@ export function ExecuteAgentDialog({
                   disabled={studentsQuery.isFetchingNextPage}
                 >
                   {studentsQuery.isFetchingNextPage
-                    ? "Loading more..."
-                    : "Load more students"}
+                    ? t("pages.agents.execute.loadingMore")
+                    : t("pages.agents.execute.loadMoreStudents")}
                 </Button>
               )}
 
@@ -639,7 +648,7 @@ export function ExecuteAgentDialog({
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {selectedStudentsPreview.join(", ")}
                   {selectedStudentIds.size > selectedStudentsPreview.length
-                    ? ` +${selectedStudentIds.size - selectedStudentsPreview.length} more`
+                    ? ` ${t("pages.agents.execute.moreStudents", { count: selectedStudentIds.size - selectedStudentsPreview.length })}`
                     : ""}
                 </p>
               ) : null}
@@ -652,9 +661,11 @@ export function ExecuteAgentDialog({
               onClick={() => setShowAdvancedOptions((value) => !value)}
               className="flex w-full items-center justify-between text-left text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              <span>Advanced context (optional)</span>
+              <span>{t("pages.agents.execute.advancedContext")}</span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {showAdvancedOptions ? "Hide" : "Show"}
+                {showAdvancedOptions
+                  ? t("pages.agents.execute.hide")
+                  : t("pages.agents.execute.show")}
               </span>
             </button>
 
@@ -667,11 +678,12 @@ export function ExecuteAgentDialog({
                   }
                   rows={6}
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                  placeholder='{"priority": "high"}'
+                  placeholder={t(
+                    "pages.agents.execute.advancedContextPlaceholder",
+                  )}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Use this only when you need extra keys beyond the guided
-                  selections.
+                  {t("pages.agents.execute.advancedContextHint")}
                 </p>
               </div>
             ) : null}
@@ -690,13 +702,15 @@ export function ExecuteAgentDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            Cancel
+            {t("pages.agents.execute.cancel")}
           </Button>
           <Button
             onClick={() => void handleRun()}
             disabled={isPending || isLoadingAgents}
           >
-            {isPending ? "Starting..." : "Run Agent"}
+            {isPending
+              ? t("pages.agents.execute.starting")
+              : t("pages.agents.execute.title")}
           </Button>
         </div>
       </DialogContent>

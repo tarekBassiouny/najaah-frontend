@@ -45,6 +45,7 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   "/admin-users": (centerId) => `/centers/${centerId}/admin-users`,
   "/students": (centerId) => `/centers/${centerId}/students`,
   "/education": (centerId) => `/centers/${centerId}/education`,
+  "/landing-page": (centerId) => `/centers/${centerId}/landing-page`,
   "/settings": (centerId) => `/centers/${centerId}/settings`,
   "/student-requests": (centerId) => `/centers/${centerId}/student-requests`,
   "/student-requests/enrollments": (centerId) =>

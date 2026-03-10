@@ -42,9 +42,49 @@ describe("resolveLandingPage", () => {
   });
 
   it("unwraps nested data payloads", async () => {
-    mockedGet.mockResolvedValue({ data: { data: { slug: "bar" } } });
+    mockedGet.mockResolvedValue({
+      data: {
+        data: {
+          slug: "bar",
+          hero: {
+            title: "Localized hero",
+            background_url: "https://cdn.example.test/hero.jpg",
+          },
+          sections: {
+            show_hero: true,
+            show_courses: false,
+          },
+        },
+      },
+    });
 
     const result = await resolveLandingPage("center-slug");
-    expect(result).toEqual({ slug: "bar" });
+    expect(result).toEqual({
+      slug: "bar",
+      hero: {
+        hero_title: { en: "Localized hero", ar: null },
+        hero_subtitle: null,
+        hero_cta_text: undefined,
+        hero_cta_url: undefined,
+        hero_background_url: "https://cdn.example.test/hero.jpg",
+      },
+      about: null,
+      contact: null,
+      visibility: {
+        show_hero: true,
+        show_about: undefined,
+        show_courses: false,
+        show_testimonials: undefined,
+        show_contact: undefined,
+      },
+      testimonials: null,
+      status: undefined,
+      is_published: undefined,
+      show_courses: false,
+      meta: null,
+      social: null,
+      styling: null,
+      center: null,
+    });
   });
 });

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { Badge } from "@/components/ui/badge";
 import { hasCapability, type Capability } from "@/lib/capabilities";
 import { getAuthPermissions } from "@/lib/auth-state";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ type SidebarItem = {
   url?: string;
   icon?: ComponentType<PropsType>;
   capability?: Capability;
+  badge?: string;
   items: SidebarSubItem[];
 };
 
@@ -71,6 +73,22 @@ function isPathActive(pathname: string, url?: string) {
   }
 
   return current === target || current.startsWith(target + "/");
+}
+
+function SidebarItemLabel({ title, badge }: { title: string; badge?: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span>{title}</span>
+      {badge ? (
+        <Badge
+          variant="outline"
+          className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
+        >
+          {badge}
+        </Badge>
+      ) : null}
+    </span>
+  );
 }
 
 export function Sidebar({ sections }: SidebarProps) {
@@ -127,7 +145,15 @@ export function Sidebar({ sections }: SidebarProps) {
     return resolvedSections
       .map((section) => {
         const items = section.items
-          .filter((item) => !(isUnbrandedCenter && item.title === "Surveys"))
+          .filter(
+            (item) =>
+              !(
+                isUnbrandedCenter &&
+                (item.title === "Surveys" ||
+                  item.title === "Education" ||
+                  item.title === "Landing Page")
+              ),
+          )
           .map((item) => {
             if (item.items?.length) {
               const subItems = item.items.filter((subItem) =>
@@ -148,10 +174,6 @@ export function Sidebar({ sections }: SidebarProps) {
               item.capability &&
               !hasCapability(item.capability, permissions)
             ) {
-              return null;
-            }
-
-            if (isUnbrandedCenter && item.title === "Education") {
               return null;
             }
 
@@ -369,7 +391,10 @@ export function Sidebar({ sections }: SidebarProps) {
                           >
                             <span className="flex items-center gap-3">
                               {Icon ? <Icon className="h-5 w-5" /> : null}
-                              <span>{item.title}</span>
+                              <SidebarItemLabel
+                                title={item.title}
+                                badge={item.badge}
+                              />
                             </span>
                             <ChevronUp
                               className={cn(
@@ -410,7 +435,10 @@ export function Sidebar({ sections }: SidebarProps) {
                           className="flex items-center gap-3"
                         >
                           {Icon ? <Icon className="h-5 w-5" /> : null}
-                          <span>{item.title}</span>
+                          <SidebarItemLabel
+                            title={item.title}
+                            badge={item.badge}
+                          />
                         </MenuItem>
                       </li>
                     );

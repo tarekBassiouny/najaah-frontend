@@ -13,6 +13,7 @@ type SidebarItem = {
   url?: string;
   icon?: (typeof Icons)[keyof typeof Icons];
   capability?: Capability;
+  badge?: string;
   items: SidebarSubItem[];
 };
 
@@ -121,6 +122,14 @@ export const CENTER_SIDEBAR: SidebarSection[] = [
         capability: "manage_students",
         icon: iconFromTitle("Education"),
         url: "/education",
+        items: [],
+      },
+      {
+        title: "Landing Page",
+        capability: "manage_landing_pages",
+        icon: iconFromTitle("Landing Page"),
+        url: "/landing-page",
+        badge: "Beta",
         items: [],
       },
       {

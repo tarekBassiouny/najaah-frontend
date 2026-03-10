@@ -35,8 +35,14 @@ http.interceptors.request.use((config) => {
   const accessToken = tokenStorage.getAccessToken();
 
   nextConfig.headers = nextConfig.headers ?? {};
-  nextConfig.headers["X-Api-Key"] = getTenantApiKey();
-  nextConfig.headers["X-Locale"] = getApiLocale();
+  const currentApiKey = nextConfig.headers["X-Api-Key"];
+  if (!currentApiKey) {
+    nextConfig.headers["X-Api-Key"] = getTenantApiKey();
+  }
+
+  if (!nextConfig.headers["X-Locale"]) {
+    nextConfig.headers["X-Locale"] = getApiLocale();
+  }
 
   if (!nextConfig.skipAuth && accessToken) {
     nextConfig.headers.Authorization = `Bearer ${accessToken}`;

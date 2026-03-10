@@ -65,6 +65,68 @@ function normalizeAppDomain(appDomain?: string | null) {
   return extractHostname(normalized);
 }
 
+function getCandidateDomains(appDomain?: string | null) {
+  const defaults = ["najaah.local", "najaah.me"];
+  const envDomain = normalizeAppDomain(appDomain);
+
+  return Array.from(new Set([envDomain, ...defaults].filter(Boolean))) as string[];
+}
+
+export function resolveBaseDomain(
+  host: string,
+  appDomain: string | null = process.env.NEXT_PUBLIC_APP_DOMAIN || null,
+) {
+  const hostname = extractHostname(host);
+  const candidateDomains = getCandidateDomains(appDomain);
+
+  for (const normalizedDomain of candidateDomains) {
+    if (
+      hostname === normalizedDomain ||
+      hostname === `www.${normalizedDomain}` ||
+      hostname === `admin.${normalizedDomain}` ||
+      hostname.endsWith(`.${normalizedDomain}`)
+    ) {
+      return normalizedDomain;
+    }
+  }
+
+  return null;
+}
+
+export function resolvePreviewUrlForCurrentHost(
+  currentUrl: URL,
+  previewUrl: URL,
+  centerSlug: string,
+  appDomain: string | null = process.env.NEXT_PUBLIC_APP_DOMAIN || null,
+) {
+  const nextUrl = new URL(previewUrl.toString());
+  const currentHostname = extractHostname(currentUrl.host);
+
+  if (!currentHostname) {
+    return nextUrl;
+  }
+
+  if (
+    currentHostname === "localhost" ||
+    currentHostname.endsWith(".localhost") ||
+    isIPAddress(currentHostname)
+  ) {
+    nextUrl.protocol = currentUrl.protocol;
+    nextUrl.host = currentUrl.host;
+    nextUrl.pathname = `/landing/${centerSlug}`;
+    return nextUrl;
+  }
+
+  const baseDomain = resolveBaseDomain(currentUrl.host, appDomain);
+  if (!baseDomain) {
+    return nextUrl;
+  }
+
+  nextUrl.protocol = currentUrl.protocol;
+  nextUrl.host = `${centerSlug}.${baseDomain}${currentUrl.port ? `:${currentUrl.port}` : ""}`;
+  return nextUrl;
+}
+
 export function resolveHostTenant(
   host: string,
   appDomain: string | null = process.env.NEXT_PUBLIC_APP_DOMAIN || null,
@@ -83,8 +145,8 @@ export function resolveHostTenant(
     return { kind: "admin", hostname, centerSlug: null };
   }
 
-  const normalizedDomain = normalizeAppDomain(appDomain);
-  if (normalizedDomain) {
+  const candidateDomains = getCandidateDomains(appDomain);
+  for (const normalizedDomain of candidateDomains) {
     if (
       hostname === normalizedDomain ||
       hostname === `www.${normalizedDomain}`
@@ -114,8 +176,6 @@ export function resolveHostTenant(
 
       return { kind: "center", hostname, centerSlug: subdomain };
     }
-
-    return { kind: "unknown", hostname, centerSlug: null };
   }
 
   const parts = hostname.split(".");

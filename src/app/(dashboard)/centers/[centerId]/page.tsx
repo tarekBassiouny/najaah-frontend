@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, type ComponentType } from "react";
 import Link from "next/link";
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { PageHeader } from "@/components/ui/page-header";
@@ -187,6 +187,17 @@ function isUnbrandedCenterType(type: unknown) {
 /*  Navigation card config                                             */
 /* ------------------------------------------------------------------ */
 
+type CenterSection = {
+  title: string;
+  description: string;
+  href: (_centerId: string) => string;
+  icon: ComponentType<{ className?: string }>;
+  color: string;
+  bg: string;
+  border: string;
+  badge?: string;
+};
+
 const SECTIONS = [
   {
     title: "Courses",
@@ -234,6 +245,16 @@ const SECTIONS = [
     border: "border-cyan-100 dark:border-cyan-900/50",
   },
   {
+    title: "Landing Page",
+    description: "Edit the branded public landing page for this center.",
+    href: (id: string) => `/centers/${id}/landing-page`,
+    icon: DocumentIcon,
+    badge: "Beta",
+    color: "text-sky-700 dark:text-sky-300",
+    bg: "bg-sky-50 dark:bg-sky-950/40",
+    border: "border-sky-100 dark:border-sky-900/50",
+  },
+  {
     title: "Categories",
     description: "Organise courses into categories for easy discovery.",
     href: (id: string) => `/centers/${id}/categories`,
@@ -242,7 +263,7 @@ const SECTIONS = [
     bg: "bg-emerald-50 dark:bg-emerald-950/40",
     border: "border-emerald-100 dark:border-emerald-900/50",
   },
-] as const;
+] as const satisfies readonly CenterSection[];
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -328,6 +349,12 @@ export default function CenterDetailPage({ params }: PageProps) {
   const statusLabel =
     center?.status_label ?? (centerStatusNumber === 1 ? "Active" : "Inactive");
   const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
+  const sections: readonly CenterSection[] = isUnbrandedCenter
+    ? SECTIONS.filter(
+        (section) =>
+          section.title !== "Education" && section.title !== "Landing Page",
+      )
+    : SECTIONS;
 
   return (
     <div className="space-y-8">
@@ -408,13 +435,12 @@ export default function CenterDetailPage({ params }: PageProps) {
         </h2>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(isUnbrandedCenter
-            ? SECTIONS.filter((section) => section.title !== "Education")
-            : SECTIONS
-          ).map((section) => {
+          {sections.map((section) => {
             const Icon = section.icon;
             const href =
-              isUnbrandedCenter && section.title === "Education"
+              isUnbrandedCenter &&
+              (section.title === "Education" ||
+                section.title === "Landing Page")
                 ? "/education"
                 : section.href(centerId);
             return (
@@ -430,7 +456,17 @@ export default function CenterDetailPage({ params }: PageProps) {
                     </div>
                     <div className="min-w-0">
                       <CardTitle className="text-base">
-                        {section.title}
+                        <span className="flex items-center gap-2">
+                          <span>{section.title}</span>
+                          {section.badge ? (
+                            <Badge
+                              variant="outline"
+                              className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
+                            >
+                              {section.badge}
+                            </Badge>
+                          ) : null}
+                        </span>
                       </CardTitle>
                       <CardDescription className="mt-1 line-clamp-2 text-xs">
                         {section.description}

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { apiBaseUrl, defaultApiKey } from "@/lib/runtime-config";
+import { normalizeLandingPageResolveResponse } from "@/features/landing-page/lib/landing-page-normalizers";
 import type { LandingPageResolveResponse } from "@/features/landing-page/types/landing-page-resolve";
 
 type LandingPageResponseWithData = {
@@ -12,11 +13,12 @@ function unwrap(payload: unknown): LandingPageResolveResponse | null {
   }
 
   if ("data" in payload) {
-    return ((payload as LandingPageResponseWithData).data ??
-      null) as LandingPageResolveResponse | null;
+    return normalizeLandingPageResolveResponse(
+      (payload as LandingPageResponseWithData).data ?? null,
+    );
   }
 
-  return payload as LandingPageResolveResponse;
+  return normalizeLandingPageResolveResponse(payload);
 }
 
 export async function resolveLandingPage(

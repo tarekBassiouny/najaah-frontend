@@ -3,6 +3,12 @@ export type LocalizedString = {
   ar?: string | null;
 };
 
+export interface LandingPageMeta {
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+}
+
 export interface LandingPageHero {
   hero_title?: LocalizedString | null;
   hero_subtitle?: LocalizedString | null;
@@ -32,6 +38,12 @@ export interface LandingPageSocial {
   social_tiktok?: string | null;
 }
 
+export interface LandingPageStyling {
+  primary_color?: string | null;
+  secondary_color?: string | null;
+  font_family?: string | null;
+}
+
 export interface LandingPageVisibility {
   show_hero?: boolean | null;
   show_about?: boolean | null;
@@ -51,13 +63,20 @@ export interface LandingPageTestimonial {
 }
 
 export interface LandingPagePayload {
+  id?: number;
+  center_id?: number;
+  meta?: LandingPageMeta | null;
   hero?: LandingPageHero | null;
   about?: LandingPageAbout | null;
   contact?: LandingPageContact | null;
   visibility?: LandingPageVisibility | null;
   social?: LandingPageSocial | null;
+  styling?: LandingPageStyling | null;
   testimonials?: LandingPageTestimonial[] | null;
-  status?: string;
+  status?: string | number | null;
+  status_label?: string | null;
   is_published?: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
   [key: string]: unknown;
 }

@@ -16,8 +16,10 @@ import { SystemDefaultsPanel } from "@/features/system-settings/components/Syste
 import { SystemSettingFormDialog } from "@/features/system-settings/components/SystemSettingFormDialog";
 import { SystemSettingsTable } from "@/features/system-settings/components/SystemSettingsTable";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
+import { useTranslation } from "@/features/localization";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { centerSlug } = useTenant();
   const isPlatformAdmin = !centerSlug;
   const [editingSetting, setEditingSetting] = useState<SystemSetting | null>(
@@ -41,20 +43,21 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Settings"
-          description="Global LMS configuration is managed at platform level."
+          title={t("pages.settingsPage.title")}
+          description={t("pages.settingsPage.descriptionPlatformLevel")}
         />
         <Card>
           <CardHeader>
-            <CardTitle>Platform Scope Required</CardTitle>
+            <CardTitle>
+              {t("pages.settingsPage.platformScopeRequiredTitle")}
+            </CardTitle>
             <CardDescription>
-              System settings are only editable in the platform-admin workspace.
+              {t("pages.settingsPage.platformScopeRequiredDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              For center-specific configuration, use the Center Settings
-              section.
+              {t("pages.settingsPage.platformScopeRequiredHint")}
             </p>
           </CardContent>
         </Card>
@@ -65,25 +68,22 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="System Registry"
-        description="Control the global defaults that power fallback behavior across every center."
+        title={t("pages.settingsPage.registryTitle")}
+        description={t("pages.settingsPage.registryDescription")}
       />
 
       <Card className="overflow-hidden border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#fff7ed_45%,#ffffff_100%)] shadow-sm dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(28,25,23,0.92)_45%,rgba(15,23,42,0.96)_100%)]">
         <CardContent className="grid gap-6 p-6 lg:grid-cols-[1.6fr_1fr]">
           <div className="space-y-4">
             <div className="inline-flex items-center rounded-full border border-amber-200/70 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700 shadow-sm dark:border-amber-900/70 dark:bg-gray-900/70 dark:text-amber-300">
-              Platform Scope
+              {t("pages.settingsPage.platformScopeBadge")}
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                One registry for defaults, fallbacks, and platform-wide policy.
+                {t("pages.settingsPage.heroTitle")}
               </h2>
               <p className="max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-                These values are consumed by center policy resolution. Changes
-                to keys like <span className="font-mono">timezone</span> or{" "}
-                <span className="font-mono">support_email</span> affect every
-                center that inherits the global default.
+                {t("pages.settingsPage.heroDescription")}
               </p>
             </div>
           </div>
@@ -91,28 +91,26 @@ export default function SettingsPage() {
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                System Keys
+                {t("pages.settingsPage.cards.systemKeys.title")}
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Store normalized JSON objects for fallback-aware settings.
+                {t("pages.settingsPage.cards.systemKeys.description")}
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                Safe Editing
+                {t("pages.settingsPage.cards.safeEditing.title")}
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Update existing keys in place. Create only when no exact key
-                exists.
+                {t("pages.settingsPage.cards.safeEditing.description")}
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                Visibility
+                {t("pages.settingsPage.cards.visibility.title")}
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Mark public values intentionally. Visibility is now surfaced in
-                the registry itself.
+                {t("pages.settingsPage.cards.visibility.description")}
               </p>
             </div>
           </div>
@@ -123,7 +121,7 @@ export default function SettingsPage() {
 
       {feedbackMessage ? (
         <Alert>
-          <AlertTitle>Registry updated</AlertTitle>
+          <AlertTitle>{t("pages.settingsPage.registryUpdated")}</AlertTitle>
           <AlertDescription>{feedbackMessage}</AlertDescription>
         </Alert>
       ) : null}

@@ -210,6 +210,11 @@
       "flagLabels": {
         "yes": "Yes",
         "no": "No"
+      },
+      "fallbacks": {
+        "role": "Role",
+        "centerWithId": "(ID: {id})",
+        "centerIdOnly": "Center #{id}"
       }
     },
     "adminUsers": {
@@ -246,6 +251,107 @@
       "addVideo": "Add Video",
       "selectCenterFirst": "Select a center first",
       "selectFailedVideos": "Select failed upload-source videos to retry."
+    },
+    "settingsPage": {
+      "title": "Settings",
+      "descriptionPlatformLevel": "Global LMS configuration is managed at platform level.",
+      "platformScopeRequiredTitle": "Platform Scope Required",
+      "platformScopeRequiredDesc": "System settings are only editable in the platform-admin workspace.",
+      "platformScopeRequiredHint": "For center-specific configuration, use the Center Settings section.",
+      "registryTitle": "System Registry",
+      "registryDescription": "Control the global defaults that power fallback behavior across every center.",
+      "platformScopeBadge": "Platform Scope",
+      "heroTitle": "One registry for defaults, fallbacks, and platform-wide policy.",
+      "heroDescription": "These values are consumed by center policy resolution. Changes to keys like timezone or support_email affect every center that inherits the global default.",
+      "cards": {
+        "systemKeys": {
+          "title": "System Keys",
+          "description": "Store normalized JSON objects for fallback-aware settings."
+        },
+        "safeEditing": {
+          "title": "Safe Editing",
+          "description": "Update existing keys in place. Create only when no exact key exists."
+        },
+        "visibility": {
+          "title": "Visibility",
+          "description": "Mark public values intentionally. Visibility is now surfaced in the registry itself."
+        }
+      },
+      "registryUpdated": "Registry updated"
+    },
+    "settingsPlaceholders": {
+      "center": {
+        "title": "Center Settings",
+        "description": "Defaults applied across centers.",
+        "items": {
+          "defaults": {
+            "title": "Defaults",
+            "description": "Timezone, locale, and grading schemes."
+          },
+          "escalations": {
+            "title": "Escalations",
+            "description": "Who gets notified for center incidents."
+          },
+          "automation": {
+            "title": "Automation",
+            "description": "Auto-provisioning and sync rules."
+          }
+        }
+      },
+      "course": {
+        "title": "Course Settings",
+        "description": "Global course delivery rules.",
+        "items": {
+          "templates": {
+            "title": "Templates",
+            "description": "Default syllabus and grading templates."
+          },
+          "publishing": {
+            "title": "Publishing",
+            "description": "Review flows and scheduling windows."
+          },
+          "access": {
+            "title": "Access",
+            "description": "Enrollment caps and prerequisites."
+          }
+        }
+      },
+      "student": {
+        "title": "Student Settings",
+        "description": "Defaults for student access and privacy.",
+        "items": {
+          "authentication": {
+            "title": "Authentication",
+            "description": "MFA policies and login restrictions."
+          },
+          "privacy": {
+            "title": "Privacy",
+            "description": "Data retention and export settings."
+          },
+          "engagement": {
+            "title": "Engagement",
+            "description": "Reminder cadence and communication rules."
+          }
+        }
+      },
+      "video": {
+        "title": "Video Settings",
+        "description": "Defaults for video encoding and playback.",
+        "items": {
+          "encoding": {
+            "title": "Encoding",
+            "description": "Bitrate ladders and codec presets."
+          },
+          "captions": {
+            "title": "Captions",
+            "description": "Caption defaults and required languages."
+          },
+          "drm": {
+            "title": "DRM",
+            "description": "Key rotation and token lifetimes."
+          }
+        }
+      }
     },
     "centerCourses": {
       "title": "Center Courses",

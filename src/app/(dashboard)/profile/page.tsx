@@ -75,25 +75,30 @@ function toDateLabel(value: unknown): string {
   return text ? formatDateTime(text) : "—";
 }
 
-function toRoleLabel(role: string | AdminUserRole): string {
+function toRoleLabel(
+  role: string | AdminUserRole,
+  fallbackRoleLabel: string,
+): string {
   if (typeof role === "string") {
     return toReadableText(role);
   }
 
   const label = toText(role.name) ?? toText(role.slug) ?? toText(role.role);
-  return label ? toReadableText(label) : "Role";
+  return label ? toReadableText(label) : fallbackRoleLabel;
 }
 
-function resolveRoles(user: AdminUser): string[] {
+function resolveRoles(user: AdminUser, fallbackRoleLabel: string): string[] {
   if (Array.isArray(user.roles) && user.roles.length > 0) {
-    return user.roles.map((role) => toRoleLabel(role));
+    return user.roles.map((role) => toRoleLabel(role, fallbackRoleLabel));
   }
 
   if (
     Array.isArray(user.roles_with_permissions) &&
     user.roles_with_permissions.length > 0
   ) {
-    return user.roles_with_permissions.map((role) => toRoleLabel(role));
+    return user.roles_with_permissions.map((role) =>
+      toRoleLabel(role, fallbackRoleLabel),
+    );
   }
 
   if (toText(user.role)) {
@@ -169,13 +174,19 @@ function useResolveScopeLabel() {
   };
 }
 
-function resolveCenterLabel(user: AdminUser): string {
+function resolveCenterLabel(
+  user: AdminUser,
+  centerWithIdLabel: string,
+  centerIdFallbackLabel: string,
+): string {
   const centerName = toText(user.center?.name);
   const centerId = toText(user.center_id);
 
-  if (centerName && centerId) return `${centerName} (ID: ${centerId})`;
+  if (centerName && centerId) {
+    return `${centerName} ${centerWithIdLabel.replace("{id}", centerId)}`;
+  }
   if (centerName) return centerName;
-  if (centerId) return `Center #${centerId}`;
+  if (centerId) return centerIdFallbackLabel.replace("{id}", centerId);
 
   return "—";
 }
@@ -316,7 +327,7 @@ export default function ProfilePage() {
   }
 
   const status = resolveStatus(user);
-  const roles = resolveRoles(user);
+  const roles = resolveRoles(user, t("pages.profile.fallbacks.role"));
   const permissionCount = Array.isArray(user.permissions)
     ? user.permissions.length
     : 0;
@@ -459,7 +470,11 @@ export default function ProfilePage() {
             />
             <ProfileField
               label={t("pages.profile.fields.center")}
-              value={resolveCenterLabel(user)}
+              value={resolveCenterLabel(
+                user,
+                t("pages.profile.fallbacks.centerWithId"),
+                t("pages.profile.fallbacks.centerIdOnly"),
+              )}
             />
             <ProfileField
               label={t("pages.profile.fields.permissionCount")}

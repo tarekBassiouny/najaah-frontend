@@ -17,6 +17,7 @@ import { ChangePasswordDialog } from "@/features/auth/components/ChangePasswordD
 import { EditAdminProfileDialog } from "@/features/auth/components/EditAdminProfileDialog";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { formatDateTime } from "@/lib/format-date-time";
+import { useTranslation } from "@/features/localization";
 import type { AdminUser, AdminUserRole } from "@/types/auth";
 
 type BadgeVariant =
@@ -102,44 +103,49 @@ function resolveRoles(user: AdminUser): string[] {
   return [];
 }
 
-function resolveStatus(user: AdminUser): {
-  label: string;
-  variant: BadgeVariant;
-} {
-  const key =
-    toText(user.status_key)?.toLowerCase() ?? toText(user.status) ?? "";
-  const normalized = String(key).trim().toLowerCase();
+function useResolveStatus() {
+  const { t } = useTranslation();
 
-  const statusMap: Record<string, { label: string; variant: BadgeVariant }> = {
-    "0": { label: "Inactive", variant: "warning" },
-    "1": { label: "Active", variant: "success" },
-    "2": { label: "Banned", variant: "error" },
-    inactive: { label: "Inactive", variant: "warning" },
-    active: { label: "Active", variant: "success" },
-    banned: { label: "Banned", variant: "error" },
+  return (user: AdminUser): { label: string; variant: BadgeVariant } => {
+    const key =
+      toText(user.status_key)?.toLowerCase() ?? toText(user.status) ?? "";
+    const normalized = String(key).trim().toLowerCase();
+
+    const statusMap: Record<string, { label: string; variant: BadgeVariant }> = {
+      "0": { label: t("pages.profile.statusLabels.inactive"), variant: "warning" },
+      "1": { label: t("pages.profile.statusLabels.active"), variant: "success" },
+      "2": { label: t("pages.profile.statusLabels.banned"), variant: "error" },
+      inactive: { label: t("pages.profile.statusLabels.inactive"), variant: "warning" },
+      active: { label: t("pages.profile.statusLabels.active"), variant: "success" },
+      banned: { label: t("pages.profile.statusLabels.banned"), variant: "error" },
+    };
+
+    const fallback =
+      toText(user.status_label) ??
+      (normalized ? toReadableText(normalized) : t("pages.profile.statusLabels.unknown"));
+
+    return statusMap[normalized] ?? { label: fallback, variant: "secondary" };
   };
-
-  const fallback =
-    toText(user.status_label) ??
-    (normalized ? toReadableText(normalized) : "Unknown");
-
-  return statusMap[normalized] ?? { label: fallback, variant: "secondary" };
 }
 
-function resolveScopeLabel(user: AdminUser): string {
-  const raw = toText(user.scope_type);
-  if (!raw) return "—";
+function useResolveScopeLabel() {
+  const { t } = useTranslation();
 
-  const normalized = raw.toLowerCase();
-  if (normalized === "system" || normalized === "platform") {
-    return "System";
-  }
+  return (user: AdminUser): string => {
+    const raw = toText(user.scope_type);
+    if (!raw) return "—";
 
-  if (normalized === "center") {
-    return "Center";
-  }
+    const normalized = raw.toLowerCase();
+    if (normalized === "system" || normalized === "platform") {
+      return t("pages.profile.scopeTypes.system");
+    }
 
-  return toReadableText(raw);
+    if (normalized === "center") {
+      return t("pages.profile.scopeTypes.center");
+    }
+
+    return toReadableText(raw);
+  };
 }
 
 function resolveCenterLabel(user: AdminUser): string {
@@ -153,14 +159,18 @@ function resolveCenterLabel(user: AdminUser): string {
   return "—";
 }
 
-function resolveFlagLabel(value: unknown): string {
-  if (typeof value === "boolean") return value ? "Yes" : "No";
+function useResolveFlagLabel() {
+  const { t } = useTranslation();
 
-  const raw = toText(value)?.toLowerCase();
-  if (!raw) return "No";
+  return (value: unknown): string => {
+    if (typeof value === "boolean") return value ? t("pages.profile.flagLabels.yes") : t("pages.profile.flagLabels.no");
 
-  if (raw === "1" || raw === "true") return "Yes";
-  return "No";
+    const raw = toText(value)?.toLowerCase();
+    if (!raw) return t("pages.profile.flagLabels.no");
+
+    if (raw === "1" || raw === "true") return t("pages.profile.flagLabels.yes");
+    return t("pages.profile.flagLabels.no");
+  };
 }
 
 function ProfileLoadingState() {
@@ -210,13 +220,17 @@ export default function ProfilePage() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { t } = useTranslation();
+  const resolveStatus = useResolveStatus();
+  const resolveScopeLabel = useResolveScopeLabel();
+  const resolveFlagLabel = useResolveFlagLabel();
 
   if (isLoading) {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="My Profile"
-          description="Account details loaded from /api/v1/admin/auth/me."
+          title={t("pages.profile.title")}
+          description={t("pages.profile.descriptionLoading")}
         />
         <ProfileLoadingState />
       </div>
@@ -227,16 +241,15 @@ export default function ProfilePage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="My Profile"
-          description="Account details loaded from /api/v1/admin/auth/me."
+          title={t("pages.profile.title")}
+          description={t("pages.profile.descriptionLoading")}
         />
 
         <Card>
           <CardHeader>
-            <CardTitle>Could not load profile</CardTitle>
+            <CardTitle>{t("pages.profile.couldNotLoad")}</CardTitle>
             <CardDescription>
-              The profile request failed. Try again to fetch your latest account
-              data.
+              {t("pages.profile.couldNotLoadDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -248,7 +261,7 @@ export default function ProfilePage() {
               }}
               disabled={isFetching}
             >
-              {isFetching ? "Retrying..." : "Retry"}
+              {isFetching ? t("pages.profile.retrying") : t("pages.profile.retry")}
             </Button>
           </CardContent>
         </Card>
@@ -260,15 +273,15 @@ export default function ProfilePage() {
     return (
       <div className="space-y-6">
         <PageHeader
-          title="My Profile"
-          description="Account details loaded from /api/v1/admin/auth/me."
+          title={t("pages.profile.title")}
+          description={t("pages.profile.descriptionLoading")}
         />
 
         <Card>
           <CardHeader>
-            <CardTitle>Profile unavailable</CardTitle>
+            <CardTitle>{t("pages.profile.unavailable")}</CardTitle>
             <CardDescription>
-              No profile data is currently available for this session.
+              {t("pages.profile.unavailableDesc")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -285,8 +298,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="My Profile"
-        description="Manage account details for the currently logged-in admin."
+        title={t("pages.profile.title")}
+        description={t("pages.profile.description")}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -297,7 +310,7 @@ export default function ProfilePage() {
                 setEditProfileOpen(true);
               }}
             >
-              Edit Info
+              {t("pages.profile.editInfo")}
             </Button>
             <Button
               type="button"
@@ -307,7 +320,7 @@ export default function ProfilePage() {
                 setChangePasswordOpen(true);
               }}
             >
-              Change Password
+              {t("pages.profile.changePassword")}
             </Button>
             <Button
               type="button"
@@ -317,7 +330,7 @@ export default function ProfilePage() {
               }}
               disabled={isFetching}
             >
-              {isFetching ? "Refreshing..." : "Refresh"}
+              {isFetching ? t("pages.profile.refreshing") : t("pages.profile.refresh")}
             </Button>
           </div>
         }
@@ -325,25 +338,25 @@ export default function ProfilePage() {
 
       {successMessage ? (
         <Alert>
-          <AlertTitle>Success</AlertTitle>
+          <AlertTitle>{t("pages.profile.success")}</AlertTitle>
           <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       ) : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>{toText(user.name) ?? "Admin"}</CardTitle>
+          <CardTitle>{toText(user.name) ?? t("common.labels.admin")}</CardTitle>
           <CardDescription>
-            {toText(user.email) ?? "No email available"}
+            {toText(user.email) ?? "—"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-2">
           <Badge variant={status.variant}>{status.label}</Badge>
-          {resolveFlagLabel(user.is_system_super_admin) === "Yes" ? (
-            <Badge variant="default">System Super Admin</Badge>
+          {resolveFlagLabel(user.is_system_super_admin) === t("pages.profile.flagLabels.yes") ? (
+            <Badge variant="default">{t("pages.profile.badges.systemSuperAdmin")}</Badge>
           ) : null}
-          {resolveFlagLabel(user.is_center_super_admin) === "Yes" ? (
-            <Badge variant="info">Center Super Admin</Badge>
+          {resolveFlagLabel(user.is_center_super_admin) === t("pages.profile.flagLabels.yes") ? (
+            <Badge variant="info">{t("pages.profile.badges.centerSuperAdmin")}</Badge>
           ) : null}
           {roles.length > 0
             ? roles.map((role) => (
@@ -358,20 +371,20 @@ export default function ProfilePage() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Identity</CardTitle>
-            <CardDescription>Basic account attributes.</CardDescription>
+            <CardTitle>{t("pages.profile.cards.identity")}</CardTitle>
+            <CardDescription>{t("pages.profile.cards.identityDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProfileField label="Admin ID" value={String(user.id)} mono />
-            <ProfileField label="Name" value={toText(user.name) ?? "—"} />
-            <ProfileField label="Email" value={toText(user.email) ?? "—"} />
-            <ProfileField label="Phone" value={toText(user.phone) ?? "—"} />
+            <ProfileField label={t("pages.profile.fields.adminId")} value={String(user.id)} mono />
+            <ProfileField label={t("pages.profile.fields.name")} value={toText(user.name) ?? "—"} />
+            <ProfileField label={t("pages.profile.fields.email")} value={toText(user.email) ?? "—"} />
+            <ProfileField label={t("pages.profile.fields.phone")} value={toText(user.phone) ?? "—"} />
             <ProfileField
-              label="Username"
+              label={t("pages.profile.fields.username")}
               value={toText(user.username) ?? "—"}
             />
             <ProfileField
-              label="Country Code"
+              label={t("pages.profile.fields.countryCode")}
               value={toText(user.country_code) ?? "—"}
             />
           </CardContent>
@@ -379,29 +392,29 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Access & Scope</CardTitle>
+            <CardTitle>{t("pages.profile.cards.accessScope")}</CardTitle>
             <CardDescription>
-              Permissions, scope and assignment context.
+              {t("pages.profile.cards.accessScopeDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProfileField label="Status" value={status.label} />
-            <ProfileField label="Scope Type" value={resolveScopeLabel(user)} />
+            <ProfileField label={t("pages.profile.fields.status")} value={status.label} />
+            <ProfileField label={t("pages.profile.fields.scopeType")} value={resolveScopeLabel(user)} />
             <ProfileField
-              label="Scope Center ID"
+              label={t("pages.profile.fields.scopeCenterId")}
               value={toText(user.scope_center_id) ?? "—"}
             />
-            <ProfileField label="Center" value={resolveCenterLabel(user)} />
+            <ProfileField label={t("pages.profile.fields.center")} value={resolveCenterLabel(user)} />
             <ProfileField
-              label="Permission Count"
+              label={t("pages.profile.fields.permissionCount")}
               value={String(permissionCount)}
             />
             <ProfileField
-              label="System Super Admin"
+              label={t("pages.profile.fields.systemSuperAdmin")}
               value={resolveFlagLabel(user.is_system_super_admin)}
             />
             <ProfileField
-              label="Center Super Admin"
+              label={t("pages.profile.fields.centerSuperAdmin")}
               value={resolveFlagLabel(user.is_center_super_admin)}
             />
           </CardContent>
@@ -410,14 +423,14 @@ export default function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Activity</CardTitle>
+          <CardTitle>{t("pages.profile.cards.activity")}</CardTitle>
           <CardDescription>
-            Authentication and audit timestamps.
+            {t("pages.profile.cards.activityDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <ProfileField
-            label="Last Active"
+            label={t("pages.profile.fields.lastActive")}
             value={
               toDateLabel(user.last_active_at) !== "—"
                 ? toDateLabel(user.last_active_at)
@@ -426,12 +439,12 @@ export default function ProfilePage() {
             mono
           />
           <ProfileField
-            label="Created At"
+            label={t("pages.profile.fields.createdAt")}
             value={toDateLabel(user.created_at)}
             mono
           />
           <ProfileField
-            label="Updated At"
+            label={t("pages.profile.fields.updatedAt")}
             value={toDateLabel(user.updated_at)}
             mono
           />

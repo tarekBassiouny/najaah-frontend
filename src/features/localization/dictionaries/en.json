@@ -1,0 +1,439 @@
+{
+  "common": {
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "add": "Add",
+      "remove": "Remove",
+      "update": "Update",
+      "submit": "Submit",
+      "confirm": "Confirm",
+      "close": "Close",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "search": "Search",
+      "filter": "Filter",
+      "export": "Export",
+      "import": "Import",
+      "refresh": "Refresh",
+      "retry": "Retry",
+      "view": "View",
+      "download": "Download",
+      "upload": "Upload",
+      "copy": "Copy",
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "deleting": "Deleting...",
+      "viewAll": "View all"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "running": "Running",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "labels": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "description": "Description",
+      "status": "Status",
+      "type": "Type",
+      "date": "Date",
+      "time": "Time",
+      "actions": "Actions",
+      "details": "Details",
+      "settings": "Settings",
+      "all": "All",
+      "none": "None",
+      "yes": "Yes",
+      "no": "No",
+      "or": "or",
+      "and": "and",
+      "of": "of",
+      "to": "to",
+      "from": "From",
+      "by": "by",
+      "center": "Center",
+      "centers": "Centers",
+      "user": "User",
+      "admin": "Admin",
+      "system": "System"
+    },
+    "messages": {
+      "saveSuccess": "Changes saved successfully",
+      "saveFailed": "Failed to save changes",
+      "deleteSuccess": "Deleted successfully",
+      "deleteFailed": "Failed to delete",
+      "deleteConfirm": "Are you sure you want to delete this item?",
+      "loadFailed": "Failed to load data",
+      "noResults": "No results found",
+      "noData": "No data available",
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "missingCenterContext": "Missing center context. Refresh the page to reload center scope.",
+      "refreshingData": "Refreshing data..."
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "results": "results",
+      "page": "Page",
+      "perPage": "per page",
+      "first": "First",
+      "last": "Last",
+      "next": "Next",
+      "previous": "Previous"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minuteAgo": "{count}m ago",
+      "hourAgo": "{count}h ago",
+      "dayAgo": "{count}d ago",
+      "minutesAgo": "{count} minute(s) ago",
+      "hoursAgo": "{count} hour(s) ago",
+      "daysAgo": "{count} day(s) ago",
+      "today": "today",
+      "yesterday": "Yesterday",
+      "oneDayAgo": "1 day ago",
+      "unknownTime": "Unknown time"
+    }
+  },
+  "header": {
+    "myAccount": "My Account",
+    "viewProfile": "View profile",
+    "logOut": "Log out",
+    "loggingOut": "Logging out..."
+  },
+  "sidebar": {
+    "sections": {
+      "admin": "ADMIN"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "analytics": "Analytics",
+      "analysis": "Analysis",
+      "centers": "Centers",
+      "categories": "Categories",
+      "courses": "Courses",
+      "surveys": "Surveys",
+      "agents": "Agents",
+      "rolesAndPermissions": "Roles & Permissions",
+      "roles": "Roles",
+      "admins": "Admins",
+      "students": "Students",
+      "education": "Education",
+      "instructors": "Instructors",
+      "studentRequests": "Student Requests",
+      "videos": "Videos",
+      "pdfs": "PDFs",
+      "landingPage": "Landing Page",
+      "settings": "Settings",
+      "auditLog": "Audit Log",
+      "auditLogs": "Audit Logs"
+    },
+    "backToCenters": "Back to Centers",
+    "najaahAdmin": "Najaah Admin"
+  },
+  "pages": {
+    "profile": {
+      "title": "My Profile",
+      "descriptionLoading": "Account details loaded from /api/v1/admin/auth/me.",
+      "description": "Manage account details for the currently logged-in admin.",
+      "editInfo": "Edit Info",
+      "changePassword": "Change Password",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
+      "success": "Success",
+      "couldNotLoad": "Could not load profile",
+      "couldNotLoadDesc": "The profile request failed. Try again to fetch your latest account data.",
+      "retry": "Retry",
+      "retrying": "Retrying...",
+      "unavailable": "Profile unavailable",
+      "unavailableDesc": "No profile data is currently available for this session.",
+      "cards": {
+        "identity": "Identity",
+        "identityDesc": "Basic account attributes.",
+        "accessScope": "Access & Scope",
+        "accessScopeDesc": "Permissions, scope and assignment context.",
+        "activity": "Activity",
+        "activityDesc": "Authentication and audit timestamps."
+      },
+      "fields": {
+        "adminId": "Admin ID",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "username": "Username",
+        "countryCode": "Country Code",
+        "status": "Status",
+        "scopeType": "Scope Type",
+        "scopeCenterId": "Scope Center ID",
+        "center": "Center",
+        "permissionCount": "Permission Count",
+        "systemSuperAdmin": "System Super Admin",
+        "centerSuperAdmin": "Center Super Admin",
+        "lastActive": "Last Active",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At"
+      },
+      "scopeTypes": {
+        "system": "System",
+        "platform": "Platform",
+        "center": "Center"
+      },
+      "badges": {
+        "systemSuperAdmin": "System Super Admin",
+        "centerSuperAdmin": "Center Super Admin"
+      },
+      "statusLabels": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "banned": "Banned",
+        "unknown": "Unknown"
+      },
+      "flagLabels": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "adminUsers": {
+      "title": "Admin Users",
+      "description": "Manage system administrators and permissions",
+      "addAdmin": "Add Admin"
+    },
+    "rolesPage": {
+      "title": "Roles",
+      "descriptionWrite": "Manage user roles and their access levels.",
+      "descriptionReadOnly": "View roles and permissions. Updates require system-scoped access.",
+      "addRole": "Add Role"
+    },
+    "centersPage": {
+      "title": "Centers",
+      "description": "Manage training centers across your platform",
+      "addCenter": "Add Center"
+    },
+    "centerCourses": {
+      "title": "Center Courses",
+      "description": "Manage courses for this center",
+      "backToCenter": "Back to Center",
+      "createCourse": "Create Course"
+    },
+    "centerStudents": {
+      "title": "Students",
+      "description": "Manage students for this center, with optional center assignment",
+      "addStudent": "Add Student",
+      "backToCenter": "Back to Center"
+    },
+    "centerVideos": {
+      "title": "Center Videos",
+      "descriptionWrite": "Manage videos for this center.",
+      "descriptionReadOnly": "View center videos. Managing videos requires video.manage permission.",
+      "addVideo": "Add Video",
+      "backToCenter": "Back to Center",
+      "selectFailedVideos": "Select failed upload-source videos to retry."
+    },
+    "centerSettings": {
+      "title": "{name} Settings",
+      "titleFallback": "Center Settings",
+      "description": "Manage center details, status, and onboarding operations",
+      "notFoundTitle": "Center not found",
+      "notFoundDesc": "The center you requested does not exist or is no longer available.",
+      "goToCenters": "Go to Centers",
+      "loadFailed": "Failed to load center settings.",
+      "backToCenters": "Back to Centers",
+      "back": "Back",
+      "tier": "Tier"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": {
+        "platform": "Overview across all centers. Select a center to scope the data.",
+        "center": "Overview of your center dashboard metrics and recent activity."
+      },
+      "stats": {
+        "totalCourses": "Total Courses",
+        "totalCoursesDesc": "All published courses",
+        "totalStudents": "Total Students",
+        "totalStudentsDesc": "Registered students",
+        "activeEnrollments": "Active Enrollments",
+        "activeEnrollmentsDesc": "Currently enrolled",
+        "pendingApprovals": "Pending Approvals",
+        "enrollments": "Enrollments",
+        "device": "Device",
+        "extraView": "Extra view"
+      },
+      "sections": {
+        "quickActions": "Quick Actions",
+        "recentActivity": "Recent Activity",
+        "recentAgentExecutions": "Recent Agent Executions"
+      },
+      "quickActions": {
+        "addCourse": "Add Course",
+        "addCourseDesc": "Create a new course",
+        "uploadVideo": "Upload Video",
+        "uploadVideoDesc": "Add video content",
+        "enrollStudents": "Enroll Students",
+        "enrollStudentsDesc": "Add enrollments",
+        "viewRequests": "View Requests",
+        "viewRequestsDesc": "Pending approvals"
+      },
+      "recentActivity": {
+        "noActivity": "No recent activity",
+        "noActivityDesc": "Activity will appear here once actions are taken."
+      },
+      "agents": {
+        "noExecutions": "No agent executions yet",
+        "noExecutionsDesc": "Agent workflow executions will appear here",
+        "viewAllExecutions": "View all executions",
+        "loadFailed": "Failed to load agent executions"
+      },
+      "errors": {
+        "loadFailed": "Failed to load dashboard data."
+      }
+    },
+    "centers": {
+      "title": "Centers",
+      "description": "Manage all centers on the platform",
+      "createCenter": "Create Center",
+      "editCenter": "Edit Center",
+      "centerDetails": "Center Details"
+    },
+    "courses": {
+      "title": "Courses",
+      "description": "Manage courses and curriculum",
+      "createCourse": "Create Course",
+      "editCourse": "Edit Course"
+    },
+    "students": {
+      "title": "Students",
+      "description": "Manage student accounts",
+      "createStudent": "Create Student",
+      "editStudent": "Edit Student"
+    },
+    "instructors": {
+      "title": "Instructors",
+      "description": "Manage instructor profiles",
+      "createInstructor": "Create Instructor",
+      "editInstructor": "Edit Instructor"
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Manage course categories"
+    },
+    "videos": {
+      "title": "Videos",
+      "description": "Manage video content"
+    },
+    "pdfs": {
+      "title": "PDFs",
+      "description": "Manage PDF documents"
+    },
+    "surveys": {
+      "title": "Surveys",
+      "description": "Manage surveys and questionnaires"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "View platform analytics and reports"
+    },
+    "agents": {
+      "title": "Agents",
+      "description": "Manage AI agents and executions"
+    },
+    "roles": {
+      "title": "Roles & Permissions",
+      "description": "Manage user roles and permissions"
+    },
+    "admins": {
+      "title": "Admins",
+      "description": "Manage admin users"
+    },
+    "studentRequests": {
+      "title": "Student Requests",
+      "description": "Manage student enrollment and device requests"
+    },
+    "education": {
+      "title": "Education",
+      "description": "Manage educational settings"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure system settings"
+    },
+    "auditLogs": {
+      "title": "Audit Logs",
+      "description": "View system audit logs"
+    },
+    "landingPage": {
+      "title": "Landing Page",
+      "description": "Configure center landing page"
+    },
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Enter your credentials to access your account",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign In",
+      "signingIn": "Signing in..."
+    }
+  },
+  "tables": {
+    "headers": {
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "type": "Type",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "No data found",
+      "description": "There are no items to display"
+    }
+  },
+  "forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Please enter a valid email address",
+      "minLength": "Must be at least {min} characters",
+      "maxLength": "Must be no more than {max} characters",
+      "pattern": "Invalid format"
+    },
+    "placeholders": {
+      "search": "Search...",
+      "selectOption": "Select an option",
+      "enterValue": "Enter a value"
+    }
+  },
+  "badges": {
+    "beta": "Beta",
+    "new": "New",
+    "pro": "Pro"
+  },
+  "errors": {
+    "general": "Something went wrong",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access denied",
+    "serverError": "Server error"
+  }
+}

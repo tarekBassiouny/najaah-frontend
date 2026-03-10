@@ -25,8 +25,8 @@ type Params = {
 };
 
 const DEFAULT_LOCALE = "en";
-const DEFAULT_PRIMARY_COLOR = "#4F46E5";
-const DEFAULT_SECONDARY_COLOR = "#0F172A";
+const DEFAULT_PRIMARY_COLOR = "#3C50E0";
+const DEFAULT_SECONDARY_COLOR = "#111928";
 const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{3,8}$/;
 
 type LandingCopy = {
@@ -103,8 +103,7 @@ const landingCopy = {
     address: "Address",
     socialEyebrow: "Social",
     socialTitle: "Stay connected",
-    socialDescription:
-      "Follow the center on its active public channels.",
+    socialDescription: "Follow the center on its active public channels.",
     testimonialsEyebrow: "Testimonials",
     testimonialsTitle: "What learners say",
     testimonialsDescription:
@@ -227,6 +226,32 @@ function normalizeHexColor(
   return hasText(value) && HEX_COLOR_REGEX.test(value ?? "") ? value! : fallback;
 }
 
+function hexToRgba(value: string, alpha = 1) {
+  const hex = value.replace("#", "");
+  const expanded =
+    hex.length === 3 || hex.length === 4
+      ? hex
+          .split("")
+          .map((part) => `${part}${part}`)
+          .join("")
+      : hex;
+
+  if (expanded.length !== 6 && expanded.length !== 8) {
+    return value;
+  }
+
+  const red = Number.parseInt(expanded.slice(0, 2), 16);
+  const green = Number.parseInt(expanded.slice(2, 4), 16);
+  const blue = Number.parseInt(expanded.slice(4, 6), 16);
+  const sourceAlpha =
+    expanded.length === 8
+      ? Number.parseInt(expanded.slice(6, 8), 16) / 255
+      : 1;
+  const resolvedAlpha = Math.max(0, Math.min(1, sourceAlpha * alpha));
+
+  return `rgba(${red}, ${green}, ${blue}, ${resolvedAlpha})`;
+}
+
 function ensureHref(value: string | null | undefined) {
   if (!hasText(value)) {
     return null;
@@ -248,6 +273,7 @@ function ensureHref(value: string | null | undefined) {
 
 function buildLocaleHref(
   locale: "en" | "ar",
+  slug: string,
   previewToken?: string | null,
 ): string {
   const searchParams = new URLSearchParams();
@@ -257,8 +283,7 @@ function buildLocaleHref(
     searchParams.set("preview_token", previewToken);
   }
 
-  const pathname = locale === "ar" ? "/ar" : "/";
-  return `${pathname}?${searchParams.toString()}`;
+  return `/landing/${encodeURIComponent(slug)}?${searchParams.toString()}`;
 }
 
 function getHeroBackgroundStyle(
@@ -268,7 +293,11 @@ function getHeroBackgroundStyle(
 ): CSSProperties {
   if (hero?.hero_background_url) {
     return {
-      backgroundImage: `linear-gradient(135deg, ${secondaryColor}F2 8%, ${primaryColor}B8 100%), url(${hero.hero_background_url})`,
+      backgroundColor: secondaryColor,
+      backgroundImage: `linear-gradient(140deg, ${hexToRgba(
+        secondaryColor,
+        0.88,
+      )} 10%, ${hexToRgba(primaryColor, 0.58)} 100%), url(${hero.hero_background_url})`,
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
@@ -276,7 +305,11 @@ function getHeroBackgroundStyle(
   }
 
   return {
-    backgroundImage: `linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%)`,
+    backgroundColor: secondaryColor,
+    backgroundImage: `linear-gradient(140deg, ${hexToRgba(
+      secondaryColor,
+      0.96,
+    )} 0%, ${hexToRgba(primaryColor, 0.76)} 100%)`,
   };
 }
 
@@ -290,7 +323,10 @@ function getRevealStyle(delay = 0): CSSProperties {
   };
 }
 
-function buildSocialLinks(social: LandingPageSocial | null | undefined, labels: LandingCopy) {
+function buildSocialLinks(
+  social: LandingPageSocial | null | undefined,
+  labels: LandingCopy,
+) {
   const entries = [
     { label: labels.facebook, value: social?.social_facebook },
     { label: labels.twitter, value: social?.social_twitter },
@@ -416,25 +452,37 @@ function SectionHeading({
   title,
   description,
   accentColor,
+  inverted = false,
 }: {
   eyebrow: string;
   title: string;
   description?: string;
   accentColor: string;
+  inverted?: boolean;
 }) {
   return (
     <div className="space-y-3">
       <p
-        className="text-xs font-semibold uppercase tracking-[0.28em]"
-        style={{ color: accentColor }}
+        className={`text-xs font-semibold uppercase tracking-[0.28em] ${
+          inverted ? "text-white/70" : ""
+        }`}
+        style={inverted ? undefined : { color: accentColor }}
       >
         {eyebrow}
       </p>
-      <h2 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-4xl">
+      <h2
+        className={`text-3xl font-semibold tracking-tight md:text-4xl ${
+          inverted ? "text-white" : "text-slate-950"
+        }`}
+      >
         {title}
       </h2>
       {description ? (
-        <p className="max-w-2xl text-base leading-7 text-slate-600">
+        <p
+          className={`max-w-2xl text-base leading-7 ${
+            inverted ? "text-white/70" : "text-slate-600"
+          }`}
+        >
           {description}
         </p>
       ) : null}
@@ -442,19 +490,59 @@ function SectionHeading({
   );
 }
 
+function LocaleLink({
+  href,
+  label,
+  active,
+  primaryColor,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  primaryColor: string;
+}) {
+  return (
+    <a
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className="rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] transition"
+      style={
+        active
+          ? {
+              backgroundColor: primaryColor,
+              boxShadow: `0 18px 36px -24px ${hexToRgba(primaryColor, 0.8)}`,
+              color: "#FFFFFF",
+            }
+          : {
+              color: "#334155",
+            }
+      }
+    >
+      {label}
+    </a>
+  );
+}
+
 function HeroSummaryCard({
   label,
   value,
+  primaryColor,
 }: {
   label: string;
   value: string;
+  primaryColor: string;
 }) {
   return (
-    <div className="rounded-3xl border border-white/14 bg-white/8 p-4 backdrop-blur-md">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+    <div className="rounded-[26px] border border-stone-200/80 bg-stone-50/90 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
         {label}
       </p>
-      <p className="mt-3 text-2xl font-semibold text-white">{value}</p>
+      <p
+        className="mt-3 text-3xl font-semibold tracking-tight"
+        style={{ color: primaryColor }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -463,14 +551,20 @@ function TestimonialCard({
   testimonial,
   locale,
   primaryColor,
+  secondaryColor,
   anonymousLabel,
+  eyebrow,
   index,
+  featured = false,
 }: {
   testimonial: LandingPageTestimonial;
   locale: string;
   primaryColor: string;
+  secondaryColor: string;
   anonymousLabel: string;
+  eyebrow: string;
   index: number;
+  featured?: boolean;
 }) {
   const content = testimonial.content
     ? pickLocalized(testimonial.content, locale)
@@ -479,51 +573,111 @@ function TestimonialCard({
 
   return (
     <article
-      className={`${styles.reveal} group relative overflow-hidden rounded-[30px] border border-slate-200/80 bg-white p-6 shadow-[0_20px_70px_-42px_rgba(15,23,42,0.35)] transition-transform duration-300 hover:-translate-y-1`}
-      style={getRevealStyle(380 + index * 80)}
+      className={`${styles.reveal} group relative overflow-hidden rounded-[32px] border p-6 transition-transform duration-300 hover:-translate-y-1 md:p-7 ${
+        featured
+          ? "xl:col-span-2 border-slate-900 bg-slate-950 text-white shadow-[0_34px_120px_-56px_rgba(15,23,42,0.82)]"
+          : "border-stone-200/85 bg-white shadow-[0_22px_80px_-48px_rgba(15,23,42,0.34)]"
+      }`}
+      style={getRevealStyle(360 + index * 80)}
     >
       <div
-        className="absolute inset-x-0 top-0 h-1.5"
-        style={{
-          background: `linear-gradient(90deg, ${primaryColor} 0%, rgba(15,23,42,0.15) 100%)`,
-        }}
+        className="absolute inset-0"
+        style={
+          featured
+            ? {
+                background: `radial-gradient(circle_at_top_right, ${hexToRgba(
+                  primaryColor,
+                  0.26,
+                )} 0%, transparent 32%), linear-gradient(155deg, ${hexToRgba(
+                  secondaryColor,
+                  1,
+                )} 0%, ${hexToRgba(primaryColor, 0.78)} 100%)`,
+              }
+            : {
+                background: `radial-gradient(circle_at_top_right, ${hexToRgba(
+                  primaryColor,
+                  0.1,
+                )} 0%, transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.96) 100%)`,
+              }
+        }
       />
-      <div className="flex items-start gap-4">
-        <LandingPageImageFrame
-          src={testimonial.author_image_url}
-          alt={authorName}
-          width={64}
-          height={64}
-          unoptimized
-          fallback={
-            <div
-              className="flex h-16 w-16 items-center justify-center rounded-2xl text-lg font-semibold text-white shadow-lg"
-              style={{ backgroundColor: primaryColor }}
-            >
-              {getCenterInitial(authorName)}
-            </div>
-          }
-          imageClassName="h-16 w-16 rounded-2xl object-cover ring-4 ring-white shadow-lg"
-        />
+      <div className="absolute right-6 top-3 text-7xl leading-none text-white/8">
+        "
+      </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="space-y-1">
-              <p className="text-lg font-semibold text-slate-950">{authorName}</p>
-              {hasText(testimonial.author_title) ? (
-                <p className="text-sm text-slate-500">{testimonial.author_title}</p>
+      <div
+        className={`relative flex flex-col gap-6 ${
+          featured ? "md:flex-row md:items-start" : ""
+        }`}
+      >
+        <div className="flex items-start gap-4">
+          <LandingPageImageFrame
+            src={testimonial.author_image_url}
+            alt={authorName}
+            width={72}
+            height={72}
+            unoptimized
+            fallback={
+              <div
+                className="flex h-[72px] w-[72px] items-center justify-center rounded-[24px] text-xl font-semibold text-white shadow-lg"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {getCenterInitial(authorName)}
+              </div>
+            }
+            imageClassName="h-[72px] w-[72px] rounded-[24px] object-cover ring-4 ring-white/10 shadow-lg"
+          />
+
+          <div className="min-w-0 flex-1">
+            {featured ? (
+              <span className="inline-flex rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
+                {eyebrow}
+              </span>
+            ) : null}
+            <p
+              className={`mt-3 text-xl font-semibold ${
+                featured ? "text-white" : "text-slate-950"
+              }`}
+            >
+              {authorName}
+            </p>
+            {hasText(testimonial.author_title) ? (
+              <p
+                className={`text-sm ${
+                  featured ? "text-white/65" : "text-slate-500"
+                }`}
+              >
+                {testimonial.author_title}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="relative min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl">
+              {hasText(content) ? (
+                <p
+                  className={`${
+                    featured
+                      ? "text-lg leading-9 text-white/86 md:text-xl"
+                      : "text-base leading-8 text-slate-600"
+                  }`}
+                >
+                  "{content}"
+                </p>
               ) : null}
             </div>
+
             <span
-              className="rounded-full bg-slate-50 px-3 py-1 text-sm tracking-[0.18em]"
-              style={{ color: primaryColor }}
+              className={`rounded-full px-3 py-1 text-sm font-semibold tracking-[0.22em] ${
+                featured ? "border border-white/12 bg-white/8 text-white" : ""
+              }`}
+              style={featured ? undefined : { color: primaryColor }}
             >
               {renderStars(testimonial.rating)}
             </span>
           </div>
-          {hasText(content) ? (
-            <p className="mt-5 text-base leading-8 text-slate-600">"{content}"</p>
-          ) : null}
         </div>
       </div>
     </article>
@@ -592,7 +746,7 @@ export default async function LandingPageResolve({
     (landing.center?.name && landing.center.name.trim()) ||
     titleCaseSlug(landing.slug ?? resolvedParams.slug);
   const centerLogoUrl = landing.center?.logo_url ?? null;
-  const centerDescription = landing.center?.description ?? null;
+  const centerDescription = landing.center?.description?.trim() ?? "";
   const hero = landing.hero;
   const about = landing.about;
   const contact = landing.contact;
@@ -604,8 +758,9 @@ export default async function LandingPageResolve({
   const aboutContent = getMeaningfulAboutContent(about, resolvedLocale);
   const contactItems = getContactItems(contact, copy);
   const isPreview = Boolean(landing.meta?.is_preview || previewToken);
-  const enHref = buildLocaleHref("en", previewToken);
-  const arHref = buildLocaleHref("ar", previewToken);
+  const slug = landing.slug?.trim() || resolvedParams.slug;
+  const enHref = buildLocaleHref("en", slug, previewToken);
+  const arHref = buildLocaleHref("ar", slug, previewToken);
 
   const shouldShowHero =
     (visibility?.show_hero ?? true) &&
@@ -659,16 +814,36 @@ export default async function LandingPageResolve({
         : null;
 
   const mainStyle: CSSProperties = fontFamily ? { fontFamily } : {};
+  const heroLead =
+    heroContent.subtitle || centerDescription || copy.exploreLatest;
+  const storyLead =
+    aboutContent.content || centerDescription || copy.aboutDescription;
+  const contactSummary =
+    socialLinks.length > 0 ? copy.socialDescription : copy.contactDescription;
 
   return (
     <main
       lang={resolvedLocale}
       dir={resolvedLocale === "ar" ? "rtl" : "ltr"}
       style={mainStyle}
-      className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.08),_transparent_26%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] text-slate-900"
+      className={`relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f6f2ea_0%,#fbfaf6_40%,#ffffff_100%)] text-slate-900 ${
+        resolvedLocale === "ar" ? "text-right" : ""
+      }`}
     >
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute left-[6%] top-24 h-56 w-56 rounded-full blur-3xl"
+          style={{ backgroundColor: hexToRgba(primaryColor, 0.14) }}
+        />
+        <div
+          className="absolute right-[8%] top-40 h-72 w-72 rounded-full blur-3xl"
+          style={{ backgroundColor: hexToRgba(secondaryColor, 0.1) }}
+        />
+        <div className="absolute inset-x-0 top-0 h-[36rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.56),transparent)]" />
+      </div>
+
       {isPreview ? (
-        <div className="border-b border-amber-200 bg-amber-50/95 backdrop-blur">
+        <div className="relative border-b border-amber-200 bg-amber-50/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3 text-sm text-amber-950">
             <div>
               <p className="font-semibold">{copy.draftPreviewTitle}</p>
@@ -683,146 +858,266 @@ export default async function LandingPageResolve({
 
       {shouldShowHero ? (
         <section
-          className="relative isolate overflow-hidden"
+          className="relative isolate overflow-hidden px-4 pb-10 pt-4 md:px-6 md:pb-14 md:pt-8"
           style={getHeroBackgroundStyle(hero, primaryColor, secondaryColor)}
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_24%)]" />
-          <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[linear-gradient(180deg,rgba(255,255,255,0.14),transparent)] lg:block" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.26),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.08),transparent_40%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-[linear-gradient(180deg,transparent,rgba(246,242,234,0.82))]" />
 
-          <div className="relative mx-auto max-w-6xl px-6 py-14 md:py-20">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.18fr),340px] lg:items-stretch">
+          <div className="relative mx-auto max-w-6xl">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr),320px] xl:items-stretch">
               <div
-                className={`${styles.reveal} rounded-[36px] border border-white/15 bg-slate-950/42 p-8 text-white shadow-[0_30px_110px_-50px_rgba(15,23,42,0.8)] backdrop-blur-xl md:p-10`}
+                className={`${styles.reveal} relative overflow-hidden rounded-[38px] border border-white/55 bg-white/82 p-7 shadow-[0_35px_120px_-55px_rgba(15,23,42,0.45)] backdrop-blur-2xl md:p-10`}
                 style={getRevealStyle(0)}
               >
-                <div className="flex flex-wrap items-start justify-between gap-5">
-                  <div className="flex items-center gap-4">
-                    <LandingPageImageFrame
-                      src={centerLogoUrl}
-                      alt={`${centerName} logo`}
-                      width={64}
-                      height={64}
-                      unoptimized
-                      priority
-                      fallback={
-                        <div
-                          className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-semibold text-white shadow-lg"
-                          style={{ backgroundColor: `${primaryColor}D9` }}
-                        >
-                          {getCenterInitial(centerName)}
+                <div
+                  className="absolute -right-14 top-0 h-40 w-40 rounded-full blur-3xl"
+                  style={{ backgroundColor: hexToRgba(primaryColor, 0.18) }}
+                />
+                <div
+                  className="absolute bottom-0 left-0 h-40 w-40 rounded-full blur-3xl"
+                  style={{ backgroundColor: hexToRgba(secondaryColor, 0.12) }}
+                />
+
+                <div className="relative">
+                  <div className="flex flex-wrap items-start justify-between gap-5">
+                    <div className="flex items-start gap-4">
+                      <LandingPageImageFrame
+                        src={centerLogoUrl}
+                        alt={`${centerName} logo`}
+                        width={72}
+                        height={72}
+                        unoptimized
+                        priority
+                        fallback={
+                          <div
+                            className="flex h-[72px] w-[72px] items-center justify-center rounded-[24px] text-2xl font-semibold text-white shadow-lg"
+                            style={{ backgroundColor: primaryColor }}
+                          >
+                            {getCenterInitial(centerName)}
+                          </div>
+                        }
+                        imageClassName="h-[72px] w-[72px] rounded-[24px] object-cover shadow-lg ring-1 ring-black/5"
+                      />
+
+                      <div className="space-y-3">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-stone-200/80 bg-white/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                          <span>{copy.landingPage}</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300" />
+                          <span className="text-slate-900">{centerName}</span>
                         </div>
-                      }
-                      imageClassName="h-16 w-16 rounded-2xl object-cover shadow-lg ring-1 ring-white/20"
-                    />
+                        <p className="max-w-xl text-sm leading-7 text-slate-600">
+                          {copy.backgroundStatusHint}
+                        </p>
+                      </div>
+                    </div>
 
-                    <div className="space-y-2">
-                      <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/78">
-                        <span>{copy.landingPage}</span>
-                        <span className="h-1 w-1 rounded-full bg-white/45" />
-                        <span>{centerName}</span>
-                      </div>
-                      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs text-white/70">
-                        <span>{copy.backgroundStatus}</span>
-                      </div>
+                    <div className="inline-flex items-center gap-1 rounded-full border border-stone-200/80 bg-white/76 p-1 text-xs shadow-sm">
+                      <LocaleLink
+                        href={enHref}
+                        label={copy.languageEn}
+                        active={resolvedLocale === "en"}
+                        primaryColor={primaryColor}
+                      />
+                      <LocaleLink
+                        href={arHref}
+                        label={copy.languageAr}
+                        active={resolvedLocale === "ar"}
+                        primaryColor={primaryColor}
+                      />
                     </div>
                   </div>
 
-                  <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 p-1 text-xs font-semibold text-white/80">
-                    <a
-                      href={enHref}
-                      className={`rounded-full px-3 py-1 transition ${
-                        resolvedLocale === "en"
-                          ? "bg-white text-slate-950"
-                          : "text-white/80 hover:bg-white/10"
-                      }`}
+                  <div className="mt-12 max-w-3xl space-y-5">
+                    <span
+                      className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                      style={{
+                        backgroundColor: hexToRgba(primaryColor, 0.1),
+                        borderColor: hexToRgba(primaryColor, 0.16),
+                        color: secondaryColor,
+                      }}
                     >
-                      {copy.languageEn}
-                    </a>
-                    <a
-                      href={arHref}
-                      className={`rounded-full px-3 py-1 transition ${
-                        resolvedLocale === "ar"
-                          ? "bg-white text-slate-950"
-                          : "text-white/80 hover:bg-white/10"
-                      }`}
-                    >
-                      {copy.languageAr}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="mt-10 max-w-3xl space-y-5">
-                  <h1 className="text-4xl font-semibold tracking-tight text-white md:text-6xl md:leading-[1.05]">
-                    {heroContent.title || centerName}
-                  </h1>
-                  <p className="max-w-2xl text-base leading-8 text-white/80 md:text-lg">
-                    {heroContent.subtitle ||
-                      centerDescription ||
-                      copy.exploreLatest}
-                  </p>
-                  <p className="text-sm leading-7 text-white/60">
-                    {copy.backgroundStatusHint}
-                  </p>
-                </div>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  {hero?.hero_cta_text && hero.hero_cta_url ? (
-                    <a
-                      href={ensureHref(hero.hero_cta_url) ?? hero.hero_cta_url}
-                      className="inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:opacity-90"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      {hero.hero_cta_text}
-                    </a>
-                  ) : null}
-
-                  {secondaryCtaHref ? (
-                    <a
-                      href={secondaryCtaHref}
-                      className="inline-flex items-center rounded-full border px-6 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-                      style={{ borderColor: "rgba(255,255,255,0.22)" }}
-                    >
-                      {copy.exploreDetails}
-                    </a>
-                  ) : null}
-                </div>
-
-                {quickLinks.length ? (
-                  <div className="mt-8">
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
-                      {copy.quickLinksTitle}
+                      {copy.brandedPresence}
+                    </span>
+                    <h1 className="text-4xl font-semibold tracking-tight text-slate-950 md:text-6xl md:leading-[1.02]">
+                      {heroContent.title || centerName}
+                    </h1>
+                    <p className="max-w-2xl text-base leading-8 text-slate-600 md:text-lg">
+                      {heroLead}
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {quickLinks.map((link) => (
-                        <a
-                          key={link.href}
-                          href={link.href}
-                          className="rounded-full border border-white/12 bg-white/7 px-4 py-2 text-sm text-white/80 transition hover:bg-white/12"
-                        >
-                          {link.label}
-                        </a>
-                      ))}
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    {hero?.hero_cta_text && hero.hero_cta_url ? (
+                      <a
+                        href={ensureHref(hero.hero_cta_url) ?? hero.hero_cta_url}
+                        className="inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:opacity-90"
+                        style={{
+                          backgroundColor: primaryColor,
+                          boxShadow: `0 24px 40px -24px ${hexToRgba(
+                            primaryColor,
+                            0.78,
+                          )}`,
+                        }}
+                      >
+                        {hero.hero_cta_text}
+                      </a>
+                    ) : null}
+
+                    {secondaryCtaHref ? (
+                      <a
+                        href={secondaryCtaHref}
+                        className="inline-flex items-center rounded-full border border-stone-200/80 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-white"
+                      >
+                        {copy.exploreDetails}
+                      </a>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(0,1fr),0.9fr]">
+                    <div className="rounded-[30px] border border-stone-200/80 bg-white/72 p-5 shadow-inner">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                        {copy.quickLinksTitle}
+                      </p>
+                      <p className="mt-3 text-sm leading-7 text-slate-600">
+                        {copy.backgroundStatus}
+                      </p>
+                      {quickLinks.length ? (
+                        <div className="mt-5 flex flex-wrap gap-2">
+                          {quickLinks.map((link) => (
+                            <a
+                              key={link.href}
+                              href={link.href}
+                              className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:border-stone-300 hover:text-slate-950"
+                            >
+                              {link.label}
+                            </a>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div
+                      className="rounded-[30px] p-5 text-white shadow-[0_24px_70px_-42px_rgba(15,23,42,0.72)]"
+                      style={{
+                        background: `linear-gradient(150deg, ${hexToRgba(
+                          secondaryColor,
+                          0.98,
+                        )} 0%, ${hexToRgba(primaryColor, 0.84)} 100%)`,
+                      }}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/58">
+                        {copy.centerIdentity}
+                      </p>
+                      <p className="mt-3 text-2xl font-semibold">{centerName}</p>
+                      <p className="mt-3 text-sm leading-7 text-white/72">
+                        {storyLead}
+                      </p>
+
+                      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-[24px] border border-white/10 bg-white/8 p-4">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                            {copy.primaryAccent}
+                          </p>
+                          <div className="mt-3 flex items-center gap-3">
+                            <span
+                              className="h-9 w-9 rounded-full border border-white/20"
+                              style={{ backgroundColor: primaryColor }}
+                            />
+                            <p className="text-sm font-medium text-white/82">
+                              {primaryColor}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-[24px] border border-white/10 bg-white/8 p-4">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
+                            {copy.localeSupport}
+                          </p>
+                          <p className="mt-3 text-lg font-semibold text-white">
+                            EN / AR
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ) : null}
+                </div>
               </div>
 
-              <aside
-                className={`${styles.reveal} rounded-[32px] border border-white/12 bg-white/10 p-5 text-white shadow-[0_22px_80px_-48px_rgba(15,23,42,0.8)] backdrop-blur-xl`}
-                style={getRevealStyle(120)}
-              >
-                <div className="rounded-[26px] border border-white/10 bg-slate-950/24 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/58">
+              <aside className="grid gap-6">
+                <div
+                  className={`${styles.reveal} rounded-[32px] border border-white/55 bg-white/80 p-5 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.36)] backdrop-blur-xl`}
+                  style={getRevealStyle(120)}
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
                     {copy.overviewTitle}
                   </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                     {overviewCards.map((card) => (
                       <HeroSummaryCard
                         key={card.label}
                         label={card.label}
                         value={card.value}
+                        primaryColor={primaryColor}
                       />
                     ))}
+                  </div>
+                </div>
+
+                <div
+                  className={`${styles.reveal} overflow-hidden rounded-[32px] border border-white/55 bg-white/84 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.36)] backdrop-blur-xl`}
+                  style={getRevealStyle(180)}
+                >
+                  <LandingPageImageFrame
+                    src={about?.about_image_url}
+                    alt={aboutContent.title || centerName}
+                    width={960}
+                    height={640}
+                    unoptimized
+                    fallback={
+                      <div
+                        className="flex min-h-[220px] items-end p-6"
+                        style={{
+                          background: `linear-gradient(150deg, ${hexToRgba(
+                            primaryColor,
+                            0.16,
+                          )} 0%, ${hexToRgba(secondaryColor, 0.08)} 100%)`,
+                        }}
+                      >
+                        <div className="max-w-xs space-y-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            {copy.brandedPresence}
+                          </p>
+                          <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                            {copy.brandedPresenceTitle}
+                          </p>
+                        </div>
+                      </div>
+                    }
+                    imageClassName="h-[220px] w-full object-cover"
+                  />
+
+                  <div className="p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                      {copy.aboutEyebrow}
+                    </p>
+                    <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+                      {aboutContent.title || centerName}
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {storyLead}
+                    </p>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {quickLinks.map((link) => (
+                        <a
+                          key={`hero-link-${link.href}`}
+                          href={link.href}
+                          className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-slate-700 transition hover:bg-white"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </aside>
@@ -831,87 +1126,122 @@ export default async function LandingPageResolve({
         </section>
       ) : null}
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 md:py-16">
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-8 px-6 pb-14 pt-4 md:gap-10 md:pb-20">
         {shouldShowAbout ? (
           <section
             id="about"
-            className={`${styles.reveal} grid gap-8 rounded-[34px] border border-slate-200/85 bg-white p-6 shadow-[0_28px_90px_-48px_rgba(15,23,42,0.3)] md:p-10 lg:grid-cols-[minmax(0,1.05fr),0.95fr]`}
-            style={getRevealStyle(180)}
+            className={`${styles.reveal} relative overflow-hidden rounded-[36px] border border-stone-200/80 bg-white/88 p-6 shadow-[0_28px_90px_-52px_rgba(15,23,42,0.28)] backdrop-blur md:p-10`}
+            style={getRevealStyle(220)}
           >
-            <div className="space-y-7">
-              <SectionHeading
-                eyebrow={copy.aboutEyebrow}
-                title={aboutContent.title || centerName}
-                description={
-                  hasText(aboutContent.content)
-                    ? aboutContent.content
-                    : copy.aboutDescription
-                }
-                accentColor={primaryColor}
-              />
+            <div
+              className="absolute -right-20 top-0 h-44 w-44 rounded-full blur-3xl"
+              style={{ backgroundColor: hexToRgba(primaryColor, 0.08) }}
+            />
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-                    {copy.centerIdentity}
-                  </p>
-                  <p className="mt-3 text-lg font-semibold text-slate-950">
-                    {centerName}
-                  </p>
-                </div>
+            <div className="relative grid gap-8 lg:grid-cols-[minmax(0,0.95fr),1.05fr] lg:items-center">
+              <div className="space-y-8">
+                <SectionHeading
+                  eyebrow={copy.aboutEyebrow}
+                  title={aboutContent.title || centerName}
+                  description={storyLead}
+                  accentColor={primaryColor}
+                />
 
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-                    {copy.primaryAccent}
-                  </p>
-                  <div className="mt-3 flex items-center gap-3">
-                    <span
-                      className="h-10 w-10 rounded-full border border-slate-200 shadow-inner"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                    <p className="text-sm font-medium text-slate-600">
-                      {primaryColor}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-[28px] border border-stone-200 bg-stone-50/90 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                      {copy.centerIdentity}
+                    </p>
+                    <p className="mt-3 text-lg font-semibold text-slate-950">
+                      {centerName}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                      {centerDescription || copy.backgroundStatusHint}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[28px] border border-stone-200 bg-stone-50/90 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                      {copy.localeSupport}
+                    </p>
+                    <p className="mt-3 text-lg font-semibold text-slate-950">
+                      EN / AR
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                      {copy.backgroundStatus}
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <LandingPageImageFrame
-              src={about?.about_image_url}
-              alt={aboutContent.title || centerName}
-              width={960}
-              height={720}
-              unoptimized
-              fallback={
-                <div className="flex min-h-[320px] items-end rounded-[30px] border border-slate-200 bg-[linear-gradient(135deg,rgba(79,70,229,0.12),rgba(15,23,42,0.08))] p-8">
-                  <div className="max-w-sm space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                      {copy.brandedPresence}
-                    </p>
-                    <p className="text-2xl font-semibold tracking-tight text-slate-950">
-                      {copy.brandedPresenceTitle}
-                    </p>
-                    <p className="text-sm leading-7 text-slate-600">
-                      {copy.brandedPresenceDescription}
-                    </p>
-                  </div>
+              <div className="relative">
+                <LandingPageImageFrame
+                  src={about?.about_image_url}
+                  alt={aboutContent.title || centerName}
+                  width={960}
+                  height={720}
+                  unoptimized
+                  fallback={
+                    <div
+                      className="flex min-h-[360px] items-end rounded-[32px] border border-stone-200 p-8"
+                      style={{
+                        background: `linear-gradient(150deg, ${hexToRgba(
+                          primaryColor,
+                          0.14,
+                        )} 0%, ${hexToRgba(secondaryColor, 0.08)} 100%)`,
+                      }}
+                    >
+                      <div className="max-w-sm space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                          {copy.brandedPresence}
+                        </p>
+                        <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                          {copy.brandedPresenceTitle}
+                        </p>
+                        <p className="text-sm leading-7 text-slate-600">
+                          {copy.brandedPresenceDescription}
+                        </p>
+                      </div>
+                    </div>
+                  }
+                  imageClassName="h-full min-h-[360px] w-full rounded-[32px] object-cover shadow-lg"
+                />
+
+                <div className="absolute inset-x-6 bottom-6 rounded-[28px] border border-white/10 bg-slate-950/78 p-5 text-white backdrop-blur-xl">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/56">
+                    {copy.brandedPresence}
+                  </p>
+                  <p className="mt-3 text-xl font-semibold">
+                    {copy.brandedPresenceTitle}
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-white/72">
+                    {copy.brandedPresenceDescription}
+                  </p>
                 </div>
-              }
-              imageClassName="h-full min-h-[320px] w-full rounded-[30px] object-cover shadow-lg"
-            />
+              </div>
+            </div>
           </section>
         ) : null}
 
         {shouldShowContact ? (
           <section
             id="connect"
-            className="grid gap-6 lg:grid-cols-[minmax(0,1.08fr),0.92fr]"
+            className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr),0.95fr]"
           >
             <div
-              className={`${styles.reveal} rounded-[34px] border border-slate-200/85 bg-white p-6 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.28)] md:p-8`}
-              style={getRevealStyle(240)}
+              className={`${styles.reveal} relative overflow-hidden rounded-[36px] border border-stone-200/80 bg-white/90 p-6 shadow-[0_24px_84px_-50px_rgba(15,23,42,0.24)] md:p-8`}
+              style={getRevealStyle(280)}
             >
+              <div
+                className="absolute inset-x-0 top-0 h-1.5"
+                style={{
+                  background: `linear-gradient(90deg, ${primaryColor} 0%, ${hexToRgba(
+                    secondaryColor,
+                    0.2,
+                  )} 100%)`,
+                }}
+              />
+
               <SectionHeading
                 eyebrow={copy.contactEyebrow}
                 title={copy.contactTitle}
@@ -920,64 +1250,112 @@ export default async function LandingPageResolve({
               />
 
               <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {contactItems.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
-                  >
+                {contactItems.length ? (
+                  contactItems.map((item, index) => (
+                    <div
+                      key={item.label}
+                      className="rounded-[28px] border border-stone-200 bg-stone-50/90 p-5"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                          {item.label}
+                        </p>
+                        <span
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold"
+                          style={{
+                            backgroundColor: hexToRgba(primaryColor, 0.12),
+                            color: secondaryColor,
+                          }}
+                        >
+                          {index + 1}
+                        </span>
+                      </div>
+                      {item.href ? (
+                        <a
+                          href={item.href}
+                          className="mt-4 block break-words text-base font-medium text-slate-900 hover:underline"
+                        >
+                          {item.value}
+                        </a>
+                      ) : (
+                        <p className="mt-4 break-words text-base font-medium text-slate-900">
+                          {item.value}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[28px] border border-stone-200 bg-stone-50/90 p-5 md:col-span-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-                      {item.label}
+                      {copy.contactChannels}
                     </p>
-                    {item.href ? (
-                      <a
-                        href={item.href}
-                        className="mt-3 block break-words text-base font-medium text-slate-900 hover:underline"
-                      >
-                        {item.value}
-                      </a>
-                    ) : (
-                      <p className="mt-3 break-words text-base font-medium text-slate-900">
-                        {item.value}
-                      </p>
-                    )}
+                    <p className="mt-3 text-lg font-semibold text-slate-950">
+                      {copy.socialTitle}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                      {copy.socialDescription}
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
-            {socialLinks.length ? (
-              <aside
-                className={`${styles.reveal} rounded-[34px] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_24px_80px_-48px_rgba(15,23,42,0.55)] md:p-8`}
-                style={getRevealStyle(300)}
-              >
-                <SectionHeading
-                  eyebrow={copy.socialEyebrow}
-                  title={copy.socialTitle}
-                  description={copy.socialDescription}
-                  accentColor={primaryColor}
-                />
+            <aside
+              className={`${styles.reveal} overflow-hidden rounded-[36px] border border-stone-200/80 shadow-[0_24px_84px_-50px_rgba(15,23,42,0.4)]`}
+              style={getRevealStyle(340)}
+            >
+              <div
+                className="h-28"
+                style={{
+                  background: `linear-gradient(140deg, ${hexToRgba(
+                    secondaryColor,
+                    1,
+                  )} 0%, ${hexToRgba(primaryColor, 0.82)} 100%)`,
+                }}
+              />
+              <div className="-mt-10 bg-slate-950 p-6 text-white">
+                <div className="rounded-[28px] border border-white/10 bg-white/6 p-5">
+                  <SectionHeading
+                    eyebrow={socialLinks.length ? copy.socialEyebrow : copy.localeSupport}
+                    title={socialLinks.length ? copy.socialTitle : copy.backgroundStatus}
+                    description={contactSummary}
+                    accentColor={primaryColor}
+                    inverted
+                  />
 
-                <div className="mt-8 flex flex-wrap gap-3">
-                  {socialLinks.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center rounded-full border border-white/14 bg-white/6 px-4 py-2 text-sm font-medium text-white/90 transition hover:bg-white/12"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 p-1">
+                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-950">
+                      {copy.languageEn}
+                    </span>
+                    <span className="rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-white/78">
+                      {copy.languageAr}
+                    </span>
+                  </div>
+
+                  {socialLinks.length ? (
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      {socialLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-medium text-white/88 transition hover:bg-white/12"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-              </aside>
-            ) : null}
+              </div>
+            </aside>
           </section>
         ) : null}
 
         {shouldShowTestimonials ? (
           <section id="testimonials" className="space-y-8">
-            <div className={styles.reveal} style={getRevealStyle(340)}>
+            <div className={styles.reveal} style={getRevealStyle(380)}>
               <SectionHeading
                 eyebrow={copy.testimonialsEyebrow}
                 title={copy.testimonialsTitle}
@@ -989,12 +1367,18 @@ export default async function LandingPageResolve({
             <div className="grid gap-5 xl:grid-cols-2">
               {testimonials.map((testimonial, index) => (
                 <TestimonialCard
-                  key={testimonial.id ?? `${testimonial.author_name}-${testimonial.rating}-${index}`}
+                  key={
+                    testimonial.id ??
+                    `${testimonial.author_name}-${testimonial.rating}-${index}`
+                  }
                   testimonial={testimonial}
                   locale={resolvedLocale}
                   primaryColor={primaryColor}
+                  secondaryColor={secondaryColor}
                   anonymousLabel={copy.anonymous}
+                  eyebrow={copy.testimonialsEyebrow}
                   index={index}
+                  featured={index === 0}
                 />
               ))}
             </div>

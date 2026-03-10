@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/features/localization";
 
 type QuickAction = {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   href: string;
   icon: React.ReactNode;
   color: string;
 };
 
-const quickActions: QuickAction[] = [
+const quickActionsConfig: QuickAction[] = [
   {
-    title: "Add Course",
-    description: "Create a new course",
+    titleKey: "pages.dashboard.quickActions.addCourse",
+    descriptionKey: "pages.dashboard.quickActions.addCourseDesc",
     href: "/courses/create",
     color: "bg-blue-500",
     icon: (
@@ -34,8 +35,8 @@ const quickActions: QuickAction[] = [
     ),
   },
   {
-    title: "Upload Video",
-    description: "Add video content",
+    titleKey: "pages.dashboard.quickActions.uploadVideo",
+    descriptionKey: "pages.dashboard.quickActions.uploadVideoDesc",
     href: "/videos",
     color: "bg-purple-500",
     icon: (
@@ -55,8 +56,8 @@ const quickActions: QuickAction[] = [
     ),
   },
   {
-    title: "Enroll Students",
-    description: "Add enrollments",
+    titleKey: "pages.dashboard.quickActions.enrollStudents",
+    descriptionKey: "pages.dashboard.quickActions.enrollStudentsDesc",
     href: "/student-requests/enrollments",
     color: "bg-green-500",
     icon: (
@@ -76,8 +77,8 @@ const quickActions: QuickAction[] = [
     ),
   },
   {
-    title: "View Requests",
-    description: "Pending approvals",
+    titleKey: "pages.dashboard.quickActions.viewRequests",
+    descriptionKey: "pages.dashboard.quickActions.viewRequestsDesc",
     href: "/student-requests/device-change",
     color: "bg-orange-500",
     icon: (
@@ -99,14 +100,16 @@ const quickActions: QuickAction[] = [
 ];
 
 export function QuickActions() {
+  const { t } = useTranslation();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>{t("pages.dashboard.sections.quickActions")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 sm:grid-cols-2">
-          {quickActions.map((action) => (
+          {quickActionsConfig.map((action) => (
             <Link
               key={action.href}
               href={action.href}
@@ -119,10 +122,10 @@ export function QuickActions() {
               </div>
               <div>
                 <p className="font-medium text-gray-900 group-hover:text-primary dark:text-white">
-                  {action.title}
+                  {t(action.titleKey)}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {action.description}
+                  {t(action.descriptionKey)}
                 </p>
               </div>
             </Link>

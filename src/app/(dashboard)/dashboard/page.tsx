@@ -10,11 +10,13 @@ import { AgentExecutionHistory } from "@/features/agents/components/AgentExecuti
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/app/tenant-provider";
+import { useTranslation } from "@/features/localization";
 
 export default function DashboardPage() {
   const { centerSlug, centerId } = useTenant();
   const isPlatformAdmin = !centerSlug;
   const hasCenterScope = centerId != null && String(centerId).trim().length > 0;
+  const { t } = useTranslation();
 
   const { data, isLoading, isError, isFetching, refetch } = useDashboard({
     is_platform_admin: isPlatformAdmin,
@@ -40,11 +42,11 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Dashboard"
+        title={t("pages.dashboard.title")}
         description={
           isPlatformAdmin
-            ? "Overview across all centers. Select a center to scope the data."
-            : "Overview of your center dashboard metrics and recent activity."
+            ? t("pages.dashboard.description.platform")
+            : t("pages.dashboard.description.center")
         }
         actions={
           isPlatformAdmin ? (
@@ -59,14 +61,14 @@ export default function DashboardPage() {
 
       {!isPlatformAdmin && !hasCenterScope ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-          Missing center context. Refresh the page to reload center scope.
+          {t("common.messages.missingCenterContext")}
         </div>
       ) : null}
 
       {isError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
           <div className="flex items-center justify-between gap-3">
-            <span>Failed to load dashboard data.</span>
+            <span>{t("pages.dashboard.errors.loadFailed")}</span>
             <Button
               size="sm"
               variant="outline"
@@ -74,7 +76,7 @@ export default function DashboardPage() {
                 void refetch();
               }}
             >
-              Retry
+              {t("common.actions.retry")}
             </Button>
           </div>
         </div>
@@ -92,13 +94,13 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Agent Executions</CardTitle>
+          <CardTitle>{t("pages.dashboard.sections.recentAgentExecutions")}</CardTitle>
         </CardHeader>
         <CardContent>
           <AgentExecutionHistory />
           {isFetching ? (
             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-              Refreshing dashboard data...
+              {t("common.messages.refreshingData")}
             </p>
           ) : null}
         </CardContent>

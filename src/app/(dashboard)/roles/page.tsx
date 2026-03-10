@@ -10,8 +10,10 @@ import { RoleFormDialog } from "@/features/roles/components/RoleFormDialog";
 import { RolesTable } from "@/features/roles/components/RolesTable";
 import { isSystemScopeUser } from "@/lib/admin-scope";
 import type { Role } from "@/features/roles/types/role";
+import { useTranslation } from "@/features/localization";
 
 export default function RolesPage() {
+  const { t } = useTranslation();
   const { centerSlug } = useTenant();
   const { data: user } = useAdminMe();
   const { showToast } = useModal();
@@ -23,11 +25,11 @@ export default function RolesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Roles"
+        title={t("pages.rolesPage.title")}
         description={
           canManageWrite
-            ? "Manage user roles and their access levels."
-            : "View roles and permissions. Updates require system-scoped access."
+            ? t("pages.rolesPage.descriptionWrite")
+            : t("pages.rolesPage.descriptionReadOnly")
         }
         actions={
           canManageWrite ? (
@@ -37,7 +39,7 @@ export default function RolesPage() {
                 setFormOpen(true);
               }}
             >
-              Add Role
+              {t("pages.rolesPage.addRole")}
             </Button>
           ) : undefined
         }

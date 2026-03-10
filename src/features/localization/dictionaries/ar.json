@@ -228,6 +228,25 @@
       "description": "إدارة مراكز التدريب على المنصة",
       "addCenter": "إضافة مركز"
     },
+    "coursesPage": {
+      "title": "الدورات",
+      "description": "اختر مركزاً لإدارة الدورات المرتبطة بنطاق المركز.",
+      "createCourse": "إنشاء دورة",
+      "centerContextRequired": "يتطلب إدارة الدورات اختيار سياق مركز أولاً."
+    },
+    "studentsPage": {
+      "title": "الطلاب",
+      "description": "إدارة الطلاب عبر المراكز، مع إمكانية التعيين الاختياري للمركز",
+      "addStudent": "إضافة طالب"
+    },
+    "videosPage": {
+      "title": "الفيديوهات",
+      "descriptionWrite": "إدارة محتوى الفيديو لمركزك التعليمي",
+      "descriptionReadOnly": "عرض مكتبة الفيديو. إدارة الفيديوهات تتطلب صلاحية video.manage.",
+      "addVideo": "إضافة فيديو",
+      "selectCenterFirst": "اختر مركزاً أولاً",
+      "selectFailedVideos": "اختر فيديوهات مصدر الرفع الفاشلة لإعادة المحاولة."
+    },
     "centerCourses": {
       "title": "دورات المركز",
       "description": "إدارة الدورات لهذا المركز",

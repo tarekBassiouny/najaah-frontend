@@ -14,6 +14,7 @@ import type { Video } from "@/features/videos/types/video";
 import { useTenant } from "@/app/tenant-provider";
 import { can } from "@/lib/capabilities";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 
 function normalizeStatus(value: unknown) {
   if (typeof value !== "string") return "";
@@ -44,6 +45,7 @@ function canRetryVideoUpload(video: Video) {
 }
 
 export default function VideosPage() {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = tenant.centerId ?? null;
@@ -82,7 +84,7 @@ export default function VideosPage() {
   const handleOpenBulkRetry = (videos: Video[]) => {
     const eligibleVideos = videos.filter((video) => canRetryVideoUpload(video));
     if (eligibleVideos.length === 0) {
-      showToast("Select failed upload-source videos to retry.", "error");
+      showToast(t("pages.videosPage.selectFailedVideos"), "error");
       return;
     }
 
@@ -121,20 +123,22 @@ export default function VideosPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Videos"
+        title={t("pages.videosPage.title")}
         description={
           canManageVideos
-            ? "Manage video content for your learning center"
-            : "View video library. Managing videos requires video.manage permission."
+            ? t("pages.videosPage.descriptionWrite")
+            : t("pages.videosPage.descriptionReadOnly")
         }
         actions={
           canManageVideos ? (
             <Button
               onClick={openCreateDialog}
               disabled={!centerId}
-              title={!centerId ? "Select a center first" : undefined}
+              title={
+                !centerId ? t("pages.videosPage.selectCenterFirst") : undefined
+              }
             >
-              Add Video
+              {t("pages.videosPage.addVideo")}
             </Button>
           ) : null
         }

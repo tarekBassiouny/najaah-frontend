@@ -228,6 +228,25 @@
       "description": "Manage training centers across your platform",
       "addCenter": "Add Center"
     },
+    "coursesPage": {
+      "title": "Courses",
+      "description": "Select a center to manage center-scoped courses.",
+      "createCourse": "Create Course",
+      "centerContextRequired": "Center context is required to manage courses."
+    },
+    "studentsPage": {
+      "title": "Students",
+      "description": "Manage students across centers, with optional center assignment",
+      "addStudent": "Add Student"
+    },
+    "videosPage": {
+      "title": "Videos",
+      "descriptionWrite": "Manage video content for your learning center",
+      "descriptionReadOnly": "View video library. Managing videos requires video.manage permission.",
+      "addVideo": "Add Video",
+      "selectCenterFirst": "Select a center first",
+      "selectFailedVideos": "Select failed upload-source videos to retry."
+    },
     "centerCourses": {
       "title": "Center Courses",
       "description": "Manage courses for this center",

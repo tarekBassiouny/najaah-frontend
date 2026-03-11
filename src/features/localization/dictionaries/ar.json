@@ -264,7 +264,26 @@
     "permissions": {
       "title": "الصلاحيات",
       "descriptionWrite": "عرض دليل الصلاحيات المستخدم في تعيين الأدوار.",
-      "descriptionReadOnly": "عرض دليل الصلاحيات المشترك. تحديث الأدوار يتطلب نطاق النظام."
+      "descriptionReadOnly": "عرض دليل الصلاحيات المشترك. تحديث الأدوار يتطلب نطاق النظام.",
+      "table": {
+        "summary": "صلاحية واحدة",
+        "summaryPlural": "{count} صلاحية",
+        "searchPlaceholder": "ابحث باسم الصلاحية أو المعرف",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل تحميل الصلاحيات. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "headers": {
+          "id": "المعرف",
+          "name": "الاسم",
+          "slug": "المعرف النصي",
+          "description": "الوصف"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد صلاحيات",
+          "noDataTitle": "لا توجد صلاحيات بعد",
+          "noDataDescription": "ستظهر الصلاحيات هنا عند توفرها."
+        }
+      }
     },
     "rolePermissions": {
       "title": "صلاحيات الدور",
@@ -636,19 +655,308 @@
       "description": "إدارة جميع المراكز على المنصة",
       "createCenter": "إنشاء مركز",
       "editCenter": "تعديل المركز",
-      "centerDetails": "تفاصيل المركز"
+      "centerDetails": "تفاصيل المركز",
+      "table": {
+        "searchPlaceholder": "البحث في المراكز...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل المراكز. يرجى المحاولة مرة أخرى.",
+        "summary": "مركز واحد",
+        "summaryPlural": "{count} مركز",
+        "filters": {
+          "status": "الحالة",
+          "allStatuses": "كل الحالات",
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "visibility": "الظهور",
+          "activeOnly": "النشط فقط",
+          "withDeleted": "مع المحذوفة",
+          "deletedOnly": "المحذوفة فقط"
+        },
+        "headers": {
+          "name": "الاسم",
+          "slug": "الرابط المختصر",
+          "type": "النوع",
+          "tier": "المستوى",
+          "status": "الحالة",
+          "onboarding": "التهيئة",
+          "actions": "الإجراءات"
+        },
+        "types": {
+          "branded": "مميز",
+          "unbranded": "غير مميز"
+        },
+        "tiers": {
+          "premium": "بريميوم",
+          "vip": "VIP",
+          "standard": "عادي"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "actions": {
+          "manage": "إدارة",
+          "settings": "الإعدادات",
+          "changeStatus": "تغيير الحالة",
+          "retryOnboarding": "إعادة التهيئة",
+          "restore": "استعادة",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "changeStatus": "تغيير الحالة",
+          "restoreCenters": "استعادة المراكز",
+          "retryOnboarding": "إعادة التهيئة",
+          "deleteCenters": "حذف المراكز"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد مراكز",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد مراكز بعد",
+          "noDataDescription": "ابدأ بإنشاء أول مركز لك"
+        },
+        "selectAll": "تحديد كل المراكز في هذه الصفحة",
+        "selectCenter": "تحديد {name}"
+      }
     },
     "courses": {
       "title": "الدورات",
       "description": "إدارة الدورات والمناهج",
       "createCourse": "إنشاء دورة",
-      "editCourse": "تعديل الدورة"
+      "editCourse": "تعديل الدورة",
+      "table": {
+        "searchPlaceholder": "البحث في الدورات...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل الدورات. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "دورة واحدة",
+        "summaryPlural": "{count} دورة",
+        "filters": {
+          "category": "التصنيف",
+          "searchCategories": "البحث في التصنيفات...",
+          "allCategories": "كل التصنيفات",
+          "instructor": "المدرب",
+          "searchInstructors": "البحث في المدربين...",
+          "allInstructors": "كل المدربين"
+        },
+        "headers": {
+          "title": "العنوان",
+          "language": "اللغة",
+          "status": "الحالة",
+          "publishedAt": "تاريخ النشر",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "published": "منشور",
+          "active": "نشط",
+          "draft": "مسودة",
+          "pending": "قيد الانتظار",
+          "archived": "مؤرشف",
+          "inactive": "غير نشط",
+          "unknown": "غير معروف"
+        },
+        "actions": {
+          "view": "عرض",
+          "edit": "تعديل",
+          "manageSections": "إدارة الأقسام",
+          "publish": "نشر",
+          "unpublish": "إلغاء النشر",
+          "clone": "استنساخ",
+          "cloning": "جاري الاستنساخ...",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "changeStatus": "تغيير الحالة",
+          "delete": "حذف",
+          "clearSelection": "مسح التحديد"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد دورات",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد دورات بعد",
+          "noDataDescription": "ابدأ بإنشاء أول دورة لك"
+        },
+        "dialogs": {
+          "publishTitle": "نشر الدورة",
+          "publishDescription": "نشر \"{name}\" وإتاحتها للطلاب.",
+          "unpublishTitle": "إلغاء نشر الدورة",
+          "unpublishDescription": "إلغاء نشر \"{name}\" وإخفائها عن الطلاب.",
+          "deleteTitle": "حذف الدورة",
+          "deleteDescription": "حذف \"{name}\". لا يمكن التراجع عن هذا الإجراء.",
+          "actionFailed": "فشل الإجراء",
+          "cancel": "إلغاء",
+          "confirmPublish": "تأكيد النشر",
+          "confirmUnpublish": "تأكيد إلغاء النشر",
+          "confirmDelete": "تأكيد الحذف",
+          "publishing": "جاري النشر...",
+          "unpublishing": "جاري إلغاء النشر...",
+          "deleting": "جاري الحذف..."
+        },
+        "errors": {
+          "permissionDenied": "ليس لديك صلاحية لتنفيذ هذا الإجراء على الدورة.",
+          "notFound": "الدورة غير موجودة في نطاق هذا المركز.",
+          "validationError": "تعذر إكمال الإجراء على الدورة.",
+          "cloneFailed": "تعذر استنساخ الدورة.",
+          "cloneSuccess": "تم استنساخ الدورة بنجاح.",
+          "publishFailed": "تعذر نشر الدورة.",
+          "publishSuccess": "تم نشر الدورة بنجاح.",
+          "unpublishFailed": "تعذر إلغاء نشر الدورة.",
+          "unpublishSuccess": "تم إلغاء نشر الدورة بنجاح.",
+          "deleteFailed": "تعذر حذف الدورة.",
+          "deleteSuccess": "تم حذف الدورة بنجاح."
+        },
+        "selectAll": "تحديد كل الدورات في هذه الصفحة",
+        "selectCourse": "تحديد {name}"
+      }
     },
     "students": {
       "title": "الطلاب",
       "description": "إدارة حسابات الطلاب",
       "createStudent": "إضافة طالب",
-      "editStudent": "تعديل بيانات الطالب"
+      "editStudent": "تعديل بيانات الطالب",
+      "table": {
+        "searchPlaceholder": "البحث بالاسم أو الهاتف أو البريد",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل الطلاب. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "طالب واحد",
+        "summaryPlural": "{count} طالب",
+        "filters": {
+          "centerType": "نوع المركز",
+          "branded": "مميز",
+          "unbranded": "غير مميز",
+          "status": "الحالة",
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "banned": "محظور",
+          "stage": "المرحلة",
+          "selectCenterFirst": "اختر المركز أولاً",
+          "grade": "الصف",
+          "searchGrades": "البحث في الصفوف...",
+          "noGrades": "لا توجد صفوف",
+          "school": "المدرسة",
+          "searchSchools": "البحث في المدارس...",
+          "noSchools": "لا توجد مدارس",
+          "college": "الكلية",
+          "searchColleges": "البحث في الكليات...",
+          "noColleges": "لا توجد كليات"
+        },
+        "headers": {
+          "student": "الطالب",
+          "status": "الحالة",
+          "center": "المركز",
+          "education": "التعليم",
+          "activity": "النشاط",
+          "lastActivity": "آخر نشاط",
+          "device": "الجهاز",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "banned": "محظور"
+        },
+        "education": {
+          "grade": "الصف:",
+          "school": "المدرسة:",
+          "college": "الكلية:"
+        },
+        "device": {
+          "connectedDevice": "جهاز متصل",
+          "deviceConnected": "الجهاز متصل",
+          "noDevice": "لا يوجد جهاز",
+          "none": "لا شيء",
+          "notLinkedYet": "لم يتم الربط بعد"
+        },
+        "activity": {
+          "enrollments": "تسجيلات",
+          "sessions": "جلسات"
+        },
+        "actions": {
+          "viewProfile": "عرض الملف الشخصي",
+          "viewDetails": "عرض التفاصيل",
+          "enrollInCourse": "التسجيل في دورة",
+          "generateAccessCode": "إنشاء رمز وصول",
+          "editProfile": "تعديل الملف الشخصي",
+          "delete": "حذف",
+          "openWhatsapp": "فتح واتساب",
+          "openWhatsappFor": "فتح واتساب لـ {name}",
+          "phoneUnavailable": "رقم الهاتف غير متاح"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "enrollToCourse": "التسجيل في دورة",
+          "generateAccessCodes": "إنشاء رموز الوصول",
+          "changeStatus": "تغيير الحالة",
+          "enrollAndGenerate": "التسجيل والإنشاء"
+        },
+        "empty": {
+          "noResultsTitle": "لا يوجد طلاب",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا يوجد طلاب بعد",
+          "noDataDescription": "أضف طالباً للبدء"
+        },
+        "selectAll": "تحديد كل الطلاب في هذه الصفحة",
+        "selectStudent": "تحديد {name}",
+        "fallbackCenter": "تطبيق نجاح"
+      }
+    },
+    "enrollments": {
+      "title": "التسجيلات",
+      "description": "إدارة تسجيلات الطلاب",
+      "table": {
+        "searchPlaceholder": "البحث باسم الطالب أو الهاتف",
+        "clearSearch": "مسح البحث عن الطالب",
+        "loadFailed": "فشل في تحميل طلبات التسجيل. يرجى المحاولة مرة أخرى.",
+        "loadFailedActive": "فشل في تحميل الطلاب المسجلين. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "طلب تسجيل واحد",
+        "summaryPlural": "{count} طلب تسجيل",
+        "summaryActive": "طالب مسجل واحد",
+        "summaryActivePlural": "{count} طالب مسجل",
+        "filters": {
+          "course": "الدورة",
+          "searchCourses": "البحث في الدورات...",
+          "allCourses": "كل الدورات",
+          "noCourses": "لا توجد دورات",
+          "selectCenterFirst": "اختر المركز أولاً",
+          "status": "الحالة",
+          "pending": "قيد الانتظار",
+          "active": "نشط",
+          "deactivated": "معطل",
+          "cancelled": "ملغي",
+          "fromDate": "من تاريخ",
+          "toDate": "إلى تاريخ"
+        },
+        "headers": {
+          "student": "الطالب",
+          "course": "الدورة",
+          "center": "المركز",
+          "status": "الحالة",
+          "requestedAt": "تاريخ الطلب",
+          "enrolledAt": "تاريخ التسجيل",
+          "enrollmentWindow": "فترة التسجيل",
+          "actions": "الإجراءات"
+        },
+        "window": {
+          "enrolled": "تاريخ التسجيل:",
+          "expires": "تاريخ الانتهاء:"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "approveSelected": "الموافقة على المحدد",
+          "rejectSelected": "رفض المحدد",
+          "processing": "جاري المعالجة..."
+        },
+        "empty": {
+          "noRequestsTitle": "لا توجد طلبات تسجيل",
+          "noActiveTitle": "لا يوجد طلاب مسجلون",
+          "noResultsDescription": "جرب تعديل الفلاتر."
+        },
+        "selectAll": "تحديد كل التسجيلات في هذه الصفحة",
+        "selectEnrollment": "تحديد تسجيل {name}"
+      }
     },
     "instructors": {
       "title": "المدربون",
@@ -657,7 +965,52 @@
       "createInstructor": "إضافة مدرب",
       "editInstructor": "تعديل بيانات المدرب",
       "selectCenterTitle": "اختر مركزاً",
-      "selectCenterDescription": "اختر مركزاً لإدارة المدربين."
+      "selectCenterDescription": "اختر مركزاً لإدارة المدربين.",
+      "table": {
+        "searchPlaceholder": "البحث في المدربين...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل المدربين. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "مدرب واحد",
+        "summaryPlural": "{count} مدرب",
+        "filters": {
+          "course": "الدورة",
+          "searchCourses": "البحث في الدورات...",
+          "allCourses": "كل الدورات",
+          "noCourses": "لا توجد دورات",
+          "selectCenterFirst": "اختر مركزاً"
+        },
+        "headers": {
+          "instructor": "المدرب",
+          "bio": "نبذة",
+          "createdBy": "أنشأه",
+          "createdAt": "تاريخ الإنشاء",
+          "actions": "الإجراءات"
+        },
+        "actions": {
+          "viewDetails": "عرض التفاصيل",
+          "editProfile": "تعديل الملف الشخصي",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "delete": "حذف",
+          "confirmDeleteTitle": "حذف المدربين",
+          "confirmDeleteMessage": "هل أنت متأكد من حذف {count} مدرب؟ لا يمكن التراجع عن هذا الإجراء.",
+          "deleting": "جاري الحذف...",
+          "deleteSuccess": "تم حذف المدربين بنجاح",
+          "deleteFailed": "فشل في حذف بعض المدربين"
+        },
+        "empty": {
+          "noResultsTitle": "لا يوجد مدربون",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا يوجد مدربون بعد",
+          "noDataDescription": "أضف مدرباً للبدء"
+        },
+        "selectAll": "تحديد كل المدربين في هذه الصفحة",
+        "selectInstructor": "تحديد {name}",
+        "noBio": "لا توجد نبذة"
+      }
     },
     "categories": {
       "title": "التصنيفات",
@@ -665,11 +1018,137 @@
       "descriptionSelectCenter": "إدارة التصنيفات لكل مركز. اختر مركزاً للبدء.",
       "descriptionCenter": "إدارة تصنيفات الدورات لمركزك التعليمي",
       "selectCenterPrompt": "اختر مركزاً من المحدد أعلى اليمين لإدارة التصنيفات.",
-      "createCategory": "إنشاء تصنيف"
+      "createCategory": "إنشاء تصنيف",
+      "table": {
+        "searchPlaceholder": "البحث في التصنيفات...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل التصنيفات. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "تصنيف واحد",
+        "summaryPlural": "{count} تصنيف",
+        "filters": {
+          "parentCategory": "التصنيف الأب",
+          "allParents": "كل التصنيفات الأصل",
+          "status": "الحالة",
+          "allStatuses": "كل الحالات",
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "headers": {
+          "title": "العنوان",
+          "parent": "الأصل",
+          "order": "الترتيب",
+          "status": "الحالة",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "actions": {
+          "edit": "تعديل",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "changeStatus": "تغيير الحالة",
+          "delete": "حذف"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد تصنيفات",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد تصنيفات بعد",
+          "noDataDescription": "أنشئ تصنيفاً لبدء تنظيم المحتوى"
+        },
+        "selectAll": "تحديد كل التصنيفات في هذه الصفحة",
+        "selectCategory": "تحديد {name}"
+      }
     },
     "videos": {
       "title": "الفيديوهات",
-      "description": "إدارة محتوى الفيديو"
+      "description": "إدارة محتوى الفيديو",
+      "table": {
+        "searchPlaceholder": "البحث في العنوان أو الوسوم...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل الفيديوهات. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "فيديو واحد",
+        "summaryPlural": "{count} فيديو",
+        "selectCenter": "اختر مركزاً لعرض الفيديوهات.",
+        "filters": {
+          "status": "الحالة",
+          "allStatuses": "كل الحالات",
+          "pending": "قيد الانتظار",
+          "uploading": "جاري الرفع",
+          "processing": "جاري المعالجة",
+          "ready": "جاهز",
+          "failed": "فشل",
+          "sourceType": "نوع المصدر",
+          "allSourceTypes": "كل أنواع المصادر",
+          "upload": "رفع",
+          "url": "رابط",
+          "provider": "المزود",
+          "allProviders": "كل المزودين",
+          "najaahApp": "تطبيق نجاح",
+          "youtube": "يوتيوب",
+          "vimeo": "فيميو",
+          "zoom": "زووم",
+          "custom": "مخصص",
+          "createdFrom": "من تاريخ الإنشاء",
+          "createdTo": "إلى تاريخ الإنشاء"
+        },
+        "headers": {
+          "thumbnail": "الصورة المصغرة",
+          "video": "الفيديو",
+          "tags": "الوسوم",
+          "provider": "المزود",
+          "duration": "المدة",
+          "status": "الحالة",
+          "uploadedBy": "رفعه",
+          "updated": "التحديث",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "ready": "جاهز",
+          "pending": "قيد الانتظار",
+          "uploading": "جاري الرفع",
+          "processing": "جاري المعالجة",
+          "failed": "فشل",
+          "unknown": "غير معروف"
+        },
+        "sourceMode": {
+          "upload": "رفع",
+          "url": "رابط"
+        },
+        "thumbnail": {
+          "noThumbnail": "لا توجد صورة مصغرة"
+        },
+        "dates": {
+          "created": "الإنشاء"
+        },
+        "actions": {
+          "viewDetails": "عرض التفاصيل",
+          "preview": "معاينة",
+          "retryUpload": "إعادة الرفع",
+          "editVideo": "تعديل الفيديو",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "retryUploads": "إعادة الرفع",
+          "deleteSelected": "حذف المحدد",
+          "selectFailedHint": "اختر فيديوهات الرفع الفاشلة لإعادة المحاولة"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد فيديوهات",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد فيديوهات بعد",
+          "noDataDescription": "أنشئ فيديوهات للبدء"
+        },
+        "selectAll": "تحديد كل الفيديوهات في هذه الصفحة",
+        "selectVideo": "تحديد {name}",
+        "fallbackCenter": "تطبيق نجاح"
+      }
     },
     "pdfs": {
       "title": "ملفات PDF",
@@ -678,13 +1157,192 @@
       "uploadPdf": "رفع PDF",
       "selectCenterTitle": "اختر مركزاً",
       "selectCenterDescription": "اختر مركزاً قبل رفع ملفات PDF.",
-      "actionUnavailable": "هذا الإجراء غير متاح حالياً."
+      "actionUnavailable": "هذا الإجراء غير متاح حالياً.",
+      "table": {
+        "searchPlaceholder": "البحث في العنوان أو الوسوم...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل ملفات PDF. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "ملف PDF واحد",
+        "summaryPlural": "{count} ملف PDF",
+        "selectCenter": "اختر مركزاً لعرض ملفات PDF.",
+        "filters": {
+          "status": "الحالة",
+          "allStatuses": "كل الحالات",
+          "active": "نشط",
+          "pending": "قيد الانتظار",
+          "uploading": "جاري الرفع",
+          "ready": "جاهز",
+          "processing": "جاري المعالجة",
+          "failed": "فشل",
+          "sourceType": "نوع المصدر",
+          "allSourceTypes": "كل أنواع المصادر",
+          "upload": "رفع",
+          "url": "رابط",
+          "provider": "المزود",
+          "allProviders": "كل المزودين",
+          "najaahApp": "تطبيق نجاح",
+          "custom": "مخصص",
+          "createdFrom": "تاريخ الإنشاء من",
+          "createdTo": "تاريخ الإنشاء إلى"
+        },
+        "headers": {
+          "thumbnail": "الصورة المصغرة",
+          "pdf": "ملف PDF",
+          "tags": "الوسوم",
+          "provider": "المزود",
+          "pages": "الصفحات",
+          "status": "الحالة",
+          "uploadedBy": "رفعه",
+          "updated": "التحديث",
+          "size": "الحجم",
+          "created": "تاريخ الإنشاء",
+          "usedIn": "مستخدم في",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "pending": "قيد الانتظار",
+          "uploading": "جاري الرفع",
+          "ready": "جاهز",
+          "processing": "جاري المعالجة",
+          "failed": "فشل",
+          "unknown": "غير معروف"
+        },
+        "description": {
+          "noDescription": "لا يوجد وصف"
+        },
+        "usage": {
+          "course": "دورة",
+          "courses": "دورات"
+        },
+        "sourceMode": {
+          "upload": "رفع",
+          "url": "رابط"
+        },
+        "thumbnail": {
+          "noThumbnail": "لا توجد صورة مصغرة"
+        },
+        "actions": {
+          "preview": "معاينة",
+          "download": "تحميل",
+          "viewDetails": "عرض التفاصيل",
+          "editPdf": "تعديل PDF",
+          "delete": "حذف PDF",
+          "previewFailed": "تعذر الحصول على رابط المعاينة",
+          "downloadFailed": "تعذر الحصول على رابط التحميل"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "deleteSelected": "حذف المحدد"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد ملفات PDF",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد ملفات PDF بعد",
+          "noDataDescription": "ارفع ملفات PDF للبدء"
+        },
+        "selectAll": "تحديد كل ملفات PDF في هذه الصفحة",
+        "selectPdf": "تحديد {name}",
+        "fallbackCenter": "تطبيق نجاح"
+      }
     },
     "surveys": {
       "title": "الاستبيانات",
       "description": "إدارة الاستبيانات والاستطلاعات",
       "descriptionPlatform": "إدارة استبيانات النظام والمراكز",
-      "addSurvey": "إضافة استبيان"
+      "addSurvey": "إضافة استبيان",
+      "table": {
+        "searchPlaceholder": "البحث في الاستبيانات...",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل الاستبيانات. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "استبيان واحد",
+        "summaryPlural": "{count} استبيان",
+        "filters": {
+          "status": "الحالة",
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "requirement": "المتطلب",
+          "mandatory": "إلزامي",
+          "optional": "اختياري",
+          "type": "النوع",
+          "feedback": "تقييم",
+          "mandatoryType": "إلزامي",
+          "poll": "استطلاع"
+        },
+        "dateFilters": {
+          "quickLabel": "فلاتر التاريخ السريعة",
+          "activeNow": "نشط الآن",
+          "upcoming": "قادم",
+          "ended": "انتهى",
+          "startsThisMonth": "يبدأ هذا الشهر",
+          "hideAdvanced": "إخفاء فلاتر التاريخ المتقدمة",
+          "showAdvanced": "فلاتر التاريخ المتقدمة",
+          "windowTitle": "فلاتر نافذة الاستبيان",
+          "windowHint": "استخدم نطاقات البداية والنهاية لمطابقة فلاتر الواجهة الخلفية:",
+          "startDateRange": "نطاق تاريخ البداية",
+          "startsOnOrAfter": "يبدأ في أو بعد",
+          "startsOnOrBefore": "يبدأ في أو قبل",
+          "endDateRange": "نطاق تاريخ النهاية",
+          "endsOnOrAfter": "ينتهي في أو بعد",
+          "endsOnOrBefore": "ينتهي في أو قبل",
+          "startRangeInvalid": "نطاق تاريخ البداية غير صالح: start_from يجب أن يكون قبل أو يساوي start_to.",
+          "endRangeInvalid": "نطاق تاريخ النهاية غير صالح: end_from يجب أن يكون قبل أو يساوي end_to."
+        },
+        "headers": {
+          "title": "العنوان",
+          "scope": "النطاق",
+          "center": "المركز",
+          "status": "الحالة",
+          "assignment": "التعيين",
+          "window": "الفترة",
+          "questions": "الأسئلة",
+          "submitted": "المقدم",
+          "actions": "الإجراءات"
+        },
+        "scope": {
+          "center": "المركز",
+          "system": "النظام"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "assignment": {
+          "allStudents": "كل الطلاب",
+          "course": "الدورة",
+          "center": "المركز",
+          "video": "الفيديو",
+          "student": "الطالب",
+          "assignment": "التعيين",
+          "more": "+{count} إضافي"
+        },
+        "fallbackCenter": "تطبيق نجاح",
+        "actions": {
+          "edit": "تعديل",
+          "assign": "تعيين",
+          "changeStatus": "تغيير الحالة",
+          "close": "إغلاق",
+          "viewResults": "عرض النتائج",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "changeStatus": "تغيير الحالة",
+          "closeSurveys": "إغلاق الاستبيانات",
+          "deleteSurveys": "حذف الاستبيانات"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد استبيانات",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد استبيانات بعد",
+          "noDataDescription": "أنشئ أول استبيان لك لبدء جمع الردود."
+        },
+        "selectAll": "تحديد كل الاستبيانات في هذه الصفحة",
+        "selectSurvey": "تحديد الاستبيان {id}"
+      }
     },
     "analytics": {
       "title": "التحليلات",
@@ -793,11 +1451,106 @@
     },
     "roles": {
       "title": "الأدوار والصلاحيات",
-      "description": "إدارة أدوار المستخدمين وصلاحياتهم"
+      "description": "إدارة أدوار المستخدمين وصلاحياتهم",
+      "table": {
+        "searchPlaceholder": "البحث باسم الدور أو المعرّف",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل الأدوار. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "دور واحد",
+        "summaryPlural": "{count} دور",
+        "headers": {
+          "name": "الاسم",
+          "slug": "المعرّف",
+          "permissions": "الصلاحيات",
+          "description": "الوصف",
+          "actions": "الإجراءات"
+        },
+        "description": {
+          "viewMore": "عرض المزيد",
+          "viewLess": "عرض أقل"
+        },
+        "actions": {
+          "managePermissions": "إدارة الصلاحيات",
+          "viewPermissions": "عرض الصلاحيات",
+          "edit": "تعديل",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "managePermissions": "إدارة الصلاحيات"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد أدوار",
+          "noDataTitle": "لا توجد أدوار بعد",
+          "noDataDescription": "أنشئ أول دور لك لبدء تعيين الصلاحيات."
+        },
+        "selectAll": "تحديد كل الأدوار في الصفحة",
+        "selectRole": "تحديد {name}",
+        "dialogs": {
+          "syncPermissions": "مزامنة الصلاحيات",
+          "viewPermissionsReadOnly": "صلاحيات الدور (للقراءة فقط)",
+          "updatePermissionsFor": "تحديث صلاحيات {name}.",
+          "updatePermissionsGeneric": "تحديث صلاحيات هذا الدور."
+        }
+      }
     },
     "admins": {
       "title": "المشرفون",
-      "description": "إدارة حسابات المشرفين"
+      "description": "إدارة حسابات المشرفين",
+      "table": {
+        "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل في تحميل مستخدمي الإدارة. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "summary": "مشرف واحد",
+        "summaryPlural": "{count} مشرف",
+        "filters": {
+          "status": "الحالة",
+          "role": "الدور",
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "banned": "محظور"
+        },
+        "headers": {
+          "user": "المستخدم",
+          "center": "المركز",
+          "roles": "الأدوار",
+          "status": "الحالة",
+          "lastActive": "آخر نشاط",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "banned": "محظور",
+          "unknown": "غير معروف"
+        },
+        "centerFallback": "نظام نجاح",
+        "centerIdFallback": "المركز #{id}",
+        "roleFallback": "دور",
+        "actions": {
+          "editProfile": "تعديل الملف الشخصي",
+          "manageRoles": "إدارة الأدوار",
+          "assignCenters": "تعيين المراكز",
+          "changeStatus": "تغيير الحالة",
+          "delete": "حذف"
+        },
+        "bulk": {
+          "selected": "{count} محدد",
+          "assignRoles": "تعيين الأدوار",
+          "assignCenters": "تعيين المراكز",
+          "changeStatus": "تغيير الحالة"
+        },
+        "empty": {
+          "noResultsTitle": "لا يوجد مشرفون",
+          "noResultsDescription": "جرب تعديل كلمات البحث",
+          "noDataTitle": "لا يوجد مشرفون بعد",
+          "noDataDescription": "أنشئ مشرفاً للبدء"
+        },
+        "selectAll": "تحديد كل المشرفين في هذه الصفحة",
+        "selectUser": "تحديد {name}"
+      }
     },
     "studentRequests": {
       "title": "طلبات الطلاب",
@@ -811,6 +1564,267 @@
         "extraView": "مشاهدة إضافية",
         "deviceChange": "تغيير الجهاز",
         "videoAccess": "الوصول للفيديو"
+      },
+      "requestActions": {
+        "by": "بواسطة {name}",
+        "loading": "...",
+        "buttons": {
+          "preApprove": "موافقة مبدئية",
+          "approve": "موافقة",
+          "reject": "رفض"
+        },
+        "status": {
+          "approved": "تمت الموافقة",
+          "rejected": "مرفوض"
+        },
+        "relative": {
+          "justNow": "الآن",
+          "minutesAgo": "منذ {count} دقيقة",
+          "hoursAgo": "منذ {count} ساعة",
+          "daysAgo": "منذ {count} يوم"
+        }
+      },
+      "tables": {
+        "extraView": {
+          "title": "طلبات المشاهدة الإضافية",
+          "description": "مراجعة ومعالجة طلبات المشاهدة الإضافية.",
+          "summary": "طلب واحد",
+          "summaryPlural": "{count} طلب",
+          "searchPlaceholder": "ابحث باسم الطالب أو الهاتف أو المعرف",
+          "clearSearch": "مسح بحث الطالب",
+          "loadFailed": "فشل تحميل طلبات المشاهدة الإضافية. يرجى المحاولة مرة أخرى.",
+          "retry": "إعادة المحاولة",
+          "selectAll": "تحديد كل الطلبات في هذه الصفحة",
+          "selectRequest": "تحديد طلب {name}",
+          "filters": {
+            "allCourses": "كل الدورات",
+            "allVideos": "كل الفيديوهات",
+            "course": "الدورة",
+            "video": "الفيديو",
+            "searchCourses": "ابحث في الدورات...",
+            "searchVideos": "ابحث في الفيديوهات...",
+            "noCourses": "لا توجد دورات",
+            "noVideos": "لا توجد فيديوهات",
+            "selectCenter": "اختر مركزاً أولاً",
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "pending": "قيد الانتظار",
+            "approved": "تمت الموافقة",
+            "rejected": "مرفوض",
+            "fromDate": "من تاريخ الطلب",
+            "toDate": "إلى تاريخ الطلب"
+          },
+          "headers": {
+            "student": "الطالب",
+            "video": "الفيديو",
+            "course": "الدورة",
+            "center": "المركز",
+            "status": "الحالة",
+            "requestedAt": "وقت الطلب",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "noResultsTitle": "لا توجد طلبات مشاهدة إضافية",
+            "noResultsDescription": "جرّب تعديل عوامل التصفية."
+          },
+          "bulk": {
+            "selected": "{count} محدد",
+            "processing": "جارٍ المعالجة...",
+            "approveSelected": "موافقة على المحدد",
+            "rejectSelected": "رفض المحدد"
+          },
+          "unknown": {
+            "status": "غير معروف",
+            "student": "طالب غير معروف",
+            "course": "دورة غير معروفة",
+            "video": "فيديو غير معروف",
+            "center": "تطبيق نجاح"
+          }
+        },
+        "deviceChange": {
+          "title": "طلبات تغيير الجهاز",
+          "description": "مراجعة ومعالجة طلبات تغيير الجهاز.",
+          "summary": "طلب واحد",
+          "summaryPlural": "{count} طلب",
+          "searchPlaceholder": "ابحث باسم الطالب أو الهاتف أو المعرف",
+          "clearSearch": "مسح بحث الطالب",
+          "loadFailed": "فشل تحميل طلبات تغيير الجهاز. يرجى المحاولة مرة أخرى.",
+          "retry": "إعادة المحاولة",
+          "selectAll": "تحديد كل الطلبات في هذه الصفحة",
+          "selectRequest": "تحديد طلب {name}",
+          "filters": {
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "pending": "قيد الانتظار",
+            "preApproved": "موافقة مبدئية",
+            "approved": "تمت الموافقة",
+            "rejected": "مرفوض",
+            "fromDate": "من تاريخ",
+            "toDate": "إلى تاريخ"
+          },
+          "headers": {
+            "student": "الطالب",
+            "currentDevice": "الجهاز الحالي",
+            "newDevice": "الجهاز الجديد",
+            "source": "المصدر",
+            "status": "الحالة",
+            "center": "المركز",
+            "requestedAt": "وقت الطلب",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "noResultsTitle": "لا توجد طلبات تغيير جهاز",
+            "noResultsDescription": "جرّب تعديل عوامل التصفية."
+          },
+          "bulk": {
+            "selected": "{count} محدد",
+            "processing": "جارٍ المعالجة...",
+            "preApproveSelected": "موافقة مبدئية على المحدد",
+            "approveSelected": "موافقة على المحدد",
+            "rejectSelected": "رفض المحدد"
+          },
+          "unknown": {
+            "status": "غير معروف",
+            "student": "طالب غير معروف",
+            "center": "تطبيق نجاح"
+          }
+        },
+        "videoAccess": {
+          "title": "طلبات الوصول للفيديو",
+          "description": "مراجعة ومعالجة طلبات الوصول لكل فيديو.",
+          "summary": "طلب واحد",
+          "summaryPlural": "{count} طلب",
+          "searchPlaceholder": "ابحث باسم الطالب أو الهاتف",
+          "loadFailed": "فشل تحميل طلبات الوصول للفيديو. يرجى المحاولة مرة أخرى.",
+          "selectAll": "تحديد كل الطلبات في هذه الصفحة",
+          "selectRequest": "تحديد طلب {name}",
+          "filters": {
+            "course": "الدورة",
+            "video": "الفيديو",
+            "allCourses": "كل الدورات",
+            "allVideos": "كل الفيديوهات",
+            "searchCourses": "ابحث في الدورات...",
+            "searchVideos": "ابحث في الفيديوهات...",
+            "noCourses": "لا توجد دورات",
+            "noVideos": "لا توجد فيديوهات",
+            "selectCenter": "اختر مركزاً أولاً",
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "pending": "قيد الانتظار",
+            "approved": "تمت الموافقة",
+            "rejected": "مرفوض",
+            "fromDate": "من تاريخ الطلب",
+            "toDate": "إلى تاريخ الطلب"
+          },
+          "headers": {
+            "student": "الطالب",
+            "video": "الفيديو",
+            "course": "الدورة",
+            "center": "المركز",
+            "status": "الحالة",
+            "requestedAt": "وقت الطلب",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "selectCenterTitle": "اختر مركزاً أولاً",
+            "selectCenterDescription": "واجهات الوصول للفيديو مرتبطة بالمركز. اختر مركزاً للمتابعة.",
+            "noResultsTitle": "لا توجد طلبات وصول للفيديو",
+            "noResultsDescription": "جرّب تعديل عوامل التصفية."
+          },
+          "bulk": {
+            "selected": "{count} محدد",
+            "approveSelected": "موافقة على المحدد",
+            "rejectSelected": "رفض المحدد"
+          },
+          "unknown": {
+            "status": "غير معروف",
+            "student": "طالب غير معروف",
+            "course": "دورة غير معروفة",
+            "video": "فيديو غير معروف",
+            "center": "تطبيق نجاح"
+          }
+        },
+        "videoAccessCodes": {
+          "title": "أكواد الوصول للفيديو",
+          "description": "إدارة الأكواد المولدة وإرسالها عبر واتساب.",
+          "summary": "كود واحد",
+          "summaryPlural": "{count} كود",
+          "loadFailed": "فشل تحميل أكواد الوصول للفيديو. يرجى المحاولة مرة أخرى.",
+          "selectAll": "تحديد كل الأكواد في هذه الصفحة",
+          "selectCode": "تحديد الكود {id}",
+          "filters": {
+            "student": "الطالب",
+            "course": "الدورة",
+            "video": "الفيديو",
+            "allStudents": "كل الطلاب",
+            "allCourses": "كل الدورات",
+            "allVideos": "كل الفيديوهات",
+            "searchStudents": "ابحث في الطلاب...",
+            "searchCourses": "ابحث في الدورات...",
+            "searchVideos": "ابحث في الفيديوهات...",
+            "noStudents": "لا يوجد طلاب",
+            "noCourses": "لا توجد دورات",
+            "noVideos": "لا توجد فيديوهات",
+            "selectCenter": "اختر مركزاً أولاً",
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "active": "نشط",
+            "used": "مستخدم",
+            "revoked": "ملغي",
+            "expired": "منتهي",
+            "whatsappFormat": "صيغة واتساب",
+            "whatsappText": "واتساب: نص",
+            "whatsappQr": "واتساب: QR"
+          },
+          "headers": {
+            "student": "الطالب",
+            "video": "الفيديو",
+            "course": "الدورة",
+            "code": "الكود",
+            "status": "الحالة",
+            "expiresAt": "ينتهي في",
+            "createdAt": "تاريخ الإنشاء",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "selectCenterTitle": "اختر مركزاً أولاً",
+            "selectCenterDescription": "واجهات أكواد الوصول للفيديو مرتبطة بالمركز. اختر مركزاً للمتابعة.",
+            "noResultsTitle": "لا توجد أكواد وصول للفيديو",
+            "noResultsDescription": "جرّب تعديل عوامل التصفية أو أنشئ كوداً جديداً."
+          },
+          "actions": {
+            "generateCode": "توليد كود",
+            "sendWhatsapp": "إرسال واتساب",
+            "sending": "جارٍ الإرسال..."
+          },
+          "bulk": {
+            "selected": "{count} محدد",
+            "queueing": "جارٍ الإضافة للطابور...",
+            "sendWhatsapp": "إرسال واتساب جماعي"
+          },
+          "errors": {
+            "sendFailed": "تعذر إرسال الكود عبر واتساب.",
+            "bulkSendFailed": "تعذر الإرسال الجماعي للأكواد عبر واتساب.",
+            "jobFailed": "فشلت عملية واتساب"
+          },
+          "job": {
+            "title": "مهمة واتساب الجماعية #{id}",
+            "description": "تتبع تقدم الإرسال للدفعات الكبيرة.",
+            "total": "الإجمالي: {count}",
+            "sent": "تم الإرسال: {count}",
+            "failed": "فشل: {count}",
+            "pending": "قيد الانتظار: {count}",
+            "progress": "التقدم: {value}%",
+            "retries": "أقصى محاولات (وقت التشغيل): {count}",
+            "clear": "مسح المهمة"
+          },
+          "unknown": {
+            "status": "غير معروف",
+            "student": "طالب غير معروف",
+            "course": "دورة غير معروفة",
+            "video": "فيديو غير معروف"
+          }
+        }
       }
     },
     "education": {
@@ -818,16 +1832,263 @@
       "description": "إدارة الإعدادات التعليمية",
       "descriptionByCenter": "إدارة الصفوف والمدارس والكليات حسب المركز.",
       "descriptionForProfiles": "إدارة الصفوف والمدارس والكليات لملفات الطلاب.",
-      "selectCenterPrompt": "اختر مركزاً من المحدد لإدارة القوائم التعليمية."
+      "selectCenterPrompt": "اختر مركزاً من المحدد لإدارة القوائم التعليمية.",
+      "tables": {
+        "grades": {
+          "entityName": "الصف",
+          "summary": "صف واحد",
+          "summaryPlural": "{count} صف",
+          "searchPlaceholder": "البحث في الصفوف...",
+          "clearSearch": "مسح البحث",
+          "loadFailed": "فشل في تحميل الصفوف. يرجى المحاولة مرة أخرى.",
+          "retry": "إعادة المحاولة",
+          "filters": {
+            "stage": "المرحلة",
+            "allStages": "كل المراحل",
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "active": "نشط",
+            "inactive": "غير نشط"
+          },
+          "headers": {
+            "name": "الاسم",
+            "stage": "المرحلة",
+            "order": "الترتيب",
+            "status": "الحالة",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "noResultsTitle": "لا توجد صفوف",
+            "noResultsDescription": "جرب تعديل كلمات البحث",
+            "noDataTitle": "لا توجد صفوف بعد",
+            "noDataDescription": "ستظهر الصفوف هنا بعد إضافتها."
+          },
+          "actions": {
+            "edit": "تعديل",
+            "delete": "حذف"
+          }
+        },
+        "schools": {
+          "entityName": "المدرسة",
+          "summary": "مدرسة واحدة",
+          "summaryPlural": "{count} مدرسة",
+          "searchPlaceholder": "البحث في المدارس...",
+          "clearSearch": "مسح البحث",
+          "loadFailed": "فشل في تحميل المدارس. يرجى المحاولة مرة أخرى.",
+          "retry": "إعادة المحاولة",
+          "filters": {
+            "type": "النوع",
+            "allTypes": "كل الأنواع",
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "active": "نشط",
+            "inactive": "غير نشط"
+          },
+          "headers": {
+            "name": "الاسم",
+            "type": "النوع",
+            "address": "العنوان",
+            "status": "الحالة",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "noResultsTitle": "لا توجد مدارس",
+            "noResultsDescription": "جرب تعديل كلمات البحث",
+            "noDataTitle": "لا توجد مدارس بعد",
+            "noDataDescription": "ستظهر المدارس هنا بعد إضافتها."
+          },
+          "actions": {
+            "edit": "تعديل",
+            "delete": "حذف"
+          }
+        },
+        "colleges": {
+          "entityName": "الكلية",
+          "typeValue": "النوع {value}",
+          "summary": "كلية واحدة",
+          "summaryPlural": "{count} كلية",
+          "searchPlaceholder": "البحث في الكليات...",
+          "clearSearch": "مسح البحث",
+          "loadFailed": "فشل في تحميل الكليات. يرجى المحاولة مرة أخرى.",
+          "retry": "إعادة المحاولة",
+          "filters": {
+            "status": "الحالة",
+            "allStatuses": "كل الحالات",
+            "active": "نشط",
+            "inactive": "غير نشط"
+          },
+          "headers": {
+            "name": "الاسم",
+            "type": "النوع",
+            "address": "العنوان",
+            "status": "الحالة",
+            "actions": "الإجراءات"
+          },
+          "empty": {
+            "noResultsTitle": "لا توجد كليات",
+            "noResultsDescription": "جرب تعديل كلمات البحث",
+            "noDataTitle": "لا توجد كليات بعد",
+            "noDataDescription": "ستظهر الكليات هنا بعد إضافتها."
+          },
+          "actions": {
+            "edit": "تعديل",
+            "delete": "حذف"
+          }
+        }
+      }
     },
     "settings": {
       "title": "الإعدادات",
-      "description": "تكوين إعدادات النظام"
+      "description": "تكوين إعدادات النظام",
+      "table": {
+        "badge": "سجل النظام",
+        "title": "مخزون الإعدادات",
+        "description": "ابحث بمقاطع من المفتاح، وصفِّ حسب الظهور، وأدر مفاتيح السجل غير القياسية من شاشة واحدة.",
+        "summary": "إعداد واحد",
+        "summaryPlural": "{count} إعداد",
+        "matching": "مطابقة \"{query}\"",
+        "searchPlaceholder": "ابحث بالمفتاح",
+        "clearSearch": "مسح البحث",
+        "loadFailed": "فشل تحميل الإعدادات. يرجى المحاولة مرة أخرى.",
+        "retry": "إعادة المحاولة",
+        "stats": {
+          "visible": "الظاهر الآن",
+          "public": "عام",
+          "private": "خاص"
+        },
+        "filters": {
+          "visibility": "الظهور",
+          "visibilityAll": "الظهور",
+          "public": "عام",
+          "private": "خاص"
+        },
+        "headers": {
+          "registryKey": "مفتاح السجل",
+          "currentDefault": "القيمة الافتراضية الحالية",
+          "visibility": "الظهور",
+          "lastSync": "آخر مزامنة",
+          "actions": "الإجراءات"
+        },
+        "labels": {
+          "globalDefault": "افتراضي عام",
+          "globalDefaultHelp": "افتراضي عام في سجل النظام",
+          "managedAbove": "يُدار بالأعلى",
+          "managedFromDefaults": "تتم إدارته من لوحة القيم الافتراضية القياسية بالأعلى",
+          "lastUpdated": "آخر تحديث"
+        },
+        "actions": {
+          "addKey": "إضافة مفتاح سجل",
+          "edit": "تعديل",
+          "delete": "حذف"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد إعدادات",
+          "noResultsDescription": "جرّب تعديل كلمات البحث",
+          "noDataTitle": "لا توجد إعدادات بعد",
+          "noDataDescription": "أضف إعداد نظام غير قياسي لتوسيع السجل"
+        },
+        "relative": {
+          "justNow": "الآن",
+          "minutesAgo": "منذ {count} دقيقة",
+          "hoursAgo": "منذ {count} ساعة",
+          "daysAgo": "منذ {count} يوم"
+        },
+        "valueTypes": {
+          "object": "قيمة مركبة",
+          "array": "قيمة قائمة",
+          "null": "بدون قيمة",
+          "boolean": "قيمة منطقية",
+          "number": "قيمة رقمية",
+          "string": "قيمة نصية"
+        },
+        "valueTypeBadges": {
+          "object": "كائن",
+          "array": "مصفوفة",
+          "null": "فارغ",
+          "boolean": "منطقي",
+          "number": "رقمي",
+          "string": "نصي"
+        },
+        "values": {
+          "enabled": "مفعّل",
+          "disabled": "غير مفعّل"
+        }
+      }
     },
     "auditLogs": {
       "title": "سجلات التدقيق",
       "description": "عرض سجلات تدقيق النظام",
-      "descriptionAdmin": "سجل تدقيق للقراءة فقط لنشاط المشرفين."
+      "descriptionAdmin": "سجل تدقيق للقراءة فقط لنشاط المشرفين.",
+      "table": {
+        "clear": "إعادة تعيين",
+        "results": "{count} نتيجة",
+        "loadFailed": "فشل تحميل البيانات. يرجى المحاولة لاحقاً.",
+        "datePresets": {
+          "today": "اليوم",
+          "last7Days": "آخر 7 أيام",
+          "last30Days": "آخر 30 يوماً"
+        },
+        "filters": {
+          "action": "الإجراء",
+          "user": "المستخدم",
+          "allUsers": "كل المستخدمين",
+          "searchUsers": "ابحث في المستخدمين...",
+          "noUsers": "لا يوجد مستخدمون",
+          "course": "الدورة",
+          "allCourses": "كل الدورات",
+          "searchCourses": "ابحث في الدورات...",
+          "noCourses": "لا توجد دورات",
+          "selectCenter": "اختر مركزاً أولاً",
+          "selectCenterToLoad": "اختر مركزاً لتحميل الدورات",
+          "fromDate": "من تاريخ",
+          "toDate": "إلى تاريخ"
+        },
+        "actions": {
+          "allActions": "كل الإجراءات",
+          "create": "إنشاء",
+          "update": "تحديث",
+          "delete": "حذف",
+          "login": "تسجيل دخول",
+          "logout": "تسجيل خروج",
+          "unknown": "غير معروف",
+          "viewDetails": "عرض التفاصيل"
+        },
+        "headers": {
+          "action": "الإجراء",
+          "event": "الحدث",
+          "metadata": "البيانات الوصفية",
+          "createdAt": "تاريخ الإنشاء"
+        },
+        "labels": {
+          "user": "المستخدم",
+          "center": "المركز"
+        },
+        "activeFilters": {
+          "action": "الإجراء",
+          "user": "المستخدم",
+          "course": "الدورة",
+          "from": "من",
+          "to": "إلى"
+        },
+        "empty": {
+          "noResultsTitle": "لا توجد سجلات تدقيق",
+          "noResultsDescription": "لا توجد سجلات مطابقة للمعايير الحالية."
+        },
+        "dialog": {
+          "title": "سجل تدقيق #{id}",
+          "description": "تفاصيل الحدث الكاملة وحمولة البيانات الوصفية.",
+          "eventDetails": "تفاصيل الحدث",
+          "summary": "الملخص",
+          "entity": "الكيان",
+          "label": "التسمية",
+          "created": "تاريخ الإنشاء",
+          "metadataType": "النوع"
+        },
+        "unknown": {
+          "user": "المستخدم",
+          "entityType": "غير معروف"
+        }
+      }
     },
     "landingPage": {
       "title": "الصفحة الرئيسية",

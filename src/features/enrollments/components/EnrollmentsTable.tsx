@@ -39,6 +39,7 @@ import {
   useUpdateEnrollment,
 } from "@/features/enrollments/hooks/use-enrollments";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
+import { useTranslation } from "@/features/localization";
 import type { Enrollment } from "@/features/enrollments/types/enrollment";
 import { RequestActionButtons } from "@/features/student-requests/components/RequestActionButtons";
 import { formatDateTime } from "@/lib/format-date-time";
@@ -377,6 +378,7 @@ export function EnrollmentsTable({
   headerDescription,
   buildStudentHref,
 }: EnrollmentsTableProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -544,7 +546,10 @@ export function EnrollmentsTable({
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_COURSES_VALUE, label: "All courses" },
+      {
+        value: ALL_COURSES_VALUE,
+        label: t("pages.enrollments.table.filters.allCourses"),
+      },
     ];
 
     if (!queryCenterId) {
@@ -577,7 +582,7 @@ export function EnrollmentsTable({
     }
 
     return [...defaults, ...courses];
-  }, [coursesQuery.data?.pages, queryCenterId, selectedCourse]);
+  }, [coursesQuery.data?.pages, queryCenterId, selectedCourse, t]);
 
   const params = useMemo(
     () => ({
@@ -913,16 +918,15 @@ export function EnrollmentsTable({
           }
         }}
         summary={
-          <>
-            {total}{" "}
-            {isActiveEnrollmentsMode
-              ? total === 1
-                ? "enrolled student"
-                : "enrolled students"
-              : total === 1
-                ? "enrollment request"
-                : "enrollment requests"}
-          </>
+          isActiveEnrollmentsMode
+            ? total === 1
+              ? t("pages.enrollments.table.summaryActive", { count: total })
+              : t("pages.enrollments.table.summaryActivePlural", {
+                  count: total,
+                })
+            : total === 1
+              ? t("pages.enrollments.table.summary", { count: total })
+              : t("pages.enrollments.table.summaryPlural", { count: total })
         }
         gridClassName={filtersGridClassName}
       >
@@ -943,7 +947,7 @@ export function EnrollmentsTable({
           <Input
             value={studentSearch}
             onChange={(event) => setStudentSearch(event.target.value)}
-            placeholder="Search by student name or phone"
+            placeholder={t("pages.enrollments.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -958,7 +962,7 @@ export function EnrollmentsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear student search"
+            aria-label={t("pages.enrollments.table.clearSearch")}
             tabIndex={studentSearch.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -994,10 +998,18 @@ export function EnrollmentsTable({
             options={courseOptions}
             searchValue={courseSearch}
             onSearchValueChange={setCourseSearch}
-            placeholder={queryCenterId ? "Course" : "Select center first"}
-            searchPlaceholder="Search courses..."
+            placeholder={
+              queryCenterId
+                ? t("pages.enrollments.table.filters.course")
+                : t("pages.enrollments.table.filters.selectCenterFirst")
+            }
+            searchPlaceholder={t(
+              "pages.enrollments.table.filters.searchCourses",
+            )}
             emptyMessage={
-              queryCenterId ? "No courses found" : "Select a center first"
+              queryCenterId
+                ? t("pages.enrollments.table.filters.noCourses")
+                : t("pages.enrollments.table.filters.selectCenterFirst")
             }
             isLoading={coursesQuery.isLoading}
             filterOptions={false}
@@ -1019,14 +1031,26 @@ export function EnrollmentsTable({
             onValueChange={(value) => setStatusFilter(value)}
           >
             <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-              <SelectValue placeholder="Status" />
+              <SelectValue
+                placeholder={t("pages.enrollments.table.filters.status")}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="DEACTIVATED">Deactivated</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              <SelectItem value={ALL_STATUS_VALUE}>
+                {t("pages.enrollments.table.filters.status")}
+              </SelectItem>
+              <SelectItem value="PENDING">
+                {t("pages.enrollments.table.filters.pending")}
+              </SelectItem>
+              <SelectItem value="ACTIVE">
+                {t("pages.enrollments.table.filters.active")}
+              </SelectItem>
+              <SelectItem value="DEACTIVATED">
+                {t("pages.enrollments.table.filters.deactivated")}
+              </SelectItem>
+              <SelectItem value="CANCELLED">
+                {t("pages.enrollments.table.filters.cancelled")}
+              </SelectItem>
             </SelectContent>
           </Select>
         ) : null}
@@ -1036,7 +1060,7 @@ export function EnrollmentsTable({
             type="date"
             value={dateFrom}
             onChange={(event) => setDateFrom(event.target.value)}
-            title="From date"
+            title={t("pages.enrollments.table.filters.fromDate")}
           />
         ) : null}
 
@@ -1046,7 +1070,7 @@ export function EnrollmentsTable({
             value={dateTo}
             min={dateFrom || undefined}
             onChange={(event) => setDateTo(event.target.value)}
-            title="To date"
+            title={t("pages.enrollments.table.filters.toDate")}
           />
         ) : null}
       </ListingFilters>
@@ -1056,8 +1080,8 @@ export function EnrollmentsTable({
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
               {isActiveEnrollmentsMode
-                ? "Failed to load enrolled students. Please try again."
-                : "Failed to load enrollment requests. Please try again."}
+                ? t("pages.enrollments.table.loadFailedActive")
+                : t("pages.enrollments.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -1065,7 +1089,7 @@ export function EnrollmentsTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.enrollments.table.retry")}
             </Button>
           </div>
         </div>
@@ -1087,29 +1111,39 @@ export function EnrollmentsTable({
                       checked={isAllPageSelected}
                       onChange={toggleAllSelections}
                       disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all enrollments on this page"
+                      aria-label={t("pages.enrollments.table.selectAll")}
                     />
                   </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Student</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.enrollments.table.headers.student")}
+                </TableHead>
                 {shouldShowCourseColumn ? (
-                  <TableHead className="font-medium">Course</TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.enrollments.table.headers.course")}
+                  </TableHead>
                 ) : null}
                 {showCenterColumn ? (
-                  <TableHead className="font-medium">Center</TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.enrollments.table.headers.center")}
+                  </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Status</TableHead>
                 <TableHead className="font-medium">
-                  {isActiveEnrollmentsMode ? "Enrolled At" : "Requested At"}
+                  {t("pages.enrollments.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {isActiveEnrollmentsMode
+                    ? t("pages.enrollments.table.headers.enrolledAt")
+                    : t("pages.enrollments.table.headers.requestedAt")}
                 </TableHead>
                 {shouldShowEnrollmentWindowColumn ? (
                   <TableHead className="font-medium">
-                    Enrollment Window
+                    {t("pages.enrollments.table.headers.enrollmentWindow")}
                   </TableHead>
                 ) : null}
                 {shouldShowActionColumn ? (
                   <TableHead className="w-10 text-right font-medium">
-                    Actions
+                    {t("pages.enrollments.table.headers.actions")}
                   </TableHead>
                 ) : null}
               </TableRow>
@@ -1162,10 +1196,12 @@ export function EnrollmentsTable({
                     <EmptyState
                       title={
                         isActiveEnrollmentsMode
-                          ? "No enrolled students found"
-                          : "No enrollment requests found"
+                          ? t("pages.enrollments.table.empty.noActiveTitle")
+                          : t("pages.enrollments.table.empty.noRequestsTitle")
                       }
-                      description="Try adjusting your filters."
+                      description={t(
+                        "pages.enrollments.table.empty.noResultsDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
@@ -1235,7 +1271,10 @@ export function EnrollmentsTable({
                             onChange={() =>
                               toggleEnrollmentSelection(enrollment)
                             }
-                            aria-label={`Select enrollment for ${student.primary}`}
+                            aria-label={t(
+                              "pages.enrollments.table.selectEnrollment",
+                              { name: student.primary },
+                            )}
                           />
                         </TableCell>
                       ) : null}
@@ -1297,13 +1336,13 @@ export function EnrollmentsTable({
                         <TableCell className="text-gray-500 dark:text-gray-400">
                           <div className="flex flex-col text-xs">
                             <span>
-                              Enrolled:{" "}
+                              {t("pages.enrollments.table.window.enrolled")}{" "}
                               <span className="font-medium text-gray-700 dark:text-gray-300">
                                 {formatDateTime(enrollment.enrolled_at)}
                               </span>
                             </span>
                             <span>
-                              Expires:{" "}
+                              {t("pages.enrollments.table.window.expires")}{" "}
                               <span className="font-medium text-gray-700 dark:text-gray-300">
                                 {formatDateTime(enrollment.expires_at)}
                               </span>
@@ -1347,7 +1386,9 @@ export function EnrollmentsTable({
       {showBulkActions && selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.enrollments.table.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -1358,8 +1399,8 @@ export function EnrollmentsTable({
               disabled={bulkUpdateStatusMutation.isPending}
             >
               {bulkUpdateStatusMutation.isPending
-                ? "Processing..."
-                : "Approve Selected"}
+                ? t("pages.enrollments.table.bulk.processing")
+                : t("pages.enrollments.table.bulk.approveSelected")}
             </Button>
             <Button
               size="sm"
@@ -1369,8 +1410,8 @@ export function EnrollmentsTable({
               disabled={bulkUpdateStatusMutation.isPending}
             >
               {bulkUpdateStatusMutation.isPending
-                ? "Processing..."
-                : "Reject Selected"}
+                ? t("pages.enrollments.table.bulk.processing")
+                : t("pages.enrollments.table.bulk.rejectSelected")}
             </Button>
           </div>
         </div>

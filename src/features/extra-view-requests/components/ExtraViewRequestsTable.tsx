@@ -49,6 +49,7 @@ import { RequestActionButtons } from "@/features/student-requests/components/Req
 import { formatDateTime } from "@/lib/format-date-time";
 import { setTenantState } from "@/lib/tenant-store";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -102,14 +103,19 @@ function resolveStatusVariant(
 
 function resolveStatusLabel(value: string | null | undefined) {
   const raw = String(value ?? "").trim();
-  if (!raw) return "Unknown";
+  if (!raw) {
+    return "unknown";
+  }
   return raw
     .replace(/[_-]/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function resolveStatus(request: ExtraViewRequest): {
+function resolveStatus(
+  request: ExtraViewRequest,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): {
   key: string;
   label: string;
 } {
@@ -118,7 +124,9 @@ function resolveStatus(request: ExtraViewRequest): {
 
   const label =
     asString(request.status_label) ??
-    resolveStatusLabel(asString(request.status));
+    (resolveStatusLabel(asString(request.status)) === "unknown"
+      ? t("pages.studentRequests.tables.extraView.unknown.status")
+      : resolveStatusLabel(asString(request.status)));
 
   return { key, label };
 }
@@ -165,33 +173,46 @@ function setOrDeleteParam(
   params.set(key, value);
 }
 
-function resolveUserLabel(request: ExtraViewRequest): {
+function resolveUserLabel(
+  request: ExtraViewRequest,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): {
   primary: string;
   phone: string | null;
   email: string | null;
 } {
   const user = asRecord(request.user);
   const primary =
-    asString(user?.name) ?? asString(request.user_name) ?? "Unknown Student";
+    asString(user?.name) ??
+    asString(request.user_name) ??
+    t("pages.studentRequests.tables.extraView.unknown.student");
   const phone = asString(user?.phone) ?? null;
   const email = asString(user?.email) ?? null;
   return { primary, phone, email };
 }
 
-function resolveCourseLabel(request: ExtraViewRequest) {
+function resolveCourseLabel(
+  request: ExtraViewRequest,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const course = asRecord(request.course);
   return (
     asString(course?.name) ??
     asString(course?.title) ??
     asString(request.course_name) ??
-    "Unknown Course"
+    t("pages.studentRequests.tables.extraView.unknown.course")
   );
 }
 
-function resolveVideoLabel(request: ExtraViewRequest) {
+function resolveVideoLabel(
+  request: ExtraViewRequest,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const video = asRecord(request.video);
   return (
-    asString(video?.title) ?? asString(request.video_title) ?? "Unknown Video"
+    asString(video?.title) ??
+    asString(request.video_title) ??
+    t("pages.studentRequests.tables.extraView.unknown.video")
   );
 }
 
@@ -214,10 +235,15 @@ function resolveRequestedAt(request: ExtraViewRequest): string | null {
   return asString(request.requested_at) ?? asString(request.created_at) ?? null;
 }
 
-function resolveCenter(request: ExtraViewRequest): string {
+function resolveCenter(
+  request: ExtraViewRequest,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): string {
   const center = asRecord(request.center);
   return (
-    asString(center?.name) ?? asString(request.center_name) ?? "Najaah App"
+    asString(center?.name) ??
+    asString(request.center_name) ??
+    t("pages.studentRequests.tables.extraView.unknown.center")
   );
 }
 
@@ -226,6 +252,7 @@ export function ExtraViewRequestsTable({
   hideHeader = false,
   showCenterFilter = true,
 }: ExtraViewRequestsTableProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -409,7 +436,10 @@ export function ExtraViewRequestsTable({
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_COURSES_VALUE, label: "All courses" },
+      {
+        value: ALL_COURSES_VALUE,
+        label: t("pages.studentRequests.tables.extraView.filters.allCourses"),
+      },
     ];
 
     if (!queryCenterId) {
@@ -426,7 +456,8 @@ export function ExtraViewRequestsTable({
       .map((course) => ({
         value: String(course.id),
         label:
-          (course as { title?: string | null }).title || `Course ${course.id}`,
+          (course as { title?: string | null }).title ||
+          `${t("pages.studentRequests.tables.extraView.filters.course")} ${course.id}`,
       }));
 
     if (
@@ -437,16 +468,21 @@ export function ExtraViewRequestsTable({
       const selected = cachedCoursesRef.current.get(selectedCourse);
       courses.unshift({
         value: selectedCourse,
-        label: selected?.title ?? `Course ${selectedCourse}`,
+        label:
+          selected?.title ??
+          `${t("pages.studentRequests.tables.extraView.filters.course")} ${selectedCourse}`,
       });
     }
 
     return [...defaults, ...courses];
-  }, [coursesQuery.data?.pages, queryCenterId, selectedCourse]);
+  }, [coursesQuery.data?.pages, queryCenterId, selectedCourse, t]);
 
   const videoOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_VIDEOS_VALUE, label: "All videos" },
+      {
+        value: ALL_VIDEOS_VALUE,
+        label: t("pages.studentRequests.tables.extraView.filters.allVideos"),
+      },
     ];
 
     if (!queryCenterId) return defaults;
@@ -470,7 +506,7 @@ export function ExtraViewRequestsTable({
           video.title ??
           video.title_translations?.en ??
           video.title_translations?.ar ??
-          `Video ${video.id}`,
+          `${t("pages.studentRequests.tables.extraView.filters.video")} ${video.id}`,
       }));
 
     if (
@@ -481,12 +517,20 @@ export function ExtraViewRequestsTable({
       const selected = cachedVideosRef.current.get(selectedVideo);
       videos.unshift({
         value: selectedVideo,
-        label: selected?.title ?? `Video ${selectedVideo}`,
+        label:
+          selected?.title ??
+          `${t("pages.studentRequests.tables.extraView.filters.video")} ${selectedVideo}`,
       });
     }
 
     return [...defaults, ...videos];
-  }, [queryCenterId, selectedCourse, selectedVideo, videosQuery.data?.pages]);
+  }, [
+    queryCenterId,
+    selectedCourse,
+    selectedVideo,
+    t,
+    videosQuery.data?.pages,
+  ]);
 
   const params = useMemo(
     () => ({
@@ -715,10 +759,10 @@ export function ExtraViewRequestsTable({
       {!hideHeader ? (
         <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Extra View Requests
+            {t("pages.studentRequests.tables.extraView.title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Review and process extra view access requests.
+            {t("pages.studentRequests.tables.extraView.description")}
           </p>
         </div>
       ) : null}
@@ -744,7 +788,13 @@ export function ExtraViewRequestsTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "request" : "requests"}
+            {total === 1
+              ? t("pages.studentRequests.tables.extraView.summary", {
+                  count: total,
+                })
+              : t("pages.studentRequests.tables.extraView.summaryPlural", {
+                  count: total,
+                })}
           </>
         }
         gridClassName={
@@ -770,7 +820,9 @@ export function ExtraViewRequestsTable({
           <Input
             value={studentSearch}
             onChange={(event) => setStudentSearch(event.target.value)}
-            placeholder="Search by student name or phone"
+            placeholder={t(
+              "pages.studentRequests.tables.extraView.searchPlaceholder",
+            )}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -785,7 +837,7 @@ export function ExtraViewRequestsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear student search"
+            aria-label={t("pages.studentRequests.tables.extraView.clearSearch")}
             tabIndex={studentSearch.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -820,10 +872,18 @@ export function ExtraViewRequestsTable({
           options={courseOptions}
           searchValue={courseSearch}
           onSearchValueChange={setCourseSearch}
-          placeholder={queryCenterId ? "Course" : "Select center first"}
-          searchPlaceholder="Search courses..."
+          placeholder={
+            queryCenterId
+              ? t("pages.studentRequests.tables.extraView.filters.course")
+              : t("pages.studentRequests.tables.extraView.filters.selectCenter")
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.extraView.filters.searchCourses",
+          )}
           emptyMessage={
-            queryCenterId ? "No courses found" : "Select a center first"
+            queryCenterId
+              ? t("pages.studentRequests.tables.extraView.filters.noCourses")
+              : t("pages.studentRequests.tables.extraView.filters.selectCenter")
           }
           isLoading={coursesQuery.isLoading}
           filterOptions={false}
@@ -844,10 +904,18 @@ export function ExtraViewRequestsTable({
           options={videoOptions}
           searchValue={videoSearch}
           onSearchValueChange={setVideoSearch}
-          placeholder={queryCenterId ? "Video" : "Select center first"}
-          searchPlaceholder="Search videos..."
+          placeholder={
+            queryCenterId
+              ? t("pages.studentRequests.tables.extraView.filters.video")
+              : t("pages.studentRequests.tables.extraView.filters.selectCenter")
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.extraView.filters.searchVideos",
+          )}
           emptyMessage={
-            queryCenterId ? "No videos found" : "Select a center first"
+            queryCenterId
+              ? t("pages.studentRequests.tables.extraView.filters.noVideos")
+              : t("pages.studentRequests.tables.extraView.filters.selectCenter")
           }
           isLoading={videosQuery.isLoading}
           filterOptions={false}
@@ -867,13 +935,25 @@ export function ExtraViewRequestsTable({
           onValueChange={(value) => setStatusFilter(value)}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t(
+                "pages.studentRequests.tables.extraView.filters.status",
+              )}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="APPROVED">Approved</SelectItem>
-            <SelectItem value="REJECTED">Rejected</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.studentRequests.tables.extraView.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value="PENDING">
+              {t("pages.studentRequests.tables.extraView.filters.pending")}
+            </SelectItem>
+            <SelectItem value="APPROVED">
+              {t("pages.studentRequests.tables.extraView.filters.approved")}
+            </SelectItem>
+            <SelectItem value="REJECTED">
+              {t("pages.studentRequests.tables.extraView.filters.rejected")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -881,7 +961,7 @@ export function ExtraViewRequestsTable({
           type="date"
           value={dateFrom}
           onChange={(event) => setDateFrom(event.target.value)}
-          title="Requested from date"
+          title={t("pages.studentRequests.tables.extraView.filters.fromDate")}
         />
 
         <Input
@@ -889,7 +969,7 @@ export function ExtraViewRequestsTable({
           value={dateTo}
           min={dateFrom || undefined}
           onChange={(event) => setDateTo(event.target.value)}
-          title="Requested to date"
+          title={t("pages.studentRequests.tables.extraView.filters.toDate")}
         />
       </ListingFilters>
 
@@ -897,7 +977,7 @@ export function ExtraViewRequestsTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load extra view requests. Please try again.
+              {t("pages.studentRequests.tables.extraView.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -905,7 +985,7 @@ export function ExtraViewRequestsTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.studentRequests.tables.extraView.retry")}
             </Button>
           </div>
         </div>
@@ -926,19 +1006,35 @@ export function ExtraViewRequestsTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all requests on this page"
+                    aria-label={t(
+                      "pages.studentRequests.tables.extraView.selectAll",
+                    )}
                   />
                 </TableHead>
-                <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Video</TableHead>
-                <TableHead className="font-medium">Course</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.extraView.headers.student")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.extraView.headers.video")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.extraView.headers.course")}
+                </TableHead>
                 {showCenterColumn ? (
-                  <TableHead className="font-medium">Center</TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.studentRequests.tables.extraView.headers.center")}
+                  </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Requested At</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.extraView.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.extraView.headers.requestedAt",
+                  )}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.studentRequests.tables.extraView.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -984,17 +1080,21 @@ export function ExtraViewRequestsTable({
                     className="h-48"
                   >
                     <EmptyState
-                      title="No extra view requests found"
-                      description="Try adjusting your filters."
+                      title={t(
+                        "pages.studentRequests.tables.extraView.empty.noResultsTitle",
+                      )}
+                      description={t(
+                        "pages.studentRequests.tables.extraView.empty.noResultsDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
                 </TableRow>
               ) : (
                 items.map((request) => {
-                  const status = resolveStatus(request);
-                  const user = resolveUserLabel(request);
-                  const center = resolveCenter(request);
+                  const status = resolveStatus(request, t);
+                  const user = resolveUserLabel(request, t);
+                  const center = resolveCenter(request, t);
                   const decidedByName = resolveDecidedBy(request);
                   const decidedAt = resolveDecidedAt(request);
                   const requestedAt = resolveRequestedAt(request);
@@ -1012,7 +1112,10 @@ export function ExtraViewRequestsTable({
                             selectedRequests[String(request.id)],
                           )}
                           onChange={() => toggleSelection(request)}
-                          aria-label={`Select request for ${user.primary}`}
+                          aria-label={t(
+                            "pages.studentRequests.tables.extraView.selectRequest",
+                            { name: user.primary },
+                          )}
                         />
                       </TableCell>
                       <TableCell>
@@ -1036,10 +1139,10 @@ export function ExtraViewRequestsTable({
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {resolveVideoLabel(request)}
+                        {resolveVideoLabel(request, t)}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {resolveCourseLabel(request)}
+                        {resolveCourseLabel(request, t)}
                       </TableCell>
                       {showCenterColumn ? (
                         <TableCell className="text-gray-500 dark:text-gray-400">
@@ -1076,7 +1179,9 @@ export function ExtraViewRequestsTable({
       {selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.studentRequests.tables.extraView.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -1089,8 +1194,10 @@ export function ExtraViewRequestsTable({
               }
             >
               {bulkApproveMutation.isPending
-                ? "Processing..."
-                : "Approve Selected"}
+                ? t("pages.studentRequests.tables.extraView.bulk.processing")
+                : t(
+                    "pages.studentRequests.tables.extraView.bulk.approveSelected",
+                  )}
             </Button>
             <Button
               size="sm"
@@ -1102,8 +1209,10 @@ export function ExtraViewRequestsTable({
               }
             >
               {bulkRejectMutation.isPending
-                ? "Processing..."
-                : "Reject Selected"}
+                ? t("pages.studentRequests.tables.extraView.bulk.processing")
+                : t(
+                    "pages.studentRequests.tables.extraView.bulk.rejectSelected",
+                  )}
             </Button>
           </div>
         </div>

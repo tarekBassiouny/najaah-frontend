@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTenant } from "@/app/tenant-provider";
+import { useTranslation } from "@/features/localization";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,19 +52,30 @@ type VideoStatusVariant =
   | "error"
   | "default";
 
-const statusConfig: Record<
+function getStatusConfig(t: (_key: string) => string): Record<
   string,
   {
     variant: VideoStatusVariant;
     label: string;
   }
-> = {
-  ready: { variant: "success", label: "Ready" },
-  pending: { variant: "warning", label: "Pending" },
-  uploading: { variant: "warning", label: "Uploading" },
-  processing: { variant: "warning", label: "Processing" },
-  failed: { variant: "error", label: "Failed" },
-};
+> {
+  return {
+    ready: { variant: "success", label: t("pages.videos.table.status.ready") },
+    pending: {
+      variant: "warning",
+      label: t("pages.videos.table.status.pending"),
+    },
+    uploading: {
+      variant: "warning",
+      label: t("pages.videos.table.status.uploading"),
+    },
+    processing: {
+      variant: "warning",
+      label: t("pages.videos.table.status.processing"),
+    },
+    failed: { variant: "error", label: t("pages.videos.table.status.failed") },
+  };
+}
 
 type VideosTableProps = {
   centerId?: string | number;
@@ -186,26 +198,33 @@ function formatDuration(seconds: number | null) {
   return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
-function resolveSourceMode(video: Video) {
+function resolveSourceMode(video: Video, t: (_key: string) => string) {
   const sourceType = String(video.source_type ?? "")
     .trim()
     .toLowerCase();
 
   if (sourceType === "1" || sourceType === "upload" || sourceType === "bunny") {
-    return "Upload";
+    return t("pages.videos.table.sourceMode.upload");
   }
 
   if (sourceType === "0" || sourceType === "url") {
-    return "URL";
+    return t("pages.videos.table.sourceMode.url");
   }
 
-  return video.source_url ? "URL" : "Upload";
+  return video.source_url
+    ? t("pages.videos.table.sourceMode.url")
+    : t("pages.videos.table.sourceMode.upload");
 }
 
-function getStatusBadge(status: string, statusLabel?: string | null) {
+function getStatusBadge(
+  status: string,
+  statusLabel: string | null | undefined,
+  t: (_key: string) => string,
+) {
+  const statusConfig = getStatusConfig(t);
   const fallbackLabel = status
     ? status.charAt(0).toUpperCase() + status.slice(1)
-    : "Unknown";
+    : t("pages.videos.table.status.unknown");
   const explicitLabel =
     typeof statusLabel === "string" && statusLabel.trim()
       ? statusLabel.trim()
@@ -248,6 +267,7 @@ export function VideosTable({
   onBulkRetryUpload,
   onBulkDelete,
 }: VideosTableProps) {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
   const [page, setPage] = useState(1);
@@ -464,10 +484,12 @@ export function VideosTable({
         summary={
           centerId ? (
             <>
-              {total} {total === 1 ? "video" : "videos"}
+              {total === 1
+                ? t("pages.videos.table.summary", { count: total })
+                : t("pages.videos.table.summaryPlural", { count: total })}
             </>
           ) : (
-            <>Select a center to view videos.</>
+            <>{t("pages.videos.table.selectCenter")}</>
           )
         }
         gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
@@ -489,7 +511,7 @@ export function VideosTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search title or tags..."
+            placeholder={t("pages.videos.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             disabled={!centerId}
           />
@@ -506,7 +528,7 @@ export function VideosTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.videos.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -534,15 +556,27 @@ export function VideosTable({
           disabled={!centerId}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("pages.videos.table.filters.status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="uploading">Uploading</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="ready">Ready</SelectItem>
-            <SelectItem value="failed">Failed</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.videos.table.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value="pending">
+              {t("pages.videos.table.filters.pending")}
+            </SelectItem>
+            <SelectItem value="uploading">
+              {t("pages.videos.table.filters.uploading")}
+            </SelectItem>
+            <SelectItem value="processing">
+              {t("pages.videos.table.filters.processing")}
+            </SelectItem>
+            <SelectItem value="ready">
+              {t("pages.videos.table.filters.ready")}
+            </SelectItem>
+            <SelectItem value="failed">
+              {t("pages.videos.table.filters.failed")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -555,14 +589,20 @@ export function VideosTable({
           disabled={!centerId}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Source Type" />
+            <SelectValue
+              placeholder={t("pages.videos.table.filters.sourceType")}
+            />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_SOURCE_TYPE_VALUE}>
-              All source types
+              {t("pages.videos.table.filters.allSourceTypes")}
             </SelectItem>
-            <SelectItem value="upload">Upload</SelectItem>
-            <SelectItem value="url">URL</SelectItem>
+            <SelectItem value="upload">
+              {t("pages.videos.table.filters.upload")}
+            </SelectItem>
+            <SelectItem value="url">
+              {t("pages.videos.table.filters.url")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -575,17 +615,29 @@ export function VideosTable({
           disabled={!centerId}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Provider" />
+            <SelectValue
+              placeholder={t("pages.videos.table.filters.provider")}
+            />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
-              All providers
+              {t("pages.videos.table.filters.allProviders")}
             </SelectItem>
-            <SelectItem value="bunny">Najaah App</SelectItem>
-            <SelectItem value="youtube">YouTube</SelectItem>
-            <SelectItem value="vimeo">Vimeo</SelectItem>
-            <SelectItem value="zoom">Zoom</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
+            <SelectItem value="bunny">
+              {t("pages.videos.table.filters.najaahApp")}
+            </SelectItem>
+            <SelectItem value="youtube">
+              {t("pages.videos.table.filters.youtube")}
+            </SelectItem>
+            <SelectItem value="vimeo">
+              {t("pages.videos.table.filters.vimeo")}
+            </SelectItem>
+            <SelectItem value="zoom">
+              {t("pages.videos.table.filters.zoom")}
+            </SelectItem>
+            <SelectItem value="custom">
+              {t("pages.videos.table.filters.custom")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -597,7 +649,7 @@ export function VideosTable({
             setCreatedFrom(event.target.value);
             setPage(1);
           }}
-          title="Created from date"
+          title={t("pages.videos.table.filters.createdFrom")}
           disabled={!centerId}
         />
 
@@ -609,20 +661,20 @@ export function VideosTable({
             setCreatedTo(event.target.value);
             setPage(1);
           }}
-          title="Created to date"
+          title={t("pages.videos.table.filters.createdTo")}
           disabled={!centerId}
         />
       </ListingFilters>
 
       {!centerId ? (
         <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          Select a center to view videos.
+          {t("pages.videos.table.selectCenter")}
         </div>
       ) : isError ? (
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load videos. Please try again.
+              {t("pages.videos.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -630,7 +682,7 @@ export function VideosTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.videos.table.retry")}
             </Button>
           </div>
         </div>
@@ -652,21 +704,37 @@ export function VideosTable({
                       checked={isAllPageSelected}
                       onChange={toggleAllSelections}
                       disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all videos on this page"
+                      aria-label={t("pages.videos.table.selectAll")}
                     />
                   </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Thumbnail</TableHead>
-                <TableHead className="w-[200px] font-medium">Video</TableHead>
-                <TableHead className="font-medium">Tags</TableHead>
-                <TableHead className="font-medium">Provider</TableHead>
-                <TableHead className="font-medium">Duration</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Uploaded By</TableHead>
-                <TableHead className="font-medium">Updated</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.thumbnail")}
+                </TableHead>
+                <TableHead className="w-[200px] font-medium">
+                  {t("pages.videos.table.headers.video")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.tags")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.provider")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.duration")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.uploadedBy")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.videos.table.headers.updated")}
+                </TableHead>
                 {hasActions ? (
                   <TableHead className="w-10 text-right font-medium">
-                    Actions
+                    {t("pages.videos.table.headers.actions")}
                   </TableHead>
                 ) : null}
               </TableRow>
@@ -717,11 +785,15 @@ export function VideosTable({
                 <TableRow>
                   <TableCell colSpan={columnCount} className="h-48">
                     <EmptyState
-                      title={query ? "No videos found" : "No videos yet"}
+                      title={
+                        query
+                          ? t("pages.videos.table.empty.noResultsTitle")
+                          : t("pages.videos.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Create videos to get started"
+                          ? t("pages.videos.table.empty.noResultsDescription")
+                          : t("pages.videos.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -739,13 +811,14 @@ export function VideosTable({
                   );
                   const tags = resolveVideoTags(video);
                   const providerLabel = resolveVideoProviderLabel(video);
-                  const sourceMode = resolveSourceMode(video);
+                  const sourceMode = resolveSourceMode(video, t);
                   const durationSeconds = resolveDurationSeconds(video);
                   const description = resolveVideoDescription(video);
                   const tableStatus = resolveTableStatus(video);
                   const tableStatusBadge = getStatusBadge(
                     tableStatus.key,
                     tableStatus.label,
+                    t,
                   );
                   const creatorName =
                     typeof video.creator?.name === "string" &&
@@ -795,7 +868,8 @@ export function VideosTable({
                               {thumbnailState.fallbackLabel}
                             </span>
                             <span className="line-clamp-1 text-[8px] text-gray-400 dark:text-gray-500">
-                              {thumbnailState.fallbackHint ?? "No thumbnail"}
+                              {thumbnailState.fallbackHint ??
+                                t("pages.videos.table.thumbnail.noThumbnail")}
                             </span>
                           </div>
                         )}
@@ -866,7 +940,8 @@ export function VideosTable({
                             {creatorName}
                           </p>
                           <p className="line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
-                            {centerName ?? "Najaah App"}
+                            {centerName ??
+                              t("pages.videos.table.fallbackCenter")}
                           </p>
                         </div>
                       </TableCell>
@@ -878,7 +953,7 @@ export function VideosTable({
                               : "—"}
                           </p>
                           <p className="text-xs text-gray-400 dark:text-gray-500">
-                            Created{" "}
+                            {t("pages.videos.table.dates.created")}{" "}
                             {video.created_at
                               ? formatDateTime(video.created_at)
                               : "—"}
@@ -912,7 +987,9 @@ export function VideosTable({
                                       onView(video);
                                     }}
                                   >
-                                    View details
+                                    {t(
+                                      "pages.videos.table.actions.viewDetails",
+                                    )}
                                   </button>
                                 ) : null}
                                 {onPreview ? (
@@ -923,7 +1000,7 @@ export function VideosTable({
                                       onPreview(video);
                                     }}
                                   >
-                                    Preview
+                                    {t("pages.videos.table.actions.preview")}
                                   </button>
                                 ) : null}
                                 {onRetryUpload && canRetryVideoUpload(video) ? (
@@ -934,7 +1011,9 @@ export function VideosTable({
                                       onRetryUpload(video);
                                     }}
                                   >
-                                    Retry upload
+                                    {t(
+                                      "pages.videos.table.actions.retryUpload",
+                                    )}
                                   </button>
                                 ) : null}
                                 {onEdit ? (
@@ -945,7 +1024,7 @@ export function VideosTable({
                                       onEdit(video);
                                     }}
                                   >
-                                    Edit video
+                                    {t("pages.videos.table.actions.editVideo")}
                                   </button>
                                 ) : null}
                                 {onDelete ? (
@@ -956,7 +1035,7 @@ export function VideosTable({
                                       onDelete(video);
                                     }}
                                   >
-                                    Delete
+                                    {t("pages.videos.table.actions.delete")}
                                   </button>
                                 ) : null}
                               </DropdownContent>
@@ -976,7 +1055,7 @@ export function VideosTable({
       {selectedCount > 0 && hasBulkActions ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.videos.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {onBulkRetryUpload ? (
@@ -989,11 +1068,11 @@ export function VideosTable({
                 }
                 title={
                   retryEligibleSelectedVideos.length === 0
-                    ? "Select failed upload-source videos to retry"
+                    ? t("pages.videos.table.bulk.selectFailedHint")
                     : undefined
                 }
               >
-                Retry Uploads
+                {t("pages.videos.table.bulk.retryUploads")}
               </Button>
             ) : null}
             {onBulkDelete ? (
@@ -1004,7 +1083,7 @@ export function VideosTable({
                 disabled={isLoadingState}
                 className="text-red-600 hover:text-red-600"
               >
-                Delete Selected
+                {t("pages.videos.table.bulk.deleteSelected")}
               </Button>
             ) : null}
           </div>

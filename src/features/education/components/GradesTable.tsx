@@ -37,6 +37,7 @@ import {
   getStageLabel,
 } from "@/features/education/types/education";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STAGE_VALUE = "all";
@@ -67,6 +68,7 @@ type GradesTableProps = {
 };
 
 export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -132,7 +134,11 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
         }}
         summary={
           <>
-            {total} {total === 1 ? "grade" : "grades"}
+            {total === 1
+              ? t("pages.education.tables.grades.summary", { count: total })
+              : t("pages.education.tables.grades.summaryPlural", {
+                  count: total,
+                })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3"
@@ -154,7 +160,7 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search grades..."
+            placeholder={t("pages.education.tables.grades.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -170,7 +176,7 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.education.tables.grades.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -197,10 +203,14 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Stage" />
+            <SelectValue
+              placeholder={t("pages.education.tables.grades.filters.stage")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STAGE_VALUE}>All Stages</SelectItem>
+            <SelectItem value={ALL_STAGE_VALUE}>
+              {t("pages.education.tables.grades.filters.allStages")}
+            </SelectItem>
             {EDUCATIONAL_STAGE_OPTIONS.map((stage) => (
               <SelectItem key={stage.value} value={stage.value}>
                 {stage.label}
@@ -220,12 +230,20 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
             className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             icon={<StatusIcon />}
           >
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t("pages.education.tables.grades.filters.status")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>All Statuses</SelectItem>
-            <SelectItem value={STATUS_ACTIVE_VALUE}>Active</SelectItem>
-            <SelectItem value={STATUS_INACTIVE_VALUE}>Inactive</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.education.tables.grades.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value={STATUS_ACTIVE_VALUE}>
+              {t("pages.education.tables.grades.filters.active")}
+            </SelectItem>
+            <SelectItem value={STATUS_INACTIVE_VALUE}>
+              {t("pages.education.tables.grades.filters.inactive")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </ListingFilters>
@@ -234,7 +252,7 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load grades. Please try again.
+              {t("pages.education.tables.grades.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -242,7 +260,7 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.education.tables.grades.retry")}
             </Button>
           </div>
         </div>
@@ -256,12 +274,20 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
           <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                <TableHead className="font-medium">Name</TableHead>
-                <TableHead className="font-medium">Stage</TableHead>
-                <TableHead className="font-medium">Order</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.grades.headers.name")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.grades.headers.stage")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.grades.headers.order")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.grades.headers.status")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.education.tables.grades.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -292,11 +318,21 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                 <TableRow>
                   <TableCell colSpan={5} className="h-48">
                     <EmptyState
-                      title={query ? "No grades found" : "No grades yet"}
+                      title={
+                        query
+                          ? t(
+                              "pages.education.tables.grades.empty.noResultsTitle",
+                            )
+                          : t("pages.education.tables.grades.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Grades will appear here once they are added."
+                          ? t(
+                              "pages.education.tables.grades.empty.noResultsDescription",
+                            )
+                          : t(
+                              "pages.education.tables.grades.empty.noDataDescription",
+                            )
                       }
                       className="border-0 bg-transparent"
                     />
@@ -312,7 +348,10 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                   return (
                     <TableRow key={grade.id}>
                       <TableCell className="font-medium text-gray-900 dark:text-white">
-                        {getEducationName(grade, "Grade")}
+                        {getEducationName(
+                          grade,
+                          t("pages.education.tables.grades.entityName"),
+                        )}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
                         {getStageLabel(grade.stage, grade.stage_label)}
@@ -322,7 +361,11 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusVariant}>
-                          {grade.is_active === false ? "Inactive" : "Active"}
+                          {grade.is_active === false
+                            ? t(
+                                "pages.education.tables.grades.filters.inactive",
+                              )
+                            : t("pages.education.tables.grades.filters.active")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -350,7 +393,9 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                                   onEdit(grade);
                                 }}
                               >
-                                Edit
+                                {t(
+                                  "pages.education.tables.grades.actions.edit",
+                                )}
                               </button>
                             ) : null}
                             {onDelete ? (
@@ -361,7 +406,9 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                                   onDelete(grade);
                                 }}
                               >
-                                Delete
+                                {t(
+                                  "pages.education.tables.grades.actions.delete",
+                                )}
                               </button>
                             ) : null}
                           </DropdownContent>

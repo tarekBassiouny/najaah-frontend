@@ -40,6 +40,7 @@ import type {
   VideoAccessRequest,
   VideoAccessRequestStatus,
 } from "@/features/video-access/types/video-access";
+import { useTranslation } from "@/features/localization";
 import { listVideos } from "@/features/videos/services/videos.service";
 import { formatDateTime } from "@/lib/format-date-time";
 import { setTenantState } from "@/lib/tenant-store";
@@ -88,14 +89,17 @@ function resolveStatusVariant(
 
 function resolveStatusLabel(value: string | null | undefined) {
   const raw = String(value ?? "").trim();
-  if (!raw) return "Unknown";
+  if (!raw) return "unknown";
   return raw
     .replace(/[_-]/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function resolveStatus(request: VideoAccessRequest): {
+function resolveStatus(
+  request: VideoAccessRequest,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): {
   key: string;
   label: string;
 } {
@@ -104,7 +108,9 @@ function resolveStatus(request: VideoAccessRequest): {
 
   const label =
     asString(request.status_label) ??
-    resolveStatusLabel(asString(request.status));
+    (resolveStatusLabel(asString(request.status)) === "unknown"
+      ? t("pages.studentRequests.tables.videoAccess.unknown.status")
+      : resolveStatusLabel(asString(request.status)));
 
   return { key, label };
 }
@@ -116,7 +122,7 @@ function resolveUserLabel(request: VideoAccessRequest): {
 } {
   const user = asRecord(request.user) ?? asRecord(request.student);
   const primary =
-    asString(user?.name) ?? asString(request.user_name) ?? "Unknown Student";
+    asString(user?.name) ?? asString(request.user_name) ?? "unknown";
   const phone = asString(user?.phone) ?? null;
   const email = asString(user?.email) ?? null;
   return { primary, phone, email };
@@ -128,15 +134,13 @@ function resolveCourseLabel(request: VideoAccessRequest) {
     asString(course?.name) ??
     asString(course?.title) ??
     asString(request.course_name) ??
-    "Unknown Course"
+    "unknown"
   );
 }
 
 function resolveVideoLabel(request: VideoAccessRequest) {
   const video = asRecord(request.video);
-  return (
-    asString(video?.title) ?? asString(request.video_title) ?? "Unknown Video"
-  );
+  return asString(video?.title) ?? asString(request.video_title) ?? "unknown";
 }
 
 function resolveDecidedBy(request: VideoAccessRequest): string | null {
@@ -154,9 +158,7 @@ function resolveRequestedAt(request: VideoAccessRequest): string | null {
 
 function resolveCenter(request: VideoAccessRequest): string {
   const center = asRecord(request.center);
-  return (
-    asString(center?.name) ?? asString(request.center_name) ?? "Najaah App"
-  );
+  return asString(center?.name) ?? asString(request.center_name) ?? "unknown";
 }
 
 function getInitials(value: string): string {
@@ -174,6 +176,7 @@ export function VideoAccessRequestsTable({
   hideHeader = false,
   showCenterFilter = true,
 }: VideoAccessRequestsTableProps) {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const isTenantCenterScoped = Boolean(tenant.centerSlug);
   const selectedCenterId = tenant.centerId ?? undefined;
@@ -329,7 +332,10 @@ export function VideoAccessRequestsTable({
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_COURSES_VALUE, label: "All courses" },
+      {
+        value: ALL_COURSES_VALUE,
+        label: t("pages.studentRequests.tables.videoAccess.filters.allCourses"),
+      },
     ];
 
     if (!hasCenterContext) return defaults;
@@ -344,7 +350,8 @@ export function VideoAccessRequestsTable({
       .map((course) => ({
         value: String(course.id),
         label:
-          (course as { title?: string | null }).title || `Course ${course.id}`,
+          (course as { title?: string | null }).title ||
+          `${t("pages.studentRequests.tables.videoAccess.filters.course")} ${course.id}`,
       }));
 
     if (
@@ -354,16 +361,21 @@ export function VideoAccessRequestsTable({
       const selected = cachedCoursesRef.current.get(selectedCourse);
       courses.unshift({
         value: selectedCourse,
-        label: selected?.title ?? `Course ${selectedCourse}`,
+        label:
+          selected?.title ??
+          `${t("pages.studentRequests.tables.videoAccess.filters.course")} ${selectedCourse}`,
       });
     }
 
     return [...defaults, ...courses];
-  }, [coursesQuery.data?.pages, hasCenterContext, selectedCourse]);
+  }, [coursesQuery.data?.pages, hasCenterContext, selectedCourse, t]);
 
   const videoOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_VIDEOS_VALUE, label: "All videos" },
+      {
+        value: ALL_VIDEOS_VALUE,
+        label: t("pages.studentRequests.tables.videoAccess.filters.allVideos"),
+      },
     ];
 
     if (!hasCenterContext) return defaults;
@@ -381,7 +393,7 @@ export function VideoAccessRequestsTable({
           video.title ??
           video.title_translations?.en ??
           video.title_translations?.ar ??
-          `Video ${video.id}`,
+          `${t("pages.studentRequests.tables.videoAccess.filters.video")} ${video.id}`,
       }));
 
     if (
@@ -391,12 +403,14 @@ export function VideoAccessRequestsTable({
       const selected = cachedVideosRef.current.get(selectedVideo);
       videos.unshift({
         value: selectedVideo,
-        label: selected?.title ?? `Video ${selectedVideo}`,
+        label:
+          selected?.title ??
+          `${t("pages.studentRequests.tables.videoAccess.filters.video")} ${selectedVideo}`,
       });
     }
 
     return [...defaults, ...videos];
-  }, [hasCenterContext, selectedVideo, videosQuery.data?.pages]);
+  }, [hasCenterContext, selectedVideo, t, videosQuery.data?.pages]);
 
   useEffect(() => {
     setPage(1);
@@ -547,10 +561,10 @@ export function VideoAccessRequestsTable({
       {!hideHeader ? (
         <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Video Access Requests
+            {t("pages.studentRequests.tables.videoAccess.title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Review and process per-video access requests.
+            {t("pages.studentRequests.tables.videoAccess.description")}
           </p>
         </div>
       ) : null}
@@ -576,7 +590,13 @@ export function VideoAccessRequestsTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "request" : "requests"}
+            {total === 1
+              ? t("pages.studentRequests.tables.videoAccess.summary", {
+                  count: total,
+                })
+              : t("pages.studentRequests.tables.videoAccess.summaryPlural", {
+                  count: total,
+                })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3 lg:grid-cols-4"
@@ -584,7 +604,9 @@ export function VideoAccessRequestsTable({
         <Input
           value={studentSearch}
           onChange={(event) => setStudentSearch(event.target.value)}
-          placeholder="Search by student name or phone"
+          placeholder={t(
+            "pages.studentRequests.tables.videoAccess.searchPlaceholder",
+          )}
         />
 
         {shouldShowCenterFilter ? (
@@ -603,10 +625,22 @@ export function VideoAccessRequestsTable({
           options={courseOptions}
           searchValue={courseSearch}
           onSearchValueChange={setCourseSearch}
-          placeholder={hasCenterContext ? "Course" : "Select center first"}
-          searchPlaceholder="Search courses..."
+          placeholder={
+            hasCenterContext
+              ? t("pages.studentRequests.tables.videoAccess.filters.course")
+              : t(
+                  "pages.studentRequests.tables.videoAccess.filters.selectCenter",
+                )
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.videoAccess.filters.searchCourses",
+          )}
           emptyMessage={
-            hasCenterContext ? "No courses found" : "Select a center first"
+            hasCenterContext
+              ? t("pages.studentRequests.tables.videoAccess.filters.noCourses")
+              : t(
+                  "pages.studentRequests.tables.videoAccess.filters.selectCenter",
+                )
           }
           isLoading={coursesQuery.isLoading}
           filterOptions={false}
@@ -627,10 +661,22 @@ export function VideoAccessRequestsTable({
           options={videoOptions}
           searchValue={videoSearch}
           onSearchValueChange={setVideoSearch}
-          placeholder={hasCenterContext ? "Video" : "Select center first"}
-          searchPlaceholder="Search videos..."
+          placeholder={
+            hasCenterContext
+              ? t("pages.studentRequests.tables.videoAccess.filters.video")
+              : t(
+                  "pages.studentRequests.tables.videoAccess.filters.selectCenter",
+                )
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.videoAccess.filters.searchVideos",
+          )}
           emptyMessage={
-            hasCenterContext ? "No videos found" : "Select a center first"
+            hasCenterContext
+              ? t("pages.studentRequests.tables.videoAccess.filters.noVideos")
+              : t(
+                  "pages.studentRequests.tables.videoAccess.filters.selectCenter",
+                )
           }
           isLoading={videosQuery.isLoading}
           filterOptions={false}
@@ -647,13 +693,27 @@ export function VideoAccessRequestsTable({
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t(
+                "pages.studentRequests.tables.videoAccess.filters.status",
+              )}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t(
+                "pages.studentRequests.tables.videoAccess.filters.allStatuses",
+              )}
+            </SelectItem>
+            <SelectItem value="pending">
+              {t("pages.studentRequests.tables.videoAccess.filters.pending")}
+            </SelectItem>
+            <SelectItem value="approved">
+              {t("pages.studentRequests.tables.videoAccess.filters.approved")}
+            </SelectItem>
+            <SelectItem value="rejected">
+              {t("pages.studentRequests.tables.videoAccess.filters.rejected")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -661,7 +721,7 @@ export function VideoAccessRequestsTable({
           type="date"
           value={dateFrom}
           onChange={(event) => setDateFrom(event.target.value)}
-          title="Requested from date"
+          title={t("pages.studentRequests.tables.videoAccess.filters.fromDate")}
         />
 
         <Input
@@ -669,15 +729,19 @@ export function VideoAccessRequestsTable({
           value={dateTo}
           min={dateFrom || undefined}
           onChange={(event) => setDateTo(event.target.value)}
-          title="Requested to date"
+          title={t("pages.studentRequests.tables.videoAccess.filters.toDate")}
         />
       </ListingFilters>
 
       {!hasCenterContext ? (
         <div className="p-6">
           <EmptyState
-            title="Select a center first"
-            description="Video access endpoints are center-scoped. Choose a center to continue."
+            title={t(
+              "pages.studentRequests.tables.videoAccess.empty.selectCenterTitle",
+            )}
+            description={t(
+              "pages.studentRequests.tables.videoAccess.empty.selectCenterDescription",
+            )}
             className="border-0 bg-transparent"
           />
         </div>
@@ -685,7 +749,7 @@ export function VideoAccessRequestsTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load video access requests. Please try again.
+              {t("pages.studentRequests.tables.videoAccess.loadFailed")}
             </p>
           </div>
         </div>
@@ -706,19 +770,41 @@ export function VideoAccessRequestsTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoading || items.length === 0}
-                    aria-label="Select all requests on this page"
+                    aria-label={t(
+                      "pages.studentRequests.tables.videoAccess.selectAll",
+                    )}
                   />
                 </TableHead>
-                <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Video</TableHead>
-                <TableHead className="font-medium">Course</TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.videoAccess.headers.student",
+                  )}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.videoAccess.headers.video")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.videoAccess.headers.course")}
+                </TableHead>
                 {showCenterColumn ? (
-                  <TableHead className="font-medium">Center</TableHead>
+                  <TableHead className="font-medium">
+                    {t(
+                      "pages.studentRequests.tables.videoAccess.headers.center",
+                    )}
+                  </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Requested At</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.studentRequests.tables.videoAccess.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.videoAccess.headers.requestedAt",
+                  )}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t(
+                    "pages.studentRequests.tables.videoAccess.headers.actions",
+                  )}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -762,15 +848,19 @@ export function VideoAccessRequestsTable({
                     className="h-48"
                   >
                     <EmptyState
-                      title="No video access requests found"
-                      description="Try adjusting your filters."
+                      title={t(
+                        "pages.studentRequests.tables.videoAccess.empty.noResultsTitle",
+                      )}
+                      description={t(
+                        "pages.studentRequests.tables.videoAccess.empty.noResultsDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
                 </TableRow>
               ) : (
                 items.map((request) => {
-                  const status = resolveStatus(request);
+                  const status = resolveStatus(request, t);
                   const user = resolveUserLabel(request);
                   const center = resolveCenter(request);
 
@@ -787,7 +877,17 @@ export function VideoAccessRequestsTable({
                             selectedRequests[String(request.id)],
                           )}
                           onChange={() => toggleSelection(request)}
-                          aria-label={`Select request for ${user.primary}`}
+                          aria-label={t(
+                            "pages.studentRequests.tables.videoAccess.selectRequest",
+                            {
+                              name:
+                                user.primary === "unknown"
+                                  ? t(
+                                      "pages.studentRequests.tables.videoAccess.unknown.student",
+                                    )
+                                  : user.primary,
+                            },
+                          )}
                         />
                       </TableCell>
                       <TableCell>
@@ -797,7 +897,11 @@ export function VideoAccessRequestsTable({
                           </div>
                           <div className="flex flex-col">
                             <span className="font-medium text-gray-900 dark:text-white">
-                              {user.primary}
+                              {user.primary === "unknown"
+                                ? t(
+                                    "pages.studentRequests.tables.videoAccess.unknown.student",
+                                  )
+                                : user.primary}
                             </span>
                             <span className="text-sm text-gray-500 dark:text-gray-400">
                               {user.phone ?? "—"}
@@ -811,14 +915,26 @@ export function VideoAccessRequestsTable({
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {resolveVideoLabel(request)}
+                        {resolveVideoLabel(request) === "unknown"
+                          ? t(
+                              "pages.studentRequests.tables.videoAccess.unknown.video",
+                            )
+                          : resolveVideoLabel(request)}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {resolveCourseLabel(request)}
+                        {resolveCourseLabel(request) === "unknown"
+                          ? t(
+                              "pages.studentRequests.tables.videoAccess.unknown.course",
+                            )
+                          : resolveCourseLabel(request)}
                       </TableCell>
                       {showCenterColumn ? (
                         <TableCell className="text-gray-500 dark:text-gray-400">
-                          {center}
+                          {center === "unknown"
+                            ? t(
+                                "pages.studentRequests.tables.videoAccess.unknown.center",
+                              )
+                            : center}
                         </TableCell>
                       ) : null}
                       <TableCell>
@@ -855,7 +971,9 @@ export function VideoAccessRequestsTable({
       {selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.studentRequests.tables.videoAccess.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -865,7 +983,9 @@ export function VideoAccessRequestsTable({
               onClick={handleBulkApprove}
               disabled={bulkAction !== null}
             >
-              Approve Selected
+              {t(
+                "pages.studentRequests.tables.videoAccess.bulk.approveSelected",
+              )}
             </Button>
             <Button
               size="sm"
@@ -874,7 +994,9 @@ export function VideoAccessRequestsTable({
               onClick={handleBulkReject}
               disabled={bulkAction !== null}
             >
-              Reject Selected
+              {t(
+                "pages.studentRequests.tables.videoAccess.bulk.rejectSelected",
+              )}
             </Button>
           </div>
         </div>

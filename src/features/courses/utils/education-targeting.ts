@@ -7,6 +7,35 @@ export type CourseEducationTargetingValues = {
   collegeIds: string[];
 };
 
+const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
+const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
+const EDUCATION_ID_KEYS = [
+  "id",
+  "value",
+  "grade_id",
+  "school_id",
+  "college_id",
+];
+
+function normalizeBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return fallback;
+    return value !== 0;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (TRUE_VALUES.has(normalized)) return true;
+    if (FALSE_VALUES.has(normalized)) return false;
+  }
+
+  return fallback;
+}
+
 function normalizeIdValue(value: unknown): string | null {
   if (typeof value === "number") {
     if (!Number.isFinite(value)) return null;
@@ -16,6 +45,15 @@ function normalizeIdValue(value: unknown): string | null {
   if (typeof value === "string") {
     const normalized = value.trim();
     return normalized ? normalized : null;
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    for (const key of EDUCATION_ID_KEYS) {
+      if (!(key in record)) continue;
+      const normalized = normalizeIdValue(record[key]);
+      if (normalized) return normalized;
+    }
   }
 
   return null;
@@ -35,6 +73,50 @@ export function normalizeIdList(values: unknown): string[] {
   });
 
   return normalized;
+}
+
+function normalizeIdCollection(values: unknown): string[] {
+  if (Array.isArray(values)) {
+    return normalizeIdList(values);
+  }
+
+  if (values && typeof values === "object") {
+    const record = values as Record<string, unknown>;
+    if (Array.isArray(record.data)) {
+      return normalizeIdList(record.data);
+    }
+  }
+
+  return [];
+}
+
+function hasExplicitCollectionShape(values: unknown): boolean {
+  if (Array.isArray(values)) return true;
+
+  if (values && typeof values === "object") {
+    const record = values as Record<string, unknown>;
+    return Array.isArray(record.data);
+  }
+
+  return false;
+}
+
+function resolveCourseEducationIds(
+  course: Course | null | undefined,
+  keys: string[],
+): string[] {
+  const source = (course ?? {}) as Record<string, unknown>;
+
+  for (const key of keys) {
+    const value = source[key];
+    const normalized = normalizeIdCollection(value);
+
+    if (normalized.length > 0 || hasExplicitCollectionShape(value)) {
+      return normalized;
+    }
+  }
+
+  return [];
 }
 
 function mapPayloadIds(values: string[]): Array<string | number> {
@@ -61,16 +143,28 @@ export function hasAnyEducationTarget(values: {
 export function getCourseEducationTargetingValues(
   course: Course | null | undefined,
 ): CourseEducationTargetingValues {
-  const showForAllStudents =
-    typeof course?.show_for_all_students === "boolean"
-      ? course.show_for_all_students
-      : true;
+  const showForAllStudents = normalizeBoolean(
+    course?.show_for_all_students,
+    true,
+  );
 
   return {
     showForAllStudents,
-    gradeIds: normalizeIdList(course?.grade_ids),
-    schoolIds: normalizeIdList(course?.school_ids),
-    collegeIds: normalizeIdList(course?.college_ids),
+    gradeIds: resolveCourseEducationIds(course, [
+      "grade_ids",
+      "gradeIds",
+      "grades",
+    ]),
+    schoolIds: resolveCourseEducationIds(course, [
+      "school_ids",
+      "schoolIds",
+      "schools",
+    ]),
+    collegeIds: resolveCourseEducationIds(course, [
+      "college_ids",
+      "collegeIds",
+      "colleges",
+    ]),
   };
 }
 

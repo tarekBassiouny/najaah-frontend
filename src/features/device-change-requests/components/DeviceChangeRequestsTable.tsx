@@ -38,6 +38,7 @@ import type {
   DeviceChangeRequestStatus,
 } from "@/features/device-change-requests/types/device-change-request";
 import { RequestActionButtons } from "@/features/student-requests/components/RequestActionButtons";
+import { useTranslation } from "@/features/localization";
 import { formatDateTime } from "@/lib/format-date-time";
 import { setTenantState } from "@/lib/tenant-store";
 import { cn } from "@/lib/utils";
@@ -89,7 +90,7 @@ function resolveStatusVariant(
 
 function resolveStatusLabel(value: string | null | undefined) {
   const raw = String(value ?? "").trim();
-  if (!raw) return "Unknown";
+  if (!raw) return "unknown";
   return raw
     .replace(/[_-]/g, " ")
     .toLowerCase()
@@ -145,7 +146,7 @@ function resolveUserLabel(request: DeviceChangeRequest): {
 } {
   const user = asRecord(request.user);
   const primary =
-    asString(user?.name) ?? asString(request.user_name) ?? "Unknown Student";
+    asString(user?.name) ?? asString(request.user_name) ?? "unknown";
   const phone = asString(user?.phone) ?? null;
   const email = asString(user?.email) ?? null;
   return { primary, phone, email };
@@ -162,9 +163,7 @@ function resolveDecidedAt(request: DeviceChangeRequest): string | null {
 
 function resolveCenter(request: DeviceChangeRequest): string {
   const center = asRecord(request.center);
-  return (
-    asString(center?.name) ?? asString(request.center_name) ?? "Najaah App"
-  );
+  return asString(center?.name) ?? asString(request.center_name) ?? "unknown";
 }
 
 export function DeviceChangeRequestsTable({
@@ -172,6 +171,7 @@ export function DeviceChangeRequestsTable({
   hideHeader = false,
   showCenterFilter = true,
 }: DeviceChangeRequestsTableProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -488,10 +488,10 @@ export function DeviceChangeRequestsTable({
       {!hideHeader ? (
         <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Device Change Requests
+            {t("pages.studentRequests.tables.deviceChange.title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Review and process device change requests.
+            {t("pages.studentRequests.tables.deviceChange.description")}
           </p>
         </div>
       ) : null}
@@ -513,7 +513,13 @@ export function DeviceChangeRequestsTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "request" : "requests"}
+            {total === 1
+              ? t("pages.studentRequests.tables.deviceChange.summary", {
+                  count: total,
+                })
+              : t("pages.studentRequests.tables.deviceChange.summaryPlural", {
+                  count: total,
+                })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3 lg:grid-cols-4"
@@ -535,7 +541,9 @@ export function DeviceChangeRequestsTable({
           <Input
             value={studentSearch}
             onChange={(event) => setStudentSearch(event.target.value)}
-            placeholder="Search by student name, phone, or ID"
+            placeholder={t(
+              "pages.studentRequests.tables.deviceChange.searchPlaceholder",
+            )}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -550,7 +558,9 @@ export function DeviceChangeRequestsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear student search"
+            aria-label={t(
+              "pages.studentRequests.tables.deviceChange.clearSearch",
+            )}
             tabIndex={studentSearch.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -582,14 +592,32 @@ export function DeviceChangeRequestsTable({
           onValueChange={(value) => setStatusFilter(value)}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t(
+                "pages.studentRequests.tables.deviceChange.filters.status",
+              )}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="PRE_APPROVED">Pre-Approved</SelectItem>
-            <SelectItem value="APPROVED">Approved</SelectItem>
-            <SelectItem value="REJECTED">Rejected</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t(
+                "pages.studentRequests.tables.deviceChange.filters.allStatuses",
+              )}
+            </SelectItem>
+            <SelectItem value="PENDING">
+              {t("pages.studentRequests.tables.deviceChange.filters.pending")}
+            </SelectItem>
+            <SelectItem value="PRE_APPROVED">
+              {t(
+                "pages.studentRequests.tables.deviceChange.filters.preApproved",
+              )}
+            </SelectItem>
+            <SelectItem value="APPROVED">
+              {t("pages.studentRequests.tables.deviceChange.filters.approved")}
+            </SelectItem>
+            <SelectItem value="REJECTED">
+              {t("pages.studentRequests.tables.deviceChange.filters.rejected")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -597,7 +625,9 @@ export function DeviceChangeRequestsTable({
           type="date"
           value={dateFrom}
           onChange={(event) => setDateFrom(event.target.value)}
-          title="From date"
+          title={t(
+            "pages.studentRequests.tables.deviceChange.filters.fromDate",
+          )}
         />
 
         <Input
@@ -605,7 +635,7 @@ export function DeviceChangeRequestsTable({
           value={dateTo}
           min={dateFrom || undefined}
           onChange={(event) => setDateTo(event.target.value)}
-          title="To date"
+          title={t("pages.studentRequests.tables.deviceChange.filters.toDate")}
         />
       </ListingFilters>
 
@@ -613,7 +643,7 @@ export function DeviceChangeRequestsTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load device change requests. Please try again.
+              {t("pages.studentRequests.tables.deviceChange.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -621,7 +651,7 @@ export function DeviceChangeRequestsTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.studentRequests.tables.deviceChange.retry")}
             </Button>
           </div>
         </div>
@@ -642,20 +672,52 @@ export function DeviceChangeRequestsTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all requests on this page"
+                    aria-label={t(
+                      "pages.studentRequests.tables.deviceChange.selectAll",
+                    )}
                   />
                 </TableHead>
-                <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Current Device</TableHead>
-                <TableHead className="font-medium">New Device</TableHead>
-                <TableHead className="font-medium">Source</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.student",
+                  )}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.currentDevice",
+                  )}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.newDevice",
+                  )}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.source",
+                  )}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.status",
+                  )}
+                </TableHead>
                 {showCenterColumn ? (
-                  <TableHead className="font-medium">Center</TableHead>
+                  <TableHead className="font-medium">
+                    {t(
+                      "pages.studentRequests.tables.deviceChange.headers.center",
+                    )}
+                  </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Requested At</TableHead>
+                <TableHead className="font-medium">
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.requestedAt",
+                  )}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t(
+                    "pages.studentRequests.tables.deviceChange.headers.actions",
+                  )}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -704,17 +766,27 @@ export function DeviceChangeRequestsTable({
                     className="h-48"
                   >
                     <EmptyState
-                      title="No device change requests found"
-                      description="Try adjusting your filters."
+                      title={t(
+                        "pages.studentRequests.tables.deviceChange.empty.noResultsTitle",
+                      )}
+                      description={t(
+                        "pages.studentRequests.tables.deviceChange.empty.noResultsDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
                 </TableRow>
               ) : (
                 items.map((request) => {
-                  const statusLabel = resolveStatusLabel(
+                  const statusRaw = resolveStatusLabel(
                     asString(request.status),
                   );
+                  const statusLabel =
+                    statusRaw === "unknown"
+                      ? t(
+                          "pages.studentRequests.tables.deviceChange.unknown.status",
+                        )
+                      : statusRaw;
                   const statusKey = String(request.status ?? "").toLowerCase();
                   const centerLabel = resolveCenter(request);
                   const user = resolveUserLabel(request);
@@ -735,7 +807,17 @@ export function DeviceChangeRequestsTable({
                             selectedRequests[String(request.id)],
                           )}
                           onChange={() => toggleSelection(request)}
-                          aria-label={`Select request for ${user.primary}`}
+                          aria-label={t(
+                            "pages.studentRequests.tables.deviceChange.selectRequest",
+                            {
+                              name:
+                                user.primary === "unknown"
+                                  ? t(
+                                      "pages.studentRequests.tables.deviceChange.unknown.student",
+                                    )
+                                  : user.primary,
+                            },
+                          )}
                         />
                       </TableCell>
                       <TableCell>
@@ -745,7 +827,11 @@ export function DeviceChangeRequestsTable({
                           </div>
                           <div className="flex flex-col">
                             <span className="font-medium text-gray-900 dark:text-white">
-                              {user.primary}
+                              {user.primary === "unknown"
+                                ? t(
+                                    "pages.studentRequests.tables.deviceChange.unknown.student",
+                                  )
+                                : user.primary}
                             </span>
                             <span className="text-sm text-gray-500 dark:text-gray-400">
                               {user.phone ?? "—"}
@@ -778,7 +864,11 @@ export function DeviceChangeRequestsTable({
                       </TableCell>
                       {showCenterColumn ? (
                         <TableCell className="text-gray-500 dark:text-gray-400">
-                          {centerLabel}
+                          {centerLabel === "unknown"
+                            ? t(
+                                "pages.studentRequests.tables.deviceChange.unknown.center",
+                              )
+                            : centerLabel}
                         </TableCell>
                       ) : null}
                       <TableCell className="text-gray-500 dark:text-gray-400">
@@ -815,7 +905,9 @@ export function DeviceChangeRequestsTable({
       {selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.studentRequests.tables.deviceChange.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -826,8 +918,10 @@ export function DeviceChangeRequestsTable({
               disabled={preApproveMutation.isPending}
             >
               {preApproveMutation.isPending
-                ? "Processing..."
-                : "Pre-Approve Selected"}
+                ? t("pages.studentRequests.tables.deviceChange.bulk.processing")
+                : t(
+                    "pages.studentRequests.tables.deviceChange.bulk.preApproveSelected",
+                  )}
             </Button>
             <Button
               size="sm"
@@ -836,7 +930,11 @@ export function DeviceChangeRequestsTable({
               onClick={handleBulkApprove}
               disabled={approveMutation.isPending}
             >
-              {approveMutation.isPending ? "Processing..." : "Approve Selected"}
+              {approveMutation.isPending
+                ? t("pages.studentRequests.tables.deviceChange.bulk.processing")
+                : t(
+                    "pages.studentRequests.tables.deviceChange.bulk.approveSelected",
+                  )}
             </Button>
             <Button
               size="sm"
@@ -845,7 +943,11 @@ export function DeviceChangeRequestsTable({
               onClick={handleBulkReject}
               disabled={rejectMutation.isPending}
             >
-              {rejectMutation.isPending ? "Processing..." : "Reject Selected"}
+              {rejectMutation.isPending
+                ? t("pages.studentRequests.tables.deviceChange.bulk.processing")
+                : t(
+                    "pages.studentRequests.tables.deviceChange.bulk.rejectSelected",
+                  )}
             </Button>
           </div>
         </div>

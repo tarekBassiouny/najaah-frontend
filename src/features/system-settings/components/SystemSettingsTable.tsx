@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 import { useSystemSettings } from "@/features/system-settings/hooks/use-system-settings";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
@@ -61,7 +62,11 @@ function formatValuePreview(value: unknown): string {
   }
 }
 
-function getRelativeTime(dateString?: string | null): string {
+function getRelativeTime(
+  dateString: string | null | undefined,
+  locale: string,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): string {
   if (!dateString) return "—";
 
   const date = new Date(dateString);
@@ -74,21 +79,30 @@ function getRelativeTime(dateString?: string | null): string {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffSecs < 60) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffSecs < 60) return t("pages.settings.table.relative.justNow");
+  if (diffMins < 60) {
+    return t("pages.settings.table.relative.minutesAgo", { count: diffMins });
+  }
+  if (diffHours < 24) {
+    return t("pages.settings.table.relative.hoursAgo", { count: diffHours });
+  }
+  if (diffDays < 7) {
+    return t("pages.settings.table.relative.daysAgo", { count: diffDays });
+  }
 
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
-function formatFullDate(dateString?: string | null): string {
+function formatFullDate(
+  dateString: string | null | undefined,
+  locale: string,
+): string {
   if (!dateString) return "";
 
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -138,7 +152,10 @@ function RegistryStat({
   );
 }
 
-function formatHumanValue(setting: SystemSetting): string {
+function formatHumanValue(
+  setting: SystemSetting,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): string {
   const payload = setting.value;
   const payloadRecord =
     payload && typeof payload === "object" && !Array.isArray(payload)
@@ -163,33 +180,40 @@ function formatHumanValue(setting: SystemSetting): string {
     setting.key === "require_device_approval" ||
     setting.key === "attendance_required"
   ) {
-    return payloadRecord.enabled === true ? "Enabled" : "Disabled";
+    return payloadRecord.enabled === true
+      ? t("pages.settings.table.values.enabled")
+      : t("pages.settings.table.values.disabled");
   }
 
   const firstValue = Object.values(payloadRecord)[0];
   if (typeof firstValue === "string") return firstValue;
   if (typeof firstValue === "boolean")
-    return firstValue ? "Enabled" : "Disabled";
+    return firstValue
+      ? t("pages.settings.table.values.enabled")
+      : t("pages.settings.table.values.disabled");
   if (typeof firstValue === "number") return String(firstValue);
 
-  return valueTypeLabel(getValueType(payload));
+  return valueTypeLabel(getValueType(payload), t);
 }
 
-function valueTypeLabel(type: ValueType): string {
+function valueTypeLabel(
+  type: ValueType,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): string {
   switch (type) {
     case "object":
-      return "Structured value";
+      return t("pages.settings.table.valueTypes.object");
     case "array":
-      return "List value";
+      return t("pages.settings.table.valueTypes.array");
     case "null":
-      return "No value";
+      return t("pages.settings.table.valueTypes.null");
     case "boolean":
-      return "Boolean value";
+      return t("pages.settings.table.valueTypes.boolean");
     case "number":
-      return "Numeric value";
+      return t("pages.settings.table.valueTypes.number");
     case "string":
     default:
-      return "Text value";
+      return t("pages.settings.table.valueTypes.string");
   }
 }
 
@@ -204,6 +228,7 @@ export function SystemSettingsTable({
   onEditSetting,
   onDeleteSetting,
 }: SystemSettingsTableProps) {
+  const { t, locale } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -262,29 +287,31 @@ export function SystemSettingsTable({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
             <div className="inline-flex items-center rounded-full border border-gray-200 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
-              Global Registry
+              {t("pages.settings.table.badge")}
             </div>
             <div>
               <h2 className="text-xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                Settings Inventory
+                {t("pages.settings.table.title")}
               </h2>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                Search by exact key fragments, filter by visibility, and manage
-                non-canonical registry entries from one screen.
+                {t("pages.settings.table.description")}
               </p>
             </div>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
             <div className="grid flex-1 gap-3 sm:grid-cols-3">
-              <RegistryStat label="Visible Now" value={`${items.length}`} />
               <RegistryStat
-                label="Public"
+                label={t("pages.settings.table.stats.visible")}
+                value={`${items.length}`}
+              />
+              <RegistryStat
+                label={t("pages.settings.table.stats.public")}
                 value={`${publicCount}`}
                 tone="success"
               />
               <RegistryStat
-                label="Private"
+                label={t("pages.settings.table.stats.private")}
                 value={`${privateCount}`}
                 tone="muted"
               />
@@ -295,7 +322,7 @@ export function SystemSettingsTable({
                 onClick={onCreateSetting}
                 className="h-auto rounded-2xl px-5 py-3"
               >
-                Add Registry Key
+                {t("pages.settings.table.actions.addKey")}
               </Button>
             ) : null}
           </div>
@@ -316,11 +343,13 @@ export function SystemSettingsTable({
         summary={
           <div className="flex flex-wrap items-center gap-2">
             <span>
-              {total} {total === 1 ? "setting" : "settings"}
+              {total === 1
+                ? t("pages.settings.table.summary", { count: total })
+                : t("pages.settings.table.summaryPlural", { count: total })}
             </span>
             {query ? (
               <span className="rounded-full bg-gray-900 px-2.5 py-1 text-[11px] font-medium text-white dark:bg-gray-100 dark:text-gray-900">
-                Matching "{query}"
+                {t("pages.settings.table.matching", { query })}
               </span>
             ) : null}
           </div>
@@ -345,7 +374,7 @@ export function SystemSettingsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by key"
+            placeholder={t("pages.settings.table.searchPlaceholder")}
             className="h-11 rounded-xl border-gray-200 bg-white pl-10 pr-9 shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900"
           />
           <button
@@ -361,7 +390,7 @@ export function SystemSettingsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.settings.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -388,12 +417,20 @@ export function SystemSettingsTable({
           }}
         >
           <SelectTrigger className="h-11 w-full rounded-xl border-gray-200 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900">
-            <SelectValue placeholder="Visibility" />
+            <SelectValue
+              placeholder={t("pages.settings.table.filters.visibility")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_VISIBILITY}>Visibility</SelectItem>
-            <SelectItem value="public">Public</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
+            <SelectItem value={ALL_VISIBILITY}>
+              {t("pages.settings.table.filters.visibilityAll")}
+            </SelectItem>
+            <SelectItem value="public">
+              {t("pages.settings.table.filters.public")}
+            </SelectItem>
+            <SelectItem value="private">
+              {t("pages.settings.table.filters.private")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </ListingFilters>
@@ -402,7 +439,7 @@ export function SystemSettingsTable({
         <div className="p-6">
           <div className="rounded-2xl border border-red-200 bg-red-50/90 p-5 text-center shadow-sm dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm font-medium text-red-700 dark:text-red-300">
-              Failed to load settings. Please try again.
+              {t("pages.settings.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -410,7 +447,7 @@ export function SystemSettingsTable({
               className="mt-3"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.settings.table.retry")}
             </Button>
           </div>
         </div>
@@ -442,11 +479,15 @@ export function SystemSettingsTable({
 
             {!isLoadingState && showEmptyState ? (
               <EmptyState
-                title={query ? "No settings found" : "No settings yet"}
+                title={
+                  query
+                    ? t("pages.settings.table.empty.noResultsTitle")
+                    : t("pages.settings.table.empty.noDataTitle")
+                }
                 description={
                   query
-                    ? "Try adjusting your search terms"
-                    : "Add a non-canonical system setting to extend the registry"
+                    ? t("pages.settings.table.empty.noResultsDescription")
+                    : t("pages.settings.table.empty.noDataDescription")
                 }
                 className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 dark:border-gray-800 dark:bg-gray-950/50"
               />
@@ -480,18 +521,26 @@ export function SystemSettingsTable({
                                 VALUE_TYPE_STYLES[valueType],
                               )}
                             >
-                              {valueType}
+                              {t(
+                                `pages.settings.table.valueTypeBadges.${valueType}`,
+                              )}
                             </span>
-                            <Badge variant="outline">Global default</Badge>
+                            <Badge variant="outline">
+                              {t("pages.settings.table.labels.globalDefault")}
+                            </Badge>
                             {isCanonicalDefault ? (
-                              <Badge variant="secondary">Managed above</Badge>
+                              <Badge variant="secondary">
+                                {t("pages.settings.table.labels.managedAbove")}
+                              </Badge>
                             ) : null}
                             <Badge
                               variant={
                                 setting.is_public ? "success" : "secondary"
                               }
                             >
-                              {setting.is_public ? "Public" : "Private"}
+                              {setting.is_public
+                                ? t("pages.settings.table.filters.public")
+                                : t("pages.settings.table.filters.private")}
                             </Badge>
                           </div>
                         </div>
@@ -499,21 +548,24 @@ export function SystemSettingsTable({
 
                       <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-800 dark:bg-gray-950/60">
                         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">
-                          Current default
+                          {t("pages.settings.table.headers.currentDefault")}
                         </p>
                         <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                          {formatHumanValue(setting) || "—"}
+                          {formatHumanValue(setting, t) || "—"}
                         </p>
                       </div>
 
                       <div className="mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                        <span>Last updated</span>
+                        <span>
+                          {t("pages.settings.table.labels.lastUpdated")}
+                        </span>
                         <span
                           title={
-                            formatFullDate(effectiveUpdatedAt) || undefined
+                            formatFullDate(effectiveUpdatedAt, locale) ||
+                            undefined
                           }
                         >
-                          {getRelativeTime(effectiveUpdatedAt)}
+                          {getRelativeTime(effectiveUpdatedAt, locale, t)}
                         </span>
                       </div>
                       {!isCanonicalDefault &&
@@ -526,7 +578,7 @@ export function SystemSettingsTable({
                               size="sm"
                               onClick={() => onEditSetting(setting)}
                             >
-                              Edit
+                              {t("pages.settings.table.actions.edit")}
                             </Button>
                           ) : null}
                           {onDeleteSetting ? (
@@ -537,7 +589,7 @@ export function SystemSettingsTable({
                               className="text-red-600 hover:text-red-700"
                               onClick={() => onDeleteSetting(setting)}
                             >
-                              Delete
+                              {t("pages.settings.table.actions.delete")}
                             </Button>
                           ) : null}
                         </div>
@@ -551,13 +603,21 @@ export function SystemSettingsTable({
           <Table className="hidden min-w-[880px] lg:table">
             <TableHeader>
               <TableRow className="bg-gray-50/90 dark:bg-gray-900/80">
-                <TableHead className="font-medium">Registry Key</TableHead>
-                <TableHead className="font-medium">Current Default</TableHead>
-                <TableHead className="font-medium">Visibility</TableHead>
-                <TableHead className="font-medium">Last Sync</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.settings.table.headers.registryKey")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.settings.table.headers.currentDefault")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.settings.table.headers.visibility")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.settings.table.headers.lastSync")}
+                </TableHead>
                 {onEditSetting || onDeleteSetting ? (
                   <TableHead className="text-right font-medium">
-                    Actions
+                    {t("pages.settings.table.headers.actions")}
                   </TableHead>
                 ) : null}
               </TableRow>
@@ -594,11 +654,15 @@ export function SystemSettingsTable({
                     className="h-48"
                   >
                     <EmptyState
-                      title={query ? "No settings found" : "No settings yet"}
+                      title={
+                        query
+                          ? t("pages.settings.table.empty.noResultsTitle")
+                          : t("pages.settings.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Add a non-canonical system setting to extend the registry"
+                          ? t("pages.settings.table.empty.noResultsDescription")
+                          : t("pages.settings.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -609,8 +673,15 @@ export function SystemSettingsTable({
                   const valueType = getValueType(setting.value);
                   const effectiveUpdatedAt =
                     setting.updated_at ?? setting.created_at ?? null;
-                  const relativeUpdatedAt = getRelativeTime(effectiveUpdatedAt);
-                  const fullUpdatedAt = formatFullDate(effectiveUpdatedAt);
+                  const relativeUpdatedAt = getRelativeTime(
+                    effectiveUpdatedAt,
+                    locale,
+                    t,
+                  );
+                  const fullUpdatedAt = formatFullDate(
+                    effectiveUpdatedAt,
+                    locale,
+                  );
                   const isCanonicalDefault = CANONICAL_DEFAULT_KEYS.has(
                     String(setting.key),
                   );
@@ -626,11 +697,13 @@ export function SystemSettingsTable({
                             {setting.key}
                           </span>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Global default in the system registry
+                            {t("pages.settings.table.labels.globalDefaultHelp")}
                           </p>
                           {isCanonicalDefault ? (
                             <p className="text-xs text-amber-600 dark:text-amber-400">
-                              Managed from the canonical defaults panel above
+                              {t(
+                                "pages.settings.table.labels.managedFromDefaults",
+                              )}
                             </p>
                           ) : null}
                         </div>
@@ -643,14 +716,16 @@ export function SystemSettingsTable({
                               VALUE_TYPE_STYLES[valueType],
                             )}
                           >
-                            {valueType}
+                            {t(
+                              `pages.settings.table.valueTypeBadges.${valueType}`,
+                            )}
                           </span>
                           <div className="rounded-xl border border-gray-200 bg-gray-50/90 px-3 py-2 dark:border-gray-800 dark:bg-gray-950/60">
                             <p
                               className="truncate text-sm font-medium text-gray-800 dark:text-gray-100"
-                              title={formatHumanValue(setting)}
+                              title={formatHumanValue(setting, t)}
                             >
-                              {formatHumanValue(setting) || "—"}
+                              {formatHumanValue(setting, t) || "—"}
                             </p>
                           </div>
                         </div>
@@ -659,7 +734,9 @@ export function SystemSettingsTable({
                         <Badge
                           variant={setting.is_public ? "success" : "secondary"}
                         >
-                          {setting.is_public ? "Public" : "Private"}
+                          {setting.is_public
+                            ? t("pages.settings.table.filters.public")
+                            : t("pages.settings.table.filters.private")}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -679,7 +756,9 @@ export function SystemSettingsTable({
                         <TableCell>
                           {isCanonicalDefault ? (
                             <div className="flex justify-end">
-                              <Badge variant="secondary">Managed above</Badge>
+                              <Badge variant="secondary">
+                                {t("pages.settings.table.labels.managedAbove")}
+                              </Badge>
                             </div>
                           ) : (
                             <div className="flex justify-end gap-2">
@@ -690,7 +769,7 @@ export function SystemSettingsTable({
                                   size="sm"
                                   onClick={() => onEditSetting(setting)}
                                 >
-                                  Edit
+                                  {t("pages.settings.table.actions.edit")}
                                 </Button>
                               ) : null}
                               {onDeleteSetting ? (
@@ -701,7 +780,7 @@ export function SystemSettingsTable({
                                   className="text-red-600 hover:text-red-700"
                                   onClick={() => onDeleteSetting(setting)}
                                 >
-                                  Delete
+                                  {t("pages.settings.table.actions.delete")}
                                 </Button>
                               ) : null}
                             </div>

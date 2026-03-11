@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTranslation } from "@/features/localization";
 import { usePermissions } from "@/features/permissions/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const DEFAULT_PER_PAGE = 20;
 const SEARCH_DEBOUNCE_MS = 400;
 
 export function PermissionsTable() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -74,7 +76,9 @@ export function PermissionsTable() {
         }}
         summary={
           <>
-            {total} {total === 1 ? "permission" : "permissions"}
+            {total === 1
+              ? t("pages.permissions.table.summary", { count: total })
+              : t("pages.permissions.table.summaryPlural", { count: total })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3"
@@ -96,7 +100,7 @@ export function PermissionsTable() {
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by permission name or slug"
+            placeholder={t("pages.permissions.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -112,7 +116,7 @@ export function PermissionsTable() {
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.permissions.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -136,7 +140,7 @@ export function PermissionsTable() {
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load permissions. Please try again.
+              {t("pages.permissions.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -146,7 +150,7 @@ export function PermissionsTable() {
                 void refetch();
               }}
             >
-              Retry
+              {t("pages.permissions.table.retry")}
             </Button>
           </div>
         </div>
@@ -155,10 +159,18 @@ export function PermissionsTable() {
           <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                <TableHead className="w-20 font-medium">ID</TableHead>
-                <TableHead className="font-medium">Name</TableHead>
-                <TableHead className="font-medium">Slug</TableHead>
-                <TableHead className="font-medium">Description</TableHead>
+                <TableHead className="w-20 font-medium">
+                  {t("pages.permissions.table.headers.id")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.permissions.table.headers.name")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.permissions.table.headers.slug")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.permissions.table.headers.description")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -186,9 +198,13 @@ export function PermissionsTable() {
                   <TableCell colSpan={4} className="h-48">
                     <EmptyState
                       title={
-                        query ? "No permissions found" : "No permissions yet"
+                        query
+                          ? t("pages.permissions.table.empty.noResultsTitle")
+                          : t("pages.permissions.table.empty.noDataTitle")
                       }
-                      description="Permissions will appear here when available."
+                      description={t(
+                        "pages.permissions.table.empty.noDataDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>

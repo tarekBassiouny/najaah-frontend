@@ -12,6 +12,7 @@ import {
 } from "@/features/courses/hooks/use-courses";
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
+import { useTranslation } from "@/features/localization";
 import { useTenant } from "@/app/tenant-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,13 +64,6 @@ type CourseActionType = "publish" | "unpublish" | "delete";
 type ConfirmCourseActionState = {
   action: CourseActionType;
   course: CourseRecord;
-};
-
-const COURSE_ACTION_ERROR_CODE_MESSAGES: Record<string, string> = {
-  PERMISSION_DENIED:
-    "You do not have permission to perform this course action.",
-  NOT_FOUND: "Course not found in this center scope.",
-  VALIDATION_ERROR: "Course action could not be completed.",
 };
 
 type CourseStatus =
@@ -161,6 +155,7 @@ export function CoursesTable({
   onBulkChangeStatus,
   onBulkDelete,
 }: CoursesTableProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -229,7 +224,7 @@ export function CoursesTable({
     selectedValue: categoryFilter,
     includeAllOption: true,
     allOptionValue: FILTER_ALL_CATEGORIES,
-    allOptionLabel: "All categories",
+    allOptionLabel: t("pages.courses.table.filters.allCategories"),
     enabled: Boolean(centerId),
   });
   const {
@@ -245,7 +240,7 @@ export function CoursesTable({
     selectedValue: instructorFilter,
     includeAllOption: true,
     allOptionValue: FILTER_ALL_INSTRUCTORS,
-    allOptionLabel: "All instructors",
+    allOptionLabel: t("pages.courses.table.filters.allInstructors"),
     enabled: Boolean(centerId),
   });
   const { mutate: publishCourse, isPending: isPublishing } = usePublishCourse();
@@ -361,8 +356,13 @@ export function CoursesTable({
 
   const getActionErrorMessage = (error: unknown, fallback: string) => {
     const code = getAdminApiErrorCode(error);
+    const errorMessages: Record<string, string> = {
+      PERMISSION_DENIED: t("pages.courses.table.errors.permissionDenied"),
+      NOT_FOUND: t("pages.courses.table.errors.notFound"),
+      VALIDATION_ERROR: t("pages.courses.table.errors.validationError"),
+    };
     return (
-      (code ? COURSE_ACTION_ERROR_CODE_MESSAGES[code] : null) ??
+      (code ? errorMessages[code] : null) ??
       getAdminApiErrorMessage(error, fallback)
     );
   };
@@ -380,20 +380,26 @@ export function CoursesTable({
           if (!isAdminRequestSuccessful(response)) {
             const message = getAdminResponseMessage(
               response,
-              "Unable to clone course.",
+              t("pages.courses.table.errors.cloneFailed"),
             );
             showToast(message, "error");
             return;
           }
 
           showToast(
-            getAdminResponseMessage(response, "Course cloned successfully."),
+            getAdminResponseMessage(
+              response,
+              t("pages.courses.table.errors.cloneSuccess"),
+            ),
             "success",
           );
         },
         onError: (error) => {
           showToast(
-            getActionErrorMessage(error, "Unable to clone course."),
+            getActionErrorMessage(
+              error,
+              t("pages.courses.table.errors.cloneFailed"),
+            ),
             "error",
           );
         },
@@ -433,7 +439,7 @@ export function CoursesTable({
             if (!isAdminRequestSuccessful(response)) {
               const message = getAdminResponseMessage(
                 response,
-                "Unable to delete course.",
+                t("pages.courses.table.errors.deleteFailed"),
               );
               setActionErrorMessage(message);
               showToast(message, "error");
@@ -442,7 +448,7 @@ export function CoursesTable({
 
             const message = getAdminResponseMessage(
               response,
-              "Course deleted successfully.",
+              t("pages.courses.table.errors.deleteSuccess"),
             );
             showToast(message, "success");
             setConfirmAction(null);
@@ -450,7 +456,7 @@ export function CoursesTable({
           onError: (error) => {
             const message = getActionErrorMessage(
               error,
-              "Unable to delete course.",
+              t("pages.courses.table.errors.deleteFailed"),
             );
             setActionErrorMessage(message);
             showToast(message, "error");
@@ -467,12 +473,12 @@ export function CoursesTable({
       confirmAction.action === "publish" ? publishCourse : unpublishCourse;
     const fallbackSuccess =
       confirmAction.action === "publish"
-        ? "Course published successfully."
-        : "Course unpublished successfully.";
+        ? t("pages.courses.table.errors.publishSuccess")
+        : t("pages.courses.table.errors.unpublishSuccess");
     const fallbackError =
       confirmAction.action === "publish"
-        ? "Unable to publish course."
-        : "Unable to unpublish course.";
+        ? t("pages.courses.table.errors.publishFailed")
+        : t("pages.courses.table.errors.unpublishFailed");
 
     actionMutation(
       { centerId, courseId: confirmAction.course.id },
@@ -524,9 +530,9 @@ export function CoursesTable({
           setPage(1);
         }}
         summary={
-          <>
-            {total} {total === 1 ? "course" : "courses"}
-          </>
+          total === 1
+            ? t("pages.courses.table.summary", { count: total })
+            : t("pages.courses.table.summaryPlural", { count: total })
         }
         gridClassName={
           centerId ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"
@@ -549,7 +555,7 @@ export function CoursesTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search courses..."
+            placeholder={t("pages.courses.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -565,7 +571,7 @@ export function CoursesTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.courses.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -591,8 +597,10 @@ export function CoursesTable({
               setPage(1);
             }}
             options={categoryOptions}
-            placeholder="Category"
-            searchPlaceholder="Search categories..."
+            placeholder={t("pages.courses.table.filters.category")}
+            searchPlaceholder={t(
+              "pages.courses.table.filters.searchCategories",
+            )}
             searchValue={categorySearch}
             onSearchValueChange={setCategorySearch}
             filterOptions={false}
@@ -610,8 +618,10 @@ export function CoursesTable({
               setPage(1);
             }}
             options={instructorOptions}
-            placeholder="Instructor"
-            searchPlaceholder="Search instructors..."
+            placeholder={t("pages.courses.table.filters.instructor")}
+            searchPlaceholder={t(
+              "pages.courses.table.filters.searchInstructors",
+            )}
             searchValue={instructorSearch}
             onSearchValueChange={setInstructorSearch}
             filterOptions={false}
@@ -627,7 +637,7 @@ export function CoursesTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load courses. Please try again.
+              {t("pages.courses.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -635,7 +645,7 @@ export function CoursesTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.courses.table.retry")}
             </Button>
           </div>
         </div>
@@ -656,15 +666,23 @@ export function CoursesTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all courses on this page"
+                    aria-label={t("pages.courses.table.selectAll")}
                   />
                 </TableHead>
-                <TableHead className="font-medium">Title</TableHead>
-                <TableHead className="font-medium">Language</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Published At</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.courses.table.headers.title")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.courses.table.headers.language")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.courses.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.courses.table.headers.publishedAt")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.courses.table.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -675,17 +693,23 @@ export function CoursesTable({
                 <TableRow>
                   <TableCell colSpan={6} className="h-48">
                     <EmptyState
-                      title={query ? "No courses found" : "No courses yet"}
+                      title={
+                        query
+                          ? t("pages.courses.table.empty.noResultsTitle")
+                          : t("pages.courses.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Get started by creating your first course"
+                          ? t("pages.courses.table.empty.noResultsDescription")
+                          : t("pages.courses.table.empty.noDataDescription")
                       }
                       action={
                         !query &&
                         !centerId && (
                           <Link href="/courses/create">
-                            <Button size="sm">Create Course</Button>
+                            <Button size="sm">
+                              {t("pages.courses.createCourse")}
+                            </Button>
                           </Link>
                         )
                       }
@@ -728,7 +752,12 @@ export function CoursesTable({
                           className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
                           checked={Boolean(selectedCourses[String(course.id)])}
                           onChange={() => toggleCourseSelection(course)}
-                          aria-label={`Select ${course.title ?? course.name ?? `course ${course.id}`}`}
+                          aria-label={t("pages.courses.table.selectCourse", {
+                            name:
+                              course.title ??
+                              course.name ??
+                              `course ${course.id}`,
+                          })}
                         />
                       </TableCell>
                       <TableCell className="font-medium text-gray-900 dark:text-white">
@@ -787,14 +816,14 @@ export function CoursesTable({
                                 className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                 onClick={() => setOpenMenuId(null)}
                               >
-                                View
+                                {t("pages.courses.table.actions.view")}
                               </Link>
                               <Link
                                 href={editHref}
                                 className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                 onClick={() => setOpenMenuId(null)}
                               >
-                                Edit
+                                {t("pages.courses.table.actions.edit")}
                               </Link>
                               {centerId ? (
                                 <>
@@ -803,7 +832,9 @@ export function CoursesTable({
                                     className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                     onClick={() => setOpenMenuId(null)}
                                   >
-                                    Manage Sections
+                                    {t(
+                                      "pages.courses.table.actions.manageSections",
+                                    )}
                                   </Link>
                                   <button
                                     type="button"
@@ -811,7 +842,13 @@ export function CoursesTable({
                                     onClick={() => openStatusConfirm(course)}
                                     disabled={isActionPending}
                                   >
-                                    {isPublished ? "Unpublish" : "Publish"}
+                                    {isPublished
+                                      ? t(
+                                          "pages.courses.table.actions.unpublish",
+                                        )
+                                      : t(
+                                          "pages.courses.table.actions.publish",
+                                        )}
                                   </button>
                                   <button
                                     type="button"
@@ -820,8 +857,8 @@ export function CoursesTable({
                                     disabled={isActionPending}
                                   >
                                     {isRowActionPending && isCloning
-                                      ? "Cloning..."
-                                      : "Clone"}
+                                      ? t("pages.courses.table.actions.cloning")
+                                      : t("pages.courses.table.actions.clone")}
                                   </button>
                                   <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
                                   <button
@@ -830,7 +867,7 @@ export function CoursesTable({
                                     onClick={() => openDeleteConfirm(course)}
                                     disabled={isActionPending}
                                   >
-                                    Delete
+                                    {t("pages.courses.table.actions.delete")}
                                   </button>
                                 </>
                               ) : null}
@@ -850,7 +887,7 @@ export function CoursesTable({
       {selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.courses.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {onBulkChangeStatus ? (
@@ -860,7 +897,7 @@ export function CoursesTable({
                 onClick={() => onBulkChangeStatus(selectedCoursesList)}
                 disabled={isLoadingState}
               >
-                Change Status
+                {t("pages.courses.table.bulk.changeStatus")}
               </Button>
             ) : null}
             {onBulkDelete ? (
@@ -870,7 +907,7 @@ export function CoursesTable({
                 onClick={() => onBulkDelete(selectedCoursesList)}
                 disabled={isLoadingState}
               >
-                Delete
+                {t("pages.courses.table.bulk.delete")}
               </Button>
             ) : null}
             {!hasBulkActions ? (
@@ -880,7 +917,7 @@ export function CoursesTable({
                 onClick={() => setSelectedCourses({})}
                 disabled={isLoadingState}
               >
-                Clear Selection
+                {t("pages.courses.table.bulk.clearSelection")}
               </Button>
             ) : null}
           </div>
@@ -918,23 +955,31 @@ export function CoursesTable({
           <DialogHeader>
             <DialogTitle>
               {confirmAction?.action === "publish"
-                ? "Publish Course"
+                ? t("pages.courses.table.dialogs.publishTitle")
                 : confirmAction?.action === "unpublish"
-                  ? "Unpublish Course"
-                  : "Delete Course"}
+                  ? t("pages.courses.table.dialogs.unpublishTitle")
+                  : t("pages.courses.table.dialogs.deleteTitle")}
             </DialogTitle>
             <DialogDescription>
               {confirmAction?.action === "publish"
-                ? `Publish "${confirmCourseName}" and make it available to students.`
+                ? t("pages.courses.table.dialogs.publishDescription", {
+                    name: confirmCourseName,
+                  })
                 : confirmAction?.action === "unpublish"
-                  ? `Unpublish "${confirmCourseName}" and hide it from students.`
-                  : `Delete "${confirmCourseName}". This action cannot be undone.`}
+                  ? t("pages.courses.table.dialogs.unpublishDescription", {
+                      name: confirmCourseName,
+                    })
+                  : t("pages.courses.table.dialogs.deleteDescription", {
+                      name: confirmCourseName,
+                    })}
             </DialogDescription>
           </DialogHeader>
 
           {actionErrorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Action failed</AlertTitle>
+              <AlertTitle>
+                {t("pages.courses.table.dialogs.actionFailed")}
+              </AlertTitle>
               <AlertDescription>{actionErrorMessage}</AlertDescription>
             </Alert>
           ) : null}
@@ -947,7 +992,7 @@ export function CoursesTable({
                 setConfirmAction(null);
               }}
             >
-              Cancel
+              {t("pages.courses.table.dialogs.cancel")}
             </Button>
             <Button
               variant={
@@ -958,15 +1003,15 @@ export function CoursesTable({
             >
               {isActionPending
                 ? confirmAction?.action === "publish"
-                  ? "Publishing..."
+                  ? t("pages.courses.table.dialogs.publishing")
                   : confirmAction?.action === "unpublish"
-                    ? "Unpublishing..."
-                    : "Deleting..."
+                    ? t("pages.courses.table.dialogs.unpublishing")
+                    : t("pages.courses.table.dialogs.deleting")
                 : confirmAction?.action === "publish"
-                  ? "Confirm Publish"
+                  ? t("pages.courses.table.dialogs.confirmPublish")
                   : confirmAction?.action === "unpublish"
-                    ? "Confirm Unpublish"
-                    : "Confirm Delete"}
+                    ? t("pages.courses.table.dialogs.confirmUnpublish")
+                    : t("pages.courses.table.dialogs.confirmDelete")}
             </Button>
           </div>
         </DialogContent>

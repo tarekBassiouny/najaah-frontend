@@ -264,7 +264,26 @@
     "permissions": {
       "title": "Permissions",
       "descriptionWrite": "View the permission catalog used for role assignment.",
-      "descriptionReadOnly": "View the shared permission catalog. Role updates require system-scoped access."
+      "descriptionReadOnly": "View the shared permission catalog. Role updates require system-scoped access.",
+      "table": {
+        "summary": "{count} permission",
+        "summaryPlural": "{count} permissions",
+        "searchPlaceholder": "Search by permission name or slug",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load permissions. Please try again.",
+        "retry": "Retry",
+        "headers": {
+          "id": "ID",
+          "name": "Name",
+          "slug": "Slug",
+          "description": "Description"
+        },
+        "empty": {
+          "noResultsTitle": "No permissions found",
+          "noDataTitle": "No permissions yet",
+          "noDataDescription": "Permissions will appear here when available."
+        }
+      }
     },
     "rolePermissions": {
       "title": "Role Permissions",
@@ -636,19 +655,308 @@
       "description": "Manage all centers on the platform",
       "createCenter": "Create Center",
       "editCenter": "Edit Center",
-      "centerDetails": "Center Details"
+      "centerDetails": "Center Details",
+      "table": {
+        "searchPlaceholder": "Search centers...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load centers. Please try again.",
+        "summary": "{count} center",
+        "summaryPlural": "{count} centers",
+        "filters": {
+          "status": "Status",
+          "allStatuses": "All Statuses",
+          "active": "Active",
+          "inactive": "Inactive",
+          "visibility": "Visibility",
+          "activeOnly": "Active Only",
+          "withDeleted": "With Deleted",
+          "deletedOnly": "Deleted Only"
+        },
+        "headers": {
+          "name": "Name",
+          "slug": "Slug",
+          "type": "Type",
+          "tier": "Tier",
+          "status": "Status",
+          "onboarding": "Onboarding",
+          "actions": "Actions"
+        },
+        "types": {
+          "branded": "Branded",
+          "unbranded": "Unbranded"
+        },
+        "tiers": {
+          "premium": "Premium",
+          "vip": "VIP",
+          "standard": "Standard"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "actions": {
+          "manage": "Manage",
+          "settings": "Settings",
+          "changeStatus": "Change status",
+          "retryOnboarding": "Retry onboarding",
+          "restore": "Restore",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "changeStatus": "Change Status",
+          "restoreCenters": "Restore Centers",
+          "retryOnboarding": "Retry Onboarding",
+          "deleteCenters": "Delete Centers"
+        },
+        "empty": {
+          "noResultsTitle": "No centers found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No centers yet",
+          "noDataDescription": "Get started by creating your first center"
+        },
+        "selectAll": "Select all centers on this page",
+        "selectCenter": "Select {name}"
+      }
     },
     "courses": {
       "title": "Courses",
       "description": "Manage courses and curriculum",
       "createCourse": "Create Course",
-      "editCourse": "Edit Course"
+      "editCourse": "Edit Course",
+      "table": {
+        "searchPlaceholder": "Search courses...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load courses. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} course",
+        "summaryPlural": "{count} courses",
+        "filters": {
+          "category": "Category",
+          "searchCategories": "Search categories...",
+          "allCategories": "All categories",
+          "instructor": "Instructor",
+          "searchInstructors": "Search instructors...",
+          "allInstructors": "All instructors"
+        },
+        "headers": {
+          "title": "Title",
+          "language": "Language",
+          "status": "Status",
+          "publishedAt": "Published At",
+          "actions": "Actions"
+        },
+        "status": {
+          "published": "Published",
+          "active": "Active",
+          "draft": "Draft",
+          "pending": "Pending",
+          "archived": "Archived",
+          "inactive": "Inactive",
+          "unknown": "Unknown"
+        },
+        "actions": {
+          "view": "View",
+          "edit": "Edit",
+          "manageSections": "Manage Sections",
+          "publish": "Publish",
+          "unpublish": "Unpublish",
+          "clone": "Clone",
+          "cloning": "Cloning...",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "changeStatus": "Change Status",
+          "delete": "Delete",
+          "clearSelection": "Clear Selection"
+        },
+        "empty": {
+          "noResultsTitle": "No courses found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No courses yet",
+          "noDataDescription": "Get started by creating your first course"
+        },
+        "dialogs": {
+          "publishTitle": "Publish Course",
+          "publishDescription": "Publish \"{name}\" and make it available to students.",
+          "unpublishTitle": "Unpublish Course",
+          "unpublishDescription": "Unpublish \"{name}\" and hide it from students.",
+          "deleteTitle": "Delete Course",
+          "deleteDescription": "Delete \"{name}\". This action cannot be undone.",
+          "actionFailed": "Action failed",
+          "cancel": "Cancel",
+          "confirmPublish": "Confirm Publish",
+          "confirmUnpublish": "Confirm Unpublish",
+          "confirmDelete": "Confirm Delete",
+          "publishing": "Publishing...",
+          "unpublishing": "Unpublishing...",
+          "deleting": "Deleting..."
+        },
+        "errors": {
+          "permissionDenied": "You do not have permission to perform this course action.",
+          "notFound": "Course not found in this center scope.",
+          "validationError": "Course action could not be completed.",
+          "cloneFailed": "Unable to clone course.",
+          "cloneSuccess": "Course cloned successfully.",
+          "publishFailed": "Unable to publish course.",
+          "publishSuccess": "Course published successfully.",
+          "unpublishFailed": "Unable to unpublish course.",
+          "unpublishSuccess": "Course unpublished successfully.",
+          "deleteFailed": "Unable to delete course.",
+          "deleteSuccess": "Course deleted successfully."
+        },
+        "selectAll": "Select all courses on this page",
+        "selectCourse": "Select {name}"
+      }
     },
     "students": {
       "title": "Students",
       "description": "Manage student accounts",
       "createStudent": "Create Student",
-      "editStudent": "Edit Student"
+      "editStudent": "Edit Student",
+      "table": {
+        "searchPlaceholder": "Search by name, phone, or email",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load students. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} student",
+        "summaryPlural": "{count} students",
+        "filters": {
+          "centerType": "Center Type",
+          "branded": "Branded",
+          "unbranded": "Unbranded",
+          "status": "Status",
+          "active": "Active",
+          "inactive": "Inactive",
+          "banned": "Banned",
+          "stage": "Stage",
+          "selectCenterFirst": "Select center first",
+          "grade": "Grade",
+          "searchGrades": "Search grades...",
+          "noGrades": "No grades found",
+          "school": "School",
+          "searchSchools": "Search schools...",
+          "noSchools": "No schools found",
+          "college": "College",
+          "searchColleges": "Search colleges...",
+          "noColleges": "No colleges found"
+        },
+        "headers": {
+          "student": "Student",
+          "status": "Status",
+          "center": "Center",
+          "education": "Education",
+          "activity": "Activity",
+          "lastActivity": "Last Activity",
+          "device": "Device",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "banned": "Banned"
+        },
+        "education": {
+          "grade": "Grade:",
+          "school": "School:",
+          "college": "College:"
+        },
+        "device": {
+          "connectedDevice": "Connected Device",
+          "deviceConnected": "Device connected",
+          "noDevice": "No Device",
+          "none": "None",
+          "notLinkedYet": "Not linked yet"
+        },
+        "activity": {
+          "enrollments": "enrollments",
+          "sessions": "sessions"
+        },
+        "actions": {
+          "viewProfile": "View profile",
+          "viewDetails": "View details",
+          "enrollInCourse": "Enroll in Course",
+          "generateAccessCode": "Generate Access Code",
+          "editProfile": "Edit profile",
+          "delete": "Delete",
+          "openWhatsapp": "Open WhatsApp",
+          "openWhatsappFor": "Open WhatsApp for {name}",
+          "phoneUnavailable": "Phone not available"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "enrollToCourse": "Enroll to Course",
+          "generateAccessCodes": "Generate Access Codes",
+          "changeStatus": "Change Status",
+          "enrollAndGenerate": "Enroll & Generate"
+        },
+        "empty": {
+          "noResultsTitle": "No students found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No students yet",
+          "noDataDescription": "Add a student to get started"
+        },
+        "selectAll": "Select all students on this page",
+        "selectStudent": "Select {name}",
+        "fallbackCenter": "Najaah App"
+      }
+    },
+    "enrollments": {
+      "title": "Enrollments",
+      "description": "Manage student enrollments",
+      "table": {
+        "searchPlaceholder": "Search by student name or phone",
+        "clearSearch": "Clear student search",
+        "loadFailed": "Failed to load enrollment requests. Please try again.",
+        "loadFailedActive": "Failed to load enrolled students. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} enrollment request",
+        "summaryPlural": "{count} enrollment requests",
+        "summaryActive": "{count} enrolled student",
+        "summaryActivePlural": "{count} enrolled students",
+        "filters": {
+          "course": "Course",
+          "searchCourses": "Search courses...",
+          "allCourses": "All courses",
+          "noCourses": "No courses found",
+          "selectCenterFirst": "Select center first",
+          "status": "Status",
+          "pending": "Pending",
+          "active": "Active",
+          "deactivated": "Deactivated",
+          "cancelled": "Cancelled",
+          "fromDate": "From date",
+          "toDate": "To date"
+        },
+        "headers": {
+          "student": "Student",
+          "course": "Course",
+          "center": "Center",
+          "status": "Status",
+          "requestedAt": "Requested At",
+          "enrolledAt": "Enrolled At",
+          "enrollmentWindow": "Enrollment Window",
+          "actions": "Actions"
+        },
+        "window": {
+          "enrolled": "Enrolled:",
+          "expires": "Expires:"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "approveSelected": "Approve Selected",
+          "rejectSelected": "Reject Selected",
+          "processing": "Processing..."
+        },
+        "empty": {
+          "noRequestsTitle": "No enrollment requests found",
+          "noActiveTitle": "No enrolled students found",
+          "noResultsDescription": "Try adjusting your filters."
+        },
+        "selectAll": "Select all enrollments on this page",
+        "selectEnrollment": "Select enrollment for {name}"
+      }
     },
     "instructors": {
       "title": "Instructors",
@@ -657,7 +965,52 @@
       "createInstructor": "Create Instructor",
       "editInstructor": "Edit Instructor",
       "selectCenterTitle": "Select a center",
-      "selectCenterDescription": "Choose a center to manage instructors."
+      "selectCenterDescription": "Choose a center to manage instructors.",
+      "table": {
+        "searchPlaceholder": "Search instructors...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load instructors. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} instructor",
+        "summaryPlural": "{count} instructors",
+        "filters": {
+          "course": "Course",
+          "searchCourses": "Search courses...",
+          "allCourses": "All courses",
+          "noCourses": "No courses found",
+          "selectCenterFirst": "Select a center"
+        },
+        "headers": {
+          "instructor": "Instructor",
+          "bio": "Bio",
+          "createdBy": "Created By",
+          "createdAt": "Created At",
+          "actions": "Actions"
+        },
+        "actions": {
+          "viewDetails": "View details",
+          "editProfile": "Edit profile",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "delete": "Delete",
+          "confirmDeleteTitle": "Delete Instructors",
+          "confirmDeleteMessage": "Are you sure you want to delete {count} instructor(s)? This action cannot be undone.",
+          "deleting": "Deleting...",
+          "deleteSuccess": "Instructors deleted successfully",
+          "deleteFailed": "Failed to delete some instructors"
+        },
+        "empty": {
+          "noResultsTitle": "No instructors found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No instructors yet",
+          "noDataDescription": "Add an instructor to get started"
+        },
+        "selectAll": "Select all instructors on this page",
+        "selectInstructor": "Select {name}",
+        "noBio": "No bio available"
+      }
     },
     "categories": {
       "title": "Categories",
@@ -665,11 +1018,137 @@
       "descriptionSelectCenter": "Manage categories for each center. Select a center to begin.",
       "descriptionCenter": "Manage course categories for your learning center",
       "selectCenterPrompt": "Select a center from the top-right picker to manage categories.",
-      "createCategory": "Create Category"
+      "createCategory": "Create Category",
+      "table": {
+        "searchPlaceholder": "Search categories...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load categories. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} category",
+        "summaryPlural": "{count} categories",
+        "filters": {
+          "parentCategory": "Parent Category",
+          "allParents": "All Parents",
+          "status": "Status",
+          "allStatuses": "All Statuses",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "headers": {
+          "title": "Title",
+          "parent": "Parent",
+          "order": "Order",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "changeStatus": "Change Status",
+          "delete": "Delete"
+        },
+        "empty": {
+          "noResultsTitle": "No categories found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No categories yet",
+          "noDataDescription": "Create a category to start organizing your content"
+        },
+        "selectAll": "Select all categories on this page",
+        "selectCategory": "Select {name}"
+      }
     },
     "videos": {
       "title": "Videos",
-      "description": "Manage video content"
+      "description": "Manage video content",
+      "table": {
+        "searchPlaceholder": "Search title or tags...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load videos. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} video",
+        "summaryPlural": "{count} videos",
+        "selectCenter": "Select a center to view videos.",
+        "filters": {
+          "status": "Status",
+          "allStatuses": "All statuses",
+          "pending": "Pending",
+          "uploading": "Uploading",
+          "processing": "Processing",
+          "ready": "Ready",
+          "failed": "Failed",
+          "sourceType": "Source Type",
+          "allSourceTypes": "All source types",
+          "upload": "Upload",
+          "url": "URL",
+          "provider": "Provider",
+          "allProviders": "All providers",
+          "najaahApp": "Najaah App",
+          "youtube": "YouTube",
+          "vimeo": "Vimeo",
+          "zoom": "Zoom",
+          "custom": "Custom",
+          "createdFrom": "Created from date",
+          "createdTo": "Created to date"
+        },
+        "headers": {
+          "thumbnail": "Thumbnail",
+          "video": "Video",
+          "tags": "Tags",
+          "provider": "Provider",
+          "duration": "Duration",
+          "status": "Status",
+          "uploadedBy": "Uploaded By",
+          "updated": "Updated",
+          "actions": "Actions"
+        },
+        "status": {
+          "ready": "Ready",
+          "pending": "Pending",
+          "uploading": "Uploading",
+          "processing": "Processing",
+          "failed": "Failed",
+          "unknown": "Unknown"
+        },
+        "sourceMode": {
+          "upload": "Upload",
+          "url": "URL"
+        },
+        "thumbnail": {
+          "noThumbnail": "No thumbnail"
+        },
+        "dates": {
+          "created": "Created"
+        },
+        "actions": {
+          "viewDetails": "View details",
+          "preview": "Preview",
+          "retryUpload": "Retry upload",
+          "editVideo": "Edit video",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "retryUploads": "Retry Uploads",
+          "deleteSelected": "Delete Selected",
+          "selectFailedHint": "Select failed upload-source videos to retry"
+        },
+        "empty": {
+          "noResultsTitle": "No videos found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No videos yet",
+          "noDataDescription": "Create videos to get started"
+        },
+        "selectAll": "Select all videos on this page",
+        "selectVideo": "Select {name}",
+        "fallbackCenter": "Najaah App"
+      }
     },
     "pdfs": {
       "title": "PDFs",
@@ -678,13 +1157,192 @@
       "uploadPdf": "Upload PDF",
       "selectCenterTitle": "Select a center",
       "selectCenterDescription": "Choose a center before uploading PDFs.",
-      "actionUnavailable": "This action is not available yet."
+      "actionUnavailable": "This action is not available yet.",
+      "table": {
+        "searchPlaceholder": "Search title or tags...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load PDFs. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} PDF",
+        "summaryPlural": "{count} PDFs",
+        "selectCenter": "Select a center to view PDFs.",
+        "filters": {
+          "status": "Status",
+          "allStatuses": "All statuses",
+          "active": "Active",
+          "pending": "Pending",
+          "uploading": "Uploading",
+          "ready": "Ready",
+          "processing": "Processing",
+          "failed": "Failed",
+          "sourceType": "Source Type",
+          "allSourceTypes": "All source types",
+          "upload": "Upload",
+          "url": "URL",
+          "provider": "Provider",
+          "allProviders": "All providers",
+          "najaahApp": "Najaah App",
+          "custom": "Custom",
+          "createdFrom": "Created from date",
+          "createdTo": "Created to date"
+        },
+        "headers": {
+          "thumbnail": "Thumbnail",
+          "pdf": "PDF",
+          "tags": "Tags",
+          "provider": "Provider",
+          "pages": "Pages",
+          "status": "Status",
+          "uploadedBy": "Uploaded By",
+          "updated": "Updated",
+          "size": "Size",
+          "created": "Created",
+          "usedIn": "Used In",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "pending": "Pending",
+          "uploading": "Uploading",
+          "ready": "Ready",
+          "processing": "Processing",
+          "failed": "Failed",
+          "unknown": "Unknown"
+        },
+        "description": {
+          "noDescription": "No description"
+        },
+        "usage": {
+          "course": "course",
+          "courses": "courses"
+        },
+        "sourceMode": {
+          "upload": "Upload",
+          "url": "URL"
+        },
+        "thumbnail": {
+          "noThumbnail": "No thumbnail"
+        },
+        "actions": {
+          "preview": "Preview",
+          "download": "Download",
+          "viewDetails": "View details",
+          "editPdf": "Edit PDF",
+          "delete": "Delete PDF",
+          "previewFailed": "Failed to get preview URL",
+          "downloadFailed": "Failed to get download URL"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "deleteSelected": "Delete Selected"
+        },
+        "empty": {
+          "noResultsTitle": "No PDFs found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No PDFs yet",
+          "noDataDescription": "Upload PDFs to get started"
+        },
+        "selectAll": "Select all PDFs on this page",
+        "selectPdf": "Select {name}",
+        "fallbackCenter": "Najaah App"
+      }
     },
     "surveys": {
       "title": "Surveys",
       "description": "Manage surveys and questionnaires",
       "descriptionPlatform": "Manage system and center surveys",
-      "addSurvey": "Add Survey"
+      "addSurvey": "Add Survey",
+      "table": {
+        "searchPlaceholder": "Search surveys...",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load surveys. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} survey",
+        "summaryPlural": "{count} surveys",
+        "filters": {
+          "status": "Status",
+          "active": "Active",
+          "inactive": "Inactive",
+          "requirement": "Requirement",
+          "mandatory": "Mandatory",
+          "optional": "Optional",
+          "type": "Type",
+          "feedback": "Feedback",
+          "mandatoryType": "Mandatory",
+          "poll": "Poll"
+        },
+        "dateFilters": {
+          "quickLabel": "Quick date filters",
+          "activeNow": "Active now",
+          "upcoming": "Upcoming",
+          "ended": "Ended",
+          "startsThisMonth": "Starts this month",
+          "hideAdvanced": "Hide advanced date filters",
+          "showAdvanced": "Advanced date filters",
+          "windowTitle": "Survey Window Filters",
+          "windowHint": "Use start and end ranges to match how backend filters:",
+          "startDateRange": "Start Date Range",
+          "startsOnOrAfter": "Starts on or after",
+          "startsOnOrBefore": "Starts on or before",
+          "endDateRange": "End Date Range",
+          "endsOnOrAfter": "Ends on or after",
+          "endsOnOrBefore": "Ends on or before",
+          "startRangeInvalid": "Start date range is invalid: start_from must be before or equal to start_to.",
+          "endRangeInvalid": "End date range is invalid: end_from must be before or equal to end_to."
+        },
+        "headers": {
+          "title": "Title",
+          "scope": "Scope",
+          "center": "Center",
+          "status": "Status",
+          "assignment": "Assignment",
+          "window": "Window",
+          "questions": "Questions",
+          "submitted": "Submitted",
+          "actions": "Actions"
+        },
+        "scope": {
+          "center": "Center",
+          "system": "System"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "assignment": {
+          "allStudents": "All Students",
+          "course": "Course",
+          "center": "Center",
+          "video": "Video",
+          "student": "Student",
+          "assignment": "Assignment",
+          "more": "+{count} more"
+        },
+        "fallbackCenter": "Najaah App",
+        "actions": {
+          "edit": "Edit",
+          "assign": "Assign",
+          "changeStatus": "Change Status",
+          "close": "Close",
+          "viewResults": "View Results",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "changeStatus": "Change Status",
+          "closeSurveys": "Close Surveys",
+          "deleteSurveys": "Delete Surveys"
+        },
+        "empty": {
+          "noResultsTitle": "No surveys found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No surveys yet",
+          "noDataDescription": "Create your first survey to start collecting responses."
+        },
+        "selectAll": "Select all surveys on this page",
+        "selectSurvey": "Select survey {id}"
+      }
     },
     "analytics": {
       "title": "Analytics",
@@ -793,11 +1451,106 @@
     },
     "roles": {
       "title": "Roles & Permissions",
-      "description": "Manage user roles and permissions"
+      "description": "Manage user roles and permissions",
+      "table": {
+        "searchPlaceholder": "Search by role name or slug",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load roles. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} role",
+        "summaryPlural": "{count} roles",
+        "headers": {
+          "name": "Name",
+          "slug": "Slug",
+          "permissions": "Permissions",
+          "description": "Description",
+          "actions": "Actions"
+        },
+        "description": {
+          "viewMore": "View more",
+          "viewLess": "View less"
+        },
+        "actions": {
+          "managePermissions": "Manage Permissions",
+          "viewPermissions": "View Permissions",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "managePermissions": "Manage Permissions"
+        },
+        "empty": {
+          "noResultsTitle": "No roles found",
+          "noDataTitle": "No roles yet",
+          "noDataDescription": "Create your first role to start assigning permissions."
+        },
+        "selectAll": "Select all roles on page",
+        "selectRole": "Select {name}",
+        "dialogs": {
+          "syncPermissions": "Sync Permissions",
+          "viewPermissionsReadOnly": "Role Permissions (Read only)",
+          "updatePermissionsFor": "Update permissions for {name}.",
+          "updatePermissionsGeneric": "Update permissions for this role."
+        }
+      }
     },
     "admins": {
       "title": "Admins",
-      "description": "Manage admin users"
+      "description": "Manage admin users",
+      "table": {
+        "searchPlaceholder": "Search by name or email",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load admin users. Please try again.",
+        "retry": "Retry",
+        "summary": "{count} admin user",
+        "summaryPlural": "{count} admin users",
+        "filters": {
+          "status": "Status",
+          "role": "Role",
+          "active": "Active",
+          "inactive": "Inactive",
+          "banned": "Banned"
+        },
+        "headers": {
+          "user": "User",
+          "center": "Center",
+          "roles": "Roles",
+          "status": "Status",
+          "lastActive": "Last Active",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "banned": "Banned",
+          "unknown": "Unknown"
+        },
+        "centerFallback": "Najaah system",
+        "centerIdFallback": "Center #{id}",
+        "roleFallback": "Role",
+        "actions": {
+          "editProfile": "Edit profile",
+          "manageRoles": "Manage roles",
+          "assignCenters": "Assign centers",
+          "changeStatus": "Change status",
+          "delete": "Delete"
+        },
+        "bulk": {
+          "selected": "{count} selected",
+          "assignRoles": "Assign Roles",
+          "assignCenters": "Assign Centers",
+          "changeStatus": "Change Status"
+        },
+        "empty": {
+          "noResultsTitle": "No admin users found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No admin users yet",
+          "noDataDescription": "Create an admin user to get started"
+        },
+        "selectAll": "Select all admin users on this page",
+        "selectUser": "Select {name}"
+      }
     },
     "studentRequests": {
       "title": "Student Requests",
@@ -811,6 +1564,267 @@
         "extraView": "Extra View",
         "deviceChange": "Device Change",
         "videoAccess": "Video Access"
+      },
+      "requestActions": {
+        "by": "by {name}",
+        "loading": "...",
+        "buttons": {
+          "preApprove": "Pre-Approve",
+          "approve": "Approve",
+          "reject": "Reject"
+        },
+        "status": {
+          "approved": "Approved",
+          "rejected": "Rejected"
+        },
+        "relative": {
+          "justNow": "just now",
+          "minutesAgo": "{count}m ago",
+          "hoursAgo": "{count}h ago",
+          "daysAgo": "{count}d ago"
+        }
+      },
+      "tables": {
+        "extraView": {
+          "title": "Extra View Requests",
+          "description": "Review and process extra-view requests.",
+          "summary": "{count} request",
+          "summaryPlural": "{count} requests",
+          "searchPlaceholder": "Search by student name, phone, or ID",
+          "clearSearch": "Clear student search",
+          "loadFailed": "Failed to load extra-view requests. Please try again.",
+          "retry": "Retry",
+          "selectAll": "Select all requests on this page",
+          "selectRequest": "Select request for {name}",
+          "filters": {
+            "allCourses": "All courses",
+            "allVideos": "All videos",
+            "course": "Course",
+            "video": "Video",
+            "searchCourses": "Search courses...",
+            "searchVideos": "Search videos...",
+            "noCourses": "No courses found",
+            "noVideos": "No videos found",
+            "selectCenter": "Select center first",
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "fromDate": "Requested from date",
+            "toDate": "Requested to date"
+          },
+          "headers": {
+            "student": "Student",
+            "video": "Video",
+            "course": "Course",
+            "center": "Center",
+            "status": "Status",
+            "requestedAt": "Requested At",
+            "actions": "Actions"
+          },
+          "empty": {
+            "noResultsTitle": "No extra-view requests found",
+            "noResultsDescription": "Try adjusting your filters."
+          },
+          "bulk": {
+            "selected": "{count} selected",
+            "processing": "Processing...",
+            "approveSelected": "Approve Selected",
+            "rejectSelected": "Reject Selected"
+          },
+          "unknown": {
+            "status": "Unknown",
+            "student": "Unknown Student",
+            "course": "Unknown Course",
+            "video": "Unknown Video",
+            "center": "Najaah App"
+          }
+        },
+        "deviceChange": {
+          "title": "Device Change Requests",
+          "description": "Review and process device change requests.",
+          "summary": "{count} request",
+          "summaryPlural": "{count} requests",
+          "searchPlaceholder": "Search by student name, phone, or ID",
+          "clearSearch": "Clear student search",
+          "loadFailed": "Failed to load device change requests. Please try again.",
+          "retry": "Retry",
+          "selectAll": "Select all requests on this page",
+          "selectRequest": "Select request for {name}",
+          "filters": {
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "pending": "Pending",
+            "preApproved": "Pre-Approved",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "fromDate": "From date",
+            "toDate": "To date"
+          },
+          "headers": {
+            "student": "Student",
+            "currentDevice": "Current Device",
+            "newDevice": "New Device",
+            "source": "Source",
+            "status": "Status",
+            "center": "Center",
+            "requestedAt": "Requested At",
+            "actions": "Actions"
+          },
+          "empty": {
+            "noResultsTitle": "No device change requests found",
+            "noResultsDescription": "Try adjusting your filters."
+          },
+          "bulk": {
+            "selected": "{count} selected",
+            "processing": "Processing...",
+            "preApproveSelected": "Pre-Approve Selected",
+            "approveSelected": "Approve Selected",
+            "rejectSelected": "Reject Selected"
+          },
+          "unknown": {
+            "status": "Unknown",
+            "student": "Unknown Student",
+            "center": "Najaah App"
+          }
+        },
+        "videoAccess": {
+          "title": "Video Access Requests",
+          "description": "Review and process per-video access requests.",
+          "summary": "{count} request",
+          "summaryPlural": "{count} requests",
+          "searchPlaceholder": "Search by student name or phone",
+          "loadFailed": "Failed to load video access requests. Please try again.",
+          "selectAll": "Select all requests on this page",
+          "selectRequest": "Select request for {name}",
+          "filters": {
+            "course": "Course",
+            "video": "Video",
+            "allCourses": "All courses",
+            "allVideos": "All videos",
+            "searchCourses": "Search courses...",
+            "searchVideos": "Search videos...",
+            "noCourses": "No courses found",
+            "noVideos": "No videos found",
+            "selectCenter": "Select center first",
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "fromDate": "Requested from date",
+            "toDate": "Requested to date"
+          },
+          "headers": {
+            "student": "Student",
+            "video": "Video",
+            "course": "Course",
+            "center": "Center",
+            "status": "Status",
+            "requestedAt": "Requested At",
+            "actions": "Actions"
+          },
+          "empty": {
+            "selectCenterTitle": "Select a center first",
+            "selectCenterDescription": "Video access endpoints are center-scoped. Choose a center to continue.",
+            "noResultsTitle": "No video access requests found",
+            "noResultsDescription": "Try adjusting your filters."
+          },
+          "bulk": {
+            "selected": "{count} selected",
+            "approveSelected": "Approve Selected",
+            "rejectSelected": "Reject Selected"
+          },
+          "unknown": {
+            "status": "Unknown",
+            "student": "Unknown Student",
+            "course": "Unknown Course",
+            "video": "Unknown Video",
+            "center": "Najaah App"
+          }
+        },
+        "videoAccessCodes": {
+          "title": "Video Access Codes",
+          "description": "Manage generated codes and send them via WhatsApp.",
+          "summary": "{count} code",
+          "summaryPlural": "{count} codes",
+          "loadFailed": "Failed to load video access codes. Please try again.",
+          "selectAll": "Select all codes on this page",
+          "selectCode": "Select code {id}",
+          "filters": {
+            "student": "Student",
+            "course": "Course",
+            "video": "Video",
+            "allStudents": "All students",
+            "allCourses": "All courses",
+            "allVideos": "All videos",
+            "searchStudents": "Search students...",
+            "searchCourses": "Search courses...",
+            "searchVideos": "Search videos...",
+            "noStudents": "No students found",
+            "noCourses": "No courses found",
+            "noVideos": "No videos found",
+            "selectCenter": "Select center first",
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "active": "Active",
+            "used": "Used",
+            "revoked": "Revoked",
+            "expired": "Expired",
+            "whatsappFormat": "WhatsApp format",
+            "whatsappText": "WhatsApp: Text",
+            "whatsappQr": "WhatsApp: QR"
+          },
+          "headers": {
+            "student": "Student",
+            "video": "Video",
+            "course": "Course",
+            "code": "Code",
+            "status": "Status",
+            "expiresAt": "Expires At",
+            "createdAt": "Created At",
+            "actions": "Actions"
+          },
+          "empty": {
+            "selectCenterTitle": "Select a center first",
+            "selectCenterDescription": "Video access code endpoints are center-scoped. Choose a center to continue.",
+            "noResultsTitle": "No video access codes found",
+            "noResultsDescription": "Try adjusting your filters or generate a new code."
+          },
+          "actions": {
+            "generateCode": "Generate Code",
+            "sendWhatsapp": "Send WhatsApp",
+            "sending": "Sending..."
+          },
+          "bulk": {
+            "selected": "{count} selected",
+            "queueing": "Queueing...",
+            "sendWhatsapp": "Bulk Send WhatsApp"
+          },
+          "errors": {
+            "sendFailed": "Unable to send code via WhatsApp.",
+            "bulkSendFailed": "Unable to bulk send codes via WhatsApp.",
+            "jobFailed": "WhatsApp action failed"
+          },
+          "job": {
+            "title": "Bulk WhatsApp Job #{id}",
+            "description": "Track sending progress for large batches.",
+            "total": "Total: {count}",
+            "sent": "Sent: {count}",
+            "failed": "Failed: {count}",
+            "pending": "Pending: {count}",
+            "progress": "Progress: {value}%",
+            "retries": "Max retries (runtime): {count}",
+            "clear": "Clear Job"
+          },
+          "unknown": {
+            "status": "Unknown",
+            "student": "Unknown Student",
+            "course": "Unknown Course",
+            "video": "Unknown Video"
+          }
+        }
       }
     },
     "education": {
@@ -818,16 +1832,263 @@
       "description": "Manage educational settings",
       "descriptionByCenter": "Manage grades, schools, and colleges by center.",
       "descriptionForProfiles": "Manage grades, schools, and colleges for student profiles.",
-      "selectCenterPrompt": "Select a center from the picker to manage educational lookups."
+      "selectCenterPrompt": "Select a center from the picker to manage educational lookups.",
+      "tables": {
+        "grades": {
+          "entityName": "Grade",
+          "summary": "{count} grade",
+          "summaryPlural": "{count} grades",
+          "searchPlaceholder": "Search grades...",
+          "clearSearch": "Clear search",
+          "loadFailed": "Failed to load grades. Please try again.",
+          "retry": "Retry",
+          "filters": {
+            "stage": "Stage",
+            "allStages": "All Stages",
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "active": "Active",
+            "inactive": "Inactive"
+          },
+          "headers": {
+            "name": "Name",
+            "stage": "Stage",
+            "order": "Order",
+            "status": "Status",
+            "actions": "Actions"
+          },
+          "empty": {
+            "noResultsTitle": "No grades found",
+            "noResultsDescription": "Try adjusting your search terms",
+            "noDataTitle": "No grades yet",
+            "noDataDescription": "Grades will appear here once they are added."
+          },
+          "actions": {
+            "edit": "Edit",
+            "delete": "Delete"
+          }
+        },
+        "schools": {
+          "entityName": "School",
+          "summary": "{count} school",
+          "summaryPlural": "{count} schools",
+          "searchPlaceholder": "Search schools...",
+          "clearSearch": "Clear search",
+          "loadFailed": "Failed to load schools. Please try again.",
+          "retry": "Retry",
+          "filters": {
+            "type": "Type",
+            "allTypes": "All Types",
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "active": "Active",
+            "inactive": "Inactive"
+          },
+          "headers": {
+            "name": "Name",
+            "type": "Type",
+            "address": "Address",
+            "status": "Status",
+            "actions": "Actions"
+          },
+          "empty": {
+            "noResultsTitle": "No schools found",
+            "noResultsDescription": "Try adjusting your search terms",
+            "noDataTitle": "No schools yet",
+            "noDataDescription": "Schools will appear here once they are added."
+          },
+          "actions": {
+            "edit": "Edit",
+            "delete": "Delete"
+          }
+        },
+        "colleges": {
+          "entityName": "College",
+          "typeValue": "Type {value}",
+          "summary": "{count} college",
+          "summaryPlural": "{count} colleges",
+          "searchPlaceholder": "Search colleges...",
+          "clearSearch": "Clear search",
+          "loadFailed": "Failed to load colleges. Please try again.",
+          "retry": "Retry",
+          "filters": {
+            "status": "Status",
+            "allStatuses": "All statuses",
+            "active": "Active",
+            "inactive": "Inactive"
+          },
+          "headers": {
+            "name": "Name",
+            "type": "Type",
+            "address": "Address",
+            "status": "Status",
+            "actions": "Actions"
+          },
+          "empty": {
+            "noResultsTitle": "No colleges found",
+            "noResultsDescription": "Try adjusting your search terms",
+            "noDataTitle": "No colleges yet",
+            "noDataDescription": "Colleges will appear here once they are added."
+          },
+          "actions": {
+            "edit": "Edit",
+            "delete": "Delete"
+          }
+        }
+      }
     },
     "settings": {
       "title": "Settings",
-      "description": "Configure system settings"
+      "description": "Configure system settings",
+      "table": {
+        "badge": "Global Registry",
+        "title": "Settings Inventory",
+        "description": "Search by exact key fragments, filter by visibility, and manage non-canonical registry entries from one screen.",
+        "summary": "{count} setting",
+        "summaryPlural": "{count} settings",
+        "matching": "Matching \"{query}\"",
+        "searchPlaceholder": "Search by key",
+        "clearSearch": "Clear search",
+        "loadFailed": "Failed to load settings. Please try again.",
+        "retry": "Retry",
+        "stats": {
+          "visible": "Visible Now",
+          "public": "Public",
+          "private": "Private"
+        },
+        "filters": {
+          "visibility": "Visibility",
+          "visibilityAll": "Visibility",
+          "public": "Public",
+          "private": "Private"
+        },
+        "headers": {
+          "registryKey": "Registry Key",
+          "currentDefault": "Current Default",
+          "visibility": "Visibility",
+          "lastSync": "Last Sync",
+          "actions": "Actions"
+        },
+        "labels": {
+          "globalDefault": "Global default",
+          "globalDefaultHelp": "Global default in the system registry",
+          "managedAbove": "Managed above",
+          "managedFromDefaults": "Managed from the canonical defaults panel above",
+          "lastUpdated": "Last updated"
+        },
+        "actions": {
+          "addKey": "Add Registry Key",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "empty": {
+          "noResultsTitle": "No settings found",
+          "noResultsDescription": "Try adjusting your search terms",
+          "noDataTitle": "No settings yet",
+          "noDataDescription": "Add a non-canonical system setting to extend the registry"
+        },
+        "relative": {
+          "justNow": "Just now",
+          "minutesAgo": "{count}m ago",
+          "hoursAgo": "{count}h ago",
+          "daysAgo": "{count}d ago"
+        },
+        "valueTypes": {
+          "object": "Structured value",
+          "array": "List value",
+          "null": "No value",
+          "boolean": "Boolean value",
+          "number": "Numeric value",
+          "string": "Text value"
+        },
+        "valueTypeBadges": {
+          "object": "object",
+          "array": "array",
+          "null": "null",
+          "boolean": "boolean",
+          "number": "number",
+          "string": "string"
+        },
+        "values": {
+          "enabled": "Enabled",
+          "disabled": "Disabled"
+        }
+      }
     },
     "auditLogs": {
       "title": "Audit Logs",
       "description": "View system audit logs",
-      "descriptionAdmin": "Read-only audit trail for admin activity."
+      "descriptionAdmin": "Read-only audit trail for admin activity.",
+      "table": {
+        "clear": "Reset",
+        "results": "{count} results",
+        "loadFailed": "Failed to load data. Please try again later.",
+        "datePresets": {
+          "today": "Today",
+          "last7Days": "Last 7 days",
+          "last30Days": "Last 30 days"
+        },
+        "filters": {
+          "action": "Action",
+          "user": "User",
+          "allUsers": "All users",
+          "searchUsers": "Search users...",
+          "noUsers": "No users found",
+          "course": "Course",
+          "allCourses": "All courses",
+          "searchCourses": "Search courses...",
+          "noCourses": "No courses found",
+          "selectCenter": "Select center first",
+          "selectCenterToLoad": "Select a center to load courses",
+          "fromDate": "From date",
+          "toDate": "To date"
+        },
+        "actions": {
+          "allActions": "All actions",
+          "create": "Create",
+          "update": "Update",
+          "delete": "Delete",
+          "login": "Login",
+          "logout": "Logout",
+          "unknown": "Unknown",
+          "viewDetails": "View details"
+        },
+        "headers": {
+          "action": "Action",
+          "event": "Event",
+          "metadata": "Metadata",
+          "createdAt": "Created At"
+        },
+        "labels": {
+          "user": "User",
+          "center": "Center"
+        },
+        "activeFilters": {
+          "action": "Action",
+          "user": "User",
+          "course": "Course",
+          "from": "From",
+          "to": "To"
+        },
+        "empty": {
+          "noResultsTitle": "No audit logs found",
+          "noResultsDescription": "There are no audit logs matching the current criteria."
+        },
+        "dialog": {
+          "title": "Audit Log #{id}",
+          "description": "Full event details and metadata payload.",
+          "eventDetails": "Event Details",
+          "summary": "Summary",
+          "entity": "Entity",
+          "label": "Label",
+          "created": "Created",
+          "metadataType": "Type"
+        },
+        "unknown": {
+          "user": "User",
+          "entityType": "Unknown"
+        }
+      }
     },
     "landingPage": {
       "title": "Landing Page",

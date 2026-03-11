@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "An Arabic RTL LMS for Educational Centers Serving MENA Audiences";
+
 export default function ArabicRtlLmsPage() {
   return (
     <SeoPageShell
       eyebrow="Arabic RTL LMS"
-      title="An Arabic RTL LMS for Educational Centers Serving MENA Audiences"
+      title={SEO_PAGE_TITLE}
       intro="Arabic support in learning platforms is often treated as a superficial translation layer. Educational centers need something deeper: language-aware layouts, RTL-ready interfaces, and workflows that still feel natural to operators and students."
       bullets={[
         "Arabic and English delivery inside the same product experience",

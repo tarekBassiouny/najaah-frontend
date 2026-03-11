@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSystemSettingsPreview } from "@/features/system-settings/hooks/use-system-settings";
+import { useTranslation } from "@/features/localization";
 
 type SystemSettingsPreviewDialogProps = {
   open: boolean;
@@ -20,6 +21,8 @@ export function SystemSettingsPreviewDialog({
   open,
   onOpenChange,
 }: SystemSettingsPreviewDialogProps) {
+  const { t } = useTranslation();
+
   const { data, isLoading, isError, refetch, isFetching } =
     useSystemSettingsPreview({
       enabled: open,
@@ -29,21 +32,31 @@ export function SystemSettingsPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Settings Preview</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.system_settings.components.systemsettingspreviewdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Read-only merged preview from{" "}
+            {t(
+              "auto.features.system_settings.components.systemsettingspreviewdialog.s2",
+            )}{" "}
             <code>/api/v1/admin/settings/preview</code>.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
           <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-400">
-            Loading preview...
+            {t(
+              "auto.features.system_settings.components.systemsettingspreviewdialog.s3",
+            )}
           </div>
         ) : isError ? (
           <div className="space-y-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-950/30">
             <p className="text-sm text-red-700 dark:text-red-300">
-              Failed to load preview.
+              {t(
+                "auto.features.system_settings.components.systemsettingspreviewdialog.s4",
+              )}
             </p>
             <Button
               type="button"
@@ -69,7 +82,9 @@ export function SystemSettingsPreviewDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Close
+            {t(
+              "auto.features.system_settings.components.systemsettingspreviewdialog.s5",
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

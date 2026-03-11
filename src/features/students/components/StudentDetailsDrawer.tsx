@@ -12,6 +12,7 @@ import type { Student } from "@/features/students/types/student";
 import { resolveStudentStatus } from "@/features/students/utils/student-status";
 import { formatDateTime } from "@/lib/format-date-time";
 import { getEducationName } from "@/features/education/types/education";
+import { useTranslation } from "@/features/localization";
 
 type StudentDetailsDrawerProps = {
   open: boolean;
@@ -24,6 +25,8 @@ export function StudentDetailsDrawer({
   onOpenChange,
   student,
 }: StudentDetailsDrawerProps) {
+  const { t } = useTranslation();
+
   const analytics = student?.analytics ?? null;
   const device = student?.device ?? null;
   const name = student?.name ?? "Student";
@@ -57,7 +60,7 @@ export function StudentDetailsDrawer({
               {name}
             </DialogTitle>
             <DialogDescription>
-              Student details, analytics, and device status.
+              {t("auto.features.students.components.studentdetailsdrawer.s1")}
             </DialogDescription>
           </DialogHeader>
 
@@ -110,31 +113,51 @@ export function StudentDetailsDrawer({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Total Enrollments</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.students.components.studentdetailsdrawer.s2",
+                    )}
+                  </p>
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {analytics?.total_enrollments ?? 0}
                   </p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Active Enrollments</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.students.components.studentdetailsdrawer.s3",
+                    )}
+                  </p>
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {analytics?.active_enrollments ?? 0}
                   </p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Total Sessions</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.students.components.studentdetailsdrawer.s4",
+                    )}
+                  </p>
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {analytics?.total_sessions ?? 0}
                   </p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Full Play Sessions</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.students.components.studentdetailsdrawer.s5",
+                    )}
+                  </p>
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {analytics?.full_play_sessions ?? 0}
                   </p>
                 </div>
                 <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Viewed Videos</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.students.components.studentdetailsdrawer.s6",
+                    )}
+                  </p>
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {analytics?.viewed_videos ?? 0}
                   </p>
@@ -185,7 +208,9 @@ export function StudentDetailsDrawer({
                 <div className="grid gap-2 rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-gray-800 dark:bg-gray-900">
                   <p>
                     <span className="font-medium text-gray-500">
-                      Device Name:
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s7",
+                      )}
                     </span>{" "}
                     <span className="break-words">
                       {device.device_name ?? "—"}
@@ -193,7 +218,9 @@ export function StudentDetailsDrawer({
                   </p>
                   <p>
                     <span className="font-medium text-gray-500">
-                      Device Type:
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s8",
+                      )}
                     </span>{" "}
                     <span className="break-words">
                       {device.device_type ?? "—"}
@@ -201,28 +228,46 @@ export function StudentDetailsDrawer({
                   </p>
                   <p>
                     <span className="font-medium text-gray-500">
-                      Device ID:
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s9",
+                      )}
                     </span>{" "}
                     <span className="break-all">{device.device_id ?? "—"}</span>
                   </p>
                   <p>
-                    <span className="font-medium text-gray-500">Model:</span>{" "}
+                    <span className="font-medium text-gray-500">
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s10",
+                      )}
+                    </span>{" "}
                     <span className="break-words">{device.model ?? "—"}</span>
                   </p>
                   <p>
-                    <span className="font-medium text-gray-500">OS:</span>{" "}
+                    <span className="font-medium text-gray-500">
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s11",
+                      )}
+                    </span>{" "}
                     <span className="break-words">
                       {device.os_version ?? "—"}
                     </span>
                   </p>
                   <p>
-                    <span className="font-medium text-gray-500">Status:</span>{" "}
+                    <span className="font-medium text-gray-500">
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s12",
+                      )}
+                    </span>{" "}
                     <span className="break-words">
                       {device.status_label ?? device.status_key ?? "—"}
                     </span>
                   </p>
                   <p>
-                    <span className="font-medium text-gray-500">Approved:</span>{" "}
+                    <span className="font-medium text-gray-500">
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s13",
+                      )}
+                    </span>{" "}
                     <span className="break-words">
                       {device.approved_at
                         ? formatDateTime(device.approved_at)
@@ -231,7 +276,9 @@ export function StudentDetailsDrawer({
                   </p>
                   <p>
                     <span className="font-medium text-gray-500">
-                      Last used:
+                      {t(
+                        "auto.features.students.components.studentdetailsdrawer.s14",
+                      )}
                     </span>{" "}
                     <span className="break-words">
                       {device.last_used_at
@@ -242,7 +289,9 @@ export function StudentDetailsDrawer({
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                  No device is registered for this student yet.
+                  {t(
+                    "auto.features.students.components.studentdetailsdrawer.s15",
+                  )}
                 </div>
               )}
             </section>

@@ -17,6 +17,7 @@ import {
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
 import { useState } from "react";
+import { useTranslation } from "@/features/localization";
 
 type DeleteEnrollmentDialogProps = {
   open: boolean;
@@ -33,6 +34,8 @@ export function DeleteEnrollmentDialog({
   centerId,
   onSuccess,
 }: DeleteEnrollmentDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useDeleteEnrollment();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -81,23 +84,35 @@ export function DeleteEnrollmentDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Delete Enrollment</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.student_requests.components.deleteenrollmentdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            This action will permanently remove enrollment #
+            {t(
+              "auto.features.student_requests.components.deleteenrollmentdialog.s2",
+            )}
             {String(enrollment?.id ?? "—")}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Delete failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.student_requests.components.deleteenrollmentdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.student_requests.components.deleteenrollmentdialog.s4",
+            )}
           </Button>
           <Button
             variant="destructive"

@@ -17,6 +17,7 @@ import {
   resolveVideoProviderLabel,
   resolveVideoThumbnailState,
 } from "@/features/videos/lib/video-thumbnail";
+import { useTranslation } from "@/features/localization";
 
 type VideoDetailsDialogProps = {
   open: boolean;
@@ -30,7 +31,7 @@ function resolveTitle(video?: Video | null) {
     video?.title ??
     video?.title_translations?.en ??
     video?.title_translations?.ar ??
-    "Video details"
+    null
   );
 }
 
@@ -39,7 +40,7 @@ function resolveDescription(video?: Video | null) {
     video?.description ??
     video?.description_translations?.en ??
     video?.description_translations?.ar ??
-    "No description provided."
+    null
   );
 }
 
@@ -61,7 +62,18 @@ function resolveLifecycleStatus(video?: Video | null) {
   return normalizeStatus(video?.lifecycle_status_key) || "unknown";
 }
 
-function resolveStatusBadge(status: string, statusLabel?: string | null) {
+function resolveStatusBadge(
+  status: string,
+  statusLabel: string | null | undefined,
+  labels: {
+    ready: string;
+    failed: string;
+    pending: string;
+    uploading: string;
+    processing: string;
+    unknown: string;
+  },
+) {
   const explicitLabel =
     typeof statusLabel === "string" && statusLabel.trim()
       ? statusLabel.trim()
@@ -70,46 +82,62 @@ function resolveStatusBadge(status: string, statusLabel?: string | null) {
   if (status === "ready")
     return {
       variant: "success" as const,
-      label: explicitLabel ?? "Ready",
+      label: explicitLabel ?? labels.ready,
     };
   if (status === "failed")
     return {
       variant: "error" as const,
-      label: explicitLabel ?? "Failed",
+      label: explicitLabel ?? labels.failed,
     };
-  if (
-    status === "pending" ||
-    status === "uploading" ||
-    status === "processing"
-  ) {
+  if (status === "pending") {
     return {
       variant: "warning" as const,
-      label:
-        explicitLabel ?? `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
+      label: explicitLabel ?? labels.pending,
+    };
+  }
+  if (status === "uploading") {
+    return {
+      variant: "warning" as const,
+      label: explicitLabel ?? labels.uploading,
+    };
+  }
+  if (status === "processing") {
+    return {
+      variant: "warning" as const,
+      label: explicitLabel ?? labels.processing,
+    };
+  }
+  if (status === "unknown") {
+    return {
+      variant: "secondary" as const,
+      label: explicitLabel ?? labels.unknown,
     };
   }
 
   return {
     variant: "secondary" as const,
     label:
-      explicitLabel ?? `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
+      explicitLabel ??
+      (status
+        ? `${status.charAt(0).toUpperCase()}${status.slice(1)}`
+        : labels.unknown),
   };
 }
 
-function resolveSourceMode(video?: Video | null) {
+function resolveSourceMode(video?: Video | null): "upload" | "url" {
   const sourceType = String(video?.source_type ?? "")
     .trim()
     .toLowerCase();
 
   if (sourceType === "1" || sourceType === "upload" || sourceType === "bunny") {
-    return "Upload";
+    return "upload";
   }
 
   if (sourceType === "0" || sourceType === "url") {
-    return "URL";
+    return "url";
   }
 
-  return video?.source_url ? "URL" : "Upload";
+  return video?.source_url ? "url" : "upload";
 }
 
 function resolveDurationSeconds(video?: Video | null) {
@@ -133,8 +161,8 @@ function resolveDurationSeconds(video?: Video | null) {
   return null;
 }
 
-function formatDuration(seconds: number | null) {
-  if (seconds == null || Number.isNaN(seconds)) return "—";
+function formatDuration(seconds: number | null, emptyValue: string) {
+  if (seconds == null || Number.isNaN(seconds)) return emptyValue;
 
   const totalSeconds = Math.max(0, Math.floor(seconds));
   const hours = Math.floor(totalSeconds / 3600);
@@ -173,6 +201,7 @@ export function VideoDetailsDialog({
   centerId,
   video,
 }: VideoDetailsDialogProps) {
+  const { t } = useTranslation();
   const videoId = video?.id;
   const shouldFetchDetail = Boolean(open && centerId && videoId != null);
   const {
@@ -185,27 +214,45 @@ export function VideoDetailsDialog({
   });
 
   const activeVideo = fullVideo ?? video;
-  const title = resolveTitle(activeVideo);
-  const description = resolveDescription(activeVideo);
+  const title =
+    resolveTitle(activeVideo) ??
+    t("pages.videos.dialogs.details.titleFallback");
+  const description =
+    resolveDescription(activeVideo) ??
+    t("pages.videos.dialogs.details.descriptionFallback");
+  const emptyValue = t("pages.videos.dialogs.details.emptyValue");
+  const statusLabels = {
+    ready: t("pages.videos.dialogs.details.status.ready"),
+    failed: t("pages.videos.dialogs.details.status.failed"),
+    pending: t("pages.videos.dialogs.details.status.pending"),
+    uploading: t("pages.videos.dialogs.details.status.uploading"),
+    processing: t("pages.videos.dialogs.details.status.processing"),
+    unknown: t("pages.videos.dialogs.details.status.unknown"),
+  };
   const encodingStatus = resolveEncodingStatus(activeVideo);
   const lifecycleStatus = resolveLifecycleStatus(activeVideo);
   const encodingBadge = resolveStatusBadge(
     encodingStatus,
     activeVideo?.encoding_status_label,
+    statusLabels,
   );
   const lifecycleBadge = resolveStatusBadge(
     lifecycleStatus,
     activeVideo?.lifecycle_status_label,
+    statusLabels,
   );
   const sourceMode = resolveSourceMode(activeVideo);
-  const duration = formatDuration(resolveDurationSeconds(activeVideo));
+  const duration = formatDuration(
+    resolveDurationSeconds(activeVideo),
+    emptyValue,
+  );
   const thumbnailState = activeVideo
     ? resolveVideoThumbnailState(activeVideo)
     : {
         imageUrl: null,
-        providerLabel: "External",
-        fallbackLabel: "Video Link",
-        fallbackHint: "No thumbnail",
+        providerLabel: t("pages.videos.dialogs.details.thumbnail.external"),
+        fallbackLabel: t("pages.videos.dialogs.details.thumbnail.videoLink"),
+        fallbackHint: t("pages.videos.dialogs.details.thumbnail.noThumbnail"),
         source: "placeholder" as const,
       };
   const sourceUrl =
@@ -216,12 +263,12 @@ export function VideoDetailsDialog({
     typeof activeVideo?.creator?.name === "string" &&
     activeVideo.creator.name.trim()
       ? activeVideo.creator.name.trim()
-      : "—";
+      : emptyValue;
   const centerName =
     typeof activeVideo?.center?.name === "string" &&
     activeVideo.center.name.trim()
       ? activeVideo.center.name.trim()
-      : "—";
+      : emptyValue;
   const uploadSessions = useMemo(() => {
     const detailSessions = Array.isArray(fullVideo?.upload_sessions)
       ? fullVideo.upload_sessions
@@ -261,7 +308,7 @@ export function VideoDetailsDialog({
             <span>{title}</span>
             {isRefreshing ? (
               <Badge variant="secondary" className="text-[10px]">
-                Refreshing
+                {t("pages.videos.dialogs.details.refreshing")}
               </Badge>
             ) : null}
           </DialogTitle>
@@ -278,45 +325,61 @@ export function VideoDetailsDialog({
           <div className="space-y-5 text-sm">
             {isError ? (
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
-                Showing cached row data. Latest details could not be loaded.
+                {t("pages.videos.dialogs.details.cachedWarning")}
               </div>
             ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                <p className="text-xs text-gray-500">Encoding</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.encoding")}
+                </p>
                 <Badge variant={encodingBadge.variant}>
                   {encodingBadge.label}
                 </Badge>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                <p className="text-xs text-gray-500">Lifecycle</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.lifecycle")}
+                </p>
                 <Badge variant={lifecycleBadge.variant}>
                   {lifecycleBadge.label}
                 </Badge>
               </div>
               <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                <p className="text-xs text-gray-500">Provider</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.provider")}
+                </p>
                 <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {activeVideo ? resolveVideoProviderLabel(activeVideo) : "—"}
+                  {activeVideo
+                    ? resolveVideoProviderLabel(activeVideo)
+                    : emptyValue}
                 </p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                <p className="text-xs text-gray-500">Source Mode</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.sourceMode")}
+                </p>
                 <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {sourceMode}
+                  {t(`pages.videos.dialogs.details.sourceMode.${sourceMode}`)}
                 </p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                <p className="text-xs text-gray-500">Duration</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.duration")}
+                </p>
                 <p className="font-medium text-gray-700 dark:text-gray-300">
                   {duration}
                 </p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                <p className="text-xs text-gray-500">Video ID</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.videoId")}
+                </p>
                 <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {activeVideo?.id != null ? String(activeVideo.id) : "—"}
+                  {activeVideo?.id != null
+                    ? String(activeVideo.id)
+                    : emptyValue}
                 </p>
               </div>
             </div>
@@ -324,24 +387,33 @@ export function VideoDetailsDialog({
             <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
               {thumbnailState.imageUrl && !thumbnailLoadFailed ? (
                 <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-                  <p className="text-xs text-gray-500">Thumbnail</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.videos.dialogs.details.fields.thumbnail")}
+                  </p>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={thumbnailState.imageUrl}
-                    alt={`${title} thumbnail`}
+                    alt={t("pages.videos.dialogs.details.thumbnail.alt", {
+                      title,
+                    })}
                     className="h-44 w-full rounded-md object-cover"
                     onError={() => setThumbnailLoadFailed(true)}
                   />
                 </div>
               ) : (
                 <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-                  <p className="text-xs text-gray-500">Thumbnail</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.videos.dialogs.details.fields.thumbnail")}
+                  </p>
                   <div className="flex h-44 w-full flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-4 text-center dark:border-gray-700 dark:bg-gray-900/60">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                       {thumbnailState.fallbackLabel}
                     </p>
                     <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                      {thumbnailState.fallbackHint ?? "No thumbnail available"}
+                      {thumbnailState.fallbackHint ??
+                        t(
+                          "pages.videos.dialogs.details.thumbnail.noThumbnailAvailable",
+                        )}
                     </p>
                   </div>
                 </div>
@@ -349,31 +421,39 @@ export function VideoDetailsDialog({
 
               <div className="space-y-3">
                 <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                  <p className="text-xs text-gray-500">Uploaded By</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.videos.dialogs.details.fields.uploadedBy")}
+                  </p>
                   <p className="font-medium text-gray-700 dark:text-gray-300">
                     {creatorName}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                  <p className="text-xs text-gray-500">Center</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.videos.dialogs.details.fields.center")}
+                  </p>
                   <p className="font-medium text-gray-700 dark:text-gray-300">
                     {centerName}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                  <p className="text-xs text-gray-500">Created At</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.videos.dialogs.details.fields.createdAt")}
+                  </p>
                   <p className="font-medium text-gray-700 dark:text-gray-300">
                     {activeVideo?.created_at
                       ? formatDateTime(activeVideo.created_at)
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                  <p className="text-xs text-gray-500">Updated At</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.videos.dialogs.details.fields.updatedAt")}
+                  </p>
                   <p className="font-medium text-gray-700 dark:text-gray-300">
                     {activeVideo?.updated_at
                       ? formatDateTime(activeVideo.updated_at)
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
               </div>
@@ -381,7 +461,9 @@ export function VideoDetailsDialog({
 
             {sourceUrl ? (
               <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
-                <p className="text-xs text-gray-500">Source URL</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.sourceUrl")}
+                </p>
                 <a
                   href={sourceUrl}
                   target="_blank"
@@ -395,12 +477,14 @@ export function VideoDetailsDialog({
 
             <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500">Upload Sessions</p>
+                <p className="text-xs text-gray-500">
+                  {t("pages.videos.dialogs.details.fields.uploadSessions")}
+                </p>
                 <Badge variant="secondary">{uploadSessions.length}</Badge>
               </div>
               {uploadSessions.length === 0 ? (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  No upload sessions found for this video.
+                  {t("pages.videos.dialogs.details.noUploadSessions")}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -409,6 +493,7 @@ export function VideoDetailsDialog({
                     const sessionBadge = resolveStatusBadge(
                       sessionStatus,
                       session.upload_status_label,
+                      statusLabels,
                     );
                     const sessionError = resolveUploadSessionError(session);
                     const progress =
@@ -423,7 +508,9 @@ export function VideoDetailsDialog({
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                            Session #{session.id}
+                            {t("pages.videos.dialogs.details.sessionLabel", {
+                              id: String(session.id),
+                            })}
                           </p>
                           <Badge variant={sessionBadge.variant}>
                             {sessionBadge.label}
@@ -431,16 +518,19 @@ export function VideoDetailsDialog({
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                           <span>
-                            Progress:{" "}
-                            {progress != null
-                              ? `${Math.round(progress)}%`
-                              : "—"}
+                            {t("pages.videos.dialogs.details.progressLabel", {
+                              value:
+                                progress != null
+                                  ? `${Math.round(progress)}%`
+                                  : emptyValue,
+                            })}
                           </span>
                           <span>
-                            Created:{" "}
-                            {session.created_at
-                              ? formatDateTime(session.created_at)
-                              : "—"}
+                            {t("pages.videos.dialogs.details.createdLabel", {
+                              value: session.created_at
+                                ? formatDateTime(session.created_at)
+                                : emptyValue,
+                            })}
                           </span>
                         </div>
                         {sessionError ? (

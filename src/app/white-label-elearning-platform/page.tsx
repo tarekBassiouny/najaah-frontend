@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "A White-Label eLearning Platform for Education Brands That Want to Look Fully Shipped";
+
 export default function WhiteLabelElearningPlatformPage() {
   return (
     <SeoPageShell
       eyebrow="White-Label eLearning"
-      title="A White-Label eLearning Platform for Education Brands That Want to Look Fully Shipped"
+      title={SEO_PAGE_TITLE}
       intro="A strong learning business should not feel like a reseller of someone else’s product. A white-label eLearning platform helps education brands own the learner journey, strengthen credibility, and package their programs more professionally."
       bullets={[
         "Helps education brands own the learner-facing experience",

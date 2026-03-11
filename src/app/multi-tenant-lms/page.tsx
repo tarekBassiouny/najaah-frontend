@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "A Multi-Tenant LMS for Educational Groups That Need Separation Without Chaos";
+
 export default function MultiTenantLmsPage() {
   return (
     <SeoPageShell
       eyebrow="Multi-Tenant LMS"
-      title="A Multi-Tenant LMS for Educational Groups That Need Separation Without Chaos"
+      title={SEO_PAGE_TITLE}
       intro="Educational businesses with multiple centers, branches, or partner academies need more than user roles. They need clean tenant boundaries, local control, and central oversight without rebuilding operations for every new center."
       bullets={[
         "Separate operational boundaries for each center or branch",

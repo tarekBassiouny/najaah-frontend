@@ -15,6 +15,7 @@ import {
   useUpdateCenterSettings,
 } from "@/features/centers/hooks/use-center-settings";
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type CenterEducationProfileFormProps = {
   centerId: string | number;
@@ -100,6 +101,8 @@ function mapResolvedSettingsToEducationProfileValues(
 export function CenterEducationProfileForm({
   centerId,
 }: CenterEducationProfileFormProps) {
+  const { t } = useTranslation();
+
   const {
     data,
     isLoading,
@@ -244,17 +247,26 @@ export function CenterEducationProfileForm({
   return (
     <Card className="overflow-hidden border-gray-200/80 shadow-sm dark:border-gray-800">
       <CardHeader className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#ecfeff_100%)] dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(17,24,39,0.96)_48%,rgba(8,47,73,0.92)_100%)]">
-        <CardTitle>Education Profile</CardTitle>
+        <CardTitle>
+          {t(
+            "auto.features.centers.components.forms.centereducationprofileform.s1",
+          )}
+        </CardTitle>
         <CardDescription>
-          Configure which education modules are available to students and which
-          fields are required in the mobile education update flow.
+          {t(
+            "auto.features.centers.components.forms.centereducationprofileform.s2",
+          )}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-5 p-6">
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not save settings</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.forms.centereducationprofileform.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -263,23 +275,32 @@ export function CenterEducationProfileForm({
           <Alert>
             <AlertTitle>Saved</AlertTitle>
             <AlertDescription>
-              Education profile settings updated successfully.
+              {t(
+                "auto.features.centers.components.forms.centereducationprofileform.s4",
+              )}
             </AlertDescription>
           </Alert>
         ) : null}
 
         {isError ? (
           <Alert variant="destructive">
-            <AlertTitle>Failed to load settings</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.forms.centereducationprofileform.s5",
+              )}
+            </AlertTitle>
             <AlertDescription>
-              Could not fetch education profile settings for this center.
+              {t(
+                "auto.features.centers.components.forms.centereducationprofileform.s6",
+              )}
             </AlertDescription>
           </Alert>
         ) : null}
 
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Disabling a module affects student/mobile lookup and education update
-          behavior. Admin CRUD for grades/schools/colleges remains available.
+          {t(
+            "auto.features.centers.components.forms.centereducationprofileform.s7",
+          )}
         </p>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -288,7 +309,11 @@ export function CenterEducationProfileForm({
               Grades
             </h3>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-              <span>Enable module</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.forms.centereducationprofileform.s8",
+                )}
+              </span>
               <input
                 type="checkbox"
                 checked={formValues.enable_grade}
@@ -299,7 +324,11 @@ export function CenterEducationProfileForm({
               />
             </label>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-              <span>Require on update</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.forms.centereducationprofileform.s9",
+                )}
+              </span>
               <input
                 type="checkbox"
                 checked={formValues.require_grade}
@@ -316,7 +345,11 @@ export function CenterEducationProfileForm({
               Schools
             </h3>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-              <span>Enable module</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.forms.centereducationprofileform.s8",
+                )}
+              </span>
               <input
                 type="checkbox"
                 checked={formValues.enable_school}
@@ -327,7 +360,11 @@ export function CenterEducationProfileForm({
               />
             </label>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-              <span>Require on update</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.forms.centereducationprofileform.s9",
+                )}
+              </span>
               <input
                 type="checkbox"
                 checked={formValues.require_school}
@@ -344,7 +381,11 @@ export function CenterEducationProfileForm({
               Colleges
             </h3>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-              <span>Enable module</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.forms.centereducationprofileform.s8",
+                )}
+              </span>
               <input
                 type="checkbox"
                 checked={formValues.enable_college}
@@ -355,7 +396,11 @@ export function CenterEducationProfileForm({
               />
             </label>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-              <span>Require on update</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.forms.centereducationprofileform.s9",
+                )}
+              </span>
               <input
                 type="checkbox"
                 checked={formValues.require_college}

@@ -63,6 +63,7 @@ import { listVideos } from "@/features/videos/services/videos.service";
 import { formatDateTime } from "@/lib/format-date-time";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const MEDIA_PICKER_PAGE_SIZE = 20;
@@ -72,6 +73,10 @@ const ALL_PUBLISHED_VALUE = "all";
 type BulkAction = "publish" | "unpublish" | "delete";
 type PublishedFilterValue = typeof ALL_PUBLISHED_VALUE | "1" | "0";
 type MediaManagerMode = "video" | "pdf";
+type TranslateFn = (
+  _key: string,
+  _params?: Record<string, string | number>,
+) => string;
 
 type Feedback = {
   type: "success" | "error";
@@ -93,33 +98,40 @@ type MediaManagerState = {
 type BadgeVariant = "success" | "warning" | "secondary" | "error" | "default";
 
 const statusConfig: Record<string, { variant: BadgeVariant; label: string }> = {
-  published: { variant: "success", label: "Published" },
-  active: { variant: "success", label: "Active" },
-  draft: { variant: "secondary", label: "Draft" },
-  pending: { variant: "warning", label: "Pending" },
-  inactive: { variant: "default", label: "Inactive" },
-  hidden: { variant: "default", label: "Hidden" },
-  failed: { variant: "error", label: "Failed" },
+  published: { variant: "success", label: "published" },
+  active: { variant: "success", label: "active" },
+  draft: { variant: "secondary", label: "draft" },
+  pending: { variant: "warning", label: "pending" },
+  inactive: { variant: "default", label: "inactive" },
+  hidden: { variant: "default", label: "hidden" },
+  failed: { variant: "error", label: "failed" },
 };
 
-function getSectionTitle(section: Section) {
-  return section.title ?? section.name ?? `Section #${section.id}`;
+function getSectionTitle(section: Section, t: TranslateFn) {
+  return (
+    section.title ??
+    section.name ??
+    t("pages.sectionManager.unknown.sectionById", { id: section.id })
+  );
 }
 
-function getStatusBadge(status: unknown) {
+function getStatusBadge(status: unknown, t: TranslateFn) {
   const normalized = String(status ?? "draft")
     .trim()
     .toLowerCase();
 
   if (statusConfig[normalized]) {
-    return statusConfig[normalized];
+    return {
+      variant: statusConfig[normalized].variant,
+      label: t(`pages.sectionManager.status.${statusConfig[normalized].label}`),
+    };
   }
 
   return {
     variant: "default" as const,
     label: normalized
       ? normalized.charAt(0).toUpperCase() + normalized.slice(1)
-      : "Unknown",
+      : t("pages.sectionManager.status.unknown"),
   };
 }
 
@@ -239,6 +251,7 @@ export function SectionManager({
   backHref,
   breadcrumbs,
 }: SectionManagerProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -408,6 +421,8 @@ export function SectionManager({
   const isAllPageSelected =
     pageSectionIds.length > 0 &&
     pageSectionIds.every((id) => Boolean(selectedSections[id]));
+  const videoFallbackLabel = t("pages.sectionManager.media.videoSingular");
+  const pdfFallbackLabel = t("pages.sectionManager.media.pdfSingular");
   const videoOptions = useMemo(() => {
     const dedupe = new Map<string, { value: string; label: string }>();
 
@@ -418,14 +433,14 @@ export function SectionManager({
         if (!dedupe.has(key)) {
           dedupe.set(key, {
             value: key,
-            label: getMediaTitle(item, "Video"),
+            label: getMediaTitle(item, videoFallbackLabel),
           });
         }
       });
     });
 
     return Array.from(dedupe.values());
-  }, [videosData?.pages]);
+  }, [videoFallbackLabel, videosData?.pages]);
   const pdfOptions = useMemo(() => {
     const dedupe = new Map<string, { value: string; label: string }>();
 
@@ -436,14 +451,14 @@ export function SectionManager({
         if (!dedupe.has(key)) {
           dedupe.set(key, {
             value: key,
-            label: getMediaTitle(item, "PDF"),
+            label: getMediaTitle(item, pdfFallbackLabel),
           });
         }
       });
     });
 
     return Array.from(dedupe.values());
-  }, [pdfsData?.pages]);
+  }, [pdfFallbackLabel, pdfsData?.pages]);
   const isCreateSubmitting = isCreating || isCreatingWithStructure;
   const detailsSectionId = detailsSection?.id;
   const {
@@ -655,7 +670,7 @@ export function SectionManager({
       if (!nextTitleEn) {
         setFeedback({
           type: "error",
-          message: "English title is required.",
+          message: t("pages.sectionManager.errors.titleEnRequired"),
         });
         return;
       }
@@ -685,7 +700,7 @@ export function SectionManager({
       if (!Number.isInteger(parsedOrder) || parsedOrder < 0) {
         setFeedback({
           type: "error",
-          message: "Order index must be a non-negative integer.",
+          message: t("pages.sectionManager.errors.orderIndexInvalid"),
         });
         return;
       }
@@ -699,7 +714,7 @@ export function SectionManager({
       closeEditDialog();
       setFeedback({
         type: "success",
-        message: "No changes to update.",
+        message: t("pages.sectionManager.messages.noChanges"),
       });
       return;
     }
@@ -718,7 +733,7 @@ export function SectionManager({
             type: "success",
             message:
               getResponseMessage(updatedSection) ??
-              "Section updated successfully.",
+              t("pages.sectionManager.messages.sectionUpdated"),
           });
         },
         onError: (error) => {
@@ -726,7 +741,7 @@ export function SectionManager({
             type: "error",
             message: getSectionApiErrorMessage(
               error,
-              "Failed to update section.",
+              t("pages.sectionManager.errors.updateFailed"),
             ),
           });
         },
@@ -740,7 +755,10 @@ export function SectionManager({
     const sortOrderRaw = createSortOrder.trim();
 
     if (!title) {
-      setFeedback({ type: "error", message: "Section title is required." });
+      setFeedback({
+        type: "error",
+        message: t("pages.sectionManager.errors.sectionTitleRequired"),
+      });
       return;
     }
 
@@ -751,7 +769,7 @@ export function SectionManager({
       if (!isValidSort) {
         setFeedback({
           type: "error",
-          message: "Sort order must be a non-negative integer.",
+          message: t("pages.sectionManager.errors.sortOrderInvalid"),
         });
         return;
       }
@@ -784,7 +802,7 @@ export function SectionManager({
             closeCreateDialog();
             const backendMessage =
               getResponseMessage(createdSection) ??
-              "Section with structure created successfully.";
+              t("pages.sectionManager.messages.sectionWithStructureCreated");
             setFeedback({
               type: "success",
               message: backendMessage,
@@ -795,7 +813,7 @@ export function SectionManager({
               type: "error",
               message: getSectionApiErrorMessage(
                 error,
-                "Failed to create section with structure.",
+                t("pages.sectionManager.errors.createWithStructureFailed"),
               ),
             });
           },
@@ -815,7 +833,7 @@ export function SectionManager({
           closeCreateDialog();
           const backendMessage =
             getResponseMessage(createdSection) ??
-            "Section created successfully.";
+            t("pages.sectionManager.messages.sectionCreated");
           setFeedback({
             type: "success",
             message: backendMessage,
@@ -826,7 +844,7 @@ export function SectionManager({
             type: "error",
             message: getSectionApiErrorMessage(
               error,
-              "Failed to create section.",
+              t("pages.sectionManager.errors.createFailed"),
             ),
           });
         },
@@ -839,11 +857,11 @@ export function SectionManager({
 
     const action = isPublished ? unpublishSection : publishSection;
     const successMessage = isPublished
-      ? "Section unpublished successfully."
-      : "Section published successfully.";
+      ? t("pages.sectionManager.messages.sectionUnpublished")
+      : t("pages.sectionManager.messages.sectionPublished");
     const fallbackError = isPublished
-      ? "Failed to unpublish section."
-      : "Failed to publish section.";
+      ? t("pages.sectionManager.errors.unpublishFailed")
+      : t("pages.sectionManager.errors.publishFailed");
 
     action(
       {
@@ -869,7 +887,9 @@ export function SectionManager({
   };
 
   const handleDelete = (section: Section) => {
-    const confirmed = window.confirm("Delete this section?");
+    const confirmed = window.confirm(
+      t("pages.sectionManager.confirm.deleteOne"),
+    );
     if (!confirmed) return;
 
     deleteSection(
@@ -882,7 +902,7 @@ export function SectionManager({
         onSuccess: () => {
           setFeedback({
             type: "success",
-            message: "Section deleted successfully.",
+            message: t("pages.sectionManager.messages.sectionDeleted"),
           });
         },
         onError: (error) => {
@@ -890,7 +910,7 @@ export function SectionManager({
             type: "error",
             message: getSectionApiErrorMessage(
               error,
-              "Failed to delete section.",
+              t("pages.sectionManager.errors.deleteFailed"),
             ),
           });
         },
@@ -907,9 +927,9 @@ export function SectionManager({
     }
 
     const confirmed = window.confirm(
-      `Delete ${selectedSectionsList.length} selected section${
-        selectedSectionsList.length === 1 ? "" : "s"
-      }?`,
+      t("pages.sectionManager.confirm.deleteSelected", {
+        count: selectedSectionsList.length,
+      }),
     );
     if (!confirmed) return;
 
@@ -934,14 +954,19 @@ export function SectionManager({
     if (successCount === selectedSectionsList.length) {
       setFeedback({
         type: "success",
-        message: `Deleted ${successCount} section${successCount === 1 ? "" : "s"} successfully.`,
+        message: t("pages.sectionManager.messages.deletedSelected", {
+          count: successCount,
+        }),
       });
       return;
     }
 
     setFeedback({
       type: "error",
-      message: `Deleted ${successCount} of ${selectedSectionsList.length} selected sections.`,
+      message: t("pages.sectionManager.errors.deletedPartial", {
+        success: successCount,
+        total: selectedSectionsList.length,
+      }),
     });
   };
 
@@ -970,17 +995,19 @@ export function SectionManager({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Sections"
-        description="Create and manage sections for this course"
+        title={t("pages.sectionManager.title")}
+        description={t("pages.sectionManager.description")}
         breadcrumbs={breadcrumbs}
         actions={
           showCourseNotFound ? null : (
             <div className="flex items-center gap-2">
               <Button onClick={() => setIsCreateDialogOpen(true)}>
-                Add Section
+                {t("pages.sectionManager.actions.addSection")}
               </Button>
               <Link href={backHref}>
-                <Button variant="outline">Back to Course</Button>
+                <Button variant="outline">
+                  {t("pages.sectionManager.actions.backToCourse")}
+                </Button>
               </Link>
             </div>
           )
@@ -1003,13 +1030,16 @@ export function SectionManager({
 
         {showCourseNotFound ? (
           <AppNotFoundState
-            scopeLabel="Course Sections"
-            title="Course not found"
-            description="The course you requested does not exist or is no longer available in this center."
-            primaryAction={{ href: backHref, label: "Back to Course" }}
+            scopeLabel={t("pages.sectionManager.notFound.scopeLabel")}
+            title={t("pages.sectionManager.notFound.title")}
+            description={t("pages.sectionManager.notFound.description")}
+            primaryAction={{
+              href: backHref,
+              label: t("pages.sectionManager.actions.backToCourse"),
+            }}
             secondaryAction={{
               href: `/centers/${centerId}/courses`,
-              label: "Go to Courses",
+              label: t("pages.sectionManager.notFound.goToCourses"),
               variant: "outline",
             }}
           />
@@ -1028,7 +1058,12 @@ export function SectionManager({
               }}
               summary={
                 <>
-                  {total} {total === 1 ? "section" : "sections"}
+                  {total}{" "}
+                  {t(
+                    total === 1
+                      ? "pages.sectionManager.summary.sectionSingle"
+                      : "pages.sectionManager.summary.sectionPlural",
+                  )}
                 </>
               }
               gridClassName="grid-cols-1 md:grid-cols-2"
@@ -1050,7 +1085,9 @@ export function SectionManager({
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search sections..."
+                  placeholder={t(
+                    "pages.sectionManager.filters.searchPlaceholder",
+                  )}
                   className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
                 />
                 <button
@@ -1066,7 +1103,7 @@ export function SectionManager({
                       ? "opacity-100"
                       : "pointer-events-none opacity-0",
                   )}
-                  aria-label="Clear search"
+                  aria-label={t("pages.sectionManager.filters.clearSearch")}
                   tabIndex={search.trim().length > 0 ? 0 : -1}
                 >
                   <svg
@@ -1101,14 +1138,20 @@ export function SectionManager({
                 }}
               >
                 <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-                  <SelectValue placeholder="Published" />
+                  <SelectValue
+                    placeholder={t("pages.sectionManager.filters.published")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_PUBLISHED_VALUE}>
-                    All Publish States
+                    {t("pages.sectionManager.filters.allPublishStates")}
                   </SelectItem>
-                  <SelectItem value="1">Published</SelectItem>
-                  <SelectItem value="0">Draft</SelectItem>
+                  <SelectItem value="1">
+                    {t("pages.sectionManager.status.published")}
+                  </SelectItem>
+                  <SelectItem value="0">
+                    {t("pages.sectionManager.status.draft")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </ListingFilters>
@@ -1116,7 +1159,7 @@ export function SectionManager({
             {isError ? (
               <div className="p-6">
                 <p className="text-sm text-red-600 dark:text-red-400">
-                  Failed to load sections.
+                  {t("pages.sectionManager.errors.loadFailed")}
                 </p>
               </div>
             ) : (
@@ -1138,16 +1181,26 @@ export function SectionManager({
                           disabled={
                             isLoadingState || items.length === 0 || isBusy
                           }
-                          aria-label="Select all sections on this page"
+                          aria-label={t("pages.sectionManager.table.selectAll")}
                         />
                       </TableHead>
-                      <TableHead className="font-medium">Title</TableHead>
-                      <TableHead className="font-medium">Order</TableHead>
-                      <TableHead className="font-medium">Media</TableHead>
-                      <TableHead className="font-medium">Updated</TableHead>
-                      <TableHead className="font-medium">Status</TableHead>
+                      <TableHead className="font-medium">
+                        {t("pages.sectionManager.table.headers.title")}
+                      </TableHead>
+                      <TableHead className="font-medium">
+                        {t("pages.sectionManager.table.headers.order")}
+                      </TableHead>
+                      <TableHead className="font-medium">
+                        {t("pages.sectionManager.table.headers.media")}
+                      </TableHead>
+                      <TableHead className="font-medium">
+                        {t("pages.sectionManager.table.headers.updated")}
+                      </TableHead>
+                      <TableHead className="font-medium">
+                        {t("pages.sectionManager.table.headers.status")}
+                      </TableHead>
                       <TableHead className="w-10 text-right font-medium">
-                        Actions
+                        {t("pages.sectionManager.table.headers.actions")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1185,12 +1238,18 @@ export function SectionManager({
                         <TableCell colSpan={7} className="h-48">
                           <EmptyState
                             title={
-                              query ? "No sections found" : "No sections yet"
+                              query
+                                ? t("pages.sectionManager.empty.noResultsTitle")
+                                : t("pages.sectionManager.empty.noDataTitle")
                             }
                             description={
                               query
-                                ? "Try adjusting your search terms"
-                                : "Create a section to start organizing this course"
+                                ? t(
+                                    "pages.sectionManager.empty.noResultsDescription",
+                                  )
+                                : t(
+                                    "pages.sectionManager.empty.noDataDescription",
+                                  )
                             }
                             className="border-0 bg-transparent"
                           />
@@ -1201,15 +1260,17 @@ export function SectionManager({
                         const publishState = resolvePublishedValue(section);
                         const status =
                           publishState == null
-                            ? getStatusBadge(section.status)
+                            ? getStatusBadge(section.status, t)
                             : publishState
                               ? {
                                   variant: "success" as const,
-                                  label: "Published",
+                                  label: t(
+                                    "pages.sectionManager.status.published",
+                                  ),
                                 }
                               : {
                                   variant: "secondary" as const,
-                                  label: "Draft",
+                                  label: t("pages.sectionManager.status.draft"),
                                 };
                         const isPublished = publishState === true;
                         const videoCount = getSectionMediaCount(
@@ -1233,19 +1294,33 @@ export function SectionManager({
                                   selectedSections[String(section.id)],
                                 )}
                                 onChange={() => toggleSectionSelection(section)}
-                                aria-label={`Select ${getSectionTitle(section)}`}
+                                aria-label={t(
+                                  "pages.sectionManager.table.selectOne",
+                                  {
+                                    name: getSectionTitle(section, t),
+                                  },
+                                )}
                               />
                             </TableCell>
                             <TableCell className="font-medium text-gray-900 dark:text-white">
-                              {getSectionTitle(section)}
+                              {getSectionTitle(section, t)}
                             </TableCell>
                             <TableCell className="text-gray-500 dark:text-gray-400">
                               {section.order_index ?? section.sort_order ?? "—"}
                             </TableCell>
                             <TableCell className="text-gray-500 dark:text-gray-400">
                               {videoCount}{" "}
-                              {videoCount === 1 ? "video" : "videos"} •{" "}
-                              {pdfCount} PDFs
+                              {t(
+                                videoCount === 1
+                                  ? "pages.sectionManager.media.videoSingular"
+                                  : "pages.sectionManager.media.videoPlural",
+                              )}{" "}
+                              • {pdfCount}{" "}
+                              {t(
+                                pdfCount === 1
+                                  ? "pages.sectionManager.media.pdfSingular"
+                                  : "pages.sectionManager.media.pdfPlural",
+                              )}
                             </TableCell>
                             <TableCell className="text-gray-500 dark:text-gray-400">
                               {formatDateTime(section.updated_at)}
@@ -1281,7 +1356,7 @@ export function SectionManager({
                                       }}
                                       disabled={isBusy}
                                     >
-                                      Edit
+                                      {t("pages.sectionManager.menu.edit")}
                                     </button>
                                     <button
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -1290,7 +1365,9 @@ export function SectionManager({
                                         setDetailsSection(section);
                                       }}
                                     >
-                                      View details
+                                      {t(
+                                        "pages.sectionManager.menu.viewDetails",
+                                      )}
                                     </button>
                                     <button
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -1300,7 +1377,13 @@ export function SectionManager({
                                       }}
                                       disabled={isBusy}
                                     >
-                                      {isPublished ? "Unpublish" : "Publish"}
+                                      {isPublished
+                                        ? t(
+                                            "pages.sectionManager.menu.unpublish",
+                                          )
+                                        : t(
+                                            "pages.sectionManager.menu.publish",
+                                          )}
                                     </button>
                                     <button
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -1310,7 +1393,9 @@ export function SectionManager({
                                       }}
                                       disabled={isBusy}
                                     >
-                                      Manage Videos
+                                      {t(
+                                        "pages.sectionManager.menu.manageVideos",
+                                      )}
                                     </button>
                                     <button
                                       className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -1320,7 +1405,9 @@ export function SectionManager({
                                       }}
                                       disabled={isBusy}
                                     >
-                                      Manage PDFs
+                                      {t(
+                                        "pages.sectionManager.menu.managePdfs",
+                                      )}
                                     </button>
                                     <button
                                       className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -1330,7 +1417,7 @@ export function SectionManager({
                                       }}
                                       disabled={isBusy}
                                     >
-                                      Delete
+                                      {t("pages.sectionManager.menu.delete")}
                                     </button>
                                   </DropdownContent>
                                 </Dropdown>
@@ -1348,7 +1435,9 @@ export function SectionManager({
             {selectedCount > 0 ? (
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
                 <div className="text-gray-500 dark:text-gray-400">
-                  {selectedCount} selected
+                  {t("pages.sectionManager.bulk.selected", {
+                    count: selectedCount,
+                  })}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
@@ -1359,7 +1448,7 @@ export function SectionManager({
                       isBusy || selectedPublishableSections.length === 0
                     }
                   >
-                    Publish
+                    {t("pages.sectionManager.bulk.publish")}
                   </Button>
                   <Button
                     size="sm"
@@ -1369,7 +1458,7 @@ export function SectionManager({
                       isBusy || selectedUnpublishableSections.length === 0
                     }
                   >
-                    Unpublish
+                    {t("pages.sectionManager.bulk.unpublish")}
                   </Button>
                   <Button
                     size="sm"
@@ -1378,7 +1467,7 @@ export function SectionManager({
                     onClick={() => handleBulkAction("delete")}
                     disabled={isBusy}
                   >
-                    Delete
+                    {t("pages.sectionManager.bulk.delete")}
                   </Button>
                 </div>
               </div>
@@ -1416,11 +1505,11 @@ export function SectionManager({
           <DialogHeader className="space-y-2">
             <DialogTitle>
               {detailsSectionData
-                ? getSectionTitle(detailsSectionData)
-                : "Section"}
+                ? getSectionTitle(detailsSectionData, t)
+                : t("pages.sectionManager.details.defaultTitle")}
             </DialogTitle>
             <DialogDescription>
-              Full section details, translations, and attached media.
+              {t("pages.sectionManager.details.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1434,7 +1523,7 @@ export function SectionManager({
 
           {isDetailsError && !detailsSectionData ? (
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load section details.
+              {t("pages.sectionManager.errors.loadDetailsFailed")}
             </p>
           ) : null}
 
@@ -1442,13 +1531,17 @@ export function SectionManager({
             <div className="space-y-4">
               <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Section ID</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.sectionManager.details.labels.sectionId")}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {detailsSectionData.id}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Sort Order</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.sectionManager.details.labels.sortOrder")}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {detailsSectionData.order_index ??
                       detailsSectionData.sort_order ??
@@ -1456,33 +1549,41 @@ export function SectionManager({
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Published</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.sectionManager.details.labels.published")}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {detailsPublishState == null
                       ? "—"
                       : detailsPublishState
-                        ? "Published"
-                        : "Draft"}
+                        ? t("pages.sectionManager.status.published")
+                        : t("pages.sectionManager.status.draft")}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Visible</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.sectionManager.details.labels.visible")}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {detailsVisibilityState == null
                       ? "—"
                       : detailsVisibilityState
-                        ? "Visible"
-                        : "Hidden"}
+                        ? t("pages.sectionManager.details.values.visible")
+                        : t("pages.sectionManager.details.values.hidden")}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Created</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.sectionManager.details.labels.created")}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {formatDateTime(detailsSectionData.created_at)}
                   </p>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Updated</p>
+                  <p className="text-xs text-gray-500">
+                    {t("pages.sectionManager.details.labels.updated")}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {formatDateTime(detailsSectionData.updated_at)}
                   </p>
@@ -1491,7 +1592,7 @@ export function SectionManager({
 
               <section className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Description
+                  {t("pages.sectionManager.details.sections.description")}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   {detailsSectionData.description || "—"}
@@ -1500,7 +1601,7 @@ export function SectionManager({
 
               <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Title Translations
+                  {t("pages.sectionManager.details.sections.titleTranslations")}
                 </p>
                 {detailTitleTranslations &&
                 Object.keys(detailTitleTranslations).length > 0 ? (
@@ -1528,7 +1629,9 @@ export function SectionManager({
 
               <section className="space-y-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Description Translations
+                  {t(
+                    "pages.sectionManager.details.sections.descriptionTranslations",
+                  )}
                 </p>
                 {detailDescriptionTranslations &&
                 Object.keys(detailDescriptionTranslations).length > 0 ? (
@@ -1557,7 +1660,9 @@ export function SectionManager({
               <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Videos ({detailVideos.length})
+                    {t("pages.sectionManager.details.sections.videos", {
+                      count: detailVideos.length,
+                    })}
                   </p>
                   {detailVideos.length > 0 ? (
                     <div className="space-y-2">
@@ -1567,24 +1672,29 @@ export function SectionManager({
                           className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800/60"
                         >
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {video.title ?? video.name ?? "Untitled video"}
+                            {video.title ??
+                              video.name ??
+                              t("pages.sectionManager.unknown.untitledVideo")}
                           </p>
                           <p className="text-xs text-gray-500">
-                            ID: {video.id}
+                            {t("pages.sectionManager.details.labels.id")}:{" "}
+                            {video.id}
                           </p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No videos attached.
+                      {t("pages.sectionManager.details.sections.noVideos")}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    PDFs ({detailPdfs.length})
+                    {t("pages.sectionManager.details.sections.pdfs", {
+                      count: detailPdfs.length,
+                    })}
                   </p>
                   {detailPdfs.length > 0 ? (
                     <div className="space-y-2">
@@ -1594,15 +1704,20 @@ export function SectionManager({
                           className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800/60"
                         >
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {pdf.title ?? pdf.name ?? "Untitled PDF"}
+                            {pdf.title ??
+                              pdf.name ??
+                              t("pages.sectionManager.unknown.untitledPdf")}
                           </p>
-                          <p className="text-xs text-gray-500">ID: {pdf.id}</p>
+                          <p className="text-xs text-gray-500">
+                            {t("pages.sectionManager.details.labels.id")}:{" "}
+                            {pdf.id}
+                          </p>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No PDFs attached.
+                      {t("pages.sectionManager.details.sections.noPdfs")}
                     </p>
                   )}
                 </div>
@@ -1622,50 +1737,62 @@ export function SectionManager({
       >
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader>
-            <DialogTitle>Edit Section</DialogTitle>
+            <DialogTitle>
+              {t("pages.sectionManager.editDialog.title")}
+            </DialogTitle>
             <DialogDescription>
-              Update title translations, description translations, and order.
+              {t("pages.sectionManager.editDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-section-title-en">Title (EN) *</Label>
+              <Label htmlFor="edit-section-title-en">
+                {t("pages.sectionManager.editDialog.fields.titleEn")}
+              </Label>
               <Input
                 id="edit-section-title-en"
                 value={editTitleEn}
                 onChange={(event) => setEditTitleEn(event.target.value)}
-                placeholder="e.g., Getting Started"
+                placeholder={t(
+                  "pages.sectionManager.editDialog.placeholders.titleEn",
+                )}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-section-title-ar">Title (AR)</Label>
+              <Label htmlFor="edit-section-title-ar">
+                {t("pages.sectionManager.editDialog.fields.titleAr")}
+              </Label>
               <Input
                 id="edit-section-title-ar"
                 value={editTitleAr}
                 onChange={(event) => setEditTitleAr(event.target.value)}
                 dir="rtl"
-                placeholder="مثال: مقدمة"
+                placeholder={t(
+                  "pages.sectionManager.editDialog.placeholders.titleAr",
+                )}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-section-description-en">
-                Description (EN)
+                {t("pages.sectionManager.editDialog.fields.descriptionEn")}
               </Label>
               <Textarea
                 id="edit-section-description-en"
                 value={editDescriptionEn}
                 onChange={(event) => setEditDescriptionEn(event.target.value)}
                 rows={3}
-                placeholder="Optional section description"
+                placeholder={t(
+                  "pages.sectionManager.editDialog.placeholders.descriptionEn",
+                )}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-section-description-ar">
-                Description (AR)
+                {t("pages.sectionManager.editDialog.fields.descriptionAr")}
               </Label>
               <Textarea
                 id="edit-section-description-ar"
@@ -1673,19 +1800,25 @@ export function SectionManager({
                 onChange={(event) => setEditDescriptionAr(event.target.value)}
                 rows={3}
                 dir="rtl"
-                placeholder="وصف اختياري"
+                placeholder={t(
+                  "pages.sectionManager.editDialog.placeholders.descriptionAr",
+                )}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-section-order-index">Order Index</Label>
+              <Label htmlFor="edit-section-order-index">
+                {t("pages.sectionManager.editDialog.fields.orderIndex")}
+              </Label>
               <Input
                 id="edit-section-order-index"
                 value={editOrderIndex}
                 onChange={(event) => setEditOrderIndex(event.target.value)}
                 type="number"
                 min={0}
-                placeholder="Optional, e.g., 2"
+                placeholder={t(
+                  "pages.sectionManager.editDialog.placeholders.orderIndex",
+                )}
               />
             </div>
           </div>
@@ -1696,10 +1829,12 @@ export function SectionManager({
               onClick={closeEditDialog}
               disabled={isUpdating}
             >
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button onClick={handleUpdateSection} disabled={isUpdating}>
-              {isUpdating ? "Saving..." : "Save Changes"}
+              {isUpdating
+                ? t("common.actions.saving")
+                : t("pages.sectionManager.actions.saveChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1719,56 +1854,74 @@ export function SectionManager({
       >
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader>
-            <DialogTitle>Create Section</DialogTitle>
+            <DialogTitle>
+              {t("pages.sectionManager.createDialog.title")}
+            </DialogTitle>
             <DialogDescription>
-              Add a section and optionally attach videos or PDFs.
+              {t("pages.sectionManager.createDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="create-section-title">Title *</Label>
+              <Label htmlFor="create-section-title">
+                {t("pages.sectionManager.createDialog.fields.title")}
+              </Label>
               <Input
                 id="create-section-title"
                 value={createTitle}
                 onChange={(event) => setCreateTitle(event.target.value)}
-                placeholder="e.g., Getting Started"
+                placeholder={t(
+                  "pages.sectionManager.createDialog.placeholders.title",
+                )}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="create-section-description">
-                Description (EN)
+                {t("pages.sectionManager.createDialog.fields.description")}
               </Label>
               <Textarea
                 id="create-section-description"
                 value={createDescription}
                 onChange={(event) => setCreateDescription(event.target.value)}
                 rows={3}
-                placeholder="Optional section description"
+                placeholder={t(
+                  "pages.sectionManager.createDialog.placeholders.description",
+                )}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-section-sort-order">Sort Order</Label>
+              <Label htmlFor="create-section-sort-order">
+                {t("pages.sectionManager.createDialog.fields.sortOrder")}
+              </Label>
               <Input
                 id="create-section-sort-order"
                 value={createSortOrder}
                 onChange={(event) => setCreateSortOrder(event.target.value)}
                 type="number"
                 min={0}
-                placeholder="Optional, e.g., 1"
+                placeholder={t(
+                  "pages.sectionManager.createDialog.placeholders.sortOrder",
+                )}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Videos</Label>
+              <Label>
+                {t("pages.sectionManager.createDialog.fields.videos")}
+              </Label>
               <SearchableMultiSelect
                 values={selectedVideoIds}
                 onValuesChange={setSelectedVideoIds}
                 options={videoOptions}
-                placeholder="Select videos (optional)"
-                searchPlaceholder="Search videos..."
+                placeholder={t(
+                  "pages.sectionManager.createDialog.placeholders.selectVideos",
+                )}
+                searchPlaceholder={t(
+                  "pages.sectionManager.createDialog.placeholders.searchVideos",
+                )}
                 searchValue={videoSearch}
                 onSearchValueChange={setVideoSearch}
                 filterOptions={false}
@@ -1781,20 +1934,28 @@ export function SectionManager({
                 }}
                 emptyMessage={
                   debouncedVideoSearch
-                    ? "No matching videos found."
-                    : "No videos available."
+                    ? t(
+                        "pages.sectionManager.createDialog.empty.noMatchingVideos",
+                      )
+                    : t("pages.sectionManager.createDialog.empty.noVideos")
                 }
               />
             </div>
 
             <div className="space-y-2">
-              <Label>PDFs</Label>
+              <Label>
+                {t("pages.sectionManager.createDialog.fields.pdfs")}
+              </Label>
               <SearchableMultiSelect
                 values={selectedPdfIds}
                 onValuesChange={setSelectedPdfIds}
                 options={pdfOptions}
-                placeholder="Select PDFs (optional)"
-                searchPlaceholder="Search PDFs..."
+                placeholder={t(
+                  "pages.sectionManager.createDialog.placeholders.selectPdfs",
+                )}
+                searchPlaceholder={t(
+                  "pages.sectionManager.createDialog.placeholders.searchPdfs",
+                )}
                 searchValue={pdfSearch}
                 onSearchValueChange={setPdfSearch}
                 filterOptions={false}
@@ -1807,14 +1968,16 @@ export function SectionManager({
                 }}
                 emptyMessage={
                   debouncedPdfSearch
-                    ? "No matching PDFs found."
-                    : "No PDFs available."
+                    ? t(
+                        "pages.sectionManager.createDialog.empty.noMatchingPdfs",
+                      )
+                    : t("pages.sectionManager.createDialog.empty.noPdfs")
                 }
               />
             </div>
 
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Selecting videos or PDFs uses the section structure endpoint.
+              {t("pages.sectionManager.createDialog.structureHint")}
             </p>
           </div>
 
@@ -1824,10 +1987,12 @@ export function SectionManager({
               onClick={closeCreateDialog}
               disabled={isCreateSubmitting}
             >
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button onClick={handleCreateSection} disabled={isCreateSubmitting}>
-              {isCreateSubmitting ? "Creating..." : "Create Section"}
+              {isCreateSubmitting
+                ? t("pages.sectionManager.actions.creating")
+                : t("pages.sectionManager.actions.createSection")}
             </Button>
           </DialogFooter>
         </DialogContent>

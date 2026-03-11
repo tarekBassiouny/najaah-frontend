@@ -27,6 +27,7 @@ import type {
   VideoAccessWhatsappFormat,
 } from "@/features/video-access/types/video-access";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 type VideoAccessRequestActionDialogProps = {
   open: boolean;
@@ -45,6 +46,8 @@ export function VideoAccessRequestActionDialog({
   centerId,
   onSuccess,
 }: VideoAccessRequestActionDialogProps) {
+  const { t } = useTranslation();
+
   const approveMutation = useApproveVideoAccessRequest();
   const rejectMutation = useRejectVideoAccessRequest();
   const activeMutation =
@@ -153,7 +156,11 @@ export function VideoAccessRequestActionDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Request failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_access.components.videoaccessrequestactiondialog.s1",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -166,7 +173,9 @@ export function VideoAccessRequestActionDialog({
                 checked={sendWhatsapp}
                 onChange={(event) => setSendWhatsapp(event.target.checked)}
               />
-              Send generated code via WhatsApp
+              {t(
+                "auto.features.video_access.components.videoaccessrequestactiondialog.s2",
+              )}
             </label>
 
             <Select
@@ -177,11 +186,23 @@ export function VideoAccessRequestActionDialog({
               disabled={!sendWhatsapp}
             >
               <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-                <SelectValue placeholder="WhatsApp format" />
+                <SelectValue
+                  placeholder={t(
+                    "auto.features.video_access.components.videoaccessrequestactiondialog.s3",
+                  )}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="text_code">Text code</SelectItem>
-                <SelectItem value="qr_code">QR code</SelectItem>
+                <SelectItem value="text_code">
+                  {t(
+                    "auto.features.video_access.components.videoaccessrequestactiondialog.s4",
+                  )}
+                </SelectItem>
+                <SelectItem value="qr_code">
+                  {t(
+                    "auto.features.video_access.components.videoaccessrequestactiondialog.s5",
+                  )}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -189,7 +210,10 @@ export function VideoAccessRequestActionDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Decision reason {action === "reject" ? "(required)" : "(optional)"}
+            {t(
+              "auto.features.video_access.components.videoaccessrequestactiondialog.s6",
+            )}
+            {action === "reject" ? "(required)" : "(optional)"}
           </p>
           <Input
             value={decisionReason}
@@ -204,7 +228,9 @@ export function VideoAccessRequestActionDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.video_access.components.videoaccessrequestactiondialog.s7",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={activeMutation.isPending}>
             {activeMutation.isPending

@@ -17,12 +17,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE = "منصة تعليمية تحمل هوية مركزك بالكامل";
+
 export default function ArabicWhiteLabelLmsPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="White-Label LMS"
-      title="منصة تعليمية تحمل هوية مركزك بالكامل"
+      title={SEO_PAGE_TITLE}
       intro="المراكز التعليمية لا تحتاج بوابة دورات عامة أخرى. هي تحتاج منصة يمكنها أن تضع عليها علامتها، وتديرها بثقة، وتحمي محتواها، وتوسّع أعمالها دون أن يشعر الطالب أنه داخل منتج لطرف ثالث."
       bullets={[
         "هوية بصرية ونطاقات فرعية مرتبطة بالمركز",

@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "برنامج تتبع تقدم الطلاب الذي يساعد المراكز التعليمية على التدخل مبكراً";
+
 export default function ArabicStudentProgressPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="تتبع التقدم"
-      title="برنامج تتبع تقدم الطلاب الذي يساعد المراكز التعليمية على التدخل مبكراً"
+      title={SEO_PAGE_TITLE}
       intro="تتبع التقدم لا قيمة له إذا لم يساعد المعلمين والمشغلين على اتخاذ قرارات أفضل. الهدف ليس إنتاج لوحة أخرى، بل كشف المخاطر واتجاهات الإكمال وأنماط التقييم بينما لا يزال هناك وقت للتدخل."
       bullets={[
         "يتابع تقدم المتعلم والإكمال وأداء التقييمات",

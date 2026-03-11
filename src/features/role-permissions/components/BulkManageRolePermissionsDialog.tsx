@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { usePermissions } from "@/features/permissions/hooks/use-permissions";
 import { useBulkAssignRolePermissions } from "@/features/role-permissions/hooks/use-role-permissions";
 import type { Role } from "@/features/roles/types/role";
+import { useTranslation } from "@/features/localization";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -82,6 +83,8 @@ export function BulkManageRolePermissionsDialog({
   onSuccess,
   scopeCenterId,
 }: BulkManageRolePermissionsDialogProps) {
+  const { t } = useTranslation();
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<
@@ -234,16 +237,30 @@ export function BulkManageRolePermissionsDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Bulk Manage Permissions</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Assign the same permission set to {roles.length} selected role
+            {t(
+              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s2",
+            )}
+            {roles.length}{" "}
+            {t(
+              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s3",
+            )}
             {roles.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not update permissions</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -251,7 +268,10 @@ export function BulkManageRolePermissionsDialog({
         <div className="space-y-4">
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
             <p className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              Selected roles ({roles.length})
+              {t(
+                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s5",
+              )}
+              {roles.length})
             </p>
             <div className="flex flex-wrap gap-2">
               {roles.map((role) => (
@@ -287,7 +307,9 @@ export function BulkManageRolePermissionsDialog({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search permissions..."
+              placeholder={t(
+                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s6",
+              )}
               className="pl-10"
               disabled={isSubmitting}
             />
@@ -354,7 +376,9 @@ export function BulkManageRolePermissionsDialog({
               onClick={() => setSelectedPermissionIds(new Set())}
               disabled={isSubmitting || selectedPermissionIds.size === 0}
             >
-              Clear Selection
+              {t(
+                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s7",
+              )}
             </Button>
           </div>
           {permissionIdsError ? (
@@ -370,7 +394,9 @@ export function BulkManageRolePermissionsDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {t(
+              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s8",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? "Applying..." : "Apply Permissions"}

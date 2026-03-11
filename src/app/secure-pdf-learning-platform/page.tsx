@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "A Secure PDF Learning Platform for Centers That Sell Valuable Study Materials";
+
 export default function SecurePdfLearningPlatformPage() {
   return (
     <SeoPageShell
       eyebrow="Secure PDF Delivery"
-      title="A Secure PDF Learning Platform for Centers That Sell Valuable Study Materials"
+      title={SEO_PAGE_TITLE}
       intro="Many education businesses worry about video piracy and forget that PDFs, revision notes, and premium study packs are often leaked even faster. A secure PDF learning platform helps protect the materials that students actually share most."
       bullets={[
         "Protect revision packs, notes, and premium PDF materials",

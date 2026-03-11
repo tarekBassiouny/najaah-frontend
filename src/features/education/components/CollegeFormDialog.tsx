@@ -33,6 +33,7 @@ import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const schema = z
   .object({
@@ -97,6 +98,8 @@ export function CollegeFormDialog({
   onSuccess,
   onSaved,
 }: CollegeFormDialogProps) {
+  const { t } = useTranslation();
+
   const isEditMode = Boolean(college);
   const createMutation = useCreateCollege();
   const updateMutation = useUpdateCollege();
@@ -195,7 +198,9 @@ export function CollegeFormDialog({
 
         {form.formState.errors.root?.message ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not save college</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.education.components.collegeformdialog.s1")}
+            </AlertTitle>
             <AlertDescription>
               {form.formState.errors.root.message}
             </AlertDescription>
@@ -212,9 +217,18 @@ export function CollegeFormDialog({
               name="nameEn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name (English)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.education.components.collegeformdialog.s2",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Cairo University" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.collegeformdialog.s3",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -226,9 +240,18 @@ export function CollegeFormDialog({
               name="nameAr"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name (Arabic)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.education.components.collegeformdialog.s4",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="جامعة القاهرة" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.collegeformdialog.s5",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -240,12 +263,18 @@ export function CollegeFormDialog({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type (optional)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.education.components.collegeformdialog.s6",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min={0}
-                      placeholder="e.g. 1"
+                      placeholder={t(
+                        "auto.features.education.components.collegeformdialog.s7",
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -261,7 +290,12 @@ export function CollegeFormDialog({
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional address" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.collegeformdialog.s8",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -280,7 +314,9 @@ export function CollegeFormDialog({
                       onChange={(event) => field.onChange(event.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
-                    Active college
+                    {t(
+                      "auto.features.education.components.collegeformdialog.s9",
+                    )}
                   </label>
                   <FormMessage />
                 </FormItem>
@@ -294,7 +330,7 @@ export function CollegeFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("auto.features.education.components.collegeformdialog.s10")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending

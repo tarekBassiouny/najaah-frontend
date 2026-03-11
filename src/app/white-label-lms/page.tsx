@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "A White-Label LMS That Looks and Feels Like Your Own Platform";
+
 export default function WhiteLabelLmsPage() {
   return (
     <SeoPageShell
       eyebrow="White-Label LMS"
-      title="A White-Label LMS That Looks and Feels Like Your Own Platform"
+      title={SEO_PAGE_TITLE}
       intro="Educational centers do not need another generic course portal. They need a learning platform they can brand, manage, secure, and scale without exposing students to a third-party product experience. Najaah is built for that exact model."
       bullets={[
         "Custom branding, subdomains, and center-level identity",

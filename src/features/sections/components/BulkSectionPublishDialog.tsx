@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/features/localization";
 import {
   useBulkPublishSections,
   useBulkUnpublishSections,
@@ -46,16 +47,16 @@ type BulkResult = {
   skipped?: Array<{ section_id?: string | number; reason?: string }>;
 };
 
-function actionLabel(mode: "publish" | "unpublish") {
-  return mode === "publish" ? "Publish" : "Unpublish";
-}
-
-function getErrorMessage(error: unknown, mode: "publish" | "unpublish") {
+function getErrorMessage(
+  error: unknown,
+  mode: "publish" | "unpublish",
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   return getAdminApiErrorMessage(
     error,
     mode === "publish"
-      ? "Unable to publish selected sections. Please try again."
-      : "Unable to unpublish selected sections. Please try again.",
+      ? t("pages.sectionManager.bulkDialog.errors.publishRetry")
+      : t("pages.sectionManager.bulkDialog.errors.unpublishRetry"),
   );
 }
 
@@ -68,10 +69,15 @@ export function BulkSectionPublishDialog({
   courseId,
   onProcessed,
 }: BulkSectionPublishDialogProps) {
+  const { t } = useTranslation();
   const bulkPublishMutation = useBulkPublishSections();
   const bulkUnpublishMutation = useBulkUnpublishSections();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkResult | null>(null);
+  const actionLabel =
+    mode === "publish"
+      ? t("pages.sectionManager.bulkDialog.actions.publish")
+      : t("pages.sectionManager.bulkDialog.actions.unpublish");
 
   const mutation =
     mode === "publish" ? bulkPublishMutation : bulkUnpublishMutation;
@@ -87,7 +93,7 @@ export function BulkSectionPublishDialog({
 
   const handleConfirm = () => {
     if (sectionIds.length === 0) {
-      const message = "No sections selected.";
+      const message = t("pages.sectionManager.bulkDialog.errors.noSections");
       setErrorMessage(message);
       onProcessed?.({
         success: false,
@@ -111,8 +117,8 @@ export function BulkSectionPublishDialog({
             const message = getAdminResponseMessage(
               response,
               mode === "publish"
-                ? "Unable to publish selected sections."
-                : "Unable to unpublish selected sections.",
+                ? t("pages.sectionManager.bulkDialog.errors.publish")
+                : t("pages.sectionManager.bulkDialog.errors.unpublish"),
             );
             setErrorMessage(message);
             onProcessed?.({
@@ -134,8 +140,10 @@ export function BulkSectionPublishDialog({
           const message = getAdminResponseMessage(
             response,
             mode === "publish"
-              ? "Bulk section publish processed."
-              : "Bulk section unpublish processed.",
+              ? t("pages.sectionManager.bulkDialog.messages.publishProcessed")
+              : t(
+                  "pages.sectionManager.bulkDialog.messages.unpublishProcessed",
+                ),
           );
           const failedCount = nextResult.counts?.failed ?? 0;
           const shouldClearSelection = failedCount === 0;
@@ -147,7 +155,7 @@ export function BulkSectionPublishDialog({
           });
         },
         onError: (error) => {
-          const message = getErrorMessage(error, mode);
+          const message = getErrorMessage(error, mode, t);
           setErrorMessage(message);
           onProcessed?.({
             success: false,
@@ -173,16 +181,24 @@ export function BulkSectionPublishDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>{actionLabel(mode)} Sections</DialogTitle>
+          <DialogTitle>
+            {mode === "publish"
+              ? t("pages.sectionManager.bulkDialog.titlePublish")
+              : t("pages.sectionManager.bulkDialog.titleUnpublish")}
+          </DialogTitle>
           <DialogDescription>
-            {actionLabel(mode)} {sectionIds.length} selected section
-            {sectionIds.length === 1 ? "" : "s"}.
+            {t("pages.sectionManager.bulkDialog.description", {
+              action: actionLabel,
+              count: sectionIds.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not process bulk action</AlertTitle>
+            <AlertTitle>
+              {t("pages.sectionManager.bulkDialog.errorTitle")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -190,17 +206,34 @@ export function BulkSectionPublishDialog({
         {result?.counts ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {result.counts.total ?? sectionIds.length}</span>
-              <span>Updated: {result.counts.updated ?? 0}</span>
-              <span>Skipped: {result.counts.skipped ?? 0}</span>
-              <span>Failed: {result.counts.failed ?? 0}</span>
+              <span>
+                {t("pages.sectionManager.bulkDialog.stats.total")}:{" "}
+                {result.counts.total ?? sectionIds.length}
+              </span>
+              <span>
+                {t("pages.sectionManager.bulkDialog.stats.updated")}:{" "}
+                {result.counts.updated ?? 0}
+              </span>
+              <span>
+                {t("pages.sectionManager.bulkDialog.stats.skipped")}:{" "}
+                {result.counts.skipped ?? 0}
+              </span>
+              <span>
+                {t("pages.sectionManager.bulkDialog.stats.failed")}:{" "}
+                {result.counts.failed ?? 0}
+              </span>
             </div>
 
             {result.failed && result.failed.length > 0 ? (
               <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
                 {result.failed.map((item, index) => (
                   <p key={`failed-${item.section_id ?? "unknown"}-${index}`}>
-                    Section #{item.section_id ?? "?"}: {item.reason ?? "Failed"}
+                    {t("pages.sectionManager.bulkDialog.failedItem", {
+                      id: item.section_id ?? "?",
+                      reason:
+                        item.reason ??
+                        t("pages.sectionManager.bulkDialog.stats.failed"),
+                    })}
                   </p>
                 ))}
               </div>
@@ -208,17 +241,21 @@ export function BulkSectionPublishDialog({
           </div>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Confirm to {mode} the selected sections.
+            {t("pages.sectionManager.bulkDialog.confirmDescription", {
+              action: actionLabel,
+            })}
           </p>
         )}
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {result ? "Close" : "Cancel"}
+            {result ? t("common.actions.close") : t("common.actions.cancel")}
           </Button>
           {!result ? (
             <Button onClick={handleConfirm} disabled={isPending}>
-              {isPending ? "Processing..." : actionLabel(mode)}
+              {isPending
+                ? t("pages.sectionManager.bulkDialog.buttons.processing")
+                : actionLabel}
             </Button>
           ) : null}
         </div>

@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useCenters } from "@/features/centers/hooks/use-centers";
+import { useTranslation } from "@/features/localization";
 import type { Center } from "@/features/centers/types/center";
 import { cn } from "@/lib/utils";
 
@@ -50,33 +51,36 @@ type CentersTableProps = {
   onBulkRetryOnboarding?: (_centers: Center[]) => void;
 };
 
-function getStatusBadge(center: Center) {
+function getStatusBadge(center: Center, t: (_key: string) => string) {
   const statusValue = Number(center.status);
   const isInactive = statusValue === 0;
   const label =
-    center.status_label?.trim() || (isInactive ? "Inactive" : "Active");
+    center.status_label?.trim() ||
+    (isInactive
+      ? t("pages.centers.table.status.inactive")
+      : t("pages.centers.table.status.active"));
 
   return <Badge variant={isInactive ? "default" : "success"}>{label}</Badge>;
 }
 
-function getTypeLabel(center: Center) {
+function getTypeLabel(center: Center, t: (_key: string) => string) {
   const raw = String(center.type ?? "")
     .trim()
     .toLowerCase();
   if (!raw) return "-";
-  if (raw === "branded") return "Branded";
-  if (raw === "unbranded") return "Unbranded";
+  if (raw === "branded") return t("pages.centers.table.types.branded");
+  if (raw === "unbranded") return t("pages.centers.table.types.unbranded");
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
-function getTierLabel(center: Center) {
+function getTierLabel(center: Center, t: (_key: string) => string) {
   const raw = String(center.tier ?? "")
     .trim()
     .toLowerCase();
   if (!raw) return "-";
-  if (raw === "premium") return "Premium";
-  if (raw === "vip") return "VIP";
-  if (raw === "standard") return "Standard";
+  if (raw === "premium") return t("pages.centers.table.tiers.premium");
+  if (raw === "vip") return t("pages.centers.table.tiers.vip");
+  if (raw === "standard") return t("pages.centers.table.tiers.standard");
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
@@ -99,6 +103,7 @@ export function CentersTable({
   onBulkRestore,
   onBulkRetryOnboarding,
 }: CentersTableProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -235,9 +240,9 @@ export function CentersTable({
           setPage(1);
         }}
         summary={
-          <>
-            {total} {total === 1 ? "center" : "centers"}
-          </>
+          total === 1
+            ? t("pages.centers.table.summary", { count: total })
+            : t("pages.centers.table.summaryPlural", { count: total })
         }
         gridClassName="grid-cols-1 lg:grid-cols-3"
       >
@@ -258,7 +263,7 @@ export function CentersTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search centers..."
+            placeholder={t("pages.centers.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -274,7 +279,7 @@ export function CentersTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.centers.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -301,12 +306,20 @@ export function CentersTable({
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t("pages.centers.table.filters.status")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="all">
+              {t("pages.centers.table.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value="active">
+              {t("pages.centers.table.filters.active")}
+            </SelectItem>
+            <SelectItem value="inactive">
+              {t("pages.centers.table.filters.inactive")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -318,12 +331,20 @@ export function CentersTable({
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Visibility" />
+            <SelectValue
+              placeholder={t("pages.centers.table.filters.visibility")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active Only</SelectItem>
-            <SelectItem value="with_deleted">With Deleted</SelectItem>
-            <SelectItem value="only_deleted">Deleted Only</SelectItem>
+            <SelectItem value="active">
+              {t("pages.centers.table.filters.activeOnly")}
+            </SelectItem>
+            <SelectItem value="with_deleted">
+              {t("pages.centers.table.filters.withDeleted")}
+            </SelectItem>
+            <SelectItem value="only_deleted">
+              {t("pages.centers.table.filters.deletedOnly")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </ListingFilters>
@@ -332,7 +353,7 @@ export function CentersTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load centers. Please try again.
+              {t("pages.centers.table.loadFailed")}
             </p>
           </div>
         </div>
@@ -354,18 +375,30 @@ export function CentersTable({
                       checked={isAllPageSelected}
                       onChange={toggleAllSelections}
                       disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all centers on this page"
+                      aria-label={t("pages.centers.table.selectAll")}
                     />
                   ) : null}
                 </TableHead>
-                <TableHead className="font-medium">Name</TableHead>
-                <TableHead className="font-medium">Slug</TableHead>
-                <TableHead className="font-medium">Type</TableHead>
-                <TableHead className="font-medium">Tier</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Onboarding</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.centers.table.headers.name")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.centers.table.headers.slug")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.centers.table.headers.type")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.centers.table.headers.tier")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.centers.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.centers.table.headers.onboarding")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.centers.table.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -403,11 +436,15 @@ export function CentersTable({
                 <TableRow>
                   <TableCell colSpan={8} className="h-48">
                     <EmptyState
-                      title={query ? "No centers found" : "No centers yet"}
+                      title={
+                        query
+                          ? t("pages.centers.table.empty.noResultsTitle")
+                          : t("pages.centers.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Get started by creating your first center"
+                          ? t("pages.centers.table.empty.noResultsDescription")
+                          : t("pages.centers.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -433,7 +470,9 @@ export function CentersTable({
                               selectedCenters[String(center.id)],
                             )}
                             onChange={() => toggleCenterSelection(center)}
-                            aria-label={`Select ${center.name ?? `center ${center.id}`}`}
+                            aria-label={t("pages.centers.table.selectCenter", {
+                              name: center.name ?? `center ${center.id}`,
+                            })}
                           />
                         ) : null}
                       </TableCell>
@@ -449,12 +488,12 @@ export function CentersTable({
                         {center.slug ?? "-"}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {getTypeLabel(center)}
+                        {getTypeLabel(center, t)}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {getTierLabel(center)}
+                        {getTierLabel(center, t)}
                       </TableCell>
-                      <TableCell>{getStatusBadge(center)}</TableCell>
+                      <TableCell>{getStatusBadge(center, t)}</TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {getOnboardingLabel(center)}
                       </TableCell>
@@ -483,7 +522,7 @@ export function CentersTable({
                                   setOpenMenuId(null);
                                 }}
                               >
-                                Manage
+                                {t("pages.centers.table.actions.manage")}
                               </Link>
 
                               <Link
@@ -493,7 +532,7 @@ export function CentersTable({
                                   setOpenMenuId(null);
                                 }}
                               >
-                                Settings
+                                {t("pages.centers.table.actions.settings")}
                               </Link>
 
                               {onChangeStatus ? (
@@ -505,7 +544,9 @@ export function CentersTable({
                                     onChangeStatus(center);
                                   }}
                                 >
-                                  Change status
+                                  {t(
+                                    "pages.centers.table.actions.changeStatus",
+                                  )}
                                 </button>
                               ) : null}
 
@@ -518,7 +559,9 @@ export function CentersTable({
                                     onRetryOnboarding(center);
                                   }}
                                 >
-                                  Retry onboarding
+                                  {t(
+                                    "pages.centers.table.actions.retryOnboarding",
+                                  )}
                                 </button>
                               ) : null}
 
@@ -531,7 +574,7 @@ export function CentersTable({
                                     onRestore(center);
                                   }}
                                 >
-                                  Restore
+                                  {t("pages.centers.table.actions.restore")}
                                 </button>
                               ) : null}
 
@@ -544,7 +587,7 @@ export function CentersTable({
                                     onDelete(center);
                                   }}
                                 >
-                                  Delete
+                                  {t("pages.centers.table.actions.delete")}
                                 </button>
                               ) : null}
                             </DropdownContent>
@@ -563,7 +606,7 @@ export function CentersTable({
       {selectedCount > 0 && enableBulkSelection ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.centers.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {onBulkChangeStatus ? (
@@ -576,7 +619,7 @@ export function CentersTable({
                 }}
                 disabled={isLoadingState}
               >
-                Change Status
+                {t("pages.centers.table.bulk.changeStatus")}
               </Button>
             ) : null}
 
@@ -594,7 +637,7 @@ export function CentersTable({
                 }}
                 disabled={isLoadingState}
               >
-                Restore Centers
+                {t("pages.centers.table.bulk.restoreCenters")}
               </Button>
             ) : null}
 
@@ -614,7 +657,7 @@ export function CentersTable({
                     }}
                     disabled={isLoadingState}
                   >
-                    Retry Onboarding
+                    {t("pages.centers.table.bulk.retryOnboarding")}
                   </Button>
                 ) : null}
 
@@ -632,7 +675,7 @@ export function CentersTable({
                     }}
                     disabled={isLoadingState}
                   >
-                    Delete Centers
+                    {t("pages.centers.table.bulk.deleteCenters")}
                   </Button>
                 ) : null}
               </>

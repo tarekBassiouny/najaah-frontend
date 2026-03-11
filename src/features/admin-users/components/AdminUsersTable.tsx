@@ -37,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -45,14 +46,27 @@ const ALL_ROLE_VALUE = "all";
 type StatusVariant = "success" | "warning" | "secondary" | "error" | "default";
 type AdminUserStatus = string | number | null | undefined;
 
-const statusConfig: Record<
-  string,
-  { variant: StatusVariant; label: string; key: string }
-> = {
-  active: { variant: "success", label: "Active", key: "active" },
-  inactive: { variant: "warning", label: "Inactive", key: "inactive" },
-  banned: { variant: "error", label: "Banned", key: "banned" },
-};
+function getStatusConfig(
+  t: (_key: string) => string,
+): Record<string, { variant: StatusVariant; label: string; key: string }> {
+  return {
+    active: {
+      variant: "success",
+      label: t("pages.admins.table.status.active"),
+      key: "active",
+    },
+    inactive: {
+      variant: "warning",
+      label: t("pages.admins.table.status.inactive"),
+      key: "inactive",
+    },
+    banned: {
+      variant: "error",
+      label: t("pages.admins.table.status.banned"),
+      key: "banned",
+    },
+  };
+}
 
 const statusValueMap: Record<string, string> = {
   "0": "inactive",
@@ -63,16 +77,21 @@ const statusValueMap: Record<string, string> = {
   banned: "banned",
 };
 
-function resolveStatus(status: AdminUserStatus, statusLabel?: string | null) {
+function resolveStatus(
+  status: AdminUserStatus,
+  statusLabel: string | null | undefined,
+  t: (_key: string) => string,
+) {
   const raw = String(status ?? "")
     .trim()
     .toLowerCase();
   const normalized = statusValueMap[raw] ?? raw;
+  const statusConfig = getStatusConfig(t);
   const config = statusConfig[normalized] ?? {
     variant: "default" as const,
     label: normalized
       ? normalized.charAt(0).toUpperCase() + normalized.slice(1)
-      : "Unknown",
+      : t("pages.admins.table.status.unknown"),
     key: normalized || "unknown",
   };
 
@@ -181,6 +200,7 @@ export function AdminUsersTable({
   onBulkAssignCenters,
   onBulkChangeStatus,
 }: AdminUsersTableProps) {
+  const { t } = useTranslation();
   const { centerId, centerSlug } = useTenant();
   const effectiveScopeCenterId = scopeCenterId ?? null;
   const selectedCenterFilter =
@@ -345,7 +365,9 @@ export function AdminUsersTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "admin user" : "admin users"}
+            {total === 1
+              ? t("pages.admins.table.summary", { count: total })
+              : t("pages.admins.table.summaryPlural", { count: total })}
           </>
         }
         gridClassName={
@@ -371,7 +393,7 @@ export function AdminUsersTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name or email"
+            placeholder={t("pages.admins.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -387,7 +409,7 @@ export function AdminUsersTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.admins.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -425,13 +447,21 @@ export function AdminUsersTable({
             className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             icon={<StatusIcon />}
           >
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("pages.admins.table.filters.status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="1">Active</SelectItem>
-            <SelectItem value="0">Inactive</SelectItem>
-            <SelectItem value="2">Banned</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.admins.table.filters.status")}
+            </SelectItem>
+            <SelectItem value="1">
+              {t("pages.admins.table.filters.active")}
+            </SelectItem>
+            <SelectItem value="0">
+              {t("pages.admins.table.filters.inactive")}
+            </SelectItem>
+            <SelectItem value="2">
+              {t("pages.admins.table.filters.banned")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -447,13 +477,17 @@ export function AdminUsersTable({
             className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             icon={<RoleIcon />}
           >
-            <SelectValue placeholder="Role" />
+            <SelectValue placeholder={t("pages.admins.table.filters.role")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_ROLE_VALUE}>Role</SelectItem>
+            <SelectItem value={ALL_ROLE_VALUE}>
+              {t("pages.admins.table.filters.role")}
+            </SelectItem>
             {roleOptions.map((role) => (
               <SelectItem key={role.id} value={String(role.id)}>
-                {role.name ?? role.slug ?? `Role #${role.id}`}
+                {role.name ??
+                  role.slug ??
+                  `${t("pages.admins.table.roleFallback")} #${role.id}`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -464,7 +498,7 @@ export function AdminUsersTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load admin users. Please try again.
+              {t("pages.admins.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -472,7 +506,7 @@ export function AdminUsersTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.admins.table.retry")}
             </Button>
           </div>
         </div>
@@ -493,16 +527,26 @@ export function AdminUsersTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all admin users on this page"
+                    aria-label={t("pages.admins.table.selectAll")}
                   />
                 </TableHead>
-                <TableHead className="font-medium">User</TableHead>
-                <TableHead className="font-medium">Center</TableHead>
-                <TableHead className="font-medium">Roles</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Last Active</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.admins.table.headers.user")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.admins.table.headers.center")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.admins.table.headers.roles")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.admins.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.admins.table.headers.lastActive")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.admins.table.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -537,12 +581,14 @@ export function AdminUsersTable({
                   <TableCell colSpan={7} className="h-48">
                     <EmptyState
                       title={
-                        query ? "No admin users found" : "No admin users yet"
+                        query
+                          ? t("pages.admins.table.empty.noResultsTitle")
+                          : t("pages.admins.table.empty.noDataTitle")
                       }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Create an admin user to get started"
+                          ? t("pages.admins.table.empty.noResultsDescription")
+                          : t("pages.admins.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -553,6 +599,7 @@ export function AdminUsersTable({
                   const status = resolveStatus(
                     user.status_key ?? user.status,
                     user.status_label,
+                    t,
                   );
                   const roles = resolveRoles(user);
                   const roleCount = roles.length;
@@ -581,7 +628,9 @@ export function AdminUsersTable({
                           className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
                           checked={Boolean(selectedUsers[String(user.id)])}
                           onChange={() => toggleUserSelection(user)}
-                          aria-label={`Select ${user.name ?? `user ${user.id}`}`}
+                          aria-label={t("pages.admins.table.selectUser", {
+                            name: user.name ?? `user ${user.id}`,
+                          })}
                         />
                       </TableCell>
                       <TableCell>
@@ -606,8 +655,10 @@ export function AdminUsersTable({
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {user.center?.name ??
                           (user.center_id != null
-                            ? `Center #${user.center_id}`
-                            : "Najaah system")}
+                            ? t("pages.admins.table.centerIdFallback", {
+                                id: user.center_id,
+                              })
+                            : t("pages.admins.table.centerFallback"))}
                       </TableCell>
                       <TableCell>
                         {roleCount === 0 ? (
@@ -665,7 +716,7 @@ export function AdminUsersTable({
                                   onEdit?.(user);
                                 }}
                               >
-                                Edit profile
+                                {t("pages.admins.table.actions.editProfile")}
                               </button>
                               {onManageRoles ? (
                                 <button
@@ -675,7 +726,7 @@ export function AdminUsersTable({
                                     onManageRoles(user);
                                   }}
                                 >
-                                  Manage roles
+                                  {t("pages.admins.table.actions.manageRoles")}
                                 </button>
                               ) : null}
                               <button
@@ -685,7 +736,7 @@ export function AdminUsersTable({
                                   onAssignCenters?.(user);
                                 }}
                               >
-                                Assign centers
+                                {t("pages.admins.table.actions.assignCenters")}
                               </button>
                               {onToggleStatus ? (
                                 <button
@@ -695,7 +746,7 @@ export function AdminUsersTable({
                                     onToggleStatus(user);
                                   }}
                                 >
-                                  Change status
+                                  {t("pages.admins.table.actions.changeStatus")}
                                 </button>
                               ) : null}
                               <button
@@ -705,7 +756,7 @@ export function AdminUsersTable({
                                   onDelete?.(user);
                                 }}
                               >
-                                Delete
+                                {t("pages.admins.table.actions.delete")}
                               </button>
                             </DropdownContent>
                           </Dropdown>
@@ -723,7 +774,7 @@ export function AdminUsersTable({
       {selectedCount > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.admins.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {onBulkAssignRoles ? (
@@ -733,7 +784,7 @@ export function AdminUsersTable({
                 onClick={() => onBulkAssignRoles(selectedUsersList)}
                 disabled={isLoadingState}
               >
-                Assign Roles
+                {t("pages.admins.table.bulk.assignRoles")}
               </Button>
             ) : null}
             {onBulkAssignCenters ? (
@@ -743,7 +794,7 @@ export function AdminUsersTable({
                 onClick={() => onBulkAssignCenters(selectedUsersList)}
                 disabled={isLoadingState}
               >
-                Assign Centers
+                {t("pages.admins.table.bulk.assignCenters")}
               </Button>
             ) : null}
             {onBulkChangeStatus ? (
@@ -753,7 +804,7 @@ export function AdminUsersTable({
                 onClick={() => onBulkChangeStatus(selectedUsersList)}
                 disabled={isLoadingState}
               >
-                Change Status
+                {t("pages.admins.table.bulk.changeStatus")}
               </Button>
             ) : null}
           </div>

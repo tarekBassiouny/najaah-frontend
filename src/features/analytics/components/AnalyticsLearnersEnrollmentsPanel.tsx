@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 import { AnalyticsBarChart } from "./charts/AnalyticsBarChart";
 import type { AnalyticsLearnersEnrollments } from "@/features/analytics/types/analytics";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsLearnersEnrollmentsPanelProps = {
   data?: AnalyticsLearnersEnrollments;
@@ -18,11 +19,21 @@ export function AnalyticsLearnersEnrollmentsPanel({
   isLoading,
   isError,
 }: AnalyticsLearnersEnrollmentsPanelProps) {
+  const { t } = useTranslation();
+
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Learners & enrollments analytics unavailable</AlertTitle>
-        <AlertDescription>Failed to load learner metrics.</AlertDescription>
+        <AlertTitle>
+          {t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s1",
+          )}
+        </AlertTitle>
+        <AlertDescription>
+          {t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s2",
+          )}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -36,15 +47,34 @@ export function AnalyticsLearnersEnrollmentsPanel({
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatsCard title="Total Students" value={learners.total_students} />
-        <StatsCard title="Active Students" value={learners.active_students} />
-        <StatsCard title="New Students" value={learners.new_students} />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s3",
+          )}
+          value={learners.total_students}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s4",
+          )}
+          value={learners.active_students}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s5",
+          )}
+          value={learners.new_students}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Enrollments by Status</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticslearnersenrollmentspanel.s6",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart
@@ -62,7 +92,11 @@ export function AnalyticsLearnersEnrollmentsPanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>New Students by Center</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticslearnersenrollmentspanel.s7",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {learners.by_center.length ? (
@@ -81,7 +115,9 @@ export function AnalyticsLearnersEnrollmentsPanel({
               />
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Center breakdown is only available for platform-level analytics.
+                {t(
+                  "auto.features.analytics.components.analyticslearnersenrollmentspanel.s8",
+                )}
               </p>
             )}
           </CardContent>

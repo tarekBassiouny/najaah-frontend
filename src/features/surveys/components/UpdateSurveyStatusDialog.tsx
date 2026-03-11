@@ -20,6 +20,7 @@ import {
 import { useUpdateSurveyStatus } from "@/features/surveys/hooks/use-surveys";
 import { getSurveyApiErrorMessage } from "@/features/surveys/lib/api-error";
 import type { Survey } from "@/features/surveys/types/survey";
+import { useTranslation } from "@/features/localization";
 
 type UpdateSurveyStatusDialogProps = {
   open: boolean;
@@ -50,6 +51,8 @@ export function UpdateSurveyStatusDialog({
   centerId,
   onSuccess,
 }: UpdateSurveyStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useUpdateSurveyStatus({ centerId });
   const [status, setStatus] = useState<SurveyStatusOption>("active");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -106,22 +109,29 @@ export function UpdateSurveyStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Change Status</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.surveys.components.updatesurveystatusdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Update status for <span className="font-medium">{surveyName}</span>.
+            {t("auto.features.surveys.components.updatesurveystatusdialog.s2")}
+            <span className="font-medium">{surveyName}</span>.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.surveys.components.updatesurveystatusdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for this survey.
+            {t("auto.features.surveys.components.updatesurveystatusdialog.s4")}
           </p>
           <Select
             value={status}
@@ -139,7 +149,7 @@ export function UpdateSurveyStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.surveys.components.updatesurveystatusdialog.s5")}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

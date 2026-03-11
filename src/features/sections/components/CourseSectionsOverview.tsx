@@ -22,6 +22,7 @@ import {
   useReorderSections,
   useSections,
 } from "@/features/sections/hooks/use-sections";
+import { useTranslation } from "@/features/localization";
 import { SectionMediaManagerDialog } from "@/features/sections/components/SectionMediaManagerDialog";
 import { getSectionApiErrorMessage } from "@/features/sections/lib/api-error";
 import type { Section } from "@/features/sections/types/section";
@@ -45,6 +46,10 @@ type MediaManagerState = {
 } | null;
 
 const OVERVIEW_SECTIONS_LIMIT = 100;
+type TranslateFn = (
+  _key: string,
+  _params?: Record<string, string | number>,
+) => string;
 
 function normalizeSectionsValue(value: unknown): Section[] {
   if (!Array.isArray(value)) return [];
@@ -62,8 +67,12 @@ function normalizeSectionsValue(value: unknown): Section[] {
     .filter((section): section is Section => section != null);
 }
 
-function getSectionTitle(section: Section) {
-  return section.title ?? section.name ?? `Section #${section.id}`;
+function getSectionTitle(section: Section, t: TranslateFn) {
+  return (
+    section.title ??
+    section.name ??
+    t("pages.sectionManager.unknown.sectionById", { id: section.id })
+  );
 }
 
 function getSectionOrder(section: Section) {
@@ -122,6 +131,7 @@ export function CourseSectionsOverview({
   managerHref,
   initialSections,
 }: CourseSectionsOverviewProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [orderedSections, setOrderedSections] = useState<Section[]>([]);
@@ -253,7 +263,7 @@ export function CourseSectionsOverview({
           invalidateCourseDetails();
           setFeedback({
             type: "success",
-            message: "Sections reordered successfully.",
+            message: t("pages.courseSectionsOverview.messages.reordered"),
           });
         },
         onError: (error) => {
@@ -262,7 +272,7 @@ export function CourseSectionsOverview({
             type: "error",
             message: getSectionApiErrorMessage(
               error,
-              "Failed to reorder sections.",
+              t("pages.courseSectionsOverview.errors.reorderFailed"),
             ),
           });
         },
@@ -289,7 +299,7 @@ export function CourseSectionsOverview({
     if (!title) {
       setFeedback({
         type: "error",
-        message: "Section title is required.",
+        message: t("pages.courseSectionsOverview.errors.titleRequired"),
       });
       return;
     }
@@ -303,7 +313,7 @@ export function CourseSectionsOverview({
       if (!isValid) {
         setFeedback({
           type: "error",
-          message: "Sort order must be a non-negative integer.",
+          message: t("pages.courseSectionsOverview.errors.sortOrderInvalid"),
         });
         return;
       }
@@ -329,7 +339,7 @@ export function CourseSectionsOverview({
             type: "success",
             message: getResponseMessage(
               createdSection,
-              "Section created successfully.",
+              t("pages.courseSectionsOverview.messages.created"),
             ),
           });
         },
@@ -338,7 +348,7 @@ export function CourseSectionsOverview({
             type: "error",
             message: getSectionApiErrorMessage(
               error,
-              "Failed to create section.",
+              t("pages.courseSectionsOverview.errors.createFailed"),
             ),
           });
         },
@@ -357,19 +367,19 @@ export function CourseSectionsOverview({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                Course Content
+                {t("pages.courseSectionsOverview.title")}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Drag sections to reorder. Quickly manage videos or PDFs.
+                {t("pages.courseSectionsOverview.description")}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
-                Add Section
+                {t("pages.sectionManager.actions.addSection")}
               </Button>
               <Link href={managerHref}>
                 <Button size="sm" variant="outline">
-                  Manage Sections
+                  {t("pages.courseSectionsOverview.actions.manageSections")}
                 </Button>
               </Link>
             </div>
@@ -403,11 +413,11 @@ export function CourseSectionsOverview({
             </div>
           ) : shouldQuerySections && isError ? (
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load sections.
+              {t("pages.sectionManager.errors.loadFailed")}
             </p>
           ) : orderedSections.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-200 p-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-              No sections yet. Add the first section to get started.
+              {t("pages.courseSectionsOverview.empty.noSections")}
             </div>
           ) : (
             <div
@@ -470,7 +480,9 @@ export function CourseSectionsOverview({
                         type="button"
                         className="inline-flex"
                         onClick={() => toggleExpanded(sectionId)}
-                        aria-label="Toggle section details"
+                        aria-label={t(
+                          "pages.courseSectionsOverview.actions.toggleDetails",
+                        )}
                         disabled={isBusy}
                       >
                         <svg
@@ -495,11 +507,21 @@ export function CourseSectionsOverview({
 
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {getSectionTitle(section)}
+                        {getSectionTitle(section, t)}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {videoCount} {videoCount === 1 ? "video" : "videos"} •{" "}
-                        {pdfCount} PDFs
+                        {videoCount}{" "}
+                        {t(
+                          videoCount === 1
+                            ? "pages.sectionManager.media.videoSingular"
+                            : "pages.sectionManager.media.videoPlural",
+                        )}{" "}
+                        • {pdfCount}{" "}
+                        {t(
+                          pdfCount === 1
+                            ? "pages.sectionManager.media.pdfSingular"
+                            : "pages.sectionManager.media.pdfPlural",
+                        )}
                       </p>
                     </div>
 
@@ -512,7 +534,7 @@ export function CourseSectionsOverview({
                         disabled={isBusy}
                       >
                         <span className="text-lg leading-none">+</span>
-                        Video
+                        {t("pages.sectionManager.media.videoSingular")}
                       </Button>
                       <Button
                         variant="ghost"
@@ -522,7 +544,7 @@ export function CourseSectionsOverview({
                         disabled={isBusy}
                       >
                         <span className="text-lg leading-none">+</span>
-                        PDF
+                        {t("pages.sectionManager.media.pdfSingular")}
                       </Button>
                     </div>
 
@@ -530,7 +552,7 @@ export function CourseSectionsOverview({
                       <div className="w-full border-t border-gray-200 bg-white pt-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-dark dark:text-gray-300">
                         {videos.length === 0 && pdfs.length === 0 ? (
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            No content yet.
+                            {t("pages.courseSectionsOverview.empty.noContent")}
                           </p>
                         ) : (
                           <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-dark">
@@ -540,12 +562,18 @@ export function CourseSectionsOverview({
                                   key={`${sectionKey}-video-${video.id ?? videoIndex}`}
                                   className="flex items-center gap-3 px-3 py-3 text-sm"
                                 >
-                                  <Badge variant="secondary">Video</Badge>
+                                  <Badge variant="secondary">
+                                    {t(
+                                      "pages.sectionManager.media.videoSingular",
+                                    )}
+                                  </Badge>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">
                                       {video.title ??
                                         video.name ??
-                                        "Untitled video"}
+                                        t(
+                                          "pages.sectionManager.unknown.untitledVideo",
+                                        )}
                                     </p>
                                   </div>
                                   <span className="text-xs text-gray-400">
@@ -559,10 +587,18 @@ export function CourseSectionsOverview({
                                   key={`${sectionKey}-pdf-${pdf.id ?? pdfIndex}`}
                                   className="flex items-center gap-3 px-3 py-3 text-sm"
                                 >
-                                  <Badge variant="secondary">PDF</Badge>
+                                  <Badge variant="secondary">
+                                    {t(
+                                      "pages.sectionManager.media.pdfSingular",
+                                    )}
+                                  </Badge>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {pdf.title ?? pdf.name ?? "Untitled PDF"}
+                                      {pdf.title ??
+                                        pdf.name ??
+                                        t(
+                                          "pages.sectionManager.unknown.untitledPdf",
+                                        )}
                                     </p>
                                   </div>
                                 </li>
@@ -594,30 +630,42 @@ export function CourseSectionsOverview({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Section</DialogTitle>
+            <DialogTitle>
+              {t("pages.sectionManager.actions.addSection")}
+            </DialogTitle>
             <DialogDescription>
-              Create a new section quickly from the overview workspace.
+              {t("pages.courseSectionsOverview.createDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="create-section-title">Title *</Label>
+              <Label htmlFor="create-section-title">
+                {t("pages.courseSectionsOverview.createDialog.fields.title")}
+              </Label>
               <Input
                 id="create-section-title"
                 value={createTitle}
                 onChange={(event) => setCreateTitle(event.target.value)}
-                placeholder="e.g., Introduction"
+                placeholder={t(
+                  "pages.courseSectionsOverview.createDialog.placeholders.title",
+                )}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="create-section-sort-order">Sort Order</Label>
+              <Label htmlFor="create-section-sort-order">
+                {t(
+                  "pages.courseSectionsOverview.createDialog.fields.sortOrder",
+                )}
+              </Label>
               <Input
                 id="create-section-sort-order"
                 type="number"
                 min={0}
                 value={createSortOrder}
                 onChange={(event) => setCreateSortOrder(event.target.value)}
-                placeholder="Optional"
+                placeholder={t(
+                  "pages.courseSectionsOverview.createDialog.placeholders.sortOrder",
+                )}
               />
             </div>
           </div>
@@ -627,10 +675,12 @@ export function CourseSectionsOverview({
               onClick={() => setIsCreateDialogOpen(false)}
               disabled={isBusy}
             >
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button onClick={handleCreateSection} disabled={isBusy}>
-              {isCreatingSection ? "Creating..." : "Create"}
+              {isCreatingSection
+                ? t("pages.sectionManager.actions.creating")
+                : t("common.actions.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

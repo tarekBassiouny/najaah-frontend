@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "Student Progress Tracking Software That Helps Educational Centers Act Earlier";
+
 export default function StudentProgressTrackingSoftwarePage() {
   return (
     <SeoPageShell
       eyebrow="Progress Tracking"
-      title="Student Progress Tracking Software That Helps Educational Centers Act Earlier"
+      title={SEO_PAGE_TITLE}
       intro="Progress tracking is only valuable if it helps instructors and center operators make better decisions. The goal is not to create another dashboard. It is to surface learner risk, completion trends, and assessment patterns while there is still time to intervene."
       bullets={[
         "Tracks learner progress, completion, and assessment performance",

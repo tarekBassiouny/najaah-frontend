@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "مولد الاختبارات بالذكاء الاصطناعي: الفوائد والمخاطر وأفضل الممارسات";
+
 export default function ArabicAiQuizGuidePage() {
   return (
     <ArticlePageShell
       locale="ar"
       category="الاختبارات الذكية"
-      title="مولد الاختبارات بالذكاء الاصطناعي: الفوائد والمخاطر وأفضل الممارسات"
+      title={SEO_PAGE_TITLE}
       intro="يمكن للذكاء الاصطناعي أن يوفر وقتاً كبيراً للمعلمين، لكن قيمته الحقيقية تظهر فقط عندما يستخدم كطبقة مساعدة في المسودة الأولى وليس كبديل أعمى عن الحكم الأكاديمي."
       sections={[
         {

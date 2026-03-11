@@ -22,6 +22,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DefaultsFormValues = {
   timezone: string;
@@ -143,6 +144,8 @@ const FIELD_META: Array<{
 ];
 
 export function SystemDefaultsPanel() {
+  const { t } = useTranslation();
+
   const { data, isLoading, refetch } = useSystemSettingsByKeys(DEFAULT_KEYS);
   const { mutateAsync: createSystemSetting, isPending: isCreating } =
     useCreateSystemSetting();
@@ -251,12 +254,19 @@ export function SystemDefaultsPanel() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
             <div className="inline-flex items-center rounded-full border border-gray-200 bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:border-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
-              Global Defaults
+              {t(
+                "auto.features.system_settings.components.systemdefaultspanel.s1",
+              )}
             </div>
-            <CardTitle>Canonical System Settings</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.system_settings.components.systemdefaultspanel.s2",
+              )}
+            </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Edit the platform-wide defaults here. Centers inherit these values
-              unless they have a center-scoped override.
+              {t(
+                "auto.features.system_settings.components.systemdefaultspanel.s3",
+              )}
             </p>
           </div>
           <Badge variant="outline">Registry-backed</Badge>
@@ -266,7 +276,11 @@ export function SystemDefaultsPanel() {
       <CardContent className="space-y-5 p-6">
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not save defaults</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.system_settings.components.systemdefaultspanel.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -275,7 +289,9 @@ export function SystemDefaultsPanel() {
           <Alert>
             <AlertTitle>Saved</AlertTitle>
             <AlertDescription>
-              Global defaults updated successfully.
+              {t(
+                "auto.features.system_settings.components.systemdefaultspanel.s5",
+              )}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -332,7 +348,9 @@ export function SystemDefaultsPanel() {
                         support_email: event.target.value,
                       }))
                     }
-                    placeholder="support@example.com"
+                    placeholder={t(
+                      "auto.features.system_settings.components.systemdefaultspanel.s6",
+                    )}
                     disabled={isSaving}
                   />
                 ) : null}
@@ -340,7 +358,9 @@ export function SystemDefaultsPanel() {
                 {field.key === "require_device_approval" ? (
                   <label className="mt-4 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-950/60">
                     <span className="text-sm text-gray-700 dark:text-gray-200">
-                      Device approval required by default
+                      {t(
+                        "auto.features.system_settings.components.systemdefaultspanel.s7",
+                      )}
                     </span>
                     <input
                       type="checkbox"
@@ -359,7 +379,9 @@ export function SystemDefaultsPanel() {
                 {field.key === "attendance_required" ? (
                   <label className="mt-4 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-950/60">
                     <span className="text-sm text-gray-700 dark:text-gray-200">
-                      Attendance required by default
+                      {t(
+                        "auto.features.system_settings.components.systemdefaultspanel.s8",
+                      )}
                     </span>
                     <input
                       type="checkbox"

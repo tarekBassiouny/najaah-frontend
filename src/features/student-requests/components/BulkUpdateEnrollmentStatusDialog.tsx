@@ -28,6 +28,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type BulkUpdateEnrollmentStatusDialogProps = {
   open: boolean;
@@ -73,6 +74,8 @@ export function BulkUpdateEnrollmentStatusDialog({
   centerId,
   onSuccess,
 }: BulkUpdateEnrollmentStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkUpdateEnrollmentStatus();
   const [status, setStatus] = useState<EnrollmentStatus>("DEACTIVATED");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -144,16 +147,30 @@ export function BulkUpdateEnrollmentStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Change Enrollment Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update status for {ids.length} selected enrollment request
+            {t(
+              "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s2",
+            )}
+            {ids.length}{" "}
+            {t(
+              "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s3",
+            )}
             {ids.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -161,10 +178,30 @@ export function BulkUpdateEnrollmentStatusDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || ids.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s5",
+                )}
+                {readCount(result, "total") || ids.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s6",
+                )}
+                {readCount(result, "updated")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s7",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s8",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readUpdatedItems(result).length > 0 ? (
@@ -175,7 +212,10 @@ export function BulkUpdateEnrollmentStatusDialog({
                     record.enrollment_id ?? record.id ?? "unknown";
                   return (
                     <p key={`updated-${String(enrollmentId)}-${index}`}>
-                      Enrollment #{String(enrollmentId)} updated
+                      {t(
+                        "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s9",
+                      )}
+                      {String(enrollmentId)} updated
                     </p>
                   );
                 })}
@@ -193,7 +233,10 @@ export function BulkUpdateEnrollmentStatusDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${String(enrollmentId)}-${index}`}>
-                      Enrollment #{String(enrollmentId)}: {reason}
+                      {t(
+                        "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s9",
+                      )}
+                      {String(enrollmentId)}: {reason}
                     </p>
                   );
                 })}
@@ -211,7 +254,10 @@ export function BulkUpdateEnrollmentStatusDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(enrollmentId)}-${index}`}>
-                      Enrollment #{String(enrollmentId)}: {reason}
+                      {t(
+                        "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s9",
+                      )}
+                      {String(enrollmentId)}: {reason}
                     </p>
                   );
                 })}
@@ -222,7 +268,9 @@ export function BulkUpdateEnrollmentStatusDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose the status to apply.
+            {t(
+              "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s10",
+            )}
           </p>
           <Select
             value={status}
@@ -242,7 +290,9 @@ export function BulkUpdateEnrollmentStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.student_requests.components.bulkupdateenrollmentstatusdialog.s11",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

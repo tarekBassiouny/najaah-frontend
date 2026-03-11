@@ -7,6 +7,10 @@ import { useModal } from "@/components/ui/modal-store";
 import { useSyncAdminUserRoles } from "@/features/admin-users/hooks/use-admin-users";
 import { AdminUserFormDialog } from "@/features/admin-users/components/AdminUserFormDialog";
 import { SyncAdminUserRolesDialog } from "@/features/admin-users/components/SyncAdminUserRolesDialog";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 import { cn } from "@/lib/utils";
 const dangerousModals = new Set(["confirmRoleChange"]);
 
@@ -41,6 +45,7 @@ function ConfirmRoleChangeModal({
   const [isChecked, setIsChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { closeModal, setModalFlags } = useModal();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setModalFlags({ disableEscapeClose: isSubmitting });
@@ -63,7 +68,7 @@ function ConfirmRoleChangeModal({
     <div className="space-y-4">
       <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
         <span className="text-yellow-500">⚠️</span>
-        Confirm Role Changes
+        {t("ui.modalHost.confirmRoleChangesTitle")}
       </h2>
 
       <div className="mt-4 rounded-lg bg-gray-50 p-4">
@@ -72,7 +77,7 @@ function ConfirmRoleChangeModal({
       </div>
 
       <p className="text-sm text-gray-600">
-        This will update this admin’s access across the system.
+        {t("ui.modalHost.confirmRoleChangesDescription")}
       </p>
 
       {errorMessage ? (
@@ -81,7 +86,7 @@ function ConfirmRoleChangeModal({
 
       <div className="mt-6">
         <p className="text-sm font-semibold text-green-600">
-          Roles to be added
+          {t("ui.modalHost.rolesToAdd")}
         </p>
         <ul className="mt-2 space-y-1">
           {(addedRoles?.length ? addedRoles : ["—"]).map((role) => (
@@ -94,7 +99,7 @@ function ConfirmRoleChangeModal({
 
       <div className="mt-4">
         <p className="text-sm font-semibold text-red-600">
-          Roles to be removed
+          {t("ui.modalHost.rolesToRemove")}
         </p>
         <ul className="mt-2 space-y-1">
           {(removedRoles?.length ? removedRoles : ["—"]).map((role) => (
@@ -114,7 +119,7 @@ function ConfirmRoleChangeModal({
           checked={isChecked}
           onChange={(event) => setIsChecked(event.target.checked)}
         />
-        I understand this will change access permissions
+        {t("ui.modalHost.accessPermissionsAcknowledgement")}
       </label>
 
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
@@ -122,31 +127,34 @@ function ConfirmRoleChangeModal({
           className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
           onClick={closeModal}
         >
-          Cancel
+          {t("common.actions.cancel")}
         </button>
         <button
           disabled={!isChecked || isSubmitting}
           onClick={handleConfirm}
           className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? "Confirming..." : "Confirm & Apply"}
+          {isSubmitting
+            ? t("ui.modalHost.actions.confirming")
+            : t("ui.modalHost.actions.confirmAndApply")}
         </button>
       </div>
     </div>
   );
 }
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: TranslateFunction) {
   if (isAxiosError(error)) {
     const data = error.response?.data as { message?: string } | undefined;
     if (data?.message) return data.message;
   }
 
-  return "Unable to sync roles. Please try again.";
+  return t("ui.modalHost.errors.unableToSyncRoles");
 }
 
 function ConfirmRoleChangeContainer(props: ConfirmRoleChangeProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { t } = useTranslation();
   const syncMutation = useSyncAdminUserRoles({
     centerId: props.scopeCenterId ?? null,
   });
@@ -161,9 +169,9 @@ function ConfirmRoleChangeContainer(props: ConfirmRoleChangeProps) {
 
   useEffect(() => {
     if (syncMutation.error) {
-      setErrorMessage(getErrorMessage(syncMutation.error));
+      setErrorMessage(getErrorMessage(syncMutation.error, t));
     }
-  }, [syncMutation.error]);
+  }, [syncMutation.error, t]);
 
   return (
     <ConfirmRoleChangeModal

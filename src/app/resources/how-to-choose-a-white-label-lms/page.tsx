@@ -17,11 +17,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "How to Choose a White-Label LMS for an Educational Center";
+
 export default function WhiteLabelLmsGuidePage() {
   return (
     <ArticlePageShell
       category="White-Label LMS Guide"
-      title="How to Choose a White-Label LMS for an Educational Center"
+      title={SEO_PAGE_TITLE}
       intro="Choosing a white-label LMS is not mainly a design decision. It is a business decision about trust, operations, content control, and how seriously your platform will be taken by students and parents."
       sections={[
         {

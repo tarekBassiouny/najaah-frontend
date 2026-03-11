@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useBulkDeleteCategories } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
 import type { BulkDeleteCategoriesResult } from "@/features/categories/services/categories.service";
+import { useTranslation } from "@/features/localization";
 
 type BulkDeleteCategoryDialogProps = {
   centerId: string | number;
@@ -57,6 +58,8 @@ export function BulkDeleteCategoryDialog({
   categories,
   onSuccess,
 }: BulkDeleteCategoryDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkDeleteCategories(centerId);
   const [confirmationText, setConfirmationText] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -117,7 +120,11 @@ export function BulkDeleteCategoryDialog({
         aria-describedby={undefined}
       >
         <DialogHeader className="space-y-3">
-          <DialogTitle className="sr-only">Delete Categories</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t(
+              "auto.features.categories.components.bulkdeletecategorydialog.s1",
+            )}
+          </DialogTitle>
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
               <svg
@@ -136,10 +143,14 @@ export function BulkDeleteCategoryDialog({
             </div>
             <div className="space-y-1">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white">
-                Delete Categories
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s1",
+                )}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                This action cannot be undone.
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s2",
+                )}
               </p>
             </div>
           </div>
@@ -147,7 +158,11 @@ export function BulkDeleteCategoryDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not delete categories</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.categories.components.bulkdeletecategorydialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -155,17 +170,40 @@ export function BulkDeleteCategoryDialog({
         {result?.counts ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {result.counts.total ?? categories.length}</span>
-              <span>Deleted: {result.counts.deleted ?? 0}</span>
-              <span>Skipped: {result.counts.skipped ?? 0}</span>
-              <span>Failed: {result.counts.failed ?? 0}</span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s4",
+                )}
+                {result.counts.total ?? categories.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s5",
+                )}
+                {result.counts.deleted ?? 0}
+              </span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s6",
+                )}
+                {result.counts.skipped ?? 0}
+              </span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s7",
+                )}
+                {result.counts.failed ?? 0}
+              </span>
             </div>
 
             {result.failed && result.failed.length > 0 ? (
               <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
                 {result.failed.map((item, index) => (
                   <p key={`failed-${item.category_id}-${index}`}>
-                    Category #{item.category_id}: {item.reason ?? "Failed"}
+                    {t(
+                      "auto.features.categories.components.bulkdeletecategorydialog.s8",
+                    )}
+                    {item.category_id}: {item.reason ?? "Failed"}
                   </p>
                 ))}
               </div>
@@ -175,7 +213,10 @@ export function BulkDeleteCategoryDialog({
               <div className="mt-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
                 {result.skipped.map((item, index) => (
                   <p key={`skipped-${item.category_id}-${index}`}>
-                    Category #{item.category_id}: {item.reason ?? "Skipped"}
+                    {t(
+                      "auto.features.categories.components.bulkdeletecategorydialog.s8",
+                    )}
+                    {item.category_id}: {item.reason ?? "Skipped"}
                   </p>
                 ))}
               </div>
@@ -184,7 +225,9 @@ export function BulkDeleteCategoryDialog({
         ) : (
           <>
             <div className="rounded-xl border border-red-200 bg-red-50/70 p-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200">
-              You are about to permanently delete{" "}
+              {t(
+                "auto.features.categories.components.bulkdeletecategorydialog.s9",
+              )}{" "}
               <span className="font-semibold text-red-900 dark:text-red-100">
                 {categories.length}{" "}
                 {categories.length === 1 ? "category" : "categories"}
@@ -194,7 +237,10 @@ export function BulkDeleteCategoryDialog({
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Type {CONFIRM_TEXT} to confirm
+                Type {CONFIRM_TEXT}{" "}
+                {t(
+                  "auto.features.categories.components.bulkdeletecategorydialog.s10",
+                )}
               </label>
               <Input
                 value={confirmationText}

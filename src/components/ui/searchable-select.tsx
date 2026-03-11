@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 
 // Icons
@@ -110,9 +111,9 @@ export function SearchableSelect<T = string>({
   options,
   searchValue,
   onSearchValueChange,
-  placeholder = "Select an option",
-  searchPlaceholder = "Search...",
-  emptyMessage = "No results found",
+  placeholder,
+  searchPlaceholder,
+  emptyMessage,
   emptyIcon,
   icon,
   isLoading = false,
@@ -123,7 +124,7 @@ export function SearchableSelect<T = string>({
   showSearch = true,
   filterOptions = true,
   allowClear = false,
-  clearLabel = "Clear selection",
+  clearLabel,
   clearIcon,
   groupedOptions,
   hasMore = false,
@@ -140,6 +141,14 @@ export function SearchableSelect<T = string>({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
   const search = searchValue ?? internalSearch;
+  const { t } = useTranslation();
+  const resolvedPlaceholder =
+    placeholder ?? t("forms.placeholders.selectOption");
+  const resolvedSearchPlaceholder =
+    searchPlaceholder ?? t("forms.placeholders.search");
+  const resolvedEmptyMessage = emptyMessage ?? t("common.messages.noResults");
+  const resolvedClearLabel =
+    clearLabel ?? t("ui.searchableSelect.clearSelectionAriaLabel");
 
   const updateSearch = React.useCallback(
     (nextValue: string) => {
@@ -336,7 +345,7 @@ export function SearchableSelect<T = string>({
           {isLoading ? (
             <span className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
               <LoadingSpinner />
-              Loading...
+              {t("common.actions.loading")}
             </span>
           ) : selectedOption ? (
             <span className="flex items-center gap-2 truncate">
@@ -349,7 +358,7 @@ export function SearchableSelect<T = string>({
             </span>
           ) : (
             <span className="text-gray-500 dark:text-gray-400">
-              {placeholder}
+              {resolvedPlaceholder}
             </span>
           )}
         </span>
@@ -372,7 +381,7 @@ export function SearchableSelect<T = string>({
                 "dark:hover:bg-gray-800 dark:hover:text-gray-300",
                 disabled && "pointer-events-none opacity-50",
               )}
-              aria-label={clearLabel}
+              aria-label={resolvedClearLabel}
             >
               {clearIcon || (
                 <svg
@@ -430,7 +439,7 @@ export function SearchableSelect<T = string>({
                       type="text"
                       value={search}
                       onChange={(event) => updateSearch(event.target.value)}
-                      placeholder={searchPlaceholder}
+                      placeholder={resolvedSearchPlaceholder}
                       className={cn(
                         "h-9 w-full rounded-lg border bg-gray-50 pl-9 pr-3 text-sm outline-none transition-all duration-200",
                         "border-gray-200 text-gray-700 placeholder:text-gray-400",
@@ -523,11 +532,11 @@ export function SearchableSelect<T = string>({
                   </span>
                 )}
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {emptyMessage}
+                  {resolvedEmptyMessage}
                 </span>
                 {search && (
                   <span className="text-xs text-gray-400 dark:text-gray-500">
-                    Try a different search term
+                    {t("ui.searchableSelect.tryDifferentSearchTerm")}
                   </span>
                 )}
               </div>
@@ -538,10 +547,10 @@ export function SearchableSelect<T = string>({
                 {isLoadingMore ? (
                   <span className="flex items-center gap-2">
                     <LoadingSpinner className="h-3.5 w-3.5" />
-                    Loading more...
+                    {t("ui.searchableSelect.loadingMore")}
                   </span>
                 ) : (
-                  <span>Scroll to load more</span>
+                  <span>{t("ui.searchableSelect.scrollToLoadMore")}</span>
                 )}
               </div>
             )}

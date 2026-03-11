@@ -32,6 +32,7 @@ import {
 } from "@/features/instructors/hooks/use-instructors";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters."),
@@ -77,6 +78,8 @@ export function InstructorFormDialog({
   onSuccess,
   onSaved,
 }: InstructorFormDialogProps) {
+  const { t } = useTranslation();
+
   const { showToast } = useModal();
   const [formError, setFormError] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -316,17 +319,25 @@ export function InstructorFormDialog({
           </div>
           <div className="mt-1 flex flex-wrap gap-3 pb-3 text-xs">
             <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-              Profile Details
+              {t(
+                "auto.features.instructors.components.instructorformdialog.s1",
+              )}
             </span>
             <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-              Contact Info
+              {t(
+                "auto.features.instructors.components.instructorformdialog.s2",
+              )}
             </span>
           </div>
         </DialogHeader>
 
         {formError && (
           <Alert variant="destructive">
-            <AlertTitle>Could not save instructor</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.instructors.components.instructorformdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         )}
@@ -355,7 +366,9 @@ export function InstructorFormDialog({
                     Avatar
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    JPG, PNG, or WebP. Max size 5MB.
+                    {t(
+                      "auto.features.instructors.components.instructorformdialog.s4",
+                    )}
                   </p>
                 </div>
               </div>
@@ -380,7 +393,9 @@ export function InstructorFormDialog({
                   </Button>
                 ) : (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Avatar will upload with the new instructor when you submit.
+                    {t(
+                      "auto.features.instructors.components.instructorformdialog.s5",
+                    )}
                   </p>
                 )}
               </div>
@@ -399,7 +414,12 @@ export function InstructorFormDialog({
                 <FormItem className="md:col-span-2">
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Instructor name" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.instructors.components.instructorformdialog.s6",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -413,7 +433,12 @@ export function InstructorFormDialog({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="instructor@example.com" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.instructors.components.instructorformdialog.s7",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -427,7 +452,12 @@ export function InstructorFormDialog({
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Senior Lecturer" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.instructors.components.instructorformdialog.s8",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -443,7 +473,9 @@ export function InstructorFormDialog({
                   <FormControl>
                     <Textarea
                       rows={3}
-                      placeholder="Short instructor bio"
+                      placeholder={t(
+                        "auto.features.instructors.components.instructorformdialog.s9",
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -459,7 +491,9 @@ export function InstructorFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t(
+                  "auto.features.instructors.components.instructorformdialog.s10",
+                )}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending

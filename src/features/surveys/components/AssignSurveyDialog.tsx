@@ -35,6 +35,7 @@ import type {
   SurveyScopeType,
 } from "@/features/surveys/types/survey";
 import { listVideos } from "@/features/videos/services/videos.service";
+import { useTranslation } from "@/features/localization";
 
 const PICKER_PAGE_SIZE = 20;
 
@@ -177,6 +178,8 @@ export function AssignSurveyDialog({
   centerId,
   onSuccess,
 }: AssignSurveyDialogProps) {
+  const { t } = useTranslation();
+
   const normalizedCenterId = useMemo(() => toNumber(centerId), [centerId]);
   const scopeContext = useMemo(
     () => ({ centerId: normalizedCenterId }),
@@ -485,15 +488,19 @@ export function AssignSurveyDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[95vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Assign Survey</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.surveys.components.assignsurveydialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Update who should receive this survey.
+            {t("auto.features.surveys.components.assignsurveydialog.s2")}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not assign survey</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.surveys.components.assignsurveydialog.s3")}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -501,7 +508,7 @@ export function AssignSurveyDialog({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Assignment Mode
+              {t("auto.features.surveys.components.assignsurveydialog.s4")}
             </label>
             <Select
               value={assignmentType}
@@ -539,7 +546,9 @@ export function AssignSurveyDialog({
               {scopeType === 1 ? (
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Unbranded Center
+                    {t(
+                      "auto.features.surveys.components.assignsurveydialog.s5",
+                    )}
                   </label>
                   <SearchableSelect
                     value={
@@ -552,9 +561,13 @@ export function AssignSurveyDialog({
                       setAssignmentCourseId("none");
                     }}
                     options={unbrandedCenterOptions}
-                    placeholder="Select a center first"
+                    placeholder={t(
+                      "auto.features.surveys.components.assignsurveydialog.s6",
+                    )}
                     searchPlaceholder="Search centers..."
-                    emptyMessage="No unbranded centers found"
+                    emptyMessage={t(
+                      "auto.features.surveys.components.assignsurveydialog.s7",
+                    )}
                     isLoading={isUnbrandedCentersLoading}
                     disabled={isUnbrandedCentersLoading}
                     showSearch={unbrandedCenterOptions.length > 6}
@@ -587,7 +600,9 @@ export function AssignSurveyDialog({
                       : "Select a course"
                   }
                   searchPlaceholder="Search courses..."
-                  emptyMessage="No courses found"
+                  emptyMessage={t(
+                    "auto.features.surveys.components.assignsurveydialog.s8",
+                  )}
                   isLoading={isCoursesLoading}
                   disabled={
                     isCoursesLoading ||
@@ -616,9 +631,13 @@ export function AssignSurveyDialog({
                 value={assignmentUserId === "none" ? null : assignmentUserId}
                 onValueChange={(value) => setAssignmentUserId(value ?? "none")}
                 options={studentOptions}
-                placeholder="Select a student"
+                placeholder={t(
+                  "auto.features.surveys.components.assignsurveydialog.s9",
+                )}
                 searchPlaceholder="Search students..."
-                emptyMessage="No students found"
+                emptyMessage={t(
+                  "auto.features.surveys.components.assignsurveydialog.s10",
+                )}
                 isLoading={isStudentsLoading}
                 disabled={isStudentsLoading}
                 showSearch={studentOptions.length > 6}
@@ -636,15 +655,19 @@ export function AssignSurveyDialog({
           {assignmentType === "video" ? (
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Video (Full Play)
+                {t("auto.features.surveys.components.assignsurveydialog.s11")}
               </label>
               <SearchableSelect
                 value={assignmentVideoId === "none" ? null : assignmentVideoId}
                 onValueChange={(value) => setAssignmentVideoId(value ?? "none")}
                 options={videoOptions}
-                placeholder="Select a full-play video"
+                placeholder={t(
+                  "auto.features.surveys.components.assignsurveydialog.s12",
+                )}
                 searchPlaceholder="Search videos..."
-                emptyMessage="No eligible full-play videos found"
+                emptyMessage={t(
+                  "auto.features.surveys.components.assignsurveydialog.s13",
+                )}
                 isLoading={isVideosLoading}
                 disabled={isVideosLoading}
                 showSearch={videoOptions.length > 6}
@@ -658,7 +681,7 @@ export function AssignSurveyDialog({
               />
               {videoOptions.length === 0 && !isVideosLoading ? (
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  No eligible full-play videos were found for this center.
+                  {t("auto.features.surveys.components.assignsurveydialog.s14")}
                 </p>
               ) : null}
             </div>
@@ -672,7 +695,7 @@ export function AssignSurveyDialog({
             disabled={assignMutation.isPending}
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("auto.features.surveys.components.assignsurveydialog.s15")}
           </Button>
           <Button
             type="button"

@@ -34,6 +34,7 @@ import { BulkManageRolePermissionsDialog } from "@/features/role-permissions/com
 import { DeleteRoleDialog } from "@/features/roles/components/DeleteRoleDialog";
 import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 import type { Role } from "@/features/roles/types/role";
 
 const DEFAULT_PER_PAGE = 20;
@@ -82,6 +83,7 @@ export function RolesTable({
   onEdit,
   canManageWrite = false,
 }: RolesTableProps) {
+  const { t } = useTranslation();
   const [deletingRole, setDeletingRole] = useState<{
     id: string | number;
     name?: string | null;
@@ -222,7 +224,9 @@ export function RolesTable({
           }}
           summary={
             <>
-              {total} {total === 1 ? "role" : "roles"}
+              {total === 1
+                ? t("pages.roles.table.summary", { count: total })
+                : t("pages.roles.table.summaryPlural", { count: total })}
             </>
           }
           gridClassName="grid-cols-1 md:grid-cols-3"
@@ -244,7 +248,7 @@ export function RolesTable({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by role name or slug"
+              placeholder={t("pages.roles.table.searchPlaceholder")}
               className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             />
             <button
@@ -260,7 +264,7 @@ export function RolesTable({
                   ? "opacity-100"
                   : "pointer-events-none opacity-0",
               )}
-              aria-label="Clear search"
+              aria-label={t("pages.roles.table.clearSearch")}
               tabIndex={search.trim().length > 0 ? 0 : -1}
             >
               <svg
@@ -284,7 +288,7 @@ export function RolesTable({
           <div className="p-6">
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
               <p className="text-sm text-red-600 dark:text-red-400">
-                Failed to load roles. Please try again.
+                {t("pages.roles.table.loadFailed")}
               </p>
               <Button
                 variant="outline"
@@ -292,7 +296,7 @@ export function RolesTable({
                 className="mt-2"
                 onClick={() => window.location.reload()}
               >
-                Retry
+                {t("pages.roles.table.retry")}
               </Button>
             </div>
           </div>
@@ -312,18 +316,26 @@ export function RolesTable({
                         type="checkbox"
                         checked={isAllPageSelected}
                         onChange={toggleSelectPage}
-                        aria-label="Select all roles on page"
+                        aria-label={t("pages.roles.table.selectAll")}
                         className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         disabled={isLoadingState || items.length === 0}
                       />
                     </TableHead>
                   ) : null}
-                  <TableHead className="font-medium">Name</TableHead>
-                  <TableHead className="font-medium">Slug</TableHead>
-                  <TableHead className="font-medium">Permissions</TableHead>
-                  <TableHead className="font-medium">Description</TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.roles.table.headers.name")}
+                  </TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.roles.table.headers.slug")}
+                  </TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.roles.table.headers.permissions")}
+                  </TableHead>
+                  <TableHead className="font-medium">
+                    {t("pages.roles.table.headers.description")}
+                  </TableHead>
                   <TableHead className="w-10 text-right font-medium">
-                    Actions
+                    {t("pages.roles.table.headers.actions")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -359,8 +371,14 @@ export function RolesTable({
                   <TableRow>
                     <TableCell colSpan={columnsCount} className="h-48">
                       <EmptyState
-                        title={query ? "No roles found" : "No roles yet"}
-                        description="Create your first role to start assigning permissions."
+                        title={
+                          query
+                            ? t("pages.roles.table.empty.noResultsTitle")
+                            : t("pages.roles.table.empty.noDataTitle")
+                        }
+                        description={t(
+                          "pages.roles.table.empty.noDataDescription",
+                        )}
                         className="border-0 bg-transparent"
                       />
                     </TableCell>
@@ -396,7 +414,14 @@ export function RolesTable({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleRoleSelection(role)}
-                              aria-label={`Select ${role.name ?? role.slug ?? "role"}`}
+                              aria-label={t("pages.roles.table.selectRole", {
+                                name:
+                                  role.name ??
+                                  role.slug ??
+                                  t(
+                                    "pages.roles.table.headers.name",
+                                  ).toLowerCase(),
+                              })}
                               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                             />
                           </TableCell>
@@ -425,8 +450,12 @@ export function RolesTable({
                                   }
                                 >
                                   {isDescriptionExpanded
-                                    ? "View less"
-                                    : "View more"}
+                                    ? t(
+                                        "pages.roles.table.description.viewLess",
+                                      )
+                                    : t(
+                                        "pages.roles.table.description.viewMore",
+                                      )}
                                 </button>
                               ) : null}
                             </div>
@@ -460,8 +489,12 @@ export function RolesTable({
                                   }}
                                 >
                                   {canManageWrite
-                                    ? "Manage Permissions"
-                                    : "View Permissions"}
+                                    ? t(
+                                        "pages.roles.table.actions.managePermissions",
+                                      )
+                                    : t(
+                                        "pages.roles.table.actions.viewPermissions",
+                                      )}
                                 </button>
                                 {canManageWrite && onEdit ? (
                                   <button
@@ -471,7 +504,7 @@ export function RolesTable({
                                       onEdit(role);
                                     }}
                                   >
-                                    Edit
+                                    {t("pages.roles.table.actions.edit")}
                                   </button>
                                 ) : null}
                                 {canManageWrite ? (
@@ -486,7 +519,7 @@ export function RolesTable({
                                     }}
                                     disabled={isBusy}
                                   >
-                                    Delete
+                                    {t("pages.roles.table.actions.delete")}
                                   </button>
                                 ) : null}
                               </DropdownContent>
@@ -505,7 +538,7 @@ export function RolesTable({
         {canManageWrite && selectedCount > 0 ? (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
             <div className="text-gray-500 dark:text-gray-400">
-              {selectedCount} selected
+              {t("pages.roles.table.bulk.selected", { count: selectedCount })}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button
@@ -514,7 +547,7 @@ export function RolesTable({
                 onClick={() => setBulkDialogOpen(true)}
                 disabled={isLoadingState}
               >
-                Manage Permissions
+                {t("pages.roles.table.bulk.managePermissions")}
               </Button>
             </div>
           </div>
@@ -548,13 +581,15 @@ export function RolesTable({
           <DialogHeader>
             <DialogTitle>
               {canManageWrite
-                ? "Sync Permissions"
-                : "Role Permissions (Read only)"}
+                ? t("pages.roles.table.dialogs.syncPermissions")
+                : t("pages.roles.table.dialogs.viewPermissionsReadOnly")}
             </DialogTitle>
             <DialogDescription>
               {permissionsRole?.name
-                ? `Update permissions for ${permissionsRole.name}.`
-                : "Update permissions for this role."}
+                ? t("pages.roles.table.dialogs.updatePermissionsFor", {
+                    name: permissionsRole.name,
+                  })
+                : t("pages.roles.table.dialogs.updatePermissionsGeneric")}
             </DialogDescription>
           </DialogHeader>
           {permissionsRole ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsDonutChartProps = {
   labels: string[];
@@ -20,6 +21,8 @@ export function AnalyticsDonutChart({
   colors = ["#3c50e0", "#13c296", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"],
   height = 280,
 }: AnalyticsDonutChartProps) {
+  const { t } = useTranslation();
+
   const safeValues = useMemo(
     () => values.map((value) => (Number.isFinite(value) ? value : 0)),
     [values],
@@ -60,7 +63,7 @@ export function AnalyticsDonutChart({
         className="flex items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
         style={{ minHeight: height }}
       >
-        No chart data
+        {t("auto.features.analytics.components.charts.analyticsdonutchart.s1")}
       </div>
     );
   }

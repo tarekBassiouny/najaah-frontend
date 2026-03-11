@@ -1,15 +1,23 @@
+"use client";
+
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
+import { useTranslation } from "@/features/localization";
 
 export default function DashboardNotFoundPage() {
+  const { t } = useTranslation();
+
   return (
     <AppNotFoundState
-      scopeLabel="Admin Dashboard"
-      title="Page not found"
-      description="The page you requested does not exist or is no longer available."
-      primaryAction={{ href: "/dashboard", label: "Go to Dashboard" }}
+      scopeLabel={t("pages.dashboardNotFound.scopeLabel")}
+      title={t("pages.dashboardNotFound.title")}
+      description={t("pages.dashboardNotFound.description")}
+      primaryAction={{
+        href: "/dashboard",
+        label: t("pages.dashboardNotFound.goToDashboard"),
+      }}
       secondaryAction={{
         href: "/centers",
-        label: "Go to Centers",
+        label: t("pages.dashboardNotFound.goToCenters"),
         variant: "outline",
       }}
     />

@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة لتقديم PDF محمي للمراكز التي تبيع مواد تعليمية عالية القيمة";
+
 export default function ArabicSecurePdfPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="PDF محمي"
-      title="منصة لتقديم PDF محمي للمراكز التي تبيع مواد تعليمية عالية القيمة"
+      title={SEO_PAGE_TITLE}
       intro="كثير من الجهات التعليمية تقلق من قرصنة الفيديو وتنسى أن ملفات PDF والمذكرات وحِزم المراجعة غالباً ما تُسرّب أسرع. المنصة الجيدة تساعد على حماية المواد التي يتبادلها الطلاب أكثر من غيرها."
       bullets={[
         "حماية المذكرات والملفات وحِزم المراجعة",

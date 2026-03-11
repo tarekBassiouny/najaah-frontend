@@ -11,6 +11,7 @@ import {
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteCategory } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
+import { useTranslation } from "@/features/localization";
 
 type DeleteCategoryDialogProps = {
   centerId: string | number;
@@ -44,6 +45,8 @@ export function DeleteCategoryDialog({
   category,
   onSuccess,
 }: DeleteCategoryDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteCategory();
 
@@ -79,10 +82,14 @@ export function DeleteCategoryDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Category</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.categories.components.deletecategorydialog.s1")}
+          </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Category"
+          title={t(
+            "auto.features.categories.components.deletecategorydialog.s1",
+          )}
           entityName={category ? getCategoryTitle(category) : null}
           entityFallback="this category"
           confirmButtonLabel="Delete Category"

@@ -17,6 +17,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type RestoreCenterDialogProps = {
   open: boolean;
@@ -37,6 +38,8 @@ export function RestoreCenterDialog({
   center,
   onSuccess,
 }: RestoreCenterDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useRestoreCenter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -87,27 +90,31 @@ export function RestoreCenterDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Restore Center</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.centers.components.restorecenterdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
             Restore <span className="font-medium">{getCenterName(center)}</span>{" "}
-            and make it accessible again.
+            {t("auto.features.centers.components.restorecenterdialog.s2")}
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to restore</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.centers.components.restorecenterdialog.s3")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-300">
-          This will restore the center and keep all existing data intact.
+          {t("auto.features.centers.components.restorecenterdialog.s4")}
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.centers.components.restorecenterdialog.s5")}
           </Button>
           <Button onClick={handleRestore} disabled={mutation.isPending}>
             {mutation.isPending ? "Restoring..." : "Restore Center"}

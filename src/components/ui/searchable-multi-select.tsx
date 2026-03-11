@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 
 const ChevronDownIcon = ({ className }: { className?: string }) => (
@@ -103,9 +104,9 @@ export function SearchableMultiSelect<T = string>({
   values,
   onValuesChange,
   options,
-  placeholder = "Select options",
-  searchPlaceholder = "Search...",
-  emptyMessage = "No results found",
+  placeholder,
+  searchPlaceholder,
+  emptyMessage,
   disabled = false,
   isLoading = false,
   className,
@@ -127,6 +128,12 @@ export function SearchableMultiSelect<T = string>({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const search = searchValue ?? internalSearch;
   const isTriggerDisabled = disabled || isLoading;
+  const { t } = useTranslation();
+  const resolvedPlaceholder =
+    placeholder ?? t("ui.searchableMultiSelect.selectOptions");
+  const resolvedSearchPlaceholder =
+    searchPlaceholder ?? t("forms.placeholders.search");
+  const resolvedEmptyMessage = emptyMessage ?? t("common.messages.noResults");
 
   const selectedKeys = React.useMemo(
     () => new Set(values.map((value) => toKey(value))),
@@ -180,7 +187,7 @@ export function SearchableMultiSelect<T = string>({
 
   const triggerLabel = React.useMemo(() => {
     if (selectedLabels.length === 0) {
-      return placeholder;
+      return resolvedPlaceholder;
     }
 
     if (selectedLabels.length <= maxVisibleSelected) {
@@ -189,8 +196,8 @@ export function SearchableMultiSelect<T = string>({
 
     const shown = selectedLabels.slice(0, maxVisibleSelected).join(", ");
     const remaining = selectedLabels.length - maxVisibleSelected;
-    return `${shown} +${remaining} more`;
-  }, [maxVisibleSelected, placeholder, selectedLabels]);
+    return `${shown} +${remaining} ${t("ui.searchableSelect.more")}`;
+  }, [maxVisibleSelected, resolvedPlaceholder, selectedLabels, t]);
 
   const toggleSelection = React.useCallback(
     (option: SearchableMultiSelectOption<T>) => {
@@ -285,7 +292,7 @@ export function SearchableMultiSelect<T = string>({
         {isLoading ? (
           <span className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
             <LoadingSpinner />
-            Loading...
+            {t("common.actions.loading")}
           </span>
         ) : (
           <span
@@ -308,7 +315,9 @@ export function SearchableMultiSelect<T = string>({
               }}
               onClick={clearSelections}
               className="rounded-md p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-              aria-label="Clear selections"
+              aria-label={t(
+                "ui.searchableMultiSelect.clearSelectionsAriaLabel",
+              )}
             >
               <svg
                 className="h-3.5 w-3.5"
@@ -358,7 +367,7 @@ export function SearchableMultiSelect<T = string>({
                   type="text"
                   value={search}
                   onChange={(event) => updateSearch(event.target.value)}
-                  placeholder={searchPlaceholder}
+                  placeholder={resolvedSearchPlaceholder}
                   className={cn(
                     "h-9 w-full rounded-lg border bg-gray-50 pl-9 pr-3 text-sm outline-none transition-all duration-200",
                     "border-gray-200 text-gray-700 placeholder:text-gray-400",
@@ -442,7 +451,7 @@ export function SearchableMultiSelect<T = string>({
               <div className="flex flex-col items-center gap-2 px-3 py-6 text-center">
                 <SearchIcon className="h-8 w-8 text-gray-300 dark:text-gray-600" />
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {emptyMessage}
+                  {resolvedEmptyMessage}
                 </span>
               </div>
             )}
@@ -452,10 +461,10 @@ export function SearchableMultiSelect<T = string>({
                 {isLoadingMore ? (
                   <span className="flex items-center gap-2">
                     <LoadingSpinner className="h-3.5 w-3.5" />
-                    Loading more...
+                    {t("ui.searchableSelect.loadingMore")}
                   </span>
                 ) : (
-                  <span>Scroll to load more</span>
+                  <span>{t("ui.searchableSelect.scrollToLoadMore")}</span>
                 )}
               </div>
             ) : null}

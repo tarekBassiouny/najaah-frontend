@@ -12,6 +12,7 @@ import {
   formatEtaSeconds,
 } from "@/features/videos/lib/upload-metrics";
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 function isTransferActive(upload: GlobalPdfUpload) {
   return (
@@ -22,6 +23,7 @@ function isTransferActive(upload: GlobalPdfUpload) {
 }
 
 export function PdfUploadDock() {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const {
     uploads,
@@ -43,6 +45,11 @@ export function PdfUploadDock() {
     uploads[uploads.length - 1] != null
       ? uploads[uploads.length - 1].progress
       : 0;
+  const resolvePhaseLabel = (phase: GlobalPdfUpload["phase"]) => {
+    const key = `pages.pdfs.uploadDock.phase.${phase}`;
+    const translated = t(key);
+    return translated === key ? phase : translated;
+  };
 
   const withErrorToast = async (
     action: () => Promise<void>,
@@ -68,7 +75,9 @@ export function PdfUploadDock() {
           className="h-auto rounded-full px-4 py-2"
           variant="outline"
         >
-          PDF Uploads ({uploads.length}){" "}
+          {t("pages.pdfs.uploadDock.minimized.label", {
+            count: uploads.length,
+          })}{" "}
           {activeCount > 0 ? `• ${Math.round(latestProgress)}%` : ""}
         </Button>
       </div>
@@ -80,16 +89,26 @@ export function PdfUploadDock() {
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            PDF Upload Queue
+            {t("pages.pdfs.uploadDock.title")}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {uploads.length} item{uploads.length === 1 ? "" : "s"}
-            {hasActiveTransfers ? ` • ${activeCount} active` : " • all idle"}
+            {uploads.length === 1
+              ? t("pages.pdfs.uploadDock.summary.single", {
+                  count: uploads.length,
+                })
+              : t("pages.pdfs.uploadDock.summary.plural", {
+                  count: uploads.length,
+                })}
+            {hasActiveTransfers
+              ? ` • ${t("pages.pdfs.uploadDock.summary.active", {
+                  count: activeCount,
+                })}`
+              : ` • ${t("pages.pdfs.uploadDock.summary.allIdle")}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button type="button" size="sm" variant="outline" onClick={minimize}>
-            Minimize
+            {t("pages.pdfs.uploadDock.actions.minimize")}
           </Button>
           <Button
             type="button"
@@ -97,7 +116,7 @@ export function PdfUploadDock() {
             variant="ghost"
             onClick={clearFinishedUploads}
           >
-            Clear Finished
+            {t("pages.pdfs.uploadDock.actions.clearFinished")}
           </Button>
         </div>
       </div>
@@ -127,25 +146,27 @@ export function PdfUploadDock() {
                   onClick={() => clearUpload(upload.id)}
                   disabled={isTransferActive(upload)}
                 >
-                  Hide
+                  {t("pages.pdfs.uploadDock.actions.hide")}
                 </Button>
               </div>
 
               <div className="mt-2 space-y-1.5">
                 <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
-                  <span className="capitalize">{upload.phase}</span>
+                  <span className="capitalize">
+                    {resolvePhaseLabel(upload.phase)}
+                  </span>
                   <span>{upload.progress.toFixed(1)}%</span>
                 </div>
                 <Progress value={upload.progress} />
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
                   <span>
-                    Speed:{" "}
+                    {t("pages.pdfs.uploadDock.metrics.speed")}:{" "}
                     <span className="font-medium text-gray-700 dark:text-gray-200">
                       {formatBytesPerSecond(upload.bytesPerSecond)}
                     </span>
                   </span>
                   <span>
-                    ETA:{" "}
+                    {t("pages.pdfs.uploadDock.metrics.eta")}:{" "}
                     <span className="font-medium text-gray-700 dark:text-gray-200">
                       {formatEtaSeconds(upload.etaSeconds)}
                     </span>
@@ -162,17 +183,19 @@ export function PdfUploadDock() {
                   onClick={() =>
                     withErrorToast(
                       () => stopUpload(upload.id),
-                      "Failed to stop upload.",
-                      "Upload stopped.",
+                      t("pages.pdfs.uploadDock.errors.stopFailed"),
+                      t("pages.pdfs.uploadDock.messages.stopped"),
                     )
                   }
                   disabled={!canStop}
                 >
-                  Stop
+                  {t("pages.pdfs.uploadDock.actions.stop")}
                 </Button>
                 {upload.uploadSessionId != null ? (
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    Session #{String(upload.uploadSessionId)}
+                    {t("pages.pdfs.uploadDock.session", {
+                      id: String(upload.uploadSessionId),
+                    })}
                   </span>
                 ) : null}
               </div>

@@ -53,6 +53,10 @@ type PageProps = {
 };
 
 type ActivePanel = "overview" | "students" | "settings";
+type TranslateFn = (
+  _key: string,
+  _params?: Record<string, string | number>,
+) => string;
 
 function resolveCategoryId(course: Record<string, unknown>) {
   const directCategoryId = course.category_id;
@@ -78,8 +82,9 @@ function normalizeEntityId(value: string): string | number {
 
 function getInstructorLabel(
   instructor: InstructorSummary | null | undefined,
+  t: TranslateFn,
 ): string {
-  if (!instructor) return "Unknown instructor";
+  if (!instructor) return t("pages.centerCourseDetail.unknown.instructor");
 
   if (typeof instructor.name === "string" && instructor.name.trim()) {
     return instructor.name.trim();
@@ -90,7 +95,9 @@ function getInstructorLabel(
     return translatedName.trim();
   }
 
-  return `Instructor #${instructor.id}`;
+  return t("pages.centerCourseDetail.unknown.instructorById", {
+    id: instructor.id,
+  });
 }
 
 function isEducationTargetingFieldKey(key: string) {
@@ -187,7 +194,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     selectedValue: settingsForm.category_id,
     includeNoneOption: true,
     noneOptionValue: "none",
-    noneOptionLabel: "No category",
+    noneOptionLabel: t("pages.centerCourseDetail.settings.fields.noCategory"),
   });
   const {
     options: instructorOptionItems,
@@ -239,18 +246,18 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     () => [
       {
         id: "overview" as const,
-        label: "Overview",
+        label: t("pages.centerCourseDetail.panels.overview"),
       },
       {
         id: "students" as const,
-        label: "Enrolled Students",
+        label: t("pages.centerCourseDetail.panels.students"),
       },
       {
         id: "settings" as const,
-        label: "Settings",
+        label: t("pages.centerCourseDetail.panels.settings"),
       },
     ],
-    [],
+    [t],
   );
 
   const setPanel = (panel: ActivePanel) => {
@@ -304,7 +311,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       !hasAnyEducationTarget(educationTargeting)
     ) {
       setEducationTargetingValidationError(
-        "Select at least one grade, school, or college for targeted visibility.",
+        t("pages.centerCourseDetail.errors.targetingRequired"),
       );
       return;
     }
@@ -386,9 +393,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       const bPrimary = String(b.id) === primaryInstructorId;
       if (aPrimary && !bPrimary) return -1;
       if (!aPrimary && bPrimary) return 1;
-      return getInstructorLabel(a).localeCompare(getInstructorLabel(b));
+      return getInstructorLabel(a, t).localeCompare(getInstructorLabel(b, t));
     });
-  }, [course?.instructors, course?.primary_instructor, primaryInstructorId]);
+  }, [course?.instructors, course?.primary_instructor, primaryInstructorId, t]);
 
   const instructorOptions = useMemo(() => {
     const assignedIds = new Set(
@@ -405,7 +412,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
 
   const handleAssignInstructor = () => {
     if (!selectedInstructorId) {
-      setInstructorActionError("Select an instructor to assign.");
+      setInstructorActionError(
+        t("pages.centerCourseDetail.errors.selectInstructor"),
+      );
       return;
     }
 
@@ -422,7 +431,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
           showToast(
             getAdminResponseMessage(
               updatedCourse,
-              "Instructor assigned successfully.",
+              t("pages.centerCourseDetail.toasts.instructorAssigned"),
             ),
             "success",
           );
@@ -431,7 +440,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         onError: (error) => {
           const message = getAdminApiErrorMessage(
             error,
-            "Failed to assign instructor.",
+            t("pages.centerCourseDetail.errors.assignInstructorFailed"),
           );
           setInstructorActionError(message);
           showToast(message, "error");
@@ -455,7 +464,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
           showToast(
             getAdminResponseMessage(
               updatedCourse,
-              "Instructor removed successfully.",
+              t("pages.centerCourseDetail.toasts.instructorRemoved"),
             ),
             "success",
           );
@@ -464,7 +473,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         onError: (error) => {
           const message = getAdminApiErrorMessage(
             error,
-            "Failed to remove instructor.",
+            t("pages.centerCourseDetail.errors.removeInstructorFailed"),
           );
           setInstructorActionError(message);
           showToast(message, "error");
@@ -506,7 +515,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   if (isMissingCourse || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Course"
+        scopeLabel={t("pages.centerCourseDetail.scopeLabel")}
         title={t("pages.centerCourseEdit.notFoundTitle")}
         description={t("pages.centerCourseEdit.notFoundDescription")}
         primaryAction={{
@@ -555,19 +564,27 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         "";
       if (label) return label;
       if (category.id != null && category.id !== "") {
-        return `Category #${category.id}`;
+        return t("pages.centerCourseDetail.unknown.categoryById", {
+          id: category.id,
+        });
       }
     }
 
     if (courseData.category_id != null && courseData.category_id !== "") {
-      return `Category #${courseData.category_id}`;
+      return t("pages.centerCourseDetail.unknown.categoryById", {
+        id: courseData.category_id,
+      });
     }
 
     return "";
   })();
 
   const courseTitle = String(
-    courseData.title ?? courseData.name ?? `Course #${courseData.id}`,
+    courseData.title ??
+      courseData.name ??
+      t("pages.centerCourseDetail.unknown.courseById", {
+        id: courseData.id,
+      }),
   );
 
   return (
@@ -576,7 +593,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         <aside className="w-full lg:w-[220px] lg:flex-none">
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-dark">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              Course Management
+              {t("pages.centerCourseDetail.management")}
             </p>
             <h2 className="mt-2 text-base font-semibold text-gray-900 dark:text-white">
               {courseTitle}
@@ -658,16 +675,23 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-primary" />
-                  <span>{courseData.center?.name ?? `Center ${centerId}`}</span>
+                  <span>
+                    {courseData.center?.name ??
+                      t("pages.centerCourseDetail.unknown.centerById", {
+                        id: centerId,
+                      })}
+                  </span>
                 </div>
                 {primaryInstructorId ? (
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
-                      Primary Instructor:{" "}
-                      {getInstructorLabel(courseData.primary_instructor)}
+                      {t("pages.centerCourseDetail.primaryInstructor")}:{" "}
+                      {getInstructorLabel(courseData.primary_instructor, t)}
                       {assignedInstructors.length > 1
-                        ? ` (+${assignedInstructors.length - 1} more)`
+                        ? t("pages.centerCourseDetail.moreInstructors", {
+                            count: assignedInstructors.length - 1,
+                          })
                         : ""}
                     </span>
                   </div>
@@ -676,7 +700,8 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
                     <span>
-                      Created: {formatDateTime(String(courseData.created_at))}
+                      {t("pages.centerCourseDetail.createdLabel")}:{" "}
+                      {formatDateTime(String(courseData.created_at))}
                     </span>
                   </div>
                 ) : null}
@@ -704,8 +729,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               showCourseColumn={false}
               showEnrollmentWindowColumn={false}
               showActionColumn={false}
-              headerTitle="Enrolled Students"
-              headerDescription="Track active enrollments for this course."
+              headerTitle={t("pages.centerCourseDetail.panels.students")}
+              headerDescription={t(
+                "pages.centerCourseDetail.studentsDescription",
+              )}
               buildStudentHref={(studentId) =>
                 `/centers/${centerId}/students/${studentId}?from=course&courseId=${courseId}`
               }
@@ -717,16 +744,18 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   <CardContent className="space-y-4 py-5">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        Course Settings
+                        {t("pages.centerCourseDetail.settings.title")}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Update course metadata without leaving this page.
+                        {t("pages.centerCourseDetail.settings.description")}
                       </p>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="settings-title">Title</Label>
+                        <Label htmlFor="settings-title">
+                          {t("pages.centerCourseDetail.settings.fields.title")}
+                        </Label>
                         <Input
                           id="settings-title"
                           value={settingsForm.title}
@@ -735,7 +764,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="settings-slug">Slug</Label>
+                        <Label htmlFor="settings-slug">
+                          {t("pages.centerCourseDetail.settings.fields.slug")}
+                        </Label>
                         <Input
                           id="settings-slug"
                           value={settingsForm.slug}
@@ -746,7 +777,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="settings-category">Category</Label>
+                        <Label htmlFor="settings-category">
+                          {t(
+                            "pages.centerCourseDetail.settings.fields.category",
+                          )}
+                        </Label>
                         <SearchableSelect
                           value={settingsForm.category_id}
                           onValueChange={(value) =>
@@ -756,8 +791,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                             }))
                           }
                           options={categoryOptions}
-                          placeholder="Select category"
-                          searchPlaceholder="Search categories..."
+                          placeholder={t(
+                            "pages.centerCourseDetail.settings.fields.selectCategory",
+                          )}
+                          searchPlaceholder={t(
+                            "pages.centerCourseDetail.settings.fields.searchCategories",
+                          )}
                           searchValue={categorySearch}
                           onSearchValueChange={setCategorySearch}
                           filterOptions={false}
@@ -770,7 +809,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="settings-description">Description</Label>
+                      <Label htmlFor="settings-description">
+                        {t(
+                          "pages.centerCourseDetail.settings.fields.description",
+                        )}
+                      </Label>
                       <textarea
                         id="settings-description"
                         value={settingsForm.description}
@@ -793,7 +836,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                         type="submit"
                         disabled={isSavingSettings || !settingsForm.title}
                       >
-                        {isSavingSettings ? "Saving..." : "Save Changes"}
+                        {isSavingSettings
+                          ? t("pages.centerCourseDetail.actions.saving")
+                          : t("pages.centerCourseDetail.actions.saveChanges")}
                       </Button>
                       <Button
                         type="button"
@@ -816,7 +861,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                           setEducationTargetingValidationError(null);
                         }}
                       >
-                        Reset
+                        {t("pages.centerCourseDetail.actions.reset")}
                       </Button>
                     </div>
                   </CardContent>
@@ -827,7 +872,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     <CardContent className="py-4">
                       <p className="text-sm text-red-600 dark:text-red-400">
                         {(settingsError as Error)?.message ||
-                          "Failed to update course. Please try again."}
+                          t(
+                            "pages.centerCourseDetail.errors.updateCourseFailed",
+                          )}
                       </p>
                     </CardContent>
                   </Card>
@@ -838,24 +885,30 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                 <CardContent className="space-y-4 py-5">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Manage Instructors
+                      {t("pages.centerCourseDetail.instructors.title")}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Assign additional instructors and remove existing ones.
+                      {t("pages.centerCourseDetail.instructors.description")}
                     </p>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                     <div className="space-y-2">
                       <Label htmlFor="assign-instructor">
-                        Assign Instructor
+                        {t(
+                          "pages.centerCourseDetail.instructors.assignInstructor",
+                        )}
                       </Label>
                       <SearchableSelect
                         value={selectedInstructorId}
                         onValueChange={setSelectedInstructorId}
                         options={instructorOptions}
-                        placeholder="Select instructor"
-                        searchPlaceholder="Search instructors..."
+                        placeholder={t(
+                          "pages.centerCourseDetail.instructors.selectInstructor",
+                        )}
+                        searchPlaceholder={t(
+                          "pages.centerCourseDetail.instructors.searchInstructors",
+                        )}
                         searchValue={instructorSearch}
                         onSearchValueChange={setInstructorSearch}
                         filterOptions={false}
@@ -876,7 +929,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                         isInstructorsLoading
                       }
                     >
-                      {isAssigningInstructor ? "Assigning..." : "Assign"}
+                      {isAssigningInstructor
+                        ? t("pages.centerCourseDetail.actions.assigning")
+                        : t("pages.centerCourseDetail.actions.assign")}
                     </Button>
                   </div>
 
@@ -888,15 +943,19 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label>Assigned Instructors</Label>
+                      <Label>
+                        {t("pages.centerCourseDetail.instructors.assigned")}
+                      </Label>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {assignedInstructors.length} total
+                        {t("pages.centerCourseDetail.instructors.total", {
+                          count: assignedInstructors.length,
+                        })}
                       </span>
                     </div>
 
                     {assignedInstructors.length === 0 ? (
                       <p className="rounded-lg border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                        No instructors assigned yet.
+                        {t("pages.centerCourseDetail.instructors.empty")}
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -913,14 +972,19 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                                    {getInstructorLabel(instructor)}
+                                    {getInstructorLabel(instructor, t)}
                                   </p>
                                   {isPrimary ? (
-                                    <Badge variant="info">Primary</Badge>
+                                    <Badge variant="info">
+                                      {t(
+                                        "pages.centerCourseDetail.instructors.primary",
+                                      )}
+                                    </Badge>
                                   ) : null}
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  ID: {instructor.id}
+                                  {t("pages.centerCourseDetail.instructors.id")}
+                                  : {instructor.id}
                                 </p>
                               </div>
                               <Button
@@ -933,7 +997,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                                 }
                                 disabled={isInstructorActionPending}
                               >
-                                Remove
+                                {t("pages.centerCourseDetail.actions.remove")}
                               </Button>
                             </div>
                           );
@@ -957,11 +1021,18 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       >
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader className="space-y-2">
-            <DialogTitle>Remove Instructor</DialogTitle>
+            <DialogTitle>
+              {t("pages.centerCourseDetail.removeInstructor.title")}
+            </DialogTitle>
             <DialogDescription>
               {pendingRemoveInstructor
-                ? `Are you sure you want to remove "${getInstructorLabel(pendingRemoveInstructor)}" from this course?`
-                : "Are you sure you want to remove this instructor?"}
+                ? t(
+                    "pages.centerCourseDetail.removeInstructor.descriptionWithName",
+                    {
+                      name: getInstructorLabel(pendingRemoveInstructor, t),
+                    },
+                  )
+                : t("pages.centerCourseDetail.removeInstructor.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -971,14 +1042,16 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               onClick={() => setPendingRemoveInstructor(null)}
               disabled={isInstructorActionPending}
             >
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button
               onClick={handleConfirmRemoveInstructor}
               disabled={isInstructorActionPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isRemovingInstructor ? "Removing..." : "Remove"}
+              {isRemovingInstructor
+                ? t("pages.centerCourseDetail.actions.removing")
+                : t("pages.centerCourseDetail.actions.remove")}
             </Button>
           </div>
         </DialogContent>

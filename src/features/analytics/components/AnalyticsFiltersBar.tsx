@@ -7,6 +7,7 @@ import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsFiltersBarProps = {
   isPlatformAdmin: boolean;
@@ -52,6 +53,8 @@ export function AnalyticsFiltersBar({
   onReset,
   isLoading,
 }: AnalyticsFiltersBarProps) {
+  const { t } = useTranslation();
+
   const { centerId } = useTenant();
   const [datePreset, setDatePreset] = useState<string>("");
   const hasSelectedCenterFilter = isPlatformAdmin && Boolean(centerId);
@@ -99,7 +102,7 @@ export function AnalyticsFiltersBar({
               </Button>
             ))}
             <span className="text-xs text-dark-5 dark:text-dark-4">
-              Live updates
+              {t("auto.features.analytics.components.analyticsfiltersbar.s1")}
             </span>
           </div>
         }
@@ -117,7 +120,9 @@ export function AnalyticsFiltersBar({
         <div className="lg:col-span-1">
           <input
             type="date"
-            title="From date"
+            title={t(
+              "auto.features.analytics.components.analyticsfiltersbar.s2",
+            )}
             className={cn(
               "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
               !from && "text-gray-500",
@@ -134,7 +139,9 @@ export function AnalyticsFiltersBar({
         <div className="lg:col-span-1">
           <input
             type="date"
-            title="To date"
+            title={t(
+              "auto.features.analytics.components.analyticsfiltersbar.s3",
+            )}
             className={cn(
               "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
               !to && "text-gray-500",
@@ -152,7 +159,7 @@ export function AnalyticsFiltersBar({
       {hasInvalidRange ? (
         <div className="border-b border-gray-200 px-4 pb-4 pt-3 dark:border-gray-700">
           <p className="text-xs font-medium text-red-600 dark:text-red-400">
-            End date must be the same as or later than the start date.
+            {t("auto.features.analytics.components.analyticsfiltersbar.s4")}
           </p>
         </div>
       ) : null}

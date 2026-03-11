@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsSectionCardProps = {
   title: string;
@@ -34,6 +35,8 @@ export function AnalyticsSectionCard({
   isError,
   onRetry,
 }: AnalyticsSectionCardProps) {
+  const { t } = useTranslation();
+
   const entries = data ? Object.entries(data).slice(0, 8) : [];
 
   return (
@@ -55,9 +58,11 @@ export function AnalyticsSectionCard({
           </div>
         ) : isError ? (
           <Alert variant="destructive">
-            <AlertTitle>Failed to load section</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.analytics.components.analyticssectioncard.s1")}
+            </AlertTitle>
             <AlertDescription>
-              Please retry this analytics request.
+              {t("auto.features.analytics.components.analyticssectioncard.s2")}
             </AlertDescription>
           </Alert>
         ) : entries.length ? (
@@ -78,7 +83,7 @@ export function AnalyticsSectionCard({
           </div>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No analytics data for the selected range.
+            {t("auto.features.analytics.components.analyticssectioncard.s3")}
           </p>
         )}
       </CardContent>

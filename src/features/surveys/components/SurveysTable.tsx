@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTenant } from "@/app/tenant-provider";
+import { useTranslation } from "@/features/localization";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,26 +73,34 @@ function getSurveyTitle(survey: Survey) {
   return `Survey #${survey.id}`;
 }
 
-function getScopeBadge(survey: Survey) {
+function getScopeBadge(survey: Survey, t: (_key: string) => string) {
   const scopeType = Number(survey.scope_type);
   if (scopeType === 2) {
-    return <Badge variant="info">Center</Badge>;
+    return (
+      <Badge variant="info">{t("pages.surveys.table.scope.center")}</Badge>
+    );
   }
-  return <Badge variant="secondary">System</Badge>;
+  return (
+    <Badge variant="secondary">{t("pages.surveys.table.scope.system")}</Badge>
+  );
 }
 
-function getCenterLabel(survey: Survey) {
+function getCenterLabel(survey: Survey, t: (_key: string) => string) {
   if (survey.center?.name) return survey.center.name;
-  if (survey.center_id != null) return `Center #${survey.center_id}`;
-  return "Najaah App";
+  if (survey.center_id != null)
+    return `${t("pages.surveys.table.scope.center")} #${survey.center_id}`;
+  return t("pages.surveys.table.fallbackCenter");
 }
 
-function getAssignmentLabel(survey: Survey) {
+function getAssignmentLabel(
+  survey: Survey,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const formatAssignment = (assignment?: Survey["assignment"]) => {
     if (!assignment) return null;
     const type = String(assignment.type ?? "").toLowerCase();
 
-    if (type === "all") return "All Students";
+    if (type === "all") return t("pages.surveys.table.assignment.allStudents");
 
     const assignableName =
       typeof assignment.assignable_name === "string" &&
@@ -106,14 +115,14 @@ function getAssignmentLabel(survey: Survey) {
 
     const prefix =
       type === "course"
-        ? "Course"
+        ? t("pages.surveys.table.assignment.course")
         : type === "center"
-          ? "Center"
+          ? t("pages.surveys.table.assignment.center")
           : type === "video"
-            ? "Video"
+            ? t("pages.surveys.table.assignment.video")
             : type === "user"
-              ? "Student"
-              : "Assignment";
+              ? t("pages.surveys.table.assignment.student")
+              : t("pages.surveys.table.assignment.assignment");
 
     return `${prefix} #${assignableId}`;
   };
@@ -126,12 +135,13 @@ function getAssignmentLabel(survey: Survey) {
   if (assignmentLabel) {
     const extraCount = assignments.length - 1;
     if (extraCount > 0) {
-      return `${assignmentLabel} +${extraCount} more`;
+      return `${assignmentLabel} ${t("pages.surveys.table.assignment.more", { count: extraCount })}`;
     }
     return assignmentLabel;
   }
 
-  if (survey.show_to_all_students) return "All Students";
+  if (survey.show_to_all_students)
+    return t("pages.surveys.table.assignment.allStudents");
 
   const singleAssignmentLabel = formatAssignment(survey.assignment);
   if (singleAssignmentLabel) return singleAssignmentLabel;
@@ -179,6 +189,7 @@ export function SurveysTable({
   onDelete,
   onViewResults,
 }: SurveysTableProps) {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const scopeCenterId = useMemo(() => {
     if (centerIdProp == null) return undefined;
@@ -438,7 +449,9 @@ export function SurveysTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "survey" : "surveys"}
+            {total === 1
+              ? t("pages.surveys.table.summary", { count: total })
+              : t("pages.surveys.table.summaryPlural", { count: total })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3"
@@ -460,7 +473,7 @@ export function SurveysTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search surveys..."
+            placeholder={t("pages.surveys.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -476,7 +489,7 @@ export function SurveysTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.surveys.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -510,12 +523,20 @@ export function SurveysTable({
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t("pages.surveys.table.filters.status")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_ACTIVE_VALUE}>Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value={ALL_ACTIVE_VALUE}>
+              {t("pages.surveys.table.filters.status")}
+            </SelectItem>
+            <SelectItem value="active">
+              {t("pages.surveys.table.filters.active")}
+            </SelectItem>
+            <SelectItem value="inactive">
+              {t("pages.surveys.table.filters.inactive")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -527,12 +548,20 @@ export function SurveysTable({
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Requirement" />
+            <SelectValue
+              placeholder={t("pages.surveys.table.filters.requirement")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_MANDATORY_VALUE}>Requirement</SelectItem>
-            <SelectItem value="mandatory">Mandatory</SelectItem>
-            <SelectItem value="optional">Optional</SelectItem>
+            <SelectItem value={ALL_MANDATORY_VALUE}>
+              {t("pages.surveys.table.filters.requirement")}
+            </SelectItem>
+            <SelectItem value="mandatory">
+              {t("pages.surveys.table.filters.mandatory")}
+            </SelectItem>
+            <SelectItem value="optional">
+              {t("pages.surveys.table.filters.optional")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -544,19 +573,27 @@ export function SurveysTable({
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Type" />
+            <SelectValue placeholder={t("pages.surveys.table.filters.type")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_TYPE_VALUE}>Type</SelectItem>
-            <SelectItem value="1">Feedback</SelectItem>
-            <SelectItem value="2">Mandatory</SelectItem>
-            <SelectItem value="3">Poll</SelectItem>
+            <SelectItem value={ALL_TYPE_VALUE}>
+              {t("pages.surveys.table.filters.type")}
+            </SelectItem>
+            <SelectItem value="1">
+              {t("pages.surveys.table.filters.feedback")}
+            </SelectItem>
+            <SelectItem value="2">
+              {t("pages.surveys.table.filters.mandatoryType")}
+            </SelectItem>
+            <SelectItem value="3">
+              {t("pages.surveys.table.filters.poll")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
         <div className="flex flex-wrap items-center gap-2 md:col-span-3">
           <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Quick date filters
+            {t("pages.surveys.table.dateFilters.quickLabel")}
           </span>
           <Button
             type="button"
@@ -567,7 +604,7 @@ export function SurveysTable({
             className="h-8 px-3 text-xs"
             onClick={() => applyDatePreset(DATE_PRESET_ACTIVE_NOW)}
           >
-            Active now
+            {t("pages.surveys.table.dateFilters.activeNow")}
           </Button>
           <Button
             type="button"
@@ -578,7 +615,7 @@ export function SurveysTable({
             className="h-8 px-3 text-xs"
             onClick={() => applyDatePreset(DATE_PRESET_UPCOMING)}
           >
-            Upcoming
+            {t("pages.surveys.table.dateFilters.upcoming")}
           </Button>
           <Button
             type="button"
@@ -587,7 +624,7 @@ export function SurveysTable({
             className="h-8 px-3 text-xs"
             onClick={() => applyDatePreset(DATE_PRESET_ENDED)}
           >
-            Ended
+            {t("pages.surveys.table.dateFilters.ended")}
           </Button>
           <Button
             type="button"
@@ -600,7 +637,7 @@ export function SurveysTable({
             className="h-8 px-3 text-xs"
             onClick={() => applyDatePreset(DATE_PRESET_STARTS_THIS_MONTH)}
           >
-            Starts this month
+            {t("pages.surveys.table.dateFilters.startsThisMonth")}
           </Button>
           <Button
             type="button"
@@ -610,8 +647,8 @@ export function SurveysTable({
             onClick={() => setIsDateFiltersExpanded((prev) => !prev)}
           >
             {isDateFiltersExpanded
-              ? "Hide advanced date filters"
-              : "Advanced date filters"}
+              ? t("pages.surveys.table.dateFilters.hideAdvanced")
+              : t("pages.surveys.table.dateFilters.showAdvanced")}
           </Button>
         </div>
 
@@ -619,16 +656,16 @@ export function SurveysTable({
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40 md:col-span-3">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                Survey Window Filters
+                {t("pages.surveys.table.dateFilters.windowTitle")}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Use start and end ranges to match how backend filters:
+                {t("pages.surveys.table.dateFilters.windowHint")}
                 <code className="ml-1 rounded bg-gray-200 px-1 py-0.5 text-[11px] dark:bg-gray-800">
-                  start_from/start_to
+                  {t("auto.features.surveys.components.surveystable.s1")}
                 </code>
-                and
+                {t("common.labels.and")}
                 <code className="ml-1 rounded bg-gray-200 px-1 py-0.5 text-[11px] dark:bg-gray-800">
-                  end_from/end_to
+                  {t("auto.features.surveys.components.surveystable.s2")}
                 </code>
                 .
               </p>
@@ -637,10 +674,10 @@ export function SurveysTable({
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  Start Date Range
+                  {t("pages.surveys.table.dateFilters.startDateRange")}
                 </p>
                 <label className="block text-xs text-gray-600 dark:text-gray-300">
-                  Starts on or after
+                  {t("pages.surveys.table.dateFilters.startsOnOrAfter")}
                 </label>
                 <input
                   type="date"
@@ -653,7 +690,7 @@ export function SurveysTable({
                   }}
                 />
                 <label className="block text-xs text-gray-600 dark:text-gray-300">
-                  Starts on or before
+                  {t("pages.surveys.table.dateFilters.startsOnOrBefore")}
                 </label>
                 <input
                   type="date"
@@ -670,10 +707,10 @@ export function SurveysTable({
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  End Date Range
+                  {t("pages.surveys.table.dateFilters.endDateRange")}
                 </p>
                 <label className="block text-xs text-gray-600 dark:text-gray-300">
-                  Ends on or after
+                  {t("pages.surveys.table.dateFilters.endsOnOrAfter")}
                 </label>
                 <input
                   type="date"
@@ -686,7 +723,7 @@ export function SurveysTable({
                   }}
                 />
                 <label className="block text-xs text-gray-600 dark:text-gray-300">
-                  Ends on or before
+                  {t("pages.surveys.table.dateFilters.endsOnOrBefore")}
                 </label>
                 <input
                   type="date"
@@ -705,8 +742,8 @@ export function SurveysTable({
             {hasDateValidationError ? (
               <p className="mt-3 text-xs text-red-600 dark:text-red-400">
                 {isStartDateRangeInvalid
-                  ? "Start date range is invalid: start_from must be before or equal to start_to."
-                  : "End date range is invalid: end_from must be before or equal to end_to."}
+                  ? t("pages.surveys.table.dateFilters.startRangeInvalid")
+                  : t("pages.surveys.table.dateFilters.endRangeInvalid")}
               </p>
             ) : null}
           </div>
@@ -717,7 +754,7 @@ export function SurveysTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load surveys. Please try again.
+              {t("pages.surveys.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -725,7 +762,7 @@ export function SurveysTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.surveys.table.retry")}
             </Button>
           </div>
         </div>
@@ -747,21 +784,37 @@ export function SurveysTable({
                       checked={isAllPageSelected}
                       onChange={toggleAllSelections}
                       disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all surveys on this page"
+                      aria-label={t("pages.surveys.table.selectAll")}
                     />
                   ) : null}
                 </TableHead>
-                <TableHead className="font-medium">Title</TableHead>
-                <TableHead className="font-medium">Scope</TableHead>
-                <TableHead className="font-medium">Center</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Assignment</TableHead>
-                <TableHead className="font-medium">Window</TableHead>
-                <TableHead className="font-medium">Questions</TableHead>
-                <TableHead className="font-medium">Submitted</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.title")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.scope")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.center")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.assignment")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.window")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.questions")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.surveys.table.headers.submitted")}
+                </TableHead>
                 {hasActions ? (
                   <TableHead className="w-10 text-right font-medium">
-                    Actions
+                    {t("pages.surveys.table.headers.actions")}
                   </TableHead>
                 ) : null}
               </TableRow>
@@ -809,11 +862,15 @@ export function SurveysTable({
                 <TableRow>
                   <TableCell colSpan={hasActions ? 10 : 9} className="h-48">
                     <EmptyState
-                      title={query ? "No surveys found" : "No surveys yet"}
+                      title={
+                        query
+                          ? t("pages.surveys.table.empty.noResultsTitle")
+                          : t("pages.surveys.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Create your first survey to start collecting responses."
+                          ? t("pages.surveys.table.empty.noResultsDescription")
+                          : t("pages.surveys.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -845,19 +902,21 @@ export function SurveysTable({
                       <TableCell className="font-medium text-gray-900 dark:text-white">
                         {getSurveyTitle(survey)}
                       </TableCell>
-                      <TableCell>{getScopeBadge(survey)}</TableCell>
+                      <TableCell>{getScopeBadge(survey, t)}</TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {getCenterLabel(survey)}
+                        {getCenterLabel(survey, t)}
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={survey.is_active ? "success" : "default"}
                         >
-                          {survey.is_active ? "Active" : "Inactive"}
+                          {survey.is_active
+                            ? t("pages.surveys.table.status.active")
+                            : t("pages.surveys.table.status.inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {getAssignmentLabel(survey)}
+                        {getAssignmentLabel(survey, t)}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {getDateRange(survey)}
@@ -896,7 +955,7 @@ export function SurveysTable({
                                       onEdit(survey);
                                     }}
                                   >
-                                    Edit
+                                    {t("pages.surveys.table.actions.edit")}
                                   </button>
                                 ) : null}
 
@@ -908,7 +967,7 @@ export function SurveysTable({
                                       onAssign(survey);
                                     }}
                                   >
-                                    Assign
+                                    {t("pages.surveys.table.actions.assign")}
                                   </button>
                                 ) : null}
 
@@ -920,7 +979,9 @@ export function SurveysTable({
                                       onChangeStatus(survey);
                                     }}
                                   >
-                                    Change Status
+                                    {t(
+                                      "pages.surveys.table.actions.changeStatus",
+                                    )}
                                   </button>
                                 ) : null}
 
@@ -932,7 +993,7 @@ export function SurveysTable({
                                       onClose(survey);
                                     }}
                                   >
-                                    Close
+                                    {t("pages.surveys.table.actions.close")}
                                   </button>
                                 ) : null}
 
@@ -944,7 +1005,9 @@ export function SurveysTable({
                                       onViewResults(survey);
                                     }}
                                   >
-                                    View Results
+                                    {t(
+                                      "pages.surveys.table.actions.viewResults",
+                                    )}
                                   </button>
                                 ) : null}
 
@@ -956,7 +1019,7 @@ export function SurveysTable({
                                       onDelete(survey);
                                     }}
                                   >
-                                    Delete
+                                    {t("pages.surveys.table.actions.delete")}
                                   </button>
                                 ) : null}
                               </DropdownContent>
@@ -976,7 +1039,7 @@ export function SurveysTable({
       {selectedCount > 0 && enableBulkSelection ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.surveys.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {onBulkChangeStatus ? (
@@ -986,7 +1049,7 @@ export function SurveysTable({
                 onClick={() => onBulkChangeStatus(selectedSurveysList)}
                 disabled={isLoadingState}
               >
-                Change Status
+                {t("pages.surveys.table.bulk.changeStatus")}
               </Button>
             ) : null}
             {onBulkClose ? (
@@ -996,7 +1059,7 @@ export function SurveysTable({
                 onClick={() => onBulkClose(selectedSurveysList)}
                 disabled={isLoadingState}
               >
-                Close Surveys
+                {t("pages.surveys.table.bulk.closeSurveys")}
               </Button>
             ) : null}
             {onBulkDelete ? (
@@ -1006,7 +1069,7 @@ export function SurveysTable({
                 onClick={() => onBulkDelete(selectedSurveysList)}
                 disabled={isLoadingState}
               >
-                Delete Surveys
+                {t("pages.surveys.table.bulk.deleteSurveys")}
               </Button>
             ) : null}
           </div>

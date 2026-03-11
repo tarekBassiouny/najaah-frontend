@@ -17,12 +17,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE = "كيف تختار منصة White-Label LMS لمركز تعليمي";
+
 export default function ArabicWhiteLabelGuidePage() {
   return (
     <ArticlePageShell
       locale="ar"
       category="دليل White-Label LMS"
-      title="كيف تختار منصة White-Label LMS لمركز تعليمي"
+      title={SEO_PAGE_TITLE}
       intro="اختيار منصة White-Label ليس قرار تصميم فقط. هو قرار يتعلق بالثقة، والتشغيل، وحماية المحتوى، ومدى جدية المنصة في نظر الطلاب وأولياء الأمور."
       sections={[
         {

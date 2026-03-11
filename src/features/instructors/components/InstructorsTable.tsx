@@ -37,6 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const COURSES_PAGE_SIZE = 20;
@@ -117,6 +118,7 @@ export function InstructorsTable({
   onEdit,
   onDelete,
 }: InstructorsTableProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { showToast } = useModal();
   const tenant = useTenant();
@@ -231,7 +233,10 @@ export function InstructorsTable({
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_COURSES_VALUE, label: "All courses" },
+      {
+        value: ALL_COURSES_VALUE,
+        label: t("pages.instructors.table.filters.allCourses"),
+      },
     ];
 
     if (!hasSelectedCenter) return defaults;
@@ -256,12 +261,12 @@ export function InstructorsTable({
     ) {
       courses.unshift({
         value: selectedCourse,
-        label: `Course ${selectedCourse}`,
+        label: `${t("pages.instructors.table.filters.course")} ${selectedCourse}`,
       });
     }
 
     return [...defaults, ...courses];
-  }, [coursesQuery.data?.pages, hasSelectedCenter, selectedCourse]);
+  }, [coursesQuery.data?.pages, hasSelectedCenter, selectedCourse, t]);
 
   useEffect(() => {
     const nextQuery = search.trim();
@@ -293,7 +298,7 @@ export function InstructorsTable({
 
   const errorMessage = getInstructorApiErrorMessage(
     error,
-    "Failed to load instructors. Please try again.",
+    t("pages.instructors.table.loadFailed"),
   );
 
   const toggleInstructorSelection = (instructor: Instructor) => {
@@ -340,9 +345,9 @@ export function InstructorsTable({
     }
 
     const confirmed = window.confirm(
-      `Delete ${selectedInstructorsList.length} selected instructor${
-        selectedInstructorsList.length === 1 ? "" : "s"
-      }?`,
+      t("pages.instructors.table.bulk.confirmDeleteMessage", {
+        count: selectedInstructorsList.length,
+      }),
     );
     if (!confirmed) return;
 
@@ -363,19 +368,11 @@ export function InstructorsTable({
     setIsBulkDeleting(false);
 
     if (deletedCount === selectedInstructorsList.length) {
-      showToast(
-        `Deleted ${deletedCount} instructor${
-          deletedCount === 1 ? "" : "s"
-        } successfully.`,
-        "success",
-      );
+      showToast(t("pages.instructors.table.bulk.deleteSuccess"), "success");
       return;
     }
 
-    showToast(
-      `Deleted ${deletedCount} of ${selectedInstructorsList.length} selected instructors.`,
-      "error",
-    );
+    showToast(t("pages.instructors.table.bulk.deleteFailed"), "error");
   };
 
   return (
@@ -400,10 +397,12 @@ export function InstructorsTable({
         summary={
           hasSelectedCenter ? (
             <>
-              {total} {total === 1 ? "instructor" : "instructors"}
+              {total === 1
+                ? t("pages.instructors.table.summary", { count: total })
+                : t("pages.instructors.table.summaryPlural", { count: total })}
             </>
           ) : (
-            <>Select a center</>
+            <>{t("pages.instructors.table.filters.selectCenterFirst")}</>
           )
         }
         gridClassName={
@@ -429,7 +428,7 @@ export function InstructorsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name, phone, or email"
+            placeholder={t("pages.instructors.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -445,7 +444,7 @@ export function InstructorsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.instructors.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -481,9 +480,9 @@ export function InstructorsTable({
           options={courseOptions}
           searchValue={courseSearch}
           onSearchValueChange={setCourseSearch}
-          placeholder="All courses"
-          searchPlaceholder="Search courses..."
-          emptyMessage="No courses found"
+          placeholder={t("pages.instructors.table.filters.allCourses")}
+          searchPlaceholder={t("pages.instructors.table.filters.searchCourses")}
+          emptyMessage={t("pages.instructors.table.filters.noCourses")}
           isLoading={coursesQuery.isLoading}
           filterOptions={false}
           disabled={!hasSelectedCenter}
@@ -510,7 +509,7 @@ export function InstructorsTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.instructors.table.retry")}
             </Button>
           </div>
         </div>
@@ -532,17 +531,25 @@ export function InstructorsTable({
                       checked={isAllPageSelected}
                       onChange={toggleAllSelections}
                       disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all instructors on this page"
+                      aria-label={t("pages.instructors.table.selectAll")}
                     />
                   </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Instructor</TableHead>
-                <TableHead className="font-medium">Bio</TableHead>
-                <TableHead className="font-medium">Created By</TableHead>
-                <TableHead className="font-medium">Created At</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.instructors.table.headers.instructor")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.instructors.table.headers.bio")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.instructors.table.headers.createdBy")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.instructors.table.headers.createdAt")}
+                </TableHead>
                 {hasActions ? (
                   <TableHead className="w-10 text-right font-medium">
-                    Actions
+                    {t("pages.instructors.table.headers.actions")}
                   </TableHead>
                 ) : null}
               </TableRow>
@@ -581,8 +588,10 @@ export function InstructorsTable({
                 <TableRow>
                   <TableCell colSpan={columnCount} className="h-48">
                     <EmptyState
-                      title="Select a center first"
-                      description="Choose a center to load instructors."
+                      title={t("pages.instructors.selectCenterTitle")}
+                      description={t(
+                        "pages.instructors.selectCenterDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
@@ -592,12 +601,16 @@ export function InstructorsTable({
                   <TableCell colSpan={columnCount} className="h-48">
                     <EmptyState
                       title={
-                        query ? "No instructors found" : "No instructors yet"
+                        query
+                          ? t("pages.instructors.table.empty.noResultsTitle")
+                          : t("pages.instructors.table.empty.noDataTitle")
                       }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Add an instructor to get started"
+                          ? t(
+                              "pages.instructors.table.empty.noResultsDescription",
+                            )
+                          : t("pages.instructors.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -629,7 +642,7 @@ export function InstructorsTable({
                     instructor.bio.trim().length > 0
                       ? instructor.bio.trim()
                       : (getTranslationValue(instructor.bio_translations) ??
-                        "—");
+                        t("pages.instructors.table.noBio"));
                   const createdByLabel =
                     typeof instructor.creator?.name === "string" &&
                     instructor.creator.name.trim().length > 0
@@ -657,7 +670,10 @@ export function InstructorsTable({
                             onChange={() =>
                               toggleInstructorSelection(instructor)
                             }
-                            aria-label={`Select ${displayName}`}
+                            aria-label={t(
+                              "pages.instructors.table.selectInstructor",
+                              { name: displayName },
+                            )}
                             disabled={isBulkDeleting}
                           />
                         </TableCell>
@@ -733,7 +749,9 @@ export function InstructorsTable({
                                       onViewDetails?.(instructor);
                                     }}
                                   >
-                                    View details
+                                    {t(
+                                      "pages.instructors.table.actions.viewDetails",
+                                    )}
                                   </button>
                                 )}
                                 {onEdit && (
@@ -744,7 +762,9 @@ export function InstructorsTable({
                                       onEdit?.(instructor);
                                     }}
                                   >
-                                    Edit profile
+                                    {t(
+                                      "pages.instructors.table.actions.editProfile",
+                                    )}
                                   </button>
                                 )}
                                 {onDelete && (
@@ -755,7 +775,9 @@ export function InstructorsTable({
                                       onDelete?.(instructor);
                                     }}
                                   >
-                                    Delete
+                                    {t(
+                                      "pages.instructors.table.actions.delete",
+                                    )}
                                   </button>
                                 )}
                               </DropdownContent>
@@ -775,7 +797,9 @@ export function InstructorsTable({
       {selectedCount > 0 && enableBulkSelection ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.instructors.table.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -784,7 +808,9 @@ export function InstructorsTable({
               onClick={handleBulkDelete}
               disabled={isLoadingState || isBulkDeleting}
             >
-              {isBulkDeleting ? "Deleting..." : "Delete Selected"}
+              {isBulkDeleting
+                ? t("pages.instructors.table.bulk.deleting")
+                : t("pages.instructors.table.bulk.delete")}
             </Button>
           </div>
         </div>

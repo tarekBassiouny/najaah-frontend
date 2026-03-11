@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -57,79 +58,111 @@ function formatDate(dateString: string | null | undefined): string {
 }
 
 type PdfStatus = "active" | "processing" | "failed" | string | number;
+type TranslateFunction = (
+  _key: string,
+  _params?: Record<string, string | number>,
+) => string;
 
 const statusConfig: Record<
   string,
   {
     variant: "success" | "warning" | "secondary" | "error" | "default";
-    label: string;
+    labelKey: string;
   }
 > = {
-  active: { variant: "success", label: "Active" },
-  enabled: { variant: "success", label: "Enabled" },
-  approved: { variant: "success", label: "Approved" },
-  pending: { variant: "warning", label: "Pending" },
-  processing: { variant: "warning", label: "Processing" },
-  inactive: { variant: "default", label: "Inactive" },
-  disabled: { variant: "default", label: "Disabled" },
-  failed: { variant: "error", label: "Failed" },
-  rejected: { variant: "error", label: "Rejected" },
-  error: { variant: "error", label: "Error" },
+  active: { variant: "success", labelKey: "active" },
+  enabled: { variant: "success", labelKey: "active" },
+  approved: { variant: "success", labelKey: "active" },
+  pending: { variant: "warning", labelKey: "pending" },
+  processing: { variant: "warning", labelKey: "processing" },
+  uploading: { variant: "warning", labelKey: "uploading" },
+  ready: { variant: "success", labelKey: "ready" },
+  inactive: { variant: "default", labelKey: "inactive" },
+  disabled: { variant: "default", labelKey: "inactive" },
+  failed: { variant: "error", labelKey: "failed" },
+  rejected: { variant: "error", labelKey: "failed" },
+  error: { variant: "error", labelKey: "failed" },
 };
 
-function getStatusConfig(status: PdfStatus) {
+function getStatusConfig(status: PdfStatus, t: TranslateFunction) {
   if (typeof status === "number") {
-    if (status === 0) return { variant: "warning" as const, label: "Pending" };
+    if (status === 0)
+      return {
+        variant: "warning" as const,
+        label: t("pages.pdfs.table.status.pending"),
+      };
     if (status === 1)
-      return { variant: "warning" as const, label: "Uploading" };
-    if (status === 2) return { variant: "success" as const, label: "Ready" };
-    if (status === 3) return { variant: "error" as const, label: "Failed" };
+      return {
+        variant: "warning" as const,
+        label: t("pages.pdfs.table.status.uploading"),
+      };
+    if (status === 2)
+      return {
+        variant: "success" as const,
+        label: t("pages.pdfs.table.status.ready"),
+      };
+    if (status === 3)
+      return {
+        variant: "error" as const,
+        label: t("pages.pdfs.table.status.failed"),
+      };
     return { variant: "default" as const, label: String(status) };
   }
 
   const normalized = status.toLowerCase();
-  return (
-    statusConfig[normalized] || {
-      variant: "default" as const,
-      label: status.charAt(0).toUpperCase() + status.slice(1),
-    }
-  );
+  const config = statusConfig[normalized];
+  if (config) {
+    return {
+      variant: config.variant,
+      label: t(`pages.pdfs.table.status.${config.labelKey}`),
+    };
+  }
+
+  return {
+    variant: "default" as const,
+    label: status.charAt(0).toUpperCase() + status.slice(1),
+  };
 }
 
-function resolvePdfSourceTypeLabel(pdf: Pdf) {
+function resolvePdfSourceTypeLabel(pdf: Pdf, t: TranslateFunction) {
   const rawType = String(pdf.source_type ?? "")
     .trim()
     .toLowerCase();
 
   if (rawType === "1" || rawType === "upload") {
-    return "Upload";
+    return t("pages.pdfs.table.sourceMode.upload");
   }
 
   if (rawType === "0" || rawType === "url") {
-    return "URL";
+    return t("pages.pdfs.table.sourceMode.url");
   }
 
-  return pdf.source_url ? "URL" : "Upload";
+  return pdf.source_url
+    ? t("pages.pdfs.table.sourceMode.url")
+    : t("pages.pdfs.table.sourceMode.upload");
 }
 
-function resolvePdfProviderLabel(pdf: Pdf) {
+function resolvePdfProviderLabel(pdf: Pdf, t: TranslateFunction) {
   const rawProvider = String(pdf.source_provider ?? "")
     .trim()
     .toLowerCase();
 
   if (rawProvider === "spaces") {
-    return "Najaah App";
+    return t("pages.pdfs.table.filters.najaahApp");
   }
 
   if (rawProvider === "custom") {
-    return "Custom";
+    return t("pages.pdfs.table.filters.custom");
   }
 
   if (rawProvider) {
     return rawProvider.charAt(0).toUpperCase() + rawProvider.slice(1);
   }
 
-  return resolvePdfSourceTypeLabel(pdf) === "Upload" ? "Najaah App" : "Custom";
+  return resolvePdfSourceTypeLabel(pdf, t) ===
+    t("pages.pdfs.table.sourceMode.upload")
+    ? t("pages.pdfs.table.filters.najaahApp")
+    : t("pages.pdfs.table.filters.custom");
 }
 
 function resolvePdfTags(pdf: Pdf) {
@@ -152,6 +185,7 @@ export function PdfsTable({
   onEdit,
   onDelete,
 }: PdfsTableProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -330,10 +364,12 @@ export function PdfsTable({
         summary={
           centerId ? (
             <>
-              {total} {total === 1 ? "PDF" : "PDFs"}
+              {total === 1
+                ? t("pages.pdfs.table.summary", { count: total })
+                : t("pages.pdfs.table.summaryPlural", { count: total })}
             </>
           ) : (
-            <>Select a center to view PDFs.</>
+            <>{t("pages.pdfs.table.selectCenter")}</>
           )
         }
         gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
@@ -355,7 +391,7 @@ export function PdfsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search title, description, source ID..."
+            placeholder={t("pages.pdfs.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
             disabled={!centerId}
           />
@@ -372,7 +408,7 @@ export function PdfsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.pdfs.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -399,14 +435,24 @@ export function PdfsTable({
           disabled={!centerId}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("pages.pdfs.table.filters.status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>All statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="uploading">Uploading</SelectItem>
-            <SelectItem value="ready">Ready</SelectItem>
-            <SelectItem value="failed">Failed</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.pdfs.table.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value="pending">
+              {t("pages.pdfs.table.filters.pending")}
+            </SelectItem>
+            <SelectItem value="uploading">
+              {t("pages.pdfs.table.filters.uploading")}
+            </SelectItem>
+            <SelectItem value="ready">
+              {t("pages.pdfs.table.filters.ready")}
+            </SelectItem>
+            <SelectItem value="failed">
+              {t("pages.pdfs.table.filters.failed")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -419,14 +465,20 @@ export function PdfsTable({
           disabled={!centerId}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Source Type" />
+            <SelectValue
+              placeholder={t("pages.pdfs.table.filters.sourceType")}
+            />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_SOURCE_TYPE_VALUE}>
-              All source types
+              {t("pages.pdfs.table.filters.allSourceTypes")}
             </SelectItem>
-            <SelectItem value="upload">Upload</SelectItem>
-            <SelectItem value="url">URL</SelectItem>
+            <SelectItem value="upload">
+              {t("pages.pdfs.table.filters.upload")}
+            </SelectItem>
+            <SelectItem value="url">
+              {t("pages.pdfs.table.filters.url")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -439,14 +491,18 @@ export function PdfsTable({
           disabled={!centerId}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Provider" />
+            <SelectValue placeholder={t("pages.pdfs.table.filters.provider")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_SOURCE_PROVIDER_VALUE}>
-              All providers
+              {t("pages.pdfs.table.filters.allProviders")}
             </SelectItem>
-            <SelectItem value="spaces">Najaah App</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
+            <SelectItem value="spaces">
+              {t("pages.pdfs.table.filters.najaahApp")}
+            </SelectItem>
+            <SelectItem value="custom">
+              {t("pages.pdfs.table.filters.custom")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -458,7 +514,7 @@ export function PdfsTable({
             setCreatedFrom(event.target.value);
             setPage(1);
           }}
-          title="Created from date"
+          title={t("pages.pdfs.table.filters.createdFrom")}
           disabled={!centerId}
         />
 
@@ -470,20 +526,20 @@ export function PdfsTable({
             setCreatedTo(event.target.value);
             setPage(1);
           }}
-          title="Created to date"
+          title={t("pages.pdfs.table.filters.createdTo")}
           disabled={!centerId}
         />
       </ListingFilters>
 
       {!centerId ? (
         <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          Select a center to view PDFs.
+          {t("pages.pdfs.table.selectCenter")}
         </div>
       ) : isError ? (
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load PDFs. Please try again.
+              {t("pages.pdfs.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -491,7 +547,7 @@ export function PdfsTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.pdfs.table.retry")}
             </Button>
           </div>
         </div>
@@ -513,19 +569,33 @@ export function PdfsTable({
                       checked={isAllPageSelected}
                       onChange={toggleAllSelections}
                       disabled={isLoadingState || items.length === 0}
-                      aria-label="Select all PDFs on this page"
+                      aria-label={t("pages.pdfs.table.selectAll")}
                     />
                   </TableHead>
                 ) : null}
-                <TableHead className="font-medium">Title</TableHead>
-                <TableHead className="font-medium">Tags</TableHead>
-                <TableHead className="font-medium">Provider</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Size</TableHead>
-                <TableHead className="font-medium">Created</TableHead>
-                <TableHead className="font-medium">Used In</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.pdf")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.tags")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.provider")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.size")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.created")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.pdfs.table.headers.usedIn")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.pdfs.table.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -573,11 +643,15 @@ export function PdfsTable({
                     className="h-48"
                   >
                     <EmptyState
-                      title={query ? "No PDFs found" : "No PDFs yet"}
+                      title={
+                        query
+                          ? t("pages.pdfs.table.empty.noResultsTitle")
+                          : t("pages.pdfs.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Upload PDFs to get started"
+                          ? t("pages.pdfs.table.empty.noResultsDescription")
+                          : t("pages.pdfs.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -587,8 +661,8 @@ export function PdfsTable({
                 items.map((pdf, index) => {
                   const shouldOpenUp =
                     items.length > 4 && index >= items.length - 2;
-                  const sourceTypeLabel = resolvePdfSourceTypeLabel(pdf);
-                  const providerLabel = resolvePdfProviderLabel(pdf);
+                  const sourceTypeLabel = resolvePdfSourceTypeLabel(pdf, t);
+                  const providerLabel = resolvePdfProviderLabel(pdf, t);
                   const tags = resolvePdfTags(pdf);
 
                   return (
@@ -603,7 +677,9 @@ export function PdfsTable({
                             className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
                             checked={Boolean(selectedPdfs[String(pdf.id)])}
                             onChange={() => togglePdfSelection(pdf)}
-                            aria-label={`Select ${pdf.title ?? `pdf ${pdf.id}`}`}
+                            aria-label={t("pages.pdfs.table.selectPdf", {
+                              name: pdf.title ?? `pdf ${pdf.id}`,
+                            })}
                             disabled={isBulkDeleteDialogOpen}
                           />
                         </TableCell>
@@ -625,7 +701,7 @@ export function PdfsTable({
                             {pdf.description ??
                               pdf.description_translations?.en ??
                               pdf.description_translations?.ar ??
-                              "No description"}
+                              t("pages.pdfs.table.description.noDescription")}
                           </p>
                         </div>
                       </TableCell>
@@ -672,12 +748,14 @@ export function PdfsTable({
                             variant={
                               getStatusConfig(
                                 pdf.upload_status ?? pdf.status ?? "",
+                                t,
                               ).variant
                             }
                           >
                             {
                               getStatusConfig(
                                 pdf.upload_status ?? pdf.status ?? "",
+                                t,
                               ).label
                             }
                           </Badge>
@@ -703,7 +781,9 @@ export function PdfsTable({
                         {typeof pdf.courses_count === "number" ? (
                           <Badge variant="secondary">
                             {pdf.courses_count}{" "}
-                            {pdf.courses_count === 1 ? "course" : "courses"}
+                            {pdf.courses_count === 1
+                              ? t("pages.pdfs.table.usage.course")
+                              : t("pages.pdfs.table.usage.courses")}
                           </Badge>
                         ) : (
                           "—"
@@ -742,14 +822,16 @@ export function PdfsTable({
                                         window.open(url, "_blank");
                                       } catch {
                                         showToast(
-                                          "Failed to get preview URL",
+                                          t(
+                                            "pages.pdfs.table.actions.previewFailed",
+                                          ),
                                           "error",
                                         );
                                       }
                                       setOpenMenuId(null);
                                     }}
                                   >
-                                    Preview
+                                    {t("pages.pdfs.table.actions.preview")}
                                   </button>
                                   <button
                                     type="button"
@@ -769,14 +851,16 @@ export function PdfsTable({
                                         link.click();
                                       } catch {
                                         showToast(
-                                          "Failed to get download URL",
+                                          t(
+                                            "pages.pdfs.table.actions.downloadFailed",
+                                          ),
                                           "error",
                                         );
                                       }
                                       setOpenMenuId(null);
                                     }}
                                   >
-                                    Download
+                                    {t("pages.pdfs.table.actions.download")}
                                   </button>
                                 </>
                               ) : null}
@@ -789,7 +873,7 @@ export function PdfsTable({
                                     setOpenMenuId(null);
                                   }}
                                 >
-                                  View details
+                                  {t("pages.pdfs.table.actions.viewDetails")}
                                 </button>
                               ) : null}
                               {onEdit ? (
@@ -801,7 +885,7 @@ export function PdfsTable({
                                     setOpenMenuId(null);
                                   }}
                                 >
-                                  Edit PDF
+                                  {t("pages.pdfs.table.actions.editPdf")}
                                 </button>
                               ) : null}
                               {onDelete ? (
@@ -813,7 +897,7 @@ export function PdfsTable({
                                     setOpenMenuId(null);
                                   }}
                                 >
-                                  Delete PDF
+                                  {t("pages.pdfs.table.actions.delete")}
                                 </button>
                               ) : null}
                             </DropdownContent>
@@ -832,7 +916,7 @@ export function PdfsTable({
       {selectedCount > 0 && enableBulkSelection ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.pdfs.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -841,7 +925,7 @@ export function PdfsTable({
               onClick={handleBulkDelete}
               disabled={isLoadingState}
             >
-              Delete Selected
+              {t("pages.pdfs.table.bulk.deleteSelected")}
             </Button>
           </div>
         </div>

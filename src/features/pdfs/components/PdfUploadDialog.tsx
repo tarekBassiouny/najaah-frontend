@@ -37,6 +37,7 @@ import {
   getAdminResponseMessage,
 } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 type PdfUploadDialogProps = {
   centerId: string | number;
@@ -56,6 +57,7 @@ type UploadPhase =
   | "failed";
 
 type PdfSourceMode = "upload" | "url";
+const PDF_MIME_LABEL = "application/pdf";
 
 function resolveUploadSessionId(session: PdfUploadSession) {
   return session.upload_session_id ?? session.id;
@@ -136,29 +138,6 @@ function formatFileSize(bytes: number) {
   return `${value.toFixed(precision)} ${units[exponent]}`;
 }
 
-function resolveUploadPhaseLabel(phase: UploadPhase) {
-  if (phase === "creating") return "Creating Session";
-  if (phase === "uploading") return "Uploading";
-  if (phase === "finalizing") return "Finalizing";
-  if (phase === "failed") return "Failed";
-  if (phase === "ready") return "Ready";
-  return "Idle";
-}
-
-function resolveModeLabel(sourceMode: PdfSourceMode) {
-  return sourceMode === "upload" ? "Upload PDF" : "PDF URL";
-}
-
-function resolveModeDescription(sourceMode: PdfSourceMode) {
-  return sourceMode === "upload"
-    ? "Store the file in Najaah App storage."
-    : "Link to an external PDF URL.";
-}
-
-function resolveProviderLabel(sourceMode: PdfSourceMode) {
-  return sourceMode === "upload" ? "Najaah App" : "Custom";
-}
-
 export function PdfUploadDialog({
   centerId,
   open,
@@ -167,6 +146,7 @@ export function PdfUploadDialog({
   onSuccess,
   onUploaded,
 }: PdfUploadDialogProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const isEditMode = Boolean(pdf);
   const createPdfMutation = useCreatePdf();
@@ -223,6 +203,16 @@ export function PdfUploadDialog({
     uploadPhase === "uploading" ||
     uploadPhase === "finalizing";
   const isBusy = isMutating || hasActiveUpload;
+  const creatingSessionText = t(
+    "pages.pdfs.dialogs.upload.status.creatingUploadSession",
+  );
+  const uploadingText = t("pages.pdfs.dialogs.upload.status.uploadingPdf");
+  const uploadCompleteText = t(
+    "pages.pdfs.dialogs.upload.status.uploadCompleteFinalizing",
+  );
+  const preparingUploadText = t(
+    "pages.pdfs.dialogs.upload.status.preparingUpload",
+  );
 
   const selectedFileLabel = useMemo(() => {
     if (!file) return "";
@@ -301,12 +291,15 @@ export function PdfUploadDialog({
         uploadAbortControllerRef.current.abort();
       }
 
-      const message = "Upload stopped.";
+      const message = t("pages.pdfs.dialogs.upload.messages.uploadStopped");
       showToast(message, "success");
       resetCreateState();
       onOpenChange(false);
     } catch (error) {
-      const message = getAdminApiErrorMessage(error, "Failed to stop upload.");
+      const message = getAdminApiErrorMessage(
+        error,
+        t("pages.pdfs.dialogs.upload.errors.stopUploadFailed"),
+      );
       setFormError(message);
       showToast(message, "error");
     }
@@ -337,24 +330,28 @@ export function PdfUploadDialog({
 
   const submitLabel = (() => {
     if (isEditMode) {
-      return isUpdatingPdf ? "Saving..." : "Save Changes";
+      return isUpdatingPdf
+        ? t("common.actions.saving")
+        : t("pages.pdfs.dialogs.upload.actions.saveChanges");
     }
     if (sourceMode === "url") {
-      return createPdfMutation.isPending ? "Creating..." : "Create PDF";
+      return createPdfMutation.isPending
+        ? t("pages.pdfs.dialogs.upload.actions.creating")
+        : t("pages.pdfs.dialogs.upload.actions.createPdf");
     }
     if (uploadPhase === "creating" || isCreatingSession) {
-      return "Creating Session...";
+      return t("pages.pdfs.dialogs.upload.actions.creatingSession");
     }
     if (uploadPhase === "uploading") {
-      return "Uploading...";
+      return t("pages.pdfs.dialogs.upload.actions.uploading");
     }
     if (uploadPhase === "finalizing" || isFinalizingSession) {
-      return "Finalizing...";
+      return t("pages.pdfs.dialogs.upload.actions.finalizing");
     }
     if (uploadPhase === "failed") {
-      return "Retry Upload";
+      return t("pages.pdfs.dialogs.upload.actions.retryUpload");
     }
-    return "Create & Upload";
+    return t("pages.pdfs.dialogs.upload.actions.createAndUpload");
   })();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -363,7 +360,7 @@ export function PdfUploadDialog({
 
     const normalizedTitleEn = titleEn.trim();
     if (!normalizedTitleEn) {
-      setFormError("English title is required.");
+      setFormError(t("pages.pdfs.dialogs.upload.errors.englishTitleRequired"));
       return;
     }
 
@@ -390,7 +387,7 @@ export function PdfUploadDialog({
 
         const successMessage = getAdminResponseMessage(
           updatedPdf,
-          "PDF updated successfully.",
+          t("pages.pdfs.dialogs.upload.messages.updated"),
         );
         showToast(successMessage, "success");
         onSuccess?.(successMessage);
@@ -402,14 +399,14 @@ export function PdfUploadDialog({
       if (sourceMode === "url") {
         const normalizedUrl = sourceUrl.trim();
         if (!normalizedUrl) {
-          setFormError("PDF URL is required for URL mode.");
+          setFormError(t("pages.pdfs.dialogs.upload.errors.urlRequired"));
           return;
         }
 
         try {
           new URL(normalizedUrl);
         } catch {
-          setFormError("Enter a valid PDF URL.");
+          setFormError(t("pages.pdfs.dialogs.upload.errors.urlInvalid"));
           return;
         }
 
@@ -429,7 +426,7 @@ export function PdfUploadDialog({
 
         const successMessage = getAdminResponseMessage(
           createdPdf,
-          "PDF created successfully.",
+          t("pages.pdfs.dialogs.upload.messages.created"),
         );
         showToast(successMessage, "success");
         onSuccess?.(successMessage);
@@ -439,12 +436,12 @@ export function PdfUploadDialog({
       }
 
       if (!file) {
-        setFormError("Select a PDF file to upload.");
+        setFormError(t("pages.pdfs.dialogs.upload.errors.fileRequired"));
         return;
       }
 
       if (!isPdfFile(file)) {
-        setFormError("Only PDF files are allowed.");
+        setFormError(t("pages.pdfs.dialogs.upload.errors.invalidFileType"));
         return;
       }
 
@@ -452,7 +449,7 @@ export function PdfUploadDialog({
       setUploadProgress(0);
       setUploadSpeedBps(null);
       setUploadEtaSeconds(null);
-      setUploadStatusText("Creating upload session...");
+      setUploadStatusText(creatingSessionText);
 
       const fileSizeKb = Math.max(1, Math.ceil(file.size / 1024));
       const session = await createUploadSessionAsync({
@@ -466,19 +463,21 @@ export function PdfUploadDialog({
       const currentUploadSessionId = resolveUploadSessionId(session);
       const uploadEndpoint = resolveUploadEndpoint(session);
       if (!currentUploadSessionId || !uploadEndpoint) {
-        throw new Error("Upload session is missing endpoint or identifier.");
+        throw new Error(
+          t("pages.pdfs.dialogs.upload.errors.uploadSessionMissingData"),
+        );
       }
 
       setUploadSessionId(currentUploadSessionId);
       setUploadPhase("uploading");
-      setUploadStatusText("Uploading PDF...");
+      setUploadStatusText(uploadingText);
 
       currentUploadId = startGlobalUpload({
         centerId,
         fileName: file.name,
         uploadSessionId: currentUploadSessionId,
         phase: "uploading",
-        statusText: "Uploading PDF...",
+        statusText: uploadingText,
       });
       setActiveUploadId(currentUploadId);
 
@@ -496,14 +495,14 @@ export function PdfUploadDialog({
             if (isMountedRef.current) {
               setUploadProgress(percentage);
               setUploadPhase("uploading");
-              setUploadStatusText("Uploading PDF...");
+              setUploadStatusText(uploadingText);
               setUploadSpeedBps(bytesPerSecond);
               setUploadEtaSeconds(etaSeconds);
             }
             updateGlobalUpload(currentUploadId!, {
               progress: percentage,
               phase: "uploading",
-              statusText: "Uploading PDF...",
+              statusText: uploadingText,
               bytesPerSecond,
               etaSeconds,
             });
@@ -512,13 +511,13 @@ export function PdfUploadDialog({
       );
 
       setUploadPhase("finalizing");
-      setUploadStatusText("Upload complete. Finalizing...");
+      setUploadStatusText(uploadCompleteText);
       setUploadSpeedBps(null);
       setUploadEtaSeconds(null);
       updateGlobalUpload(currentUploadId, {
         progress: 100,
         phase: "finalizing",
-        statusText: "Upload complete. Finalizing...",
+        statusText: uploadCompleteText,
         bytesPerSecond: null,
         etaSeconds: null,
       });
@@ -540,13 +539,13 @@ export function PdfUploadDialog({
       if (Number(finalizedSession.upload_status) === 3) {
         throw new Error(
           finalizedSession.error_message ||
-            "Upload finalized with a failed processing status.",
+            t("pages.pdfs.dialogs.upload.errors.finalizedFailedStatus"),
         );
       }
 
       const successMessage = getAdminResponseMessage(
         finalizedSession,
-        "PDF uploaded successfully.",
+        t("pages.pdfs.dialogs.upload.messages.uploaded"),
       );
       showToast(successMessage, "success");
       onSuccess?.(successMessage);
@@ -584,7 +583,10 @@ export function PdfUploadDialog({
       const message =
         error instanceof Error && error.message
           ? error.message
-          : getAdminApiErrorMessage(error, "Failed to upload PDF.");
+          : getAdminApiErrorMessage(
+              error,
+              t("pages.pdfs.dialogs.upload.errors.uploadFailed"),
+            );
 
       if (isMountedRef.current) {
         setUploadPhase("failed");
@@ -617,28 +619,32 @@ export function PdfUploadDialog({
             </div>
             <div className="space-y-1">
               <DialogTitle>
-                {isEditMode ? "Edit PDF" : "Create PDF"}
+                {isEditMode
+                  ? t("pages.pdfs.dialogs.upload.title.edit")
+                  : t("pages.pdfs.dialogs.upload.title.create")}
               </DialogTitle>
               <DialogDescription>
                 {isEditMode
-                  ? "Update PDF metadata and translations."
-                  : "Create using upload or URL source mode."}
+                  ? t("pages.pdfs.dialogs.upload.description.edit")
+                  : t("pages.pdfs.dialogs.upload.description.create")}
               </DialogDescription>
               <p className="text-xs text-gray-400">
-                {isEditMode ? "Metadata only" : "Source + Metadata"}
+                {isEditMode
+                  ? t("pages.pdfs.dialogs.upload.mode.edit")
+                  : t("pages.pdfs.dialogs.upload.mode.create")}
               </p>
             </div>
           </div>
           {isEditMode ? null : (
             <div className="flex flex-wrap gap-2 text-xs">
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                1. Source
+                {t("pages.pdfs.dialogs.upload.steps.source")}
               </span>
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                2. Metadata
+                {t("pages.pdfs.dialogs.upload.steps.metadata")}
               </span>
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                3. Upload / Create
+                {t("pages.pdfs.dialogs.upload.steps.uploadOrCreate")}
               </span>
             </div>
           )}
@@ -647,7 +653,9 @@ export function PdfUploadDialog({
         {formError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {isEditMode ? "Update failed" : "Upload failed"}
+              {isEditMode
+                ? t("pages.pdfs.dialogs.upload.errors.updateFailedTitle")
+                : t("pages.pdfs.dialogs.upload.errors.uploadFailedTitle")}
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -656,7 +664,7 @@ export function PdfUploadDialog({
         <form onSubmit={handleSubmit} className="space-y-5">
           {isEditMode ? null : (
             <div className="space-y-2">
-              <Label>Source Mode</Label>
+              <Label>{t("pages.pdfs.dialogs.upload.fields.sourceMode")}</Label>
               <div className="grid gap-2 sm:grid-cols-2">
                 {(["upload", "url"] as PdfSourceMode[]).map((mode) => (
                   <button
@@ -686,14 +694,21 @@ export function PdfUploadDialog({
                         {mode === "upload" ? "U" : "L"}
                       </span>
                       <span className="text-sm font-semibold">
-                        {resolveModeLabel(mode)}
+                        {t(
+                          `pages.pdfs.dialogs.upload.sourceMode.${mode}.label`,
+                        )}
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {resolveModeDescription(mode)}
+                      {t(
+                        `pages.pdfs.dialogs.upload.sourceMode.${mode}.description`,
+                      )}
                     </p>
                     <p className="mt-2 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                      Provider: {resolveProviderLabel(mode)}
+                      {t("pages.pdfs.dialogs.upload.providerLabel")}:{" "}
+                      {t(
+                        `pages.pdfs.dialogs.upload.sourceMode.${mode}.provider`,
+                      )}
                     </p>
                   </button>
                 ))}
@@ -704,31 +719,39 @@ export function PdfUploadDialog({
           <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                Metadata
+                {t("pages.pdfs.dialogs.upload.sections.metadata.title")}
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                These fields are shared for upload and URL sources.
+                {t("pages.pdfs.dialogs.upload.sections.metadata.description")}
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="pdf-title-en">Title (English) *</Label>
+                <Label htmlFor="pdf-title-en">
+                  {t("pages.pdfs.dialogs.upload.fields.titleEn")}
+                </Label>
                 <Input
                   id="pdf-title-en"
                   value={titleEn}
                   onChange={(event) => setTitleEn(event.target.value)}
-                  placeholder="e.g., Lesson Notes"
+                  placeholder={t(
+                    "pages.pdfs.dialogs.upload.placeholders.titleEn",
+                  )}
                   disabled={isBusy}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pdf-title-ar">Title (Arabic)</Label>
+                <Label htmlFor="pdf-title-ar">
+                  {t("pages.pdfs.dialogs.upload.fields.titleAr")}
+                </Label>
                 <Input
                   id="pdf-title-ar"
                   value={titleAr}
                   onChange={(event) => setTitleAr(event.target.value)}
-                  placeholder="e.g., ملاحظات الدرس"
+                  placeholder={t(
+                    "pages.pdfs.dialogs.upload.placeholders.titleAr",
+                  )}
                   dir="rtl"
                   disabled={isBusy}
                 />
@@ -738,7 +761,7 @@ export function PdfUploadDialog({
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="pdf-description-en">
-                  Description (English)
+                  {t("pages.pdfs.dialogs.upload.fields.descriptionEn")}
                 </Label>
                 <Textarea
                   id="pdf-description-en"
@@ -749,7 +772,9 @@ export function PdfUploadDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pdf-description-ar">Description (Arabic)</Label>
+                <Label htmlFor="pdf-description-ar">
+                  {t("pages.pdfs.dialogs.upload.fields.descriptionAr")}
+                </Label>
                 <Textarea
                   id="pdf-description-ar"
                   value={descriptionAr}
@@ -762,12 +787,14 @@ export function PdfUploadDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pdf-tags">Tags</Label>
+              <Label htmlFor="pdf-tags">
+                {t("pages.pdfs.dialogs.upload.fields.tags")}
+              </Label>
               <Input
                 id="pdf-tags"
                 value={tagsInput}
                 onChange={(event) => setTagsInput(event.target.value)}
-                placeholder="comma,separated,tags"
+                placeholder={t("pages.pdfs.dialogs.upload.placeholders.tags")}
                 disabled={isBusy}
               />
               {parsedTags.length > 0 ? (
@@ -788,7 +815,7 @@ export function PdfUploadDialog({
                 </div>
               ) : (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Optional. Separate tags with commas.
+                  {t("pages.pdfs.dialogs.upload.hints.tags")}
                 </p>
               )}
             </div>
@@ -798,25 +825,30 @@ export function PdfUploadDialog({
             <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                  URL Source
+                  {t("pages.pdfs.dialogs.upload.sections.urlSource.title")}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Link to an external PDF file.
+                  {t(
+                    "pages.pdfs.dialogs.upload.sections.urlSource.description",
+                  )}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pdf-source-url">PDF URL *</Label>
+                <Label htmlFor="pdf-source-url">
+                  {t("pages.pdfs.dialogs.upload.fields.pdfUrl")}
+                </Label>
                 <Input
                   id="pdf-source-url"
                   value={sourceUrl}
                   onChange={(event) => setSourceUrl(event.target.value)}
-                  placeholder="https://example.com/handout.pdf"
+                  placeholder={t(
+                    "pages.pdfs.dialogs.upload.placeholders.pdfUrl",
+                  )}
                   disabled={isBusy}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Use a direct public PDF link. Provider will be stored as
-                  Custom.
+                  {t("pages.pdfs.dialogs.upload.hints.pdfUrl")}
                 </p>
               </div>
             </section>
@@ -826,16 +858,19 @@ export function PdfUploadDialog({
             <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/40">
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                  Upload Source
+                  {t("pages.pdfs.dialogs.upload.sections.uploadSource.title")}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Upload PDF to Najaah App storage. You can stop or minimize the
-                  transfer.
+                  {t(
+                    "pages.pdfs.dialogs.upload.sections.uploadSource.description",
+                  )}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pdf-upload-file">PDF File *</Label>
+                <Label htmlFor="pdf-upload-file">
+                  {t("pages.pdfs.dialogs.upload.fields.pdfFile")}
+                </Label>
                 <input
                   ref={fileInputRef}
                   id="pdf-upload-file"
@@ -888,10 +923,14 @@ export function PdfUploadDialog({
                   )}
                 >
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    {file ? "Replace selected file" : "Drop PDF file here"}
+                    {file
+                      ? t(
+                          "pages.pdfs.dialogs.upload.actions.replaceSelectedFile",
+                        )
+                      : t("pages.pdfs.dialogs.upload.actions.dropPdfFile")}
                   </p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    or click to browse from your device
+                    {t("pages.pdfs.dialogs.upload.hints.browseFromDevice")}
                   </p>
                   <div className="mt-3">
                     <Button
@@ -904,7 +943,7 @@ export function PdfUploadDialog({
                         if (!isBusy) fileInputRef.current?.click();
                       }}
                     >
-                      Browse File
+                      {t("pages.pdfs.dialogs.upload.actions.browseFile")}
                     </Button>
                   </div>
                 </div>
@@ -916,7 +955,7 @@ export function PdfUploadDialog({
                     {file.name}
                   </p>
                   <p className="mt-0.5 text-gray-500 dark:text-gray-400">
-                    {formatFileSize(file.size)} • application/pdf
+                    {formatFileSize(file.size)} • {PDF_MIME_LABEL}
                   </p>
                 </div>
               ) : null}
@@ -925,23 +964,25 @@ export function PdfUploadDialog({
                 <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
                     <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                      {resolveUploadPhaseLabel(uploadPhase)}
+                      {t(
+                        `pages.pdfs.dialogs.upload.uploadPhase.${uploadPhase}`,
+                      )}
                     </span>
                     <span>{uploadProgress.toFixed(1)}%</span>
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-300">
-                    {uploadStatusText || "Preparing upload..."}
+                    {uploadStatusText || preparingUploadText}
                   </div>
                   <Progress value={uploadProgress} />
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                     <span>
-                      Speed:{" "}
+                      {t("pages.pdfs.dialogs.upload.metrics.speed")}:{" "}
                       <span className="font-medium text-gray-700 dark:text-gray-200">
                         {formatBytesPerSecond(uploadSpeedBps)}
                       </span>
                     </span>
                     <span>
-                      ETA:{" "}
+                      {t("pages.pdfs.dialogs.upload.metrics.eta")}:{" "}
                       <span className="font-medium text-gray-700 dark:text-gray-200">
                         {formatEtaSeconds(uploadEtaSeconds)}
                       </span>
@@ -956,7 +997,7 @@ export function PdfUploadDialog({
                       className="text-red-600 hover:text-red-700"
                       disabled={!hasActiveUpload}
                     >
-                      Stop
+                      {t("pages.pdfs.dialogs.upload.actions.stop")}
                     </Button>
                     <Button
                       type="button"
@@ -965,11 +1006,13 @@ export function PdfUploadDialog({
                       onClick={handleMinimizeUpload}
                       disabled={!hasActiveUpload}
                     >
-                      Minimize
+                      {t("pages.pdfs.dialogs.upload.actions.minimize")}
                     </Button>
                     {uploadSessionId != null ? (
                       <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
-                        Session #{String(uploadSessionId)}
+                        {t("pages.pdfs.dialogs.upload.session", {
+                          id: String(uploadSessionId),
+                        })}
                       </span>
                     ) : null}
                   </div>
@@ -977,7 +1020,9 @@ export function PdfUploadDialog({
               ) : null}
               {selectedFileLabel ? (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Selected: {selectedFileLabel}
+                  {t("pages.pdfs.dialogs.upload.selectedLabel", {
+                    value: selectedFileLabel,
+                  })}
                 </p>
               ) : null}
             </section>
@@ -988,7 +1033,9 @@ export function PdfUploadDialog({
               variant="outline"
               onClick={() => handleDialogOpenChange(false)}
             >
-              {hasActiveUpload ? "Minimize" : "Cancel"}
+              {hasActiveUpload
+                ? t("pages.pdfs.dialogs.upload.actions.minimize")
+                : t("common.actions.cancel")}
             </Button>
             <Button type="submit" disabled={isBusy}>
               {submitLabel}

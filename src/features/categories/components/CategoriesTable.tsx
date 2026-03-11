@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCategories } from "@/features/categories/hooks/use-categories";
+import { useTranslation } from "@/features/localization";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,6 +86,7 @@ export function CategoriesTable({
   onBulkChangeStatus,
   onBulkDelete,
 }: CategoriesTableProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -244,7 +246,9 @@ export function CategoriesTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "category" : "categories"}
+            {total === 1
+              ? t("pages.categories.table.summary", { count: total })
+              : t("pages.categories.table.summaryPlural", { count: total })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3"
@@ -266,7 +270,7 @@ export function CategoriesTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search categories..."
+            placeholder={t("pages.categories.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -282,7 +286,7 @@ export function CategoriesTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.categories.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -309,10 +313,14 @@ export function CategoriesTable({
           }}
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Parent Category" />
+            <SelectValue
+              placeholder={t("pages.categories.table.filters.parentCategory")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_PARENTS_VALUE}>All Parents</SelectItem>
+            <SelectItem value={ALL_PARENTS_VALUE}>
+              {t("pages.categories.table.filters.allParents")}
+            </SelectItem>
             {parentOptions.map((category) => (
               <SelectItem key={category.id} value={String(category.id)}>
                 {getCategoryTitle(category)}
@@ -337,12 +345,20 @@ export function CategoriesTable({
             className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             icon={<StatusIcon />}
           >
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t("pages.categories.table.filters.status")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>All Statuses</SelectItem>
-            <SelectItem value={STATUS_ACTIVE_VALUE}>Active</SelectItem>
-            <SelectItem value={STATUS_INACTIVE_VALUE}>Inactive</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.categories.table.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value={STATUS_ACTIVE_VALUE}>
+              {t("pages.categories.table.filters.active")}
+            </SelectItem>
+            <SelectItem value={STATUS_INACTIVE_VALUE}>
+              {t("pages.categories.table.filters.inactive")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </ListingFilters>
@@ -351,7 +367,7 @@ export function CategoriesTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load categories. Please try again.
+              {t("pages.categories.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -359,7 +375,7 @@ export function CategoriesTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.categories.table.retry")}
             </Button>
           </div>
         </div>
@@ -380,15 +396,23 @@ export function CategoriesTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all categories on this page"
+                    aria-label={t("pages.categories.table.selectAll")}
                   />
                 </TableHead>
-                <TableHead className="font-medium">Title</TableHead>
-                <TableHead className="font-medium">Parent</TableHead>
-                <TableHead className="font-medium">Order</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.categories.table.headers.title")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.categories.table.headers.parent")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.categories.table.headers.order")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.categories.table.headers.status")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.categories.table.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -423,12 +447,16 @@ export function CategoriesTable({
                   <TableCell colSpan={6} className="h-48">
                     <EmptyState
                       title={
-                        query ? "No categories found" : "No categories yet"
+                        query
+                          ? t("pages.categories.table.empty.noResultsTitle")
+                          : t("pages.categories.table.empty.noDataTitle")
                       }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Create a category to start organizing your content"
+                          ? t(
+                              "pages.categories.table.empty.noResultsDescription",
+                            )
+                          : t("pages.categories.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -468,7 +496,9 @@ export function CategoriesTable({
                         <Badge
                           variant={category.is_active ? "success" : "default"}
                         >
-                          {category.is_active ? "Active" : "Inactive"}
+                          {category.is_active
+                            ? t("pages.categories.table.status.active")
+                            : t("pages.categories.table.status.inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -496,7 +526,7 @@ export function CategoriesTable({
                                   onEdit?.(category);
                                 }}
                               >
-                                Edit
+                                {t("pages.categories.table.actions.edit")}
                               </button>
                               <button
                                 className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -505,7 +535,7 @@ export function CategoriesTable({
                                   onDelete?.(category);
                                 }}
                               >
-                                Delete
+                                {t("pages.categories.table.actions.delete")}
                               </button>
                             </DropdownContent>
                           </Dropdown>
@@ -523,7 +553,9 @@ export function CategoriesTable({
       {selectedCount > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.categories.table.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -532,7 +564,7 @@ export function CategoriesTable({
               onClick={() => onBulkChangeStatus?.(selectedCategoriesList)}
               disabled={isLoadingState}
             >
-              Change Status
+              {t("pages.categories.table.bulk.changeStatus")}
             </Button>
             <Button
               size="sm"
@@ -541,7 +573,7 @@ export function CategoriesTable({
               onClick={() => onBulkDelete?.(selectedCategoriesList)}
               disabled={isLoadingState}
             >
-              Delete
+              {t("pages.categories.table.bulk.delete")}
             </Button>
           </div>
         </div>

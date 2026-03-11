@@ -45,6 +45,7 @@ import {
 import { useGradeOptions } from "@/features/education/hooks/use-grade-options";
 import { useSchoolOptions } from "@/features/education/hooks/use-school-options";
 import { useCollegeOptions } from "@/features/education/hooks/use-college-options";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -130,6 +131,7 @@ export function StudentsTable({
   onBulkGenerateAccessCodes,
   onBulkEnrollAndGenerate,
 }: StudentsTableProps) {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
   const isCenterScoped = Boolean(centerIdProp);
@@ -207,7 +209,7 @@ export function StudentsTable({
     stage: stageValueForOptions,
     includeAllOption: true,
     allOptionValue: ALL_GRADE_VALUE,
-    allOptionLabel: "All Grades",
+    allOptionLabel: t("pages.students.table.filters.grade"),
     enabled: canLoadEducationOptions,
   });
   const {
@@ -220,7 +222,7 @@ export function StudentsTable({
     selectedValue: schoolFilter === ALL_SCHOOL_VALUE ? null : schoolFilter,
     includeAllOption: true,
     allOptionValue: ALL_SCHOOL_VALUE,
-    allOptionLabel: "All Schools",
+    allOptionLabel: t("pages.students.table.filters.school"),
     enabled: canLoadEducationOptions,
   });
   const {
@@ -233,7 +235,7 @@ export function StudentsTable({
     selectedValue: collegeFilter === ALL_COLLEGE_VALUE ? null : collegeFilter,
     includeAllOption: true,
     allOptionValue: ALL_COLLEGE_VALUE,
-    allOptionLabel: "All Colleges",
+    allOptionLabel: t("pages.students.table.filters.college"),
     enabled: canLoadEducationOptions,
   });
 
@@ -378,7 +380,9 @@ export function StudentsTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "student" : "students"}
+            {total === 1
+              ? t("pages.students.table.summary", { count: total })
+              : t("pages.students.table.summaryPlural", { count: total })}
           </>
         }
         gridClassName={
@@ -406,7 +410,7 @@ export function StudentsTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name, phone, or email"
+            placeholder={t("pages.students.table.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -422,7 +426,7 @@ export function StudentsTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.students.table.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -466,12 +470,20 @@ export function StudentsTable({
             }}
           >
             <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-              <SelectValue placeholder="Center Type" />
+              <SelectValue
+                placeholder={t("pages.students.table.filters.centerType")}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_CENTER_TYPE_VALUE}>Center Type</SelectItem>
-              <SelectItem value="branded">Branded</SelectItem>
-              <SelectItem value="unbranded">Unbranded</SelectItem>
+              <SelectItem value={ALL_CENTER_TYPE_VALUE}>
+                {t("pages.students.table.filters.centerType")}
+              </SelectItem>
+              <SelectItem value="branded">
+                {t("pages.students.table.filters.branded")}
+              </SelectItem>
+              <SelectItem value="unbranded">
+                {t("pages.students.table.filters.unbranded")}
+              </SelectItem>
             </SelectContent>
           </Select>
         ) : null}
@@ -487,13 +499,23 @@ export function StudentsTable({
             className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             icon={<StatusIcon />}
           >
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t("pages.students.table.filters.status")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="1">Active</SelectItem>
-            <SelectItem value="0">Inactive</SelectItem>
-            <SelectItem value="2">Banned</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.students.table.filters.status")}
+            </SelectItem>
+            <SelectItem value="1">
+              {t("pages.students.table.filters.active")}
+            </SelectItem>
+            <SelectItem value="0">
+              {t("pages.students.table.filters.inactive")}
+            </SelectItem>
+            <SelectItem value="2">
+              {t("pages.students.table.filters.banned")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -509,12 +531,16 @@ export function StudentsTable({
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
             <SelectValue
               placeholder={
-                canLoadEducationOptions ? "Stage" : "Select center first"
+                canLoadEducationOptions
+                  ? t("pages.students.table.filters.stage")
+                  : t("pages.students.table.filters.selectCenterFirst")
               }
             />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STAGE_VALUE}>Stage</SelectItem>
+            <SelectItem value={ALL_STAGE_VALUE}>
+              {t("pages.students.table.filters.stage")}
+            </SelectItem>
             {EDUCATIONAL_STAGE_OPTIONS.map((stage) => (
               <SelectItem key={stage.value} value={stage.value}>
                 {stage.label}
@@ -533,13 +559,15 @@ export function StudentsTable({
           searchValue={gradeSearch}
           onSearchValueChange={setGradeSearch}
           placeholder={
-            canLoadEducationOptions ? "Grade" : "Select center first"
+            canLoadEducationOptions
+              ? t("pages.students.table.filters.grade")
+              : t("pages.students.table.filters.selectCenterFirst")
           }
-          searchPlaceholder="Search grades..."
+          searchPlaceholder={t("pages.students.table.filters.searchGrades")}
           emptyMessage={
             canLoadEducationOptions
-              ? "No grades found"
-              : "Select a center first"
+              ? t("pages.students.table.filters.noGrades")
+              : t("pages.students.table.filters.selectCenterFirst")
           }
           isLoading={isGradeOptionsLoading}
           filterOptions={false}
@@ -558,13 +586,15 @@ export function StudentsTable({
           searchValue={schoolSearch}
           onSearchValueChange={setSchoolSearch}
           placeholder={
-            canLoadEducationOptions ? "School" : "Select center first"
+            canLoadEducationOptions
+              ? t("pages.students.table.filters.school")
+              : t("pages.students.table.filters.selectCenterFirst")
           }
-          searchPlaceholder="Search schools..."
+          searchPlaceholder={t("pages.students.table.filters.searchSchools")}
           emptyMessage={
             canLoadEducationOptions
-              ? "No schools found"
-              : "Select a center first"
+              ? t("pages.students.table.filters.noSchools")
+              : t("pages.students.table.filters.selectCenterFirst")
           }
           isLoading={isSchoolOptionsLoading}
           filterOptions={false}
@@ -583,13 +613,15 @@ export function StudentsTable({
           searchValue={collegeSearch}
           onSearchValueChange={setCollegeSearch}
           placeholder={
-            canLoadEducationOptions ? "College" : "Select center first"
+            canLoadEducationOptions
+              ? t("pages.students.table.filters.college")
+              : t("pages.students.table.filters.selectCenterFirst")
           }
-          searchPlaceholder="Search colleges..."
+          searchPlaceholder={t("pages.students.table.filters.searchColleges")}
           emptyMessage={
             canLoadEducationOptions
-              ? "No colleges found"
-              : "Select a center first"
+              ? t("pages.students.table.filters.noColleges")
+              : t("pages.students.table.filters.selectCenterFirst")
           }
           isLoading={isCollegeOptionsLoading}
           filterOptions={false}
@@ -603,7 +635,7 @@ export function StudentsTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load students. Please try again.
+              {t("pages.students.table.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -611,7 +643,7 @@ export function StudentsTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.students.table.retry")}
             </Button>
           </div>
         </div>
@@ -632,19 +664,33 @@ export function StudentsTable({
                     checked={isAllPageSelected}
                     onChange={toggleAllSelections}
                     disabled={isLoadingState || items.length === 0}
-                    aria-label="Select all students on this page"
+                    aria-label={t("pages.students.table.selectAll")}
                   />
                 </TableHead>
-                <TableHead className="font-medium">Student</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
-                <TableHead className="font-medium">Center</TableHead>
-                <TableHead className="font-medium">Education</TableHead>
-                <TableHead className="font-medium">Activity</TableHead>
-                <TableHead className="font-medium">Last Activity</TableHead>
-                <TableHead className="font-medium">Device</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.student")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.status")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.center")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.education")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.activity")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.lastActivity")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.students.table.headers.device")}
+                </TableHead>
                 {hasActions && (
                   <TableHead className="w-10 text-right font-medium">
-                    Actions
+                    {t("pages.students.table.headers.actions")}
                   </TableHead>
                 )}
               </TableRow>
@@ -690,11 +736,15 @@ export function StudentsTable({
                 <TableRow>
                   <TableCell colSpan={hasActions ? 9 : 8} className="h-48">
                     <EmptyState
-                      title={query ? "No students found" : "No students yet"}
+                      title={
+                        query
+                          ? t("pages.students.table.empty.noResultsTitle")
+                          : t("pages.students.table.empty.noDataTitle")
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Students will appear here once they are added"
+                          ? t("pages.students.table.empty.noResultsDescription")
+                          : t("pages.students.table.empty.noDataDescription")
                       }
                       className="border-0 bg-transparent"
                     />
@@ -715,20 +765,31 @@ export function StudentsTable({
                     .filter(Boolean)
                     .join(" · ");
                   const deviceStatusLabel =
-                    device?.status_label ?? device?.status_key ?? "Active";
+                    device?.status_label ??
+                    device?.status_key ??
+                    t("pages.students.table.status.active");
                   const activityLabel = analytics
-                    ? `${analytics.total_enrollments ?? 0} enrollments · ${
+                    ? `${analytics.total_enrollments ?? 0} ${t("pages.students.table.activity.enrollments")} · ${
                         analytics.total_sessions ?? 0
-                      } sessions`
+                      } ${t("pages.students.table.activity.sessions")}`
                     : "—";
                   const gradeLabel = student.grade
-                    ? getEducationName(student.grade, "Grade")
+                    ? getEducationName(
+                        student.grade,
+                        t("pages.students.table.filters.grade"),
+                      )
                     : "—";
                   const schoolLabel = student.school
-                    ? getEducationName(student.school, "School")
+                    ? getEducationName(
+                        student.school,
+                        t("pages.students.table.filters.school"),
+                      )
                     : "—";
                   const collegeLabel = student.college
-                    ? getEducationName(student.college, "College")
+                    ? getEducationName(
+                        student.college,
+                        t("pages.students.table.filters.college"),
+                      )
                     : "—";
                   const lastActivityLabel = analytics?.last_activity_at
                     ? formatDateTime(analytics.last_activity_at)
@@ -757,7 +818,11 @@ export function StudentsTable({
                             selectedStudents[String(student.id)],
                           )}
                           onChange={() => toggleStudentSelection(student)}
-                          aria-label={`Select ${student.name ?? `student ${student.id}`}`}
+                          aria-label={t("pages.students.table.selectStudent", {
+                            name:
+                              student.name ??
+                              `${t("pages.students.table.headers.student")} ${student.id}`,
+                          })}
                         />
                       </TableCell>
                       <TableCell>
@@ -791,8 +856,17 @@ export function StudentsTable({
                                     target="_blank"
                                     rel="noreferrer"
                                     className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
-                                    aria-label={`Open WhatsApp for ${student.name ?? `student ${student.id}`}`}
-                                    title="Open WhatsApp"
+                                    aria-label={t(
+                                      "pages.students.table.actions.openWhatsappFor",
+                                      {
+                                        name:
+                                          student.name ??
+                                          `${t("pages.students.table.headers.student")} ${student.id}`,
+                                      },
+                                    )}
+                                    title={t(
+                                      "pages.students.table.actions.openWhatsapp",
+                                    )}
                                   >
                                     <svg
                                       className="h-4 w-4"
@@ -807,7 +881,9 @@ export function StudentsTable({
                                   <span
                                     className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                                     aria-hidden="true"
-                                    title="Phone not available"
+                                    title={t(
+                                      "pages.students.table.actions.phoneUnavailable",
+                                    )}
                                   >
                                     <svg
                                       className="h-4 w-4"
@@ -839,25 +915,25 @@ export function StudentsTable({
                         {student.center?.name ??
                           student.center?.id ??
                           student.center_id ??
-                          "Najaah App"}
+                          t("pages.students.table.fallbackCenter")}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         <div className="min-w-[170px] space-y-1 text-xs">
                           <p className="truncate">
                             <span className="font-medium text-gray-700 dark:text-gray-200">
-                              Grade:
+                              {t("pages.students.table.education.grade")}
                             </span>{" "}
                             {gradeLabel}
                           </p>
                           <p className="truncate">
                             <span className="font-medium text-gray-700 dark:text-gray-200">
-                              School:
+                              {t("pages.students.table.education.school")}
                             </span>{" "}
                             {schoolLabel}
                           </p>
                           <p className="truncate">
                             <span className="font-medium text-gray-700 dark:text-gray-200">
-                              College:
+                              {t("pages.students.table.education.college")}
                             </span>{" "}
                             {collegeLabel}
                           </p>
@@ -877,7 +953,10 @@ export function StudentsTable({
                                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                               </span>
                               <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                {deviceName ?? "Connected Device"}
+                                {deviceName ??
+                                  t(
+                                    "pages.students.table.device.connectedDevice",
+                                  )}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -885,7 +964,10 @@ export function StudentsTable({
                                 {deviceStatusLabel}
                               </Badge>
                               <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                                {deviceMeta || "Device connected"}
+                                {deviceMeta ||
+                                  t(
+                                    "pages.students.table.device.deviceConnected",
+                                  )}
                               </p>
                             </div>
                           </div>
@@ -896,13 +978,15 @@ export function StudentsTable({
                                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                               </span>
                               <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-300">
-                                No Device
+                                {t("pages.students.table.device.noDevice")}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge variant="secondary">None</Badge>
+                              <Badge variant="secondary">
+                                {t("pages.students.table.device.none")}
+                              </Badge>
                               <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                                Not linked yet
+                                {t("pages.students.table.device.notLinkedYet")}
                               </p>
                             </div>
                           </div>
@@ -935,7 +1019,9 @@ export function StudentsTable({
                                       setOpenMenuId(null);
                                     }}
                                   >
-                                    View profile
+                                    {t(
+                                      "pages.students.table.actions.viewProfile",
+                                    )}
                                   </Link>
                                 ) : null}
                                 {onViewDetails && (
@@ -946,7 +1032,9 @@ export function StudentsTable({
                                       onViewDetails(student);
                                     }}
                                   >
-                                    View details
+                                    {t(
+                                      "pages.students.table.actions.viewDetails",
+                                    )}
                                   </button>
                                 )}
                                 {onEnrollCourse && (
@@ -957,7 +1045,9 @@ export function StudentsTable({
                                       onEnrollCourse(student);
                                     }}
                                   >
-                                    Enroll in Course
+                                    {t(
+                                      "pages.students.table.actions.enrollInCourse",
+                                    )}
                                   </button>
                                 )}
                                 {onGenerateAccessCode && (
@@ -968,7 +1058,9 @@ export function StudentsTable({
                                       onGenerateAccessCode(student);
                                     }}
                                   >
-                                    Generate Access Code
+                                    {t(
+                                      "pages.students.table.actions.generateAccessCode",
+                                    )}
                                   </button>
                                 )}
                                 {onEdit && (
@@ -979,7 +1071,9 @@ export function StudentsTable({
                                       onEdit(student);
                                     }}
                                   >
-                                    Edit profile
+                                    {t(
+                                      "pages.students.table.actions.editProfile",
+                                    )}
                                   </button>
                                 )}
                                 {onDelete && (
@@ -990,7 +1084,7 @@ export function StudentsTable({
                                       onDelete(student);
                                     }}
                                   >
-                                    Delete
+                                    {t("pages.students.table.actions.delete")}
                                   </button>
                                 )}
                               </DropdownContent>
@@ -1010,7 +1104,7 @@ export function StudentsTable({
       {selectedCount > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.students.table.bulk.selected", { count: selectedCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -1019,7 +1113,7 @@ export function StudentsTable({
               onClick={() => onBulkEnrollCourse?.(selectedStudentsList)}
               disabled={isLoadingState}
             >
-              Enroll to Course
+              {t("pages.students.table.bulk.enrollToCourse")}
             </Button>
             <Button
               size="sm"
@@ -1027,7 +1121,7 @@ export function StudentsTable({
               onClick={() => onBulkGenerateAccessCodes?.(selectedStudentsList)}
               disabled={isLoadingState}
             >
-              Generate Access Codes
+              {t("pages.students.table.bulk.generateAccessCodes")}
             </Button>
             <Button
               size="sm"
@@ -1035,14 +1129,14 @@ export function StudentsTable({
               onClick={() => onBulkChangeStatus?.(selectedStudentsList)}
               disabled={isLoadingState}
             >
-              Change Status
+              {t("pages.students.table.bulk.changeStatus")}
             </Button>
             <Button
               size="sm"
               onClick={() => onBulkEnrollAndGenerate?.(selectedStudentsList)}
               disabled={isLoadingState}
             >
-              Enroll & Generate
+              {t("pages.students.table.bulk.enrollAndGenerate")}
             </Button>
           </div>
         </div>

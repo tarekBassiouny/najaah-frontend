@@ -56,16 +56,9 @@ type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
 };
 
-const DIFFICULTY_OPTIONS = [
-  { value: "beginner", label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced", label: "Advanced" },
-];
+const DIFFICULTY_OPTIONS = ["beginner", "intermediate", "advanced"] as const;
 
-const LANGUAGE_OPTIONS = [
-  { value: "en", label: "English" },
-  { value: "ar", label: "Arabic" },
-];
+const LANGUAGE_OPTIONS = ["en", "ar"] as const;
 
 const MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -77,16 +70,13 @@ const ACCEPTED_IMAGE_TYPES = [
 
 type VideoApprovalOverride = "inherit" | "enabled" | "disabled";
 
-function extractErrorMessage(error: unknown): string {
+function extractErrorMessage(error: unknown, fallbackMessage: string): string {
   const firstFieldError = getAdminApiFirstFieldError(error);
   if (firstFieldError) {
     return firstFieldError;
   }
 
-  return getAdminApiErrorMessage(
-    error,
-    "Failed to update course. Please try again.",
-  );
+  return getAdminApiErrorMessage(error, fallbackMessage);
 }
 
 function normalizeDifficulty(
@@ -315,7 +305,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
       !hasAnyEducationTarget(educationTargeting)
     ) {
       setEducationTargetingValidationError(
-        "Select at least one grade, school, or college for targeted visibility.",
+        t("pages.courseForm.errors.targetingRequired"),
       );
       return;
     }
@@ -415,9 +405,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setThumbnailFile(null);
       setThumbnailPreview(null);
-      setThumbnailError(
-        "Please select a valid image file (JPG, PNG, GIF, or WebP).",
-      );
+      setThumbnailError(t("pages.courseForm.errors.invalidImageType"));
       e.target.value = "";
       return;
     }
@@ -425,7 +413,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
     if (file.size > MAX_THUMBNAIL_SIZE) {
       setThumbnailFile(null);
       setThumbnailPreview(null);
-      setThumbnailError("File size must be less than 5MB.");
+      setThumbnailError(t("pages.courseForm.errors.fileTooLarge"));
       e.target.value = "";
       return;
     }
@@ -523,13 +511,20 @@ export default function CenterCourseEditPage({ params }: PageProps) {
         description={t("pages.centerCourseEdit.description")}
         breadcrumbs={[
           { label: t("common.labels.centers"), href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
+          {
+            label: t("pages.centerCourseCreate.centerById", { id: centerId }),
+            href: `/centers/${centerId}`,
+          },
           {
             label: t("pages.coursesPage.title"),
             href: `/centers/${centerId}/courses`,
           },
           {
-            label: course?.title ?? `Course ${courseId}`,
+            label:
+              course?.title ??
+              t("pages.centerCourseDetail.unknown.courseById", {
+                id: courseId,
+              }),
             href: `/centers/${centerId}/courses/${courseId}`,
           },
           { label: t("common.actions.edit") },
@@ -546,13 +541,19 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           <div className="space-y-6 lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Course Information</CardTitle>
-                <CardDescription>Update course details</CardDescription>
+                <CardTitle>
+                  {t("pages.courseForm.sections.infoTitle")}
+                </CardTitle>
+                <CardDescription>
+                  {t("pages.courseForm.sections.infoDescription")}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Title (English) *</Label>
+                    <Label htmlFor="title">
+                      {t("pages.courseForm.fields.titleEn")}
+                    </Label>
                     <Input
                       id="title"
                       value={formData.title}
@@ -561,7 +562,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="titleAr">Title (Arabic)</Label>
+                    <Label htmlFor="titleAr">
+                      {t("pages.courseForm.fields.titleAr")}
+                    </Label>
                     <Input
                       id="titleAr"
                       value={formData.titleAr}
@@ -572,7 +575,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">
+                    {t("pages.courseForm.fields.slug")}
+                  </Label>
                   <Input
                     id="slug"
                     value={formData.slug}
@@ -582,7 +587,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description (English)</Label>
+                    <Label htmlFor="description">
+                      {t("pages.courseForm.fields.descriptionEn")}
+                    </Label>
                     <textarea
                       id="description"
                       value={formData.description}
@@ -592,7 +599,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="descriptionAr">Description (Arabic)</Label>
+                    <Label htmlFor="descriptionAr">
+                      {t("pages.courseForm.fields.descriptionAr")}
+                    </Label>
                     <textarea
                       id="descriptionAr"
                       value={formData.descriptionAr}
@@ -608,26 +617,34 @@ export default function CenterCourseEditPage({ params }: PageProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Course Settings</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.settingsTitle")}
+                </CardTitle>
                 <CardDescription>
-                  Configure course difficulty, language, and pricing
+                  {t("pages.courseForm.sections.settingsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
-                    <Label htmlFor="difficulty">Difficulty</Label>
+                    <Label htmlFor="difficulty">
+                      {t("pages.courseForm.fields.difficulty")}
+                    </Label>
                     <Select
                       value={formData.difficulty}
                       onValueChange={handleSelectChange("difficulty")}
                     >
                       <SelectTrigger id="difficulty">
-                        <SelectValue placeholder="Select difficulty" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.placeholders.difficulty",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {DIFFICULTY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                          <SelectItem key={option} value={option}>
+                            {t(`pages.courseForm.difficulty.${option}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -635,18 +652,24 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
+                    <Label htmlFor="language">
+                      {t("pages.courseForm.fields.language")}
+                    </Label>
                     <Select
                       value={formData.language}
                       onValueChange={handleSelectChange("language")}
                     >
                       <SelectTrigger id="language">
-                        <SelectValue placeholder="Select language" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.placeholders.language",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {LANGUAGE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                          <SelectItem key={option} value={option}>
+                            {t(`pages.courseForm.language.${option}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -654,7 +677,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
+                    <Label htmlFor="price">
+                      {t("pages.courseForm.fields.price")}
+                    </Label>
                     <Input
                       id="price"
                       type="number"
@@ -667,7 +692,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="requires-video-approval">
-                      Video Approval
+                      {t("pages.courseForm.videoApproval.label")}
                     </Label>
                     <Select
                       value={formData.requiresVideoApproval}
@@ -676,14 +701,22 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                       )}
                     >
                       <SelectTrigger id="requires-video-approval">
-                        <SelectValue placeholder="Use center policy" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.videoApproval.options.inherit",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="inherit">
-                          Use center policy
+                          {t("pages.courseForm.videoApproval.options.inherit")}
                         </SelectItem>
-                        <SelectItem value="enabled">Force enabled</SelectItem>
-                        <SelectItem value="disabled">Force disabled</SelectItem>
+                        <SelectItem value="enabled">
+                          {t("pages.courseForm.videoApproval.options.enabled")}
+                        </SelectItem>
+                        <SelectItem value="disabled">
+                          {t("pages.courseForm.videoApproval.options.disabled")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -691,7 +724,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">
+                      {t("pages.courseForm.fields.category")}
+                    </Label>
                     <SearchableSelect
                       value={formData.categoryId || null}
                       onValueChange={(value) =>
@@ -701,8 +736,10 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                         }))
                       }
                       options={categoryOptions}
-                      placeholder="Select category"
-                      searchPlaceholder="Search categories..."
+                      placeholder={t("pages.courseForm.placeholders.category")}
+                      searchPlaceholder={t(
+                        "pages.courseForm.placeholders.searchCategories",
+                      )}
                       searchValue={categorySearch}
                       onSearchValueChange={setCategorySearch}
                       filterOptions={false}
@@ -730,7 +767,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="instructor">Primary Instructor</Label>
+                    <Label htmlFor="instructor">
+                      {t("pages.courseForm.fields.primaryInstructor")}
+                    </Label>
                     <SearchableSelect
                       value={formData.instructorId || null}
                       onValueChange={(value) =>
@@ -740,8 +779,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                         }))
                       }
                       options={instructorOptions}
-                      placeholder="Select instructor"
-                      searchPlaceholder="Search instructors..."
+                      placeholder={t(
+                        "pages.courseForm.placeholders.instructor",
+                      )}
+                      searchPlaceholder={t(
+                        "pages.courseForm.placeholders.searchInstructors",
+                      )}
                       searchValue={instructorSearch}
                       onSearchValueChange={setInstructorSearch}
                       filterOptions={false}
@@ -781,36 +824,38 @@ export default function CenterCourseEditPage({ params }: PageProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Thumbnail</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.thumbnailTitle")}
+                </CardTitle>
                 <CardDescription>
-                  Upload a new thumbnail image for this course.
+                  {t("pages.courseForm.sections.thumbnailDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="mb-4 space-y-2">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Uploaded Thumbnail:
+                    {t("pages.centerCourseEdit.thumbnail.currentLabel")}
                   </p>
                   {currentThumbnail && !currentThumbnailFailed ? (
                     <>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={currentThumbnail}
-                        alt="Course thumbnail"
+                        alt={t("pages.centerCourseEdit.thumbnail.currentAlt")}
                         className="h-40 w-auto rounded-lg border object-cover"
                         onError={() => setCurrentThumbnailFailed(true)}
                       />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        This image reflects the currently uploaded thumbnail.
+                        {t("pages.centerCourseEdit.thumbnail.currentHint")}
                       </p>
                     </>
                   ) : currentThumbnailFailed ? (
                     <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                      Unable to load the uploaded thumbnail.
+                      {t("pages.centerCourseEdit.thumbnail.loadFailed")}
                     </div>
                   ) : (
                     <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-6 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                      No thumbnail uploaded yet.
+                      {t("pages.centerCourseEdit.thumbnail.empty")}
                     </div>
                   )}
                 </div>
@@ -819,7 +864,7 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   <div className="space-y-2 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium text-primary">
-                        New thumbnail (to be uploaded)
+                        {t("pages.centerCourseEdit.thumbnail.newLabel")}
                       </p>
                       <Button
                         type="button"
@@ -827,13 +872,13 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                         size="sm"
                         onClick={handleClearSelectedThumbnail}
                       >
-                        Clear
+                        {t("pages.courseForm.actions.clear")}
                       </Button>
                     </div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={thumbnailPreview}
-                      alt="New course thumbnail preview"
+                      alt={t("pages.courseForm.thumbnail.previewAlt")}
                       className="h-40 w-auto rounded-lg border object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
@@ -846,7 +891,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                 )}
 
                 <div className="space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                  <p className="text-sm font-medium">Upload New Thumbnail</p>
+                  <p className="text-sm font-medium">
+                    {t("pages.courseForm.thumbnail.uploadTitle")}
+                  </p>
                   <div className="flex items-center gap-3">
                     <Input
                       ref={fileInputRef}
@@ -861,18 +908,23 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                       onClick={handleUploadThumbnail}
                       disabled={!thumbnailFile || isUploadingThumbnail}
                     >
-                      {isUploadingThumbnail ? "Uploading..." : "Upload"}
+                      {isUploadingThumbnail
+                        ? t("pages.centerCourseEdit.thumbnail.uploading")
+                        : t("common.actions.upload")}
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500">
-                    Max 5MB. Supported formats: JPG, PNG, GIF, WebP.
+                    {t("pages.courseForm.thumbnail.restrictions")}
                   </p>
                   {thumbnailError && (
                     <p className="text-sm text-red-600">{thumbnailError}</p>
                   )}
                   {isUploadError && (
                     <p className="text-sm text-red-600">
-                      {extractErrorMessage(uploadError)}
+                      {extractErrorMessage(
+                        uploadError,
+                        t("pages.centerCourseEdit.thumbnail.uploadFailed"),
+                      )}
                     </p>
                   )}
                 </div>
@@ -883,7 +935,9 @@ export default function CenterCourseEditPage({ params }: PageProps) {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.actionsTitle")}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -891,16 +945,23 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   className="w-full"
                   disabled={isPending || !formData.title}
                 >
-                  {isUpdating ? "Saving..." : "Save Changes"}
+                  {isUpdating
+                    ? t("pages.centerCourseDetail.actions.saving")
+                    : t("pages.centerCourseDetail.actions.saveChanges")}
                 </Button>
               </CardContent>
             </Card>
 
             {isUpdateError && (
               <Alert variant="destructive">
-                <AlertTitle>Could not update course</AlertTitle>
+                <AlertTitle>
+                  {t("pages.centerCourseEdit.updateFailedTitle")}
+                </AlertTitle>
                 <AlertDescription>
-                  {extractErrorMessage(updateError)}
+                  {extractErrorMessage(
+                    updateError,
+                    t("pages.centerCourseEdit.updateFailedFallback"),
+                  )}
                 </AlertDescription>
               </Alert>
             )}

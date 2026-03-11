@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "./icons";
@@ -17,6 +18,8 @@ const THEMES = [
 export function ThemeToggleSwitch() {
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
+  const nextMode = theme === "light" ? "dark" : "light";
 
   useEffect(() => {
     setMounted(true);
@@ -28,12 +31,14 @@ export function ThemeToggleSwitch() {
 
   return (
     <button
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={() => setTheme(nextMode)}
       className="group inline-flex rounded-full bg-gray-3 p-[5px] text-[#111928] outline-1 outline-primary focus-visible:outline dark:bg-[#020D1A] dark:text-current"
       dir="ltr"
     >
       <span className="sr-only">
-        Switch to {theme === "light" ? "dark" : "light"} mode
+        {t("themeToggle.switchToMode", {
+          mode: t(`themeToggle.modes.${nextMode}`),
+        })}
       </span>
 
       <span aria-hidden className="relative flex items-center gap-2.5">

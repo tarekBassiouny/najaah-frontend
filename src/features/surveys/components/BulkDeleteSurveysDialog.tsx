@@ -16,6 +16,7 @@ import type {
   BulkSurveyActionResult,
   Survey,
 } from "@/features/surveys/types/survey";
+import { useTranslation } from "@/features/localization";
 
 type BulkDeleteSurveysDialogProps = {
   open: boolean;
@@ -85,6 +86,8 @@ export function BulkDeleteSurveysDialog({
   centerId,
   onSuccess,
 }: BulkDeleteSurveysDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkDeleteSurveys({ centerId });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkSurveyActionResult | null>(null);
@@ -146,20 +149,24 @@ export function BulkDeleteSurveysDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Delete Surveys</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.surveys.components.bulkdeletesurveysdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Permanently delete {surveys.length} selected survey
+            {t("auto.features.surveys.components.bulkdeletesurveysdialog.s2")}
+            {surveys.length}{" "}
+            {t("auto.features.surveys.components.bulkdeletesurveysdialog.s3")}
             {surveys.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
-          This action cannot be undone.
+          {t("auto.features.surveys.components.bulkdeletesurveysdialog.s4")}
         </div>
 
         <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Selected Surveys
+            {t("auto.features.surveys.components.bulkdeletesurveysdialog.s5")}
           </p>
           <div className="space-y-1 text-sm text-gray-700 dark:text-gray-200">
             {surveys.slice(0, 5).map((survey) => (
@@ -167,7 +174,10 @@ export function BulkDeleteSurveysDialog({
             ))}
             {surveys.length > 5 ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +{surveys.length - 5} more surveys
+                +{surveys.length - 5}{" "}
+                {t(
+                  "auto.features.surveys.components.bulkdeletesurveysdialog.s6",
+                )}
               </p>
             ) : null}
           </div>
@@ -175,7 +185,9 @@ export function BulkDeleteSurveysDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to delete</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.surveys.components.bulkdeletesurveysdialog.s7")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -183,10 +195,30 @@ export function BulkDeleteSurveysDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || surveys.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkdeletesurveysdialog.s8",
+                )}
+                {readCount(result, "total") || surveys.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkdeletesurveysdialog.s9",
+                )}
+                {readCount(result, "updated")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkdeletesurveysdialog.s10",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkdeletesurveysdialog.s11",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readActionItems(result, "failed").length > 0 ? (
@@ -201,7 +233,10 @@ export function BulkDeleteSurveysDialog({
                     "Failed";
                   return (
                     <p key={`failed-${surveyId}-${index}`}>
-                      Survey #{String(surveyId)}: {reason}
+                      {t(
+                        "auto.features.surveys.components.bulkdeletesurveysdialog.s12",
+                      )}
+                      {String(surveyId)}: {reason}
                     </p>
                   );
                 })}
@@ -220,7 +255,10 @@ export function BulkDeleteSurveysDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${surveyId}-${index}`}>
-                      Survey #{String(surveyId)}: {reason}
+                      {t(
+                        "auto.features.surveys.components.bulkdeletesurveysdialog.s12",
+                      )}
+                      {String(surveyId)}: {reason}
                     </p>
                   );
                 })}
@@ -231,7 +269,8 @@ export function BulkDeleteSurveysDialog({
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Type {DELETE_CONFIRM_TEXT} to confirm
+            Type {DELETE_CONFIRM_TEXT}{" "}
+            {t("auto.features.surveys.components.bulkdeletesurveysdialog.s13")}
           </label>
           <input
             value={confirmationText}
@@ -243,7 +282,7 @@ export function BulkDeleteSurveysDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.surveys.components.bulkdeletesurveysdialog.s14")}
           </Button>
           <Button
             variant="destructive"

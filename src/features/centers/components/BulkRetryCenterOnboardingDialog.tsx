@@ -18,6 +18,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type BulkRetryCenterOnboardingDialogProps = {
   open: boolean;
@@ -77,6 +78,8 @@ export function BulkRetryCenterOnboardingDialog({
   centers,
   onSuccess,
 }: BulkRetryCenterOnboardingDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkRetryCenterOnboarding();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkCentersActionResult | null>(null);
@@ -148,20 +151,36 @@ export function BulkRetryCenterOnboardingDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Retry Onboarding</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.centers.components.bulkretrycenteronboardingdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Retry onboarding for {centers.length} selected center
+            {t(
+              "auto.features.centers.components.bulkretrycenteronboardingdialog.s2",
+            )}
+            {centers.length}{" "}
+            {t(
+              "auto.features.centers.components.bulkretrycenteronboardingdialog.s3",
+            )}
             {centers.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-300">
-          This action re-runs onboarding jobs for the selected centers.
+          {t(
+            "auto.features.centers.components.bulkretrycenteronboardingdialog.s4",
+          )}
         </div>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to retry</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.bulkretrycenteronboardingdialog.s5",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -169,10 +188,30 @@ export function BulkRetryCenterOnboardingDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || centers.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkretrycenteronboardingdialog.s6",
+                )}
+                {readCount(result, "total") || centers.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkretrycenteronboardingdialog.s7",
+                )}
+                {readCount(result, "updated")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkretrycenteronboardingdialog.s8",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkretrycenteronboardingdialog.s9",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readActionItems(result, "failed").length > 0 ? (
@@ -187,7 +226,10 @@ export function BulkRetryCenterOnboardingDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkretrycenteronboardingdialog.s10",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -206,7 +248,10 @@ export function BulkRetryCenterOnboardingDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkretrycenteronboardingdialog.s10",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -217,7 +262,9 @@ export function BulkRetryCenterOnboardingDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.centers.components.bulkretrycenteronboardingdialog.s11",
+            )}
           </Button>
           <Button onClick={handleRetryCenters} disabled={mutation.isPending}>
             {mutation.isPending ? "Retrying..." : "Retry Onboarding"}

@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format-date-time";
 import { usePlaybackSessions } from "@/features/playback-sessions/hooks/use-playback-sessions";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_FILTERS = {
   search: "",
@@ -125,6 +126,8 @@ export function PlaybackSessionsModal({
   videoTitle,
   userId,
 }: PlaybackSessionsModalProps) {
+  const { t } = useTranslation();
+
   const [filters, setFilters] = useState<LocalFilters>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -209,7 +212,11 @@ export function PlaybackSessionsModal({
         <DialogHeader className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <DialogTitle>Playback Sessions</DialogTitle>
+              <DialogTitle>
+                {t(
+                  "auto.features.playback_sessions.components.playbacksessionsmodal.s1",
+                )}
+              </DialogTitle>
               <DialogDescription className="text-sm text-gray-500">
                 {videoTitle ? `${videoTitle}` : "Video"} ·{" "}
                 {courseTitle ?? "Course"}
@@ -262,7 +269,9 @@ export function PlaybackSessionsModal({
                     }));
                     setPage(1);
                   }}
-                  placeholder="Search by student, email, video title"
+                  placeholder={t(
+                    "auto.features.playback_sessions.components.playbacksessionsmodal.s2",
+                  )}
                   className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <button
@@ -275,7 +284,9 @@ export function PlaybackSessionsModal({
                     setFilters((prev) => ({ ...prev, search: "" }));
                     setPage(1);
                   }}
-                  aria-label="Clear search"
+                  aria-label={t(
+                    "auto.features.playback_sessions.components.playbacksessionsmodal.s3",
+                  )}
                 >
                   <svg
                     className="h-3.5 w-3.5"
@@ -316,7 +327,9 @@ export function PlaybackSessionsModal({
                   From
                 </span>
                 <input
-                  title="Started from"
+                  title={t(
+                    "auto.features.playback_sessions.components.playbacksessionsmodal.s4",
+                  )}
                   type="date"
                   value={filters.startedFrom}
                   max={filters.startedTo || undefined}
@@ -338,7 +351,9 @@ export function PlaybackSessionsModal({
                   To
                 </span>
                 <input
-                  title="Started to"
+                  title={t(
+                    "auto.features.playback_sessions.components.playbacksessionsmodal.s5",
+                  )}
                   type="date"
                   value={filters.startedTo}
                   min={filters.startedFrom || undefined}
@@ -394,7 +409,10 @@ export function PlaybackSessionsModal({
         <div className="mt-4">
           <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:bg-gray-900/40">
-              Sessions ({total.toLocaleString()})
+              {t(
+                "auto.features.playback_sessions.components.playbacksessionsmodal.s6",
+              )}
+              {total.toLocaleString()})
             </div>
             <div className="min-h-[200px]">
               {query.isLoading ? (
@@ -405,16 +423,26 @@ export function PlaybackSessionsModal({
                 </div>
               ) : sessions.length === 0 ? (
                 <div className="flex items-center justify-center px-4 py-10 text-sm text-gray-500">
-                  No playback sessions found for the selected filters.
+                  {t(
+                    "auto.features.playback_sessions.components.playbacksessionsmodal.s7",
+                  )}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>User</TableHead>
-                      <TableHead>Device / Status</TableHead>
+                      <TableHead>
+                        {t(
+                          "auto.features.playback_sessions.components.playbacksessionsmodal.s8",
+                        )}
+                      </TableHead>
                       <TableHead>Started</TableHead>
-                      <TableHead>Last Activity</TableHead>
+                      <TableHead>
+                        {t(
+                          "auto.features.playback_sessions.components.playbacksessionsmodal.s9",
+                        )}
+                      </TableHead>
                       <TableHead>Duration</TableHead>
                       <TableHead>Progress</TableHead>
                       <TableHead>Flags</TableHead>
@@ -524,7 +552,11 @@ export function PlaybackSessionsModal({
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {session.is_full_play && (
-                              <Badge variant="success">Full play</Badge>
+                              <Badge variant="success">
+                                {t(
+                                  "auto.features.playback_sessions.components.playbacksessionsmodal.s10",
+                                )}
+                              </Badge>
                             )}
                             {session.is_locked && (
                               <Badge variant="warning">Locked</Badge>
@@ -538,7 +570,10 @@ export function PlaybackSessionsModal({
                           </div>
                           {session.close_reason ? (
                             <p className="text-xs text-gray-500">
-                              Reason: {session.close_reason}
+                              {t(
+                                "auto.features.playback_sessions.components.playbacksessionsmodal.s11",
+                              )}
+                              {session.close_reason}
                             </p>
                           ) : null}
                         </TableCell>
@@ -565,7 +600,9 @@ export function PlaybackSessionsModal({
             perPageOptions={[10, 20, 50, 100]}
           />
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.playback_sessions.components.playbacksessionsmodal.s12",
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

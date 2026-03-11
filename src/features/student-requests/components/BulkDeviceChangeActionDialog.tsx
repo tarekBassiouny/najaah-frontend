@@ -21,6 +21,7 @@ import type {
   DeviceChangeRequest,
 } from "@/features/device-change-requests/types/device-change-request";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 type BulkDeviceChangeActionDialogProps = {
   open: boolean;
@@ -54,6 +55,8 @@ export function BulkDeviceChangeActionDialog({
   centerId,
   onSuccess,
 }: BulkDeviceChangeActionDialogProps) {
+  const { t } = useTranslation();
+
   const bulkApproveMutation = useBulkApproveDeviceChangeRequests();
   const bulkRejectMutation = useBulkRejectDeviceChangeRequests();
   const bulkPreApproveMutation = useBulkPreApproveDeviceChangeRequests();
@@ -203,14 +206,21 @@ export function BulkDeviceChangeActionDialog({
             Bulk {action === "pre-approve" ? "Pre-Approve" : action} Devices
           </DialogTitle>
           <DialogDescription>
-            Process {ids.length} selected device change request
+            Process {ids.length}{" "}
+            {t(
+              "auto.features.student_requests.components.bulkdevicechangeactiondialog.s1",
+            )}
             {ids.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Request failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.student_requests.components.bulkdevicechangeactiondialog.s2",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -218,7 +228,12 @@ export function BulkDeviceChangeActionDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || ids.length}</span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s3",
+                )}
+                {readCount(result, "total") || ids.length}
+              </span>
               <span>
                 {processedKey === "pre_approved"
                   ? "Pre-Approved"
@@ -227,8 +242,18 @@ export function BulkDeviceChangeActionDialog({
                     : "Rejected"}
                 : {readCount(result, processedKey)}
               </span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s4",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s5",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {processedItems.length > 0 ? (
@@ -238,7 +263,10 @@ export function BulkDeviceChangeActionDialog({
                   const requestId = record.request_id ?? record.id ?? "unknown";
                   return (
                     <p key={`processed-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)} processed
+                      {t(
+                        "auto.features.student_requests.components.bulkdevicechangeactiondialog.s6",
+                      )}
+                      {String(requestId)} processed
                     </p>
                   );
                 })}
@@ -255,7 +283,10 @@ export function BulkDeviceChangeActionDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)}: {reason}
+                      {t(
+                        "auto.features.student_requests.components.bulkdevicechangeactiondialog.s6",
+                      )}
+                      {String(requestId)}: {reason}
                     </p>
                   );
                 })}
@@ -272,7 +303,10 @@ export function BulkDeviceChangeActionDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)}: {reason}
+                      {t(
+                        "auto.features.student_requests.components.bulkdevicechangeactiondialog.s6",
+                      )}
+                      {String(requestId)}: {reason}
                     </p>
                   );
                 })}
@@ -285,7 +319,9 @@ export function BulkDeviceChangeActionDialog({
           <>
             <div className="space-y-2">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                New Device ID (optional)
+                {t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s7",
+                )}
               </p>
               <Input
                 value={newDeviceId}
@@ -295,22 +331,30 @@ export function BulkDeviceChangeActionDialog({
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                New Model (optional)
+                {t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s8",
+                )}
               </p>
               <Input
                 value={newModel}
                 onChange={(event) => setNewModel(event.target.value)}
-                placeholder="iPhone 15"
+                placeholder={t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s9",
+                )}
               />
             </div>
             <div className="space-y-2">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                New OS Version (optional)
+                {t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s10",
+                )}
               </p>
               <Input
                 value={newOsVersion}
                 onChange={(event) => setNewOsVersion(event.target.value)}
-                placeholder="iOS 17.2"
+                placeholder={t(
+                  "auto.features.student_requests.components.bulkdevicechangeactiondialog.s11",
+                )}
               />
             </div>
           </>
@@ -319,7 +363,9 @@ export function BulkDeviceChangeActionDialog({
         {action !== "approve" ? (
           <div className="space-y-2">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Decision reason{" "}
+              {t(
+                "auto.features.student_requests.components.bulkdevicechangeactiondialog.s12",
+              )}{" "}
               {action === "reject" ? "(required)" : "(optional)"}
             </p>
             <Input
@@ -334,7 +380,9 @@ export function BulkDeviceChangeActionDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.student_requests.components.bulkdevicechangeactiondialog.s13",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={activeMutation.isPending}>
             {activeMutation.isPending

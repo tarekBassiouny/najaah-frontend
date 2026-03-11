@@ -18,6 +18,7 @@ import {
   getAdminResponseMessage,
 } from "@/lib/admin-response";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 
 type VideoPreviewDialogProps = {
   open: boolean;
@@ -43,7 +44,7 @@ function resolveVideoTitle(video?: Video | null) {
     video?.title ??
     video?.title_translations?.en ??
     video?.title_translations?.ar ??
-    "Video preview"
+    null
   );
 }
 
@@ -53,6 +54,7 @@ export function VideoPreviewDialog({
   video,
   centerId,
 }: VideoPreviewDialogProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const { mutateAsync: requestPreview, isPending } = usePreviewVideo();
   const requestKeyRef = useRef<string | null>(null);
@@ -77,7 +79,9 @@ export function VideoPreviewDialog({
     setPreview(INITIAL_PREVIEW_STATE);
 
     if (!video?.id || !centerId) {
-      setErrorMessage("Select a center-scoped video to preview.");
+      setErrorMessage(
+        t("pages.videos.dialogs.preview.errors.missingCenterVideo"),
+      );
       return;
     }
 
@@ -99,7 +103,7 @@ export function VideoPreviewDialog({
         if (!isActive) return;
         const message = getAdminApiErrorMessage(
           error,
-          "Failed to generate preview.",
+          t("pages.videos.dialogs.preview.errors.generateFailed"),
         );
         setErrorMessage(message);
         showToast(message, "error");
@@ -108,12 +112,13 @@ export function VideoPreviewDialog({
     return () => {
       isActive = false;
     };
-  }, [centerId, open, requestPreview, showToast, video?.id]);
+  }, [centerId, open, requestPreview, showToast, t, video?.id]);
 
-  const title = resolveVideoTitle(video);
+  const title =
+    resolveVideoTitle(video) ?? t("pages.videos.dialogs.preview.titleFallback");
   const description = getAdminResponseMessage(
     video,
-    "Preview the current video source.",
+    t("pages.videos.dialogs.preview.descriptionFallback"),
   );
 
   return (
@@ -126,19 +131,27 @@ export function VideoPreviewDialog({
 
         {preview.expiresAt ? (
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <Badge variant="secondary">Signed URL</Badge>
-            <span>Expires: {formatDateTime(preview.expiresAt)}</span>
+            <Badge variant="secondary">
+              {t("pages.videos.dialogs.preview.badges.signedUrl")}
+            </Badge>
+            <span>
+              {t("pages.videos.dialogs.preview.expiresAt", {
+                value: formatDateTime(preview.expiresAt),
+              })}
+            </span>
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <Badge variant="secondary">Direct Source</Badge>
-            <span>No expiry (URL source)</span>
+            <Badge variant="secondary">
+              {t("pages.videos.dialogs.preview.badges.directSource")}
+            </Badge>
+            <span>{t("pages.videos.dialogs.preview.noExpiry")}</span>
           </div>
         )}
 
         {isPending ? (
           <div className="flex h-[420px] items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-            Loading preview...
+            {t("pages.videos.dialogs.preview.loading")}
           </div>
         ) : errorMessage ? (
           <div className="flex h-[420px] items-center justify-center rounded-lg border border-red-200 bg-red-50 px-6 text-center text-sm text-red-600 dark:border-red-900 dark:bg-red-900/20 dark:text-red-400">
@@ -167,13 +180,13 @@ export function VideoPreviewDialog({
                   );
                 }}
               >
-                Open in new tab
+                {t("pages.videos.dialogs.preview.actions.openInNewTab")}
               </Button>
             </div>
           </div>
         ) : (
           <div className="flex h-[420px] items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-            Preview is not available for this video.
+            {t("pages.videos.dialogs.preview.unavailable")}
           </div>
         )}
       </DialogContent>

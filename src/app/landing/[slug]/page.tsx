@@ -76,6 +76,7 @@ type LandingCopy = {
   testimonialsLive: string;
   contactChannels: string;
   localeSupport: string;
+  localePair: string;
   quickLinksTitle: string;
   aboutLink: string;
   coursesLink: string;
@@ -148,6 +149,7 @@ const landingCopy = {
     testimonialsLive: "Testimonials live",
     contactChannels: "Contact channels",
     localeSupport: "Locale support",
+    localePair: "EN / AR",
     quickLinksTitle: "Quick links",
     aboutLink: "About",
     coursesLink: "Programs",
@@ -224,6 +226,7 @@ const landingCopy = {
     testimonialsLive: "الشهادات المنشورة",
     contactChannels: "قنوات التواصل",
     localeSupport: "دعم اللغة",
+    localePair: "EN / AR",
     quickLinksTitle: "روابط سريعة",
     aboutLink: "عن المركز",
     coursesLink: "البرامج",
@@ -1019,7 +1022,7 @@ export default async function LandingPageResolve({
       label: copy.contactChannels,
       value: String(contactItems.length + socialLinks.length),
     },
-    { label: copy.localeSupport, value: "EN / AR" },
+    { label: copy.localeSupport, value: copy.localePair },
   ];
 
   const secondaryCtaHref = shouldShowAbout
@@ -1524,7 +1527,7 @@ export default async function LandingPageResolve({
                           {copy.localeSupport}
                         </p>
                         <p className="mt-3 text-lg font-semibold text-white">
-                          EN / AR
+                          {copy.localePair}
                         </p>
                       </div>
                     </div>
@@ -1689,7 +1692,7 @@ export default async function LandingPageResolve({
                       {copy.localeSupport}
                     </p>
                     <p className="mt-3 text-lg font-semibold text-slate-950">
-                      EN / AR
+                      {copy.localePair}
                     </p>
                     <p className="mt-2 text-sm leading-7 text-slate-600">
                       {copy.backgroundStatus}
@@ -1741,7 +1744,7 @@ export default async function LandingPageResolve({
                     {copy.localeSupport}
                   </p>
                   <p className="mt-3 text-lg font-semibold text-slate-950">
-                    EN / AR
+                    {copy.localePair}
                   </p>
                   <p className="mt-2 text-sm leading-7 text-slate-600">
                     {copy.backgroundStatus}

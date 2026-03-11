@@ -15,6 +15,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DeleteAdminUserDialogProps = {
   user?: AdminUser | null;
@@ -38,6 +39,8 @@ export function DeleteAdminUserDialog({
   onSuccess,
   scopeCenterId,
 }: DeleteAdminUserDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteAdminUser({
     centerId: scopeCenterId ?? null,
@@ -81,10 +84,14 @@ export function DeleteAdminUserDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Admin User</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.admin_users.components.deleteadminuserdialog.s1")}
+          </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Admin User"
+          title={t(
+            "auto.features.admin_users.components.deleteadminuserdialog.s1",
+          )}
           entityName={userName}
           entityFallback="this admin user"
           confirmButtonLabel="Delete User"

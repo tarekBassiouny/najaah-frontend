@@ -128,34 +128,43 @@ const resourceArticles = [
   },
 ] as const;
 
+const resourcesCopy = {
+  eyebrow: "Najaah Resources",
+  title: "Support, Company, Legal, and Search-Focused Resource Pages",
+  intro:
+    "This resource hub gives search engines and users stable destinations for company information, support topics, legal intent, and related product paths.",
+  backToLanding: "Back to Landing Page",
+  contactSupport: "Contact Support",
+  commercialIntentPages: "Commercial Intent Pages",
+  longFormGuides: "Long-Form Guides",
+} as const;
+
 export default function ResourcesPage() {
   return (
     <main className="min-h-screen bg-stone-50">
       <section className="border-b border-stone-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-18 md:px-10 md:py-24">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-800">
-            Najaah Resources
+            {resourcesCopy.eyebrow}
           </p>
           <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight text-emerald-950 md:text-6xl">
-            Support, Company, Legal, and Search-Focused Resource Pages
+            {resourcesCopy.title}
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700">
-            This resource hub gives search engines and users stable destinations
-            for company information, support topics, legal intent, and related
-            product paths.
+            {resourcesCopy.intro}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/"
               className="rounded-full bg-emerald-900 px-6 py-3 text-sm font-semibold text-white"
             >
-              Back to Landing Page
+              {resourcesCopy.backToLanding}
             </Link>
             <Link
               href="/#contact"
               className="rounded-full border border-emerald-900/15 bg-white px-6 py-3 text-sm font-semibold text-emerald-950"
             >
-              Contact Support
+              {resourcesCopy.contactSupport}
             </Link>
           </div>
         </div>
@@ -165,7 +174,7 @@ export default function ResourcesPage() {
         <div className="mb-10 grid gap-6 md:grid-cols-2">
           <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-emerald-950">
-              Commercial Intent Pages
+              {resourcesCopy.commercialIntentPages}
             </h2>
             <div className="mt-5 flex flex-col gap-3">
               {commercialPages.map((page) => (
@@ -182,7 +191,7 @@ export default function ResourcesPage() {
 
           <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
             <h2 className="text-2xl font-bold text-emerald-950">
-              Long-Form Guides
+              {resourcesCopy.longFormGuides}
             </h2>
             <div className="mt-5 flex flex-col gap-3">
               {resourceArticles.map((article) => (

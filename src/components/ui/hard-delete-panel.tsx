@@ -16,6 +16,9 @@ type HardDeletePanelProps = {
   pendingLabel?: string;
   errorTitle?: string;
   errorMessage?: string | null;
+  irreversibleText?: string;
+  warningPrefix?: string;
+  cancelButtonLabel?: string;
   isPending?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -34,6 +37,9 @@ export function HardDeletePanel({
   pendingLabel = "Deleting...",
   errorTitle = "Could not delete item",
   errorMessage,
+  irreversibleText = "This action cannot be undone.",
+  warningPrefix = "You are about to permanently delete",
+  cancelButtonLabel = "Cancel",
   isPending = false,
   onCancel,
   onConfirm,
@@ -73,7 +79,7 @@ export function HardDeletePanel({
               {title}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              This action cannot be undone.
+              {irreversibleText}
             </p>
           </div>
         </div>
@@ -87,7 +93,7 @@ export function HardDeletePanel({
       )}
 
       <div className="rounded-xl border border-red-200 bg-red-50/70 p-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200">
-        You are about to permanently delete{" "}
+        {warningPrefix}{" "}
         <span className="font-semibold text-red-900 dark:text-red-100">
           {resolvedName}
         </span>
@@ -112,7 +118,7 @@ export function HardDeletePanel({
           onClick={onCancel}
           disabled={isPending}
         >
-          Cancel
+          {cancelButtonLabel}
         </Button>
         <Button
           type="button"

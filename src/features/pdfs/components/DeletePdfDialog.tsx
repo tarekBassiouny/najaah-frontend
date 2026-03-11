@@ -11,6 +11,7 @@ import {
 import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeletePdf } from "@/features/pdfs/hooks/use-pdfs";
 import type { Pdf } from "@/features/pdfs/types/pdf";
+import { useTranslation } from "@/features/localization";
 import {
   getAdminApiErrorMessage,
   getAdminResponseMessage,
@@ -32,6 +33,7 @@ export function DeletePdfDialog({
   pdf,
   onSuccess,
 }: DeletePdfDialogProps) {
+  const { t } = useTranslation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeletePdf();
 
@@ -47,7 +49,7 @@ export function DeletePdfDialog({
             setErrorMessage(
               getAdminResponseMessage(
                 response,
-                "Unable to delete PDF. Please try again.",
+                t("pages.pdfs.dialogs.delete.errors.deleteFailed"),
               ),
             );
             return;
@@ -55,7 +57,7 @@ export function DeletePdfDialog({
 
           const message = getAdminResponseMessage(
             response,
-            "PDF deleted successfully.",
+            t("pages.pdfs.dialogs.delete.messages.deleted"),
           );
           onOpenChange(false);
           onSuccess?.(message);
@@ -64,7 +66,7 @@ export function DeletePdfDialog({
           setErrorMessage(
             getAdminApiErrorMessage(
               error,
-              "Unable to delete PDF. Please try again.",
+              t("pages.pdfs.dialogs.delete.errors.deleteFailed"),
             ),
           );
         },
@@ -85,18 +87,28 @@ export function DeletePdfDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete PDF</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("pages.pdfs.dialogs.delete.title")}
+          </DialogTitle>
           <DialogDescription className="sr-only">
-            Permanently delete the selected PDF.
+            {t("pages.pdfs.dialogs.delete.description")}
           </DialogDescription>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete PDF"
+          title={t("pages.pdfs.dialogs.delete.title")}
           entityName={pdfTitle}
-          entityFallback="this PDF"
-          confirmButtonLabel="Delete PDF"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete PDF"
+          entityFallback={t("pages.pdfs.dialogs.delete.entityFallback")}
+          confirmButtonLabel={t(
+            "pages.pdfs.dialogs.delete.actions.confirmDelete",
+          )}
+          pendingLabel={t("common.actions.deleting")}
+          errorTitle={t("pages.pdfs.dialogs.delete.errors.couldNotDelete")}
+          confirmLabel={t("pages.pdfs.dialogs.delete.confirmLabel", {
+            value: "DELETE",
+          })}
+          irreversibleText={t("pages.pdfs.dialogs.delete.irreversible")}
+          warningPrefix={t("pages.pdfs.dialogs.delete.warningPrefix")}
+          cancelButtonLabel={t("common.actions.cancel")}
           errorMessage={errorMessage}
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}

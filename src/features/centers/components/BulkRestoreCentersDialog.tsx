@@ -18,6 +18,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type BulkRestoreCentersDialogProps = {
   open: boolean;
@@ -77,6 +78,8 @@ export function BulkRestoreCentersDialog({
   centers,
   onSuccess,
 }: BulkRestoreCentersDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkRestoreCenters();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkCentersActionResult | null>(null);
@@ -148,20 +151,27 @@ export function BulkRestoreCentersDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Restore Centers</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.centers.components.bulkrestorecentersdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Restore {centers.length} selected center
+            Restore {centers.length}{" "}
+            {t("auto.features.centers.components.bulkrestorecentersdialog.s2")}
             {centers.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-300">
-          Restored centers become active in management and app resolution flows.
+          {t("auto.features.centers.components.bulkrestorecentersdialog.s3")}
         </div>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to restore</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.bulkrestorecentersdialog.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -169,10 +179,30 @@ export function BulkRestoreCentersDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || centers.length}</span>
-              <span>Restored: {readCount(result, "restored")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkrestorecentersdialog.s5",
+                )}
+                {readCount(result, "total") || centers.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkrestorecentersdialog.s6",
+                )}
+                {readCount(result, "restored")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkrestorecentersdialog.s7",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkrestorecentersdialog.s8",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readActionItems(result, "failed").length > 0 ? (
@@ -187,7 +217,10 @@ export function BulkRestoreCentersDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkrestorecentersdialog.s9",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -206,7 +239,10 @@ export function BulkRestoreCentersDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkrestorecentersdialog.s9",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -217,7 +253,7 @@ export function BulkRestoreCentersDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.centers.components.bulkrestorecentersdialog.s10")}
           </Button>
           <Button onClick={handleRestoreCenters} disabled={mutation.isPending}>
             {mutation.isPending ? "Restoring..." : "Restore Centers"}

@@ -29,6 +29,7 @@ import {
   getAdminApiErrorMessage,
   getAdminResponseMessage,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type UploadPhase =
   | "idle"
@@ -52,7 +53,7 @@ function resolveVideoTitle(video?: Video | null) {
     video?.title ??
     video?.title_translations?.en ??
     video?.title_translations?.ar ??
-    "video"
+    null
   );
 }
 
@@ -81,6 +82,7 @@ export function VideoRetryUploadDialog({
   centerId,
   onSuccess,
 }: VideoRetryUploadDialogProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const createSessionMutation = useCreateVideoUploadSession();
   const uploadControllerRef = useRef<TusUploadController | null>(null);
@@ -118,7 +120,22 @@ export function VideoRetryUploadDialog({
     isPaused;
   const canPause = uploadPhase === "uploading";
   const canResume = uploadPhase === "paused";
-  const videoTitle = resolveVideoTitle(video);
+  const videoTitle =
+    resolveVideoTitle(video) ??
+    t("pages.videos.dialogs.retryUpload.videoFallback");
+  const uploadPausedText = t(
+    "pages.videos.dialogs.retryUpload.status.uploadPaused",
+  );
+  const uploadingText = t("pages.videos.dialogs.retryUpload.status.uploading");
+  const creatingSessionText = t(
+    "pages.videos.dialogs.retryUpload.status.creatingSession",
+  );
+  const processingText = t(
+    "pages.videos.dialogs.retryUpload.status.processing",
+  );
+  const preparingUploadText = t(
+    "pages.videos.dialogs.retryUpload.status.preparingUpload",
+  );
 
   const stopUploadLifecycle = useCallback(async () => {
     if (uploadControllerRef.current) {
@@ -163,17 +180,20 @@ export function VideoRetryUploadDialog({
     try {
       await pauseGlobalUpload(activeUploadId);
       setUploadPhase("paused");
-      setUploadStatusText("Upload paused.");
+      setUploadStatusText(uploadPausedText);
       setUploadSpeedBps(null);
       setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "paused",
-        statusText: "Upload paused.",
+        statusText: uploadPausedText,
         bytesPerSecond: null,
         etaSeconds: null,
       });
     } catch (error) {
-      const message = getAdminApiErrorMessage(error, "Failed to pause upload.");
+      const message = getAdminApiErrorMessage(
+        error,
+        t("pages.videos.dialogs.retryUpload.errors.pauseFailed"),
+      );
       setFormError(message);
       showToast(message, "error");
     }
@@ -184,19 +204,19 @@ export function VideoRetryUploadDialog({
     try {
       await resumeGlobalUpload(activeUploadId);
       setUploadPhase("uploading");
-      setUploadStatusText("Uploading video...");
+      setUploadStatusText(uploadingText);
       setUploadSpeedBps(null);
       setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "uploading",
-        statusText: "Uploading video...",
+        statusText: uploadingText,
         bytesPerSecond: null,
         etaSeconds: null,
       });
     } catch (error) {
       const message = getAdminApiErrorMessage(
         error,
-        "Failed to resume upload.",
+        t("pages.videos.dialogs.retryUpload.errors.resumeFailed"),
       );
       setFormError(message);
       showToast(message, "error");
@@ -208,17 +228,19 @@ export function VideoRetryUploadDialog({
     if (isBusy) return;
 
     if (!centerId || !video?.id) {
-      setFormError("Select a center-scoped video before retrying upload.");
+      setFormError(
+        t("pages.videos.dialogs.retryUpload.errors.missingCenterVideo"),
+      );
       return;
     }
 
     if (!file) {
-      setFormError("Select a video file to upload.");
+      setFormError(t("pages.videos.dialogs.retryUpload.errors.missingFile"));
       return;
     }
 
     if (!isVideoFile(file)) {
-      setFormError("Selected file must be a video.");
+      setFormError(t("pages.videos.dialogs.retryUpload.errors.invalidFile"));
       return;
     }
 
@@ -227,7 +249,7 @@ export function VideoRetryUploadDialog({
     setUploadProgress(0);
     setUploadSpeedBps(null);
     setUploadEtaSeconds(null);
-    setUploadStatusText("Creating upload session...");
+    setUploadStatusText(creatingSessionText);
     let createdUploadId: string | null = null;
 
     try {
@@ -241,13 +263,15 @@ export function VideoRetryUploadDialog({
 
       const uploadEndpoint = resolveUploadEndpoint(createdSession);
       if (!uploadEndpoint) {
-        throw new Error("Upload endpoint is missing from upload session.");
+        throw new Error(
+          t("pages.videos.dialogs.retryUpload.errors.missingEndpoint"),
+        );
       }
 
       const sessionId = resolveUploadSessionId(createdSession);
       setUploadSessionId(sessionId);
       setUploadPhase("uploading");
-      setUploadStatusText("Uploading video...");
+      setUploadStatusText(uploadingText);
       const uploadId = startGlobalUpload({
         centerId,
         videoId: video.id,
@@ -255,7 +279,7 @@ export function VideoRetryUploadDialog({
         fileName: file.name,
         uploadSessionId: sessionId,
         phase: "uploading",
-        statusText: "Uploading video...",
+        statusText: uploadingText,
       });
       createdUploadId = uploadId;
       setActiveUploadId(uploadId);
@@ -269,20 +293,22 @@ export function VideoRetryUploadDialog({
           if (isMountedRef.current) {
             setUploadProgress(percentage);
             setUploadPhase("uploading");
-            setUploadStatusText("Uploading video...");
+            setUploadStatusText(uploadingText);
             setUploadSpeedBps(bytesPerSecond);
             setUploadEtaSeconds(etaSeconds);
           }
           updateGlobalUpload(uploadId, {
             progress: percentage,
             phase: "uploading",
-            statusText: "Uploading video...",
+            statusText: uploadingText,
             bytesPerSecond,
             etaSeconds,
           });
         },
         onError: (uploadError) => {
-          const message = uploadError.message || "Video upload failed.";
+          const message =
+            uploadError.message ||
+            t("pages.videos.dialogs.retryUpload.errors.uploadFailed");
           if (isMountedRef.current) {
             setUploadPhase("failed");
             setFormError(message);
@@ -301,20 +327,20 @@ export function VideoRetryUploadDialog({
           if (isMountedRef.current) {
             setUploadProgress(100);
             setUploadPhase("processing");
-            setUploadStatusText("Upload complete. Processing started...");
+            setUploadStatusText(processingText);
             setUploadSpeedBps(null);
             setUploadEtaSeconds(null);
           }
           updateGlobalUpload(uploadId, {
             progress: 100,
             phase: "processing",
-            statusText: "Upload complete. Processing started...",
+            statusText: processingText,
             bytesPerSecond: null,
             etaSeconds: null,
           });
           const successMessage = getAdminResponseMessage(
             createdSession,
-            "Uploaded. Processing started.",
+            t("pages.videos.dialogs.retryUpload.messages.processingStarted"),
           );
           showToast(successMessage, "success");
           onSuccess?.(successMessage);
@@ -334,7 +360,7 @@ export function VideoRetryUploadDialog({
     } catch (error) {
       const message = getAdminApiErrorMessage(
         error,
-        "Unable to start upload retry.",
+        t("pages.videos.dialogs.retryUpload.errors.retryStartFailed"),
       );
       if (isMountedRef.current) {
         setUploadPhase("failed");
@@ -356,11 +382,14 @@ export function VideoRetryUploadDialog({
 
   const submitLabel = (() => {
     if (createSessionMutation.isPending || isCreatingUpload)
-      return "Creating Session...";
-    if (isUploading) return "Uploading...";
-    if (isProcessing) return "Processing...";
-    if (uploadPhase === "failed") return "Retry Upload";
-    return "Start Retry Upload";
+      return t("pages.videos.dialogs.retryUpload.actions.creatingSession");
+    if (isUploading)
+      return t("pages.videos.dialogs.retryUpload.actions.uploading");
+    if (isProcessing)
+      return t("pages.videos.dialogs.retryUpload.actions.processing");
+    if (uploadPhase === "failed")
+      return t("pages.videos.dialogs.retryUpload.actions.retryUpload");
+    return t("pages.videos.dialogs.retryUpload.actions.startRetryUpload");
   })();
 
   return (
@@ -381,11 +410,13 @@ export function VideoRetryUploadDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Retry Upload</DialogTitle>
+          <DialogTitle>
+            {t("pages.videos.dialogs.retryUpload.title")}
+          </DialogTitle>
           <DialogDescription>
-            Upload a new file for{" "}
-            <span className="font-medium">{videoTitle}</span> using resumable
-            TUS upload.
+            {t("pages.videos.dialogs.retryUpload.description", {
+              title: videoTitle,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -397,7 +428,9 @@ export function VideoRetryUploadDialog({
 
         <form onSubmit={handleRetry} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="video-retry-file">Video File *</Label>
+            <Label htmlFor="video-retry-file">
+              {t("pages.videos.dialogs.retryUpload.fields.videoFile")}
+            </Label>
             <Input
               id="video-retry-file"
               type="file"
@@ -413,19 +446,19 @@ export function VideoRetryUploadDialog({
           {uploadPhase !== "idle" ? (
             <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <div className="flex items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
-                <span>{uploadStatusText || "Preparing upload..."}</span>
+                <span>{uploadStatusText || preparingUploadText}</span>
                 <span>{uploadProgress.toFixed(1)}%</span>
               </div>
               <Progress value={uploadProgress} />
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                 <span>
-                  Speed:{" "}
+                  {t("pages.videos.dialogs.retryUpload.metrics.speed")}:{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-200">
                     {formatBytesPerSecond(uploadSpeedBps)}
                   </span>
                 </span>
                 <span>
-                  ETA:{" "}
+                  {t("pages.videos.dialogs.retryUpload.metrics.eta")}:{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-200">
                     {formatEtaSeconds(uploadEtaSeconds)}
                   </span>
@@ -439,7 +472,7 @@ export function VideoRetryUploadDialog({
                   onClick={handlePause}
                   disabled={!canPause}
                 >
-                  Pause
+                  {t("pages.videos.dialogs.retryUpload.actions.pause")}
                 </Button>
                 <Button
                   type="button"
@@ -448,11 +481,13 @@ export function VideoRetryUploadDialog({
                   onClick={handleResume}
                   disabled={!canResume}
                 >
-                  Resume
+                  {t("pages.videos.dialogs.retryUpload.actions.resume")}
                 </Button>
                 {uploadSessionId != null ? (
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    Session #{String(uploadSessionId)}
+                    {t("pages.videos.dialogs.retryUpload.session", {
+                      id: String(uploadSessionId),
+                    })}
                   </span>
                 ) : null}
               </div>
@@ -465,7 +500,9 @@ export function VideoRetryUploadDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              {isBusy ? "Minimize" : "Cancel"}
+              {isBusy
+                ? t("pages.videos.dialogs.retryUpload.actions.minimize")
+                : t("common.actions.cancel")}
             </Button>
             <Button type="submit" disabled={isBusy}>
               {submitLabel}

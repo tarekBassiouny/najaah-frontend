@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useCreateRole, useUpdateRole } from "@/features/roles/hooks/use-roles";
 import type { Role } from "@/features/roles/types/role";
+import { useTranslation } from "@/features/localization";
 import {
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
@@ -176,6 +177,7 @@ export function RoleFormDialog({
   onSuccess,
   scopeCenterId,
 }: RoleFormDialogProps) {
+  const { t } = useTranslation();
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(role);
   const createMutation = useCreateRole({ centerId: scopeCenterId ?? null });
@@ -308,17 +310,23 @@ export function RoleFormDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditMode ? "Edit Role" : "Create Role"}</DialogTitle>
+          <DialogTitle>
+            {isEditMode
+              ? t("auto.features.roles.components.roleformdialog.s1")
+              : t("auto.features.roles.components.roleformdialog.s2")}
+          </DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? "Update role identity and description."
-              : "Create a new role for role-based access control."}
+              ? t("auto.features.roles.components.roleformdialog.s3")
+              : t("auto.features.roles.components.roleformdialog.s4")}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not save role</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.roles.components.roleformdialog.s5")}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
@@ -330,9 +338,14 @@ export function RoleFormDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("common.labels.name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Content Admin" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.roles.components.roleformdialog.s6",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -344,9 +357,16 @@ export function RoleFormDialog({
               name="slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Slug</FormLabel>
+                  <FormLabel>
+                    {t("auto.features.roles.components.roleformdialog.s7")}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="content_admin" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.roles.components.roleformdialog.s8",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -358,9 +378,14 @@ export function RoleFormDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t("common.labels.description")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Short description" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.roles.components.roleformdialog.s9",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -374,17 +399,17 @@ export function RoleFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("common.actions.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={isPending || !form.formState.isValid}
               >
                 {isPending
-                  ? "Saving..."
+                  ? t("common.actions.saving")
                   : isEditMode
-                    ? "Save Changes"
-                    : "Create Role"}
+                    ? t("auto.features.roles.components.roleformdialog.s10")
+                    : t("auto.features.roles.components.roleformdialog.s11")}
               </Button>
             </DialogFooter>
           </form>

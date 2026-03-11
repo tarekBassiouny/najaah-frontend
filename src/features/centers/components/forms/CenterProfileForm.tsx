@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useUpdateCenter } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center, CenterTierValue } from "@/features/centers/types/center";
+import { useTranslation } from "@/features/localization";
 
 type TierValue = "standard" | "premium" | "vip";
 
@@ -57,6 +58,8 @@ export function CenterProfileForm({
   isPlatformAdmin,
   onCreateDataChange,
 }: CenterProfileFormProps) {
+  const { t } = useTranslation();
+
   const updateCenterMutation = useUpdateCenter();
 
   const [name, setName] = useState("");
@@ -136,19 +139,26 @@ export function CenterProfileForm({
       <CardContent className="space-y-4">
         {saveError ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to save</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.centers.components.forms.centerprofileform.s1")}
+            </AlertTitle>
             <AlertDescription>{saveError}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="space-y-2">
-          <Label htmlFor="center-name">Center Name {isCreate ? "*" : ""}</Label>
+          <Label htmlFor="center-name">
+            {t("auto.features.centers.components.forms.centerprofileform.s2")}
+            {isCreate ? "*" : ""}
+          </Label>
           {isPlatformAdmin ? (
             <Input
               id="center-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g., North Campus"
+              placeholder={t(
+                "auto.features.centers.components.forms.centerprofileform.s3",
+              )}
               required={isCreate}
               className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
@@ -163,13 +173,17 @@ export function CenterProfileForm({
 
         {isCreate ? (
           <div className="space-y-2">
-            <Label htmlFor="center-slug">Slug *</Label>
+            <Label htmlFor="center-slug">
+              {t("auto.features.centers.components.forms.centerprofileform.s4")}
+            </Label>
             <div className="flex gap-2">
               <Input
                 id="center-slug"
                 value={slug}
                 onChange={(event) => setSlug(event.target.value)}
-                placeholder="e.g., north-campus"
+                placeholder={t(
+                  "auto.features.centers.components.forms.centerprofileform.s5",
+                )}
                 required
                 className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
               />
@@ -207,7 +221,11 @@ export function CenterProfileForm({
         {isCreate && isPlatformAdmin ? (
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Type *</Label>
+              <Label>
+                {t(
+                  "auto.features.centers.components.forms.centerprofileform.s6",
+                )}
+              </Label>
               <Select
                 value={type}
                 onValueChange={(value) =>
@@ -270,7 +288,9 @@ export function CenterProfileForm({
                   checked={isFeatured}
                   onChange={(event) => setIsFeatured(event.target.checked)}
                 />
-                Show in featured centers
+                {t(
+                  "auto.features.centers.components.forms.centerprofileform.s7",
+                )}
               </label>
             </div>
           </div>
@@ -296,7 +316,7 @@ export function CenterProfileForm({
                 checked={isFeatured}
                 onChange={(event) => setIsFeatured(event.target.checked)}
               />
-              Show in featured centers
+              {t("auto.features.centers.components.forms.centerprofileform.s7")}
             </label>
           </div>
         ) : null}

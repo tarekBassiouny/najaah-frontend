@@ -118,7 +118,9 @@
     "myAccount": "My Account",
     "viewProfile": "View profile",
     "logOut": "Log out",
-    "loggingOut": "Logging out..."
+    "loggingOut": "Logging out...",
+    "toggleSidebarAriaLabel": "Toggle sidebar",
+    "logoAlt": "Najaah"
   },
   "sidebar": {
     "sections": {
@@ -148,7 +150,51 @@
       "auditLogs": "Audit Logs"
     },
     "backToCenters": "Back to Centers",
-    "najaahAdmin": "Najaah Admin"
+    "najaahAdmin": "Najaah Admin",
+    "closeSidebarAriaLabel": "Close sidebar",
+    "centerLogoAriaLabel": "{name} logo",
+    "centerWithId": "Center {id}"
+  },
+  "themeToggle": {
+    "switchToMode": "Switch to {mode} mode",
+    "modes": {
+      "light": "light",
+      "dark": "dark"
+    }
+  },
+  "ui": {
+    "modalHost": {
+      "confirmRoleChangesTitle": "Confirm Role Changes",
+      "confirmRoleChangesDescription": "This will update this admin's access across the system.",
+      "rolesToAdd": "Roles to be added",
+      "rolesToRemove": "Roles to be removed",
+      "accessPermissionsAcknowledgement": "I understand this will change access permissions",
+      "actions": {
+        "confirming": "Confirming...",
+        "confirmAndApply": "Confirm & Apply"
+      },
+      "errors": {
+        "unableToSyncRoles": "Unable to sync roles. Please try again."
+      }
+    },
+    "placeholderPage": {
+      "emptyMessage": "Nothing here yet. Add the first record once the API is connected."
+    },
+    "searchableSelect": {
+      "clearSelectionAriaLabel": "Clear selection",
+      "tryDifferentSearchTerm": "Try a different search term",
+      "loadingMore": "Loading more...",
+      "scrollToLoadMore": "Scroll to load more",
+      "more": "more"
+    },
+    "searchableMultiSelect": {
+      "selectOptions": "Select options",
+      "clearSelectionsAriaLabel": "Clear selections"
+    },
+    "tenantIdentity": {
+      "logoAriaLabel": "{name} logo",
+      "adminLogoAlt": "Najaah Admin"
+    }
   },
   "pages": {
     "profile": {
@@ -291,7 +337,8 @@
       "descriptionReadOnly": "View role permissions. Updates require system-scoped access."
     },
     "centerCourseCreate": {
-      "description": "Create a course inside this center"
+      "description": "Create a course inside this center",
+      "centerById": "Center #{id}"
     },
     "centerCourseEdit": {
       "scopeLabel": "Edit Course",
@@ -301,7 +348,19 @@
       "notFoundDescription": "The course you are trying to edit does not exist or is no longer available in this center.",
       "goToCourses": "Go to Courses",
       "backToCourses": "Back to Courses",
-      "loadFailed": "Failed to load this course. Please try again."
+      "loadFailed": "Failed to load this course. Please try again.",
+      "updateFailedTitle": "Could not update course",
+      "updateFailedFallback": "Failed to update course. Please try again.",
+      "thumbnail": {
+        "currentLabel": "Uploaded Thumbnail:",
+        "currentAlt": "Current course thumbnail",
+        "currentHint": "This image reflects the currently uploaded thumbnail.",
+        "loadFailed": "Unable to load the uploaded thumbnail.",
+        "empty": "No thumbnail uploaded yet.",
+        "newLabel": "New thumbnail (to be uploaded)",
+        "uploading": "Uploading...",
+        "uploadFailed": "Failed to upload thumbnail. Please try again."
+      }
     },
     "centerCreate": {
       "description": "Set up a new learning center with required onboarding details",
@@ -848,7 +907,95 @@
       "notFoundDescription": "The student profile you requested does not exist or is no longer available in this center.",
       "goToStudents": "Go to Students",
       "backToStudents": "Back to Students",
-      "loadFailed": "Failed to load student profile. Please try again."
+      "loadFailed": "Failed to load student profile. Please try again.",
+      "entry": {
+        "directAccessHint": "Open this student profile from Center Students or from Enrolled Students inside course details.",
+        "backToCenterStudents": "Back to Center Students"
+      },
+      "breadcrumbs": {
+        "centers": "Centers",
+        "centerById": "Center {id}",
+        "students": "Students",
+        "profile": "Profile"
+      },
+      "defaults": {
+        "student": "Student"
+      },
+      "summary": {
+        "lastActivity": "Last Activity",
+        "activeDevice": "Active Device",
+        "totalEnrollments": "Total Enrollments",
+        "deviceChanges": "Device Changes"
+      },
+      "device": {
+        "noActive": "No active device",
+        "fallbackActive": "Active device",
+        "lastUsedLabel": "Last used"
+      },
+      "education": {
+        "title": "Education",
+        "grade": "Grade",
+        "school": "School",
+        "college": "College"
+      },
+      "deviceLog": {
+        "title": "Device Change Log",
+        "empty": "No device changes recorded.",
+        "headers": {
+          "device": "Device",
+          "deviceId": "Device ID",
+          "changedAt": "Changed At",
+          "reason": "Reason"
+        }
+      },
+      "enrollments": {
+        "title": "Enrolled Courses",
+        "empty": "No enrollments found.",
+        "emptyByCategory": "No courses in this category.",
+        "progressLabel": "Progress",
+        "searchVideosPlaceholder": "Search videos in this course",
+        "noVideosMatch": "No videos match your search.",
+        "noThumbnail": "No thumbnail",
+        "watchedSuffix": "% watched",
+        "thumbnailAlt": "{title} thumbnail",
+        "categories": {
+          "all": "All",
+          "active": "Active",
+          "completed": "Completed",
+          "paused": "Paused"
+        },
+        "headers": {
+          "course": "Course",
+          "status": "Status",
+          "progress": "Progress",
+          "enrolledAt": "Enrolled At",
+          "content": "Content"
+        },
+        "videoHeaders": {
+          "videoName": "Video Name",
+          "watchCountLimit": "Watch Count / Limit",
+          "actions": "Actions"
+        }
+      },
+      "actions": {
+        "showVideos": "Show videos ({count})",
+        "hideVideos": "Hide videos",
+        "statistics": "Statistics",
+        "grantExtraViews": "Grant extra views",
+        "generateCode": "Generate code",
+        "granting": "Granting...",
+        "grantViews": "Grant {count} view{plural}"
+      },
+      "dialog": {
+        "grantExtraViewsTitle": "Grant Extra Views",
+        "grantExtraViewsDescription": "Add extra views for {name}.",
+        "grantFailedTitle": "Could not grant extra views",
+        "customExtraViews": "Custom extra views"
+      },
+      "messages": {
+        "grantSuccess": "Granted {count} extra view{plural} for {name}.",
+        "grantFailedFallback": "Unable to grant extra views."
+      }
     },
     "centerRoles": {
       "descriptionWrite": "Manage user roles and access levels for this center.",
@@ -868,7 +1015,8 @@
       "back": "Back",
       "tier": "Tier",
       "centerContextRequired": "Center context is required to manage settings.",
-      "workspaceDescription": "Manage your center's branding and operational preferences"
+      "workspaceDescription": "Manage your center's branding and operational preferences",
+      "idLabel": "ID"
     },
     "centerSurveys": {
       "title": "Center Surveys",
@@ -1509,6 +1657,371 @@
         "selectAll": "Select all videos on this page",
         "selectVideo": "Select {name}",
         "fallbackCenter": "Najaah App"
+      },
+      "dialogs": {
+        "bulkDelete": {
+          "title": "Bulk Delete Videos",
+          "descriptionSingle": "Permanently delete {count} selected video.",
+          "descriptionPlural": "Permanently delete {count} selected videos.",
+          "irreversible": "This action cannot be undone.",
+          "selectedLabel": "Selected Videos",
+          "moreSelected": "+{count} more videos",
+          "fallbackVideo": "Video #{id}",
+          "errorTitle": "Unable to delete",
+          "confirmLabel": "Type {value} to confirm",
+          "actions": {
+            "deleteVideos": "Delete Videos"
+          },
+          "errors": {
+            "noSelection": "No videos selected.",
+            "confirmText": "Type {value} to confirm.",
+            "deleteOneFailed": "Failed to delete this video."
+          },
+          "messages": {
+            "deletedSingle": "{count} video deleted successfully.",
+            "deletedPlural": "{count} videos deleted successfully.",
+            "partialDelete": "Deleted {deleted} of {total} videos. Review failed items below and retry if needed."
+          },
+          "summary": {
+            "total": "Total: {count}",
+            "deleted": "Deleted: {count}",
+            "failed": "Failed: {count}"
+          }
+        },
+        "delete": {
+          "title": "Delete Video",
+          "entityFallback": "this video",
+          "confirmLabel": "Type {value} to confirm",
+          "actions": {
+            "confirmDelete": "Delete Video"
+          },
+          "messages": {
+            "deleted": "Video deleted successfully."
+          },
+          "errors": {
+            "deleteFailed": "Unable to delete video. Please try again.",
+            "couldNotDelete": "Could not delete video"
+          },
+          "irreversible": "This action cannot be undone.",
+          "warningPrefix": "You are about to permanently delete"
+        },
+        "details": {
+          "titleFallback": "Video details",
+          "descriptionFallback": "No description provided.",
+          "emptyValue": "—",
+          "refreshing": "Refreshing",
+          "cachedWarning": "Showing cached row data. Latest details could not be loaded.",
+          "fields": {
+            "encoding": "Encoding",
+            "lifecycle": "Lifecycle",
+            "provider": "Provider",
+            "sourceMode": "Source Mode",
+            "duration": "Duration",
+            "videoId": "Video ID",
+            "thumbnail": "Thumbnail",
+            "uploadedBy": "Uploaded By",
+            "center": "Center",
+            "createdAt": "Created At",
+            "updatedAt": "Updated At",
+            "sourceUrl": "Source URL",
+            "uploadSessions": "Upload Sessions"
+          },
+          "sourceMode": {
+            "upload": "Upload",
+            "url": "URL"
+          },
+          "status": {
+            "ready": "Ready",
+            "failed": "Failed",
+            "pending": "Pending",
+            "uploading": "Uploading",
+            "processing": "Processing",
+            "unknown": "Unknown"
+          },
+          "thumbnail": {
+            "external": "External",
+            "videoLink": "Video Link",
+            "noThumbnail": "No thumbnail",
+            "noThumbnailAvailable": "No thumbnail available",
+            "alt": "{title} thumbnail"
+          },
+          "noUploadSessions": "No upload sessions found for this video.",
+          "sessionLabel": "Session #{id}",
+          "progressLabel": "Progress: {value}",
+          "createdLabel": "Created: {value}"
+        },
+        "form": {
+          "title": {
+            "create": "Create Video",
+            "edit": "Edit Video"
+          },
+          "description": {
+            "create": "Create using upload or URL source mode.",
+            "edit": "Update video metadata."
+          },
+          "mode": {
+            "create": "Source + Metadata",
+            "edit": "Metadata + Thumbnail"
+          },
+          "steps": {
+            "source": "1. Source",
+            "metadata": "2. Metadata",
+            "uploadOrCreate": "3. Upload / Create"
+          },
+          "fields": {
+            "sourceMode": "Source Mode",
+            "titleEn": "Title (English) *",
+            "titleAr": "Title (Arabic)",
+            "descriptionEn": "Description (English)",
+            "descriptionAr": "Description (Arabic)",
+            "tags": "Tags",
+            "duration": "Duration (seconds or mm:ss)",
+            "videoUrl": "Video URL *",
+            "videoFile": "Video File *"
+          },
+          "placeholders": {
+            "titleEn": "e.g., Lesson 1",
+            "titleAr": "e.g., الدرس الأول",
+            "descriptionEn": "Optional",
+            "descriptionAr": "Optional",
+            "tags": "comma,separated,tags",
+            "duration": "e.g., 540 or 09:00",
+            "videoUrl": "https://www.youtube.com/watch?v=..."
+          },
+          "hints": {
+            "tags": "Optional. Separate tags with commas.",
+            "duration": "Optional. For URL-based videos only. Uploads continue to get duration from processing.",
+            "videoUrl": "Supports YouTube, Vimeo, Zoom and direct links.",
+            "browseFromDevice": "or click to browse from your device"
+          },
+          "sections": {
+            "metadata": {
+              "title": "Metadata",
+              "description": "These fields are shared for upload and URL sources."
+            },
+            "thumbnail": {
+              "title": "Custom Thumbnail",
+              "description": "JPG, PNG, or WebP up to 5MB.",
+              "editHint": "Upload a new image or reset to the default thumbnail.",
+              "createHint": "If selected, this image will be uploaded after video creation."
+            },
+            "urlSource": {
+              "title": "URL Source",
+              "description": "Paste a valid video URL. Backend will detect provider."
+            },
+            "uploadSource": {
+              "title": "Upload Source",
+              "description": "Use resumable upload for large files. You can pause, resume, stop, or minimize."
+            }
+          },
+          "sourceMode": {
+            "upload": {
+              "label": "Upload File",
+              "description": "Upload large video files with resumable transfer."
+            },
+            "url": {
+              "label": "Video URL",
+              "description": "Create from YouTube, Vimeo, Zoom, or direct URL."
+            }
+          },
+          "uploadPhase": {
+            "idle": "Idle",
+            "creating": "Creating Session",
+            "uploading": "Uploading",
+            "paused": "Paused",
+            "processing": "Processing",
+            "ready": "Ready",
+            "failed": "Failed"
+          },
+          "thumbnailPreview": {
+            "title": "Thumbnail Preview",
+            "localPreview": "Local preview before upload.",
+            "currentFromApi": "Current effective thumbnail from API.",
+            "selectPrompt": "A preview appears here after selecting an image.",
+            "custom": "Custom",
+            "default": "Default",
+            "alt": "Video thumbnail preview",
+            "noThumbnail": "No thumbnail selected",
+            "noThumbnailHint": "Upload a custom image or keep the default thumbnail.",
+            "noThumbnailAvailable": "No thumbnail available",
+            "urlBackend": "This thumbnail will be sent in the create request.",
+            "urlPreviewOnly": "Preview only. Backend can keep null and populate a thumbnail later.",
+            "providerAlt": "{provider} thumbnail preview"
+          },
+          "selectedLabel": "Selected: {value}",
+          "session": "Session #{id}",
+          "videoFileFallbackMime": "video/*",
+          "status": {
+            "uploadPaused": "Upload paused.",
+            "uploadingVideo": "Uploading video...",
+            "creatingUploadSession": "Creating upload session...",
+            "processingStarted": "Upload complete. Processing started...",
+            "preparingUpload": "Preparing upload..."
+          },
+          "actions": {
+            "saveChanges": "Save Changes",
+            "creating": "Creating...",
+            "createVideo": "Create Video",
+            "creatingSession": "Creating Session...",
+            "uploading": "Uploading...",
+            "processing": "Processing...",
+            "retryUpload": "Retry Upload",
+            "createAndUpload": "Create & Upload",
+            "uploadThumbnail": "Upload Thumbnail",
+            "resetting": "Resetting...",
+            "resetToDefault": "Reset to Default",
+            "replaceSelectedFile": "Replace selected file",
+            "dropVideoFile": "Drop video file here",
+            "browseFile": "Browse File",
+            "pause": "Pause",
+            "resume": "Resume",
+            "stop": "Stop",
+            "minimize": "Minimize"
+          },
+          "messages": {
+            "uploadStopped": "Upload stopped.",
+            "thumbnailUpdated": "Video thumbnail updated successfully.",
+            "thumbnailReset": "Video thumbnail reset successfully.",
+            "videoCreated": "Video created successfully.",
+            "videoUpdated": "Video updated successfully.",
+            "uploadedProcessingStarted": "Uploaded. Processing started."
+          },
+          "metrics": {
+            "speed": "Speed",
+            "eta": "ETA"
+          },
+          "errors": {
+            "couldNotSave": "Could not save video",
+            "durationInvalid": "Duration must be seconds or mm:ss / hh:mm:ss.",
+            "centerRequired": "Select a center before creating a video.",
+            "englishTitleRequired": "English title is required.",
+            "videoUrlRequired": "Video URL is required for URL mode.",
+            "videoUrlInvalid": "Enter a valid video URL.",
+            "videoFileRequired": "Select a video file to upload.",
+            "videoFileInvalid": "Selected file must be a video.",
+            "uploadSessionMissingData": "Upload session is missing endpoint or video ID.",
+            "uploadFailed": "Video upload failed.",
+            "uploadStartFailed": "Unable to start video upload.",
+            "videoCreateFailed": "Unable to create video.",
+            "videoUpdateFailed": "Unable to update video.",
+            "pauseUploadFailed": "Failed to pause upload.",
+            "resumeUploadFailed": "Failed to resume upload.",
+            "stopUploadFailed": "Failed to stop upload.",
+            "invalidThumbnailType": "Please choose a valid image (JPG, PNG, or WebP).",
+            "thumbnailTooLarge": "Thumbnail must be 5MB or smaller.",
+            "centerRequiredForThumbnailUpload": "Select a center before uploading a thumbnail.",
+            "thumbnailUploadFailed": "Unable to upload custom thumbnail.",
+            "saveBeforeThumbnailUpload": "Save the video first, then upload a custom thumbnail.",
+            "thumbnailFileRequired": "Choose an image file first.",
+            "centerRequiredForThumbnailReset": "Select a center before resetting a thumbnail.",
+            "saveBeforeThumbnailReset": "Save the video first, then reset the thumbnail.",
+            "thumbnailResetFailed": "Unable to reset video thumbnail."
+          }
+        },
+        "preview": {
+          "titleFallback": "Video preview",
+          "descriptionFallback": "Preview the current video source.",
+          "badges": {
+            "signedUrl": "Signed URL",
+            "directSource": "Direct Source"
+          },
+          "expiresAt": "Expires: {value}",
+          "noExpiry": "No expiry (URL source)",
+          "loading": "Loading preview...",
+          "unavailable": "Preview is not available for this video.",
+          "actions": {
+            "openInNewTab": "Open in new tab"
+          },
+          "errors": {
+            "missingCenterVideo": "Select a center-scoped video to preview.",
+            "generateFailed": "Failed to generate preview."
+          }
+        },
+        "retryUpload": {
+          "title": "Retry Upload",
+          "description": "Upload a new file for {title} using resumable TUS upload.",
+          "videoFallback": "video",
+          "fields": {
+            "videoFile": "Video File *"
+          },
+          "actions": {
+            "creatingSession": "Creating Session...",
+            "uploading": "Uploading...",
+            "processing": "Processing...",
+            "retryUpload": "Retry Upload",
+            "startRetryUpload": "Start Retry Upload",
+            "pause": "Pause",
+            "resume": "Resume",
+            "minimize": "Minimize"
+          },
+          "status": {
+            "uploadPaused": "Upload paused.",
+            "uploading": "Uploading video...",
+            "creatingSession": "Creating upload session...",
+            "processing": "Upload complete. Processing started...",
+            "preparingUpload": "Preparing upload..."
+          },
+          "metrics": {
+            "speed": "Speed",
+            "eta": "ETA"
+          },
+          "session": "Session #{id}",
+          "messages": {
+            "processingStarted": "Uploaded. Processing started."
+          },
+          "errors": {
+            "missingCenterVideo": "Select a center-scoped video before retrying upload.",
+            "missingFile": "Select a video file to upload.",
+            "invalidFile": "Selected file must be a video.",
+            "pauseFailed": "Failed to pause upload.",
+            "resumeFailed": "Failed to resume upload.",
+            "missingEndpoint": "Upload endpoint is missing from upload session.",
+            "uploadFailed": "Video upload failed.",
+            "retryStartFailed": "Unable to start upload retry."
+          }
+        }
+      },
+      "uploadDock": {
+        "title": "Upload Queue",
+        "minimized": {
+          "label": "Uploads ({count})"
+        },
+        "summary": {
+          "single": "{count} item",
+          "plural": "{count} items",
+          "active": "{count} active",
+          "allIdle": "all idle"
+        },
+        "actions": {
+          "minimize": "Minimize",
+          "clearFinished": "Clear Finished",
+          "hide": "Hide",
+          "pause": "Pause",
+          "resume": "Resume",
+          "stop": "Stop"
+        },
+        "metrics": {
+          "speed": "Speed",
+          "eta": "ETA"
+        },
+        "messages": {
+          "stopped": "Upload stopped."
+        },
+        "errors": {
+          "pauseFailed": "Failed to pause upload.",
+          "resumeFailed": "Failed to resume upload.",
+          "stopFailed": "Failed to stop upload."
+        },
+        "session": "Session #{id}",
+        "phase": {
+          "idle": "idle",
+          "creating": "creating",
+          "uploading": "uploading",
+          "paused": "paused",
+          "processing": "processing",
+          "ready": "ready",
+          "failed": "failed"
+        }
       }
     },
     "pdfs": {
@@ -1607,6 +2120,244 @@
         "selectAll": "Select all PDFs on this page",
         "selectPdf": "Select {name}",
         "fallbackCenter": "Najaah App"
+      },
+      "dialogs": {
+        "bulkDelete": {
+          "title": "Bulk Delete PDFs",
+          "descriptionSingle": "Permanently delete {count} selected PDF.",
+          "descriptionPlural": "Permanently delete {count} selected PDFs.",
+          "irreversible": "This action cannot be undone.",
+          "selectedLabel": "Selected PDFs",
+          "moreSelected": "+{count} more PDFs",
+          "fallbackPdf": "PDF #{id}",
+          "errorTitle": "Unable to delete",
+          "confirmLabel": "Type {value} to confirm",
+          "actions": {
+            "deletePdfs": "Delete PDFs"
+          },
+          "errors": {
+            "noSelection": "No PDFs selected.",
+            "confirmText": "Type {value} to confirm.",
+            "deleteOneFailed": "Failed to delete this PDF."
+          },
+          "messages": {
+            "deletedSingle": "{count} PDF deleted successfully.",
+            "deletedPlural": "{count} PDFs deleted successfully.",
+            "partialDelete": "Deleted {deleted} of {total} PDFs. Review failed items below and retry if needed."
+          },
+          "summary": {
+            "total": "Total: {count}",
+            "deleted": "Deleted: {count}",
+            "failed": "Failed: {count}"
+          }
+        },
+        "delete": {
+          "title": "Delete PDF",
+          "description": "Permanently delete the selected PDF.",
+          "entityFallback": "this PDF",
+          "confirmLabel": "Type {value} to confirm",
+          "actions": {
+            "confirmDelete": "Delete PDF"
+          },
+          "messages": {
+            "deleted": "PDF deleted successfully."
+          },
+          "errors": {
+            "deleteFailed": "Unable to delete PDF. Please try again.",
+            "couldNotDelete": "Could not delete PDF"
+          },
+          "irreversible": "This action cannot be undone.",
+          "warningPrefix": "You are about to permanently delete"
+        },
+        "details": {
+          "titleFallback": "PDF details",
+          "descriptionFallback": "No description",
+          "emptyValue": "—",
+          "defaultFilename": "document.pdf",
+          "defaultFileType": "PDF",
+          "status": {
+            "pending": "Pending",
+            "uploading": "Uploading",
+            "ready": "Ready",
+            "failed": "Failed",
+            "unknown": "Unknown",
+            "active": "Active"
+          },
+          "sections": {
+            "metadata": "Metadata",
+            "usage": "Usage",
+            "timeline": "Timeline"
+          },
+          "fields": {
+            "id": "ID",
+            "fileType": "File Type",
+            "sourceType": "Source Type",
+            "courses": "Courses",
+            "sections": "Sections",
+            "createdAt": "Created At",
+            "updatedAt": "Updated At"
+          },
+          "sectionSingle": "section",
+          "sectionPlural": "sections"
+        },
+        "upload": {
+          "title": {
+            "create": "Create PDF",
+            "edit": "Edit PDF"
+          },
+          "description": {
+            "create": "Create using upload or URL source mode.",
+            "edit": "Update PDF metadata and translations."
+          },
+          "mode": {
+            "create": "Source + Metadata",
+            "edit": "Metadata only"
+          },
+          "steps": {
+            "source": "1. Source",
+            "metadata": "2. Metadata",
+            "uploadOrCreate": "3. Upload / Create"
+          },
+          "providerLabel": "Provider",
+          "fields": {
+            "sourceMode": "Source Mode",
+            "titleEn": "Title (English) *",
+            "titleAr": "Title (Arabic)",
+            "descriptionEn": "Description (English)",
+            "descriptionAr": "Description (Arabic)",
+            "tags": "Tags",
+            "pdfUrl": "PDF URL *",
+            "pdfFile": "PDF File *"
+          },
+          "placeholders": {
+            "titleEn": "e.g., Lesson Notes",
+            "titleAr": "e.g., ملاحظات الدرس",
+            "tags": "comma,separated,tags",
+            "pdfUrl": "https://example.com/handout.pdf"
+          },
+          "hints": {
+            "tags": "Optional. Separate tags with commas.",
+            "pdfUrl": "Use a direct public PDF link. Provider will be stored as Custom.",
+            "browseFromDevice": "or click to browse from your device"
+          },
+          "sections": {
+            "metadata": {
+              "title": "Metadata",
+              "description": "These fields are shared for upload and URL sources."
+            },
+            "urlSource": {
+              "title": "URL Source",
+              "description": "Link to an external PDF file."
+            },
+            "uploadSource": {
+              "title": "Upload Source",
+              "description": "Upload PDF to Najaah App storage. You can stop or minimize the transfer."
+            }
+          },
+          "sourceMode": {
+            "upload": {
+              "label": "Upload PDF",
+              "description": "Store the file in Najaah App storage.",
+              "provider": "Najaah App"
+            },
+            "url": {
+              "label": "PDF URL",
+              "description": "Link to an external PDF URL.",
+              "provider": "Custom"
+            }
+          },
+          "status": {
+            "creatingUploadSession": "Creating upload session...",
+            "uploadingPdf": "Uploading PDF...",
+            "uploadCompleteFinalizing": "Upload complete. Finalizing...",
+            "preparingUpload": "Preparing upload..."
+          },
+          "uploadPhase": {
+            "idle": "Idle",
+            "creating": "Creating Session",
+            "uploading": "Uploading",
+            "finalizing": "Finalizing",
+            "ready": "Ready",
+            "failed": "Failed"
+          },
+          "actions": {
+            "saveChanges": "Save Changes",
+            "creating": "Creating...",
+            "createPdf": "Create PDF",
+            "creatingSession": "Creating Session...",
+            "uploading": "Uploading...",
+            "finalizing": "Finalizing...",
+            "retryUpload": "Retry Upload",
+            "createAndUpload": "Create & Upload",
+            "replaceSelectedFile": "Replace selected file",
+            "dropPdfFile": "Drop PDF file here",
+            "browseFile": "Browse File",
+            "stop": "Stop",
+            "minimize": "Minimize"
+          },
+          "selectedLabel": "Selected: {value}",
+          "session": "Session #{id}",
+          "metrics": {
+            "speed": "Speed",
+            "eta": "ETA"
+          },
+          "messages": {
+            "updated": "PDF updated successfully.",
+            "created": "PDF created successfully.",
+            "uploaded": "PDF uploaded successfully.",
+            "uploadStopped": "Upload stopped."
+          },
+          "errors": {
+            "updateFailedTitle": "Update failed",
+            "uploadFailedTitle": "Upload failed",
+            "englishTitleRequired": "English title is required.",
+            "urlRequired": "PDF URL is required for URL mode.",
+            "urlInvalid": "Enter a valid PDF URL.",
+            "fileRequired": "Select a PDF file to upload.",
+            "invalidFileType": "Only PDF files are allowed.",
+            "uploadSessionMissingData": "Upload session is missing endpoint or identifier.",
+            "finalizedFailedStatus": "Upload finalized with a failed processing status.",
+            "uploadFailed": "Failed to upload PDF.",
+            "stopUploadFailed": "Failed to stop upload."
+          }
+        }
+      },
+      "uploadDock": {
+        "title": "PDF Upload Queue",
+        "minimized": {
+          "label": "PDF Uploads ({count})"
+        },
+        "summary": {
+          "single": "{count} item",
+          "plural": "{count} items",
+          "active": "{count} active",
+          "allIdle": "all idle"
+        },
+        "actions": {
+          "minimize": "Minimize",
+          "clearFinished": "Clear Finished",
+          "hide": "Hide",
+          "stop": "Stop"
+        },
+        "metrics": {
+          "speed": "Speed",
+          "eta": "ETA"
+        },
+        "messages": {
+          "stopped": "Upload stopped."
+        },
+        "errors": {
+          "stopFailed": "Failed to stop upload."
+        },
+        "session": "Session #{id}",
+        "phase": {
+          "idle": "idle",
+          "creating": "creating",
+          "uploading": "uploading",
+          "finalizing": "finalizing",
+          "ready": "ready",
+          "failed": "failed"
+        }
       }
     },
     "surveys": {
@@ -2553,6 +3304,156 @@
         "phoneFormat": "Use base mobile number only (10 digits, no leading 0).",
         "countryCodeFormat": "Country code must be in +NN format (for example +20)."
       }
+    },
+    "courseAudience": {
+      "title": "Course Audience",
+      "description": "Choose whether this course is visible to all students or specific education groups.",
+      "allStudents": {
+        "title": "Show For All Students",
+        "description": "Every student in this center can access this course."
+      },
+      "targeted": {
+        "title": "Target By Education",
+        "description": "Limit visibility to selected grades, schools, or colleges.",
+        "hint": "Select at least one audience list when targeted mode is enabled."
+      },
+      "fields": {
+        "grades": "Grades",
+        "schools": "Schools",
+        "colleges": "Colleges"
+      },
+      "placeholders": {
+        "selectGrades": "Select grades",
+        "searchGrades": "Search grades...",
+        "selectSchools": "Select schools",
+        "searchSchools": "Search schools...",
+        "selectColleges": "Select colleges",
+        "searchColleges": "Search colleges..."
+      },
+      "empty": {
+        "noGrades": "No grades available.",
+        "noSchools": "No schools available.",
+        "noColleges": "No colleges available."
+      }
+    },
+    "courseForm": {
+      "sections": {
+        "infoTitle": "Course Information",
+        "infoDescription": "Set localized title, slug, and optional description.",
+        "settingsTitle": "Course Settings",
+        "settingsDescription": "Configure delivery settings, category, instructor, and audience.",
+        "thumbnailTitle": "Thumbnail",
+        "thumbnailDescription": "Upload an optional thumbnail image for this course.",
+        "actionsTitle": "Actions"
+      },
+      "fields": {
+        "titleEn": "Title (English) *",
+        "titleAr": "Title (Arabic)",
+        "slug": "Slug",
+        "descriptionEn": "Description (English)",
+        "descriptionAr": "Description (Arabic)",
+        "difficulty": "Difficulty",
+        "language": "Language",
+        "price": "Price",
+        "category": "Category",
+        "primaryInstructor": "Primary Instructor"
+      },
+      "placeholders": {
+        "titleEn": "e.g., Algebra Basics",
+        "titleAr": "e.g., أساسيات الجبر",
+        "slug": "auto-generated-from-title",
+        "descriptionEn": "Optional",
+        "descriptionAr": "Optional",
+        "difficulty": "Select difficulty",
+        "language": "Select language",
+        "price": "e.g., 199.99",
+        "category": "Select category",
+        "searchCategories": "Search categories...",
+        "instructor": "Select instructor (optional)",
+        "searchInstructors": "Search instructors..."
+      },
+      "difficulty": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "language": {
+        "en": "English",
+        "ar": "Arabic"
+      },
+      "videoApproval": {
+        "label": "Video Approval Override",
+        "options": {
+          "inherit": "Inherit center setting",
+          "enabled": "Require approval",
+          "disabled": "No approval required"
+        }
+      },
+      "hints": {
+        "categoryRequired": "Category is required to create the course.",
+        "instructorOptional": "Instructor is optional and can be assigned later."
+      },
+      "thumbnail": {
+        "uploadTitle": "Upload thumbnail",
+        "restrictions": "Accepted: JPG, PNG, GIF, WebP. Max size 5MB.",
+        "previewLabel": "Thumbnail preview",
+        "previewAlt": "Course thumbnail preview"
+      },
+      "actions": {
+        "generateSlug": "Generate slug",
+        "clear": "Clear",
+        "creating": "Creating...",
+        "createCourse": "Create Course"
+      },
+      "errors": {
+        "invalidImageType": "Please choose a valid image file (JPG, PNG, GIF, or WebP).",
+        "fileTooLarge": "Image size must be 5MB or smaller.",
+        "targetingRequired": "Select at least one grade, school, or college when targeted mode is enabled.",
+        "couldNotCreate": "Could not create course",
+        "createFailed": "Failed to create course. Please try again."
+      }
+    },
+    "coursePublishAction": {
+      "actions": {
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "publishing": "Publishing...",
+        "unpublishing": "Unpublishing...",
+        "confirmPublish": "Confirm Publish",
+        "confirmUnpublish": "Confirm Unpublish"
+      },
+      "dialog": {
+        "publishTitle": "Publish Course",
+        "publishDescription": "This will make the course available to eligible students.",
+        "unpublishTitle": "Unpublish Course",
+        "unpublishDescription": "This will hide the course from students until published again."
+      },
+      "messages": {
+        "published": "Course published successfully.",
+        "unpublished": "Course unpublished successfully."
+      },
+      "errors": {
+        "publishFailed": "Failed to publish course.",
+        "unpublishFailed": "Failed to unpublish course.",
+        "code": {
+          "permissionDenied": "You do not have permission to change publish status.",
+          "notFound": "Course was not found in this center.",
+          "validationError": "Course publish request is invalid."
+        }
+      }
+    },
+    "dashboardNotFound": {
+      "scopeLabel": "Admin Dashboard",
+      "title": "Page not found",
+      "description": "The page you requested does not exist or is no longer available.",
+      "goToDashboard": "Go to Dashboard",
+      "goToCenters": "Go to Centers"
+    },
+    "globalNotFound": {
+      "title": "Page not found",
+      "description": "The page you requested does not exist or is no longer available.",
+      "goToDashboard": "Go to Dashboard",
+      "goToLogin": "Go to Login"
     }
   },
   "tables": {
@@ -2595,5 +3496,1026 @@
     "unauthorized": "Unauthorized",
     "forbidden": "Access denied",
     "serverError": "Server error"
+  },
+  "auto": {
+    "features": {
+      "student_requests": {
+        "components": {
+          "deleteenrollmentdialog": {
+            "s1": "Delete Enrollment",
+            "s2": "This action will permanently remove enrollment #",
+            "s3": "Delete failed",
+            "s4": "Cancel"
+          },
+          "updateenrollmentstatusdialog": {
+            "s1": "Change Enrollment Status",
+            "s2": "Update status for enrollment #",
+            "s3": "Update failed",
+            "s4": "Cancel"
+          },
+          "bulkupdateenrollmentstatusdialog": {
+            "s1": "Bulk Change Enrollment Status",
+            "s2": "Update status for",
+            "s3": "selected enrollment request",
+            "s4": "Unable to update",
+            "s5": "Total:",
+            "s6": "Updated:",
+            "s7": "Skipped:",
+            "s8": "Failed:",
+            "s9": "Enrollment #",
+            "s10": "Choose the status to apply.",
+            "s11": "Close"
+          },
+          "bulkdevicechangeactiondialog": {
+            "s1": "selected device change request",
+            "s2": "Request failed",
+            "s3": "Total:",
+            "s4": "Skipped:",
+            "s5": "Failed:",
+            "s6": "Request #",
+            "s7": "New Device ID (optional)",
+            "s8": "New Model (optional)",
+            "s9": "iPhone 15",
+            "s10": "New OS Version (optional)",
+            "s11": "iOS 17.2",
+            "s12": "Decision reason",
+            "s13": "Close"
+          },
+          "bulkextraviewactiondialog": {
+            "s1": "Extra Views",
+            "s2": "selected extra view request",
+            "s3": "Request failed",
+            "s4": "Total:",
+            "s5": "Skipped:",
+            "s6": "Failed:",
+            "s7": "Request #",
+            "s8": "Granted views",
+            "s9": "Decision reason",
+            "s10": "Close"
+          }
+        }
+      },
+      "surveys": {
+        "components": {
+          "deletesurveydialog": {
+            "s1": "Delete Survey"
+          },
+          "updatesurveystatusdialog": {
+            "s1": "Change Status",
+            "s2": "Update status for",
+            "s3": "Unable to update",
+            "s4": "Select the new status for this survey.",
+            "s5": "Cancel"
+          },
+          "bulkupdatesurveystatusdialog": {
+            "s1": "Bulk Change Status",
+            "s2": "Update status for",
+            "s3": "selected survey",
+            "s4": "Unable to update",
+            "s5": "Total:",
+            "s6": "Updated:",
+            "s7": "Skipped:",
+            "s8": "Failed:",
+            "s9": "Survey #",
+            "s10": "Select the new status for selected surveys.",
+            "s11": "Close"
+          },
+          "surveyformdialog": {
+            "s1": "Could not",
+            "s2": "Permission required",
+            "s3": "Only super admins can",
+            "s4": "system surveys.",
+            "s5": "Customer Satisfaction",
+            "s6": "Add short context for this survey",
+            "s7": "Survey Type",
+            "s8": "Assignment Mode",
+            "s9": "Start Date",
+            "s10": "End Date",
+            "s11": "Unbranded Center",
+            "s12": "Select a center first",
+            "s13": "No unbranded centers found",
+            "s14": "No courses found",
+            "s15": "Select a student",
+            "s16": "No students found",
+            "s17": "Video (Full Play)",
+            "s18": "Select a full-play video",
+            "s19": "No eligible full-play videos found",
+            "s20": "No eligible full-play videos were found for this center.",
+            "s21": "Multiple Submissions",
+            "s22": "Multiple submissions is currently not enforced by mobile submit flow.",
+            "s23": "Add Question",
+            "s24": "Question Text",
+            "s25": "How satisfied are you?",
+            "s26": "Required question",
+            "s27": "Add Option",
+            "s28": "Cancel"
+          },
+          "bulkdeletesurveysdialog": {
+            "s1": "Bulk Delete Surveys",
+            "s2": "Permanently delete",
+            "s3": "selected survey",
+            "s4": "This action cannot be undone.",
+            "s5": "Selected Surveys",
+            "s6": "more surveys",
+            "s7": "Unable to delete",
+            "s8": "Total:",
+            "s9": "Updated:",
+            "s10": "Skipped:",
+            "s11": "Failed:",
+            "s12": "Survey #",
+            "s13": "to confirm",
+            "s14": "Cancel"
+          },
+          "closesurveydialog": {
+            "s1": "Close Survey",
+            "s2": "Close",
+            "s3": "to stop accepting new responses.",
+            "s4": "Existing responses will be kept, but students will not be able to submit new responses after closing.",
+            "s5": "Unable to close",
+            "s6": "to confirm",
+            "s7": "Cancel"
+          },
+          "surveyresultsdrawer": {
+            "s1": "No data.",
+            "s2": "Survey analytics and response breakdown for survey #",
+            "s3": "Failed to load survey analytics",
+            "s4": "Could not fetch survey results. Please try again.",
+            "s5": "Submitted Users",
+            "s6": "Answered Questions",
+            "s7": "Text Responses",
+            "s8": "Response Health",
+            "s9": "questions have response data.",
+            "s10": "Most Answered Question",
+            "s11": "Most Selected Option",
+            "s12": "Survey Window",
+            "s13": "Additional Metrics",
+            "s14": "Question Analytics",
+            "s15": "Search questions...",
+            "s16": "No question analytics available for this filter.",
+            "s17": "Rated Responses",
+            "s18": "Text Responses (",
+            "s19": "Qualitative Responses",
+            "s20": "Aggregate text responses only. No respondent identity is shown.",
+            "s21": "Search text responses...",
+            "s22": "Total Text Responses",
+            "s23": "Questions With Text",
+            "s24": "Filtered Results",
+            "s25": "No text responses matched your search.",
+            "s26": "Showing first 100 matched responses for performance.",
+            "s27": "Additional Analytics Data",
+            "s28": "Raw Analytics Payload",
+            "s29": "Close"
+          },
+          "bulkclosesurveysdialog": {
+            "s1": "Bulk Close Surveys",
+            "s2": "Close",
+            "s3": "selected survey",
+            "s4": "Closing surveys stops new responses without deleting data.",
+            "s5": "Selected Surveys",
+            "s6": "more surveys",
+            "s7": "Unable to close",
+            "s8": "Total:",
+            "s9": "Updated:",
+            "s10": "Skipped:",
+            "s11": "Failed:",
+            "s12": "Survey #",
+            "s13": "to confirm",
+            "s14": "Cancel"
+          },
+          "assignsurveydialog": {
+            "s1": "Assign Survey",
+            "s2": "Update who should receive this survey.",
+            "s3": "Could not assign survey",
+            "s4": "Assignment Mode",
+            "s5": "Unbranded Center",
+            "s6": "Select a center first",
+            "s7": "No unbranded centers found",
+            "s8": "No courses found",
+            "s9": "Select a student",
+            "s10": "No students found",
+            "s11": "Video (Full Play)",
+            "s12": "Select a full-play video",
+            "s13": "No eligible full-play videos found",
+            "s14": "No eligible full-play videos were found for this center.",
+            "s15": "Cancel"
+          },
+          "surveystable": {
+            "s1": "start_from/start_to",
+            "s2": "end_from/end_to"
+          }
+        }
+      },
+      "admin_users": {
+        "components": {
+          "updateadminuserstatusdialog": {
+            "s1": "Change Status",
+            "s2": "Update account status for",
+            "s3": "Unable to update",
+            "s4": "Select the new status for this admin user.",
+            "s5": "Cancel"
+          },
+          "syncadminuserrolesdialog": {
+            "s1": "Sync Roles",
+            "s2": "Update roles for",
+            "s3": "using role selections with permission preview.",
+            "s4": "Could not sync roles",
+            "s5": "Search roles",
+            "s6": "Select all",
+            "s7": "Search by role, slug, or permission...",
+            "s8": "Use search to filter roles quickly. Changes preview below before applying.",
+            "s9": "No roles selected.",
+            "s10": "Permission changes:",
+            "s11": "+ more",
+            "s12": "Loading roles...",
+            "s13": "No roles match your search.",
+            "s14": "Cancel"
+          },
+          "deleteadminuserdialog": {
+            "s1": "Delete Admin User"
+          },
+          "bulkassigncentersdialog": {
+            "s1": "Assign Centers",
+            "s2": "Select a center to assign to",
+            "s3": "selected admin",
+            "s4": "Failed:",
+            "s5": "User #",
+            "s6": "Skipped:",
+            "s7": "Search centers...",
+            "s8": "1 center selected"
+          },
+          "bulkupdateadminuserstatusdialog": {
+            "s1": "Bulk Change Status",
+            "s2": "Update status for",
+            "s3": "selected admin",
+            "s4": "Unable to update",
+            "s5": "Total:",
+            "s6": "Updated:",
+            "s7": "Skipped:",
+            "s8": "Failed:",
+            "s9": "User #",
+            "s10": "Select the new status for selected admin users.",
+            "s11": "Close"
+          },
+          "bulkassignrolesdialog": {
+            "s1": "Assign Roles",
+            "s2": "Select roles to assign to",
+            "s3": "selected admin",
+            "s4": "Failed:",
+            "s5": "User #",
+            "s6": "Skipped:",
+            "s7": "Search roles..."
+          },
+          "adminuserformdialog": {
+            "s1": "Account Details",
+            "s2": "Account Access",
+            "s3": "Advanced options",
+            "s4": "Center, country code, and status settings.",
+            "s5": "Could not save admin user",
+            "s6": "Jane Admin",
+            "s7": "jane.admin@example.com",
+            "s8": "Base number only (10 digits). Do not include country code or a leading 0.",
+            "s9": "Country code",
+            "s10": "(optional)",
+            "s11": "Locked to current center:",
+            "s12": "Leave empty to create system-level admin without center assignment.",
+            "s13": "Cancel"
+          }
+        }
+      },
+      "extra_view_requests": {
+        "components": {
+          "extraviewactiondialog": {
+            "s1": "Request failed",
+            "s2": "Granted views",
+            "s3": "Decision reason (optional)",
+            "s4": "Cancel"
+          }
+        }
+      },
+      "students": {
+        "components": {
+          "bulkgeneratevideoaccesscodesdialog": {
+            "s1": "Generate Access Codes",
+            "s2": "Generate a single-use code for",
+            "s3": "selected student",
+            "s4": "Action failed",
+            "s5": "Send via WhatsApp",
+            "s6": "WhatsApp format",
+            "s7": "Text code",
+            "s8": "QR code",
+            "s9": "WhatsApp sent",
+            "s10": "WhatsApp failed",
+            "s11": "Close"
+          },
+          "bulkenrollandgeneratedialog": {
+            "s1": "Enroll & Generate",
+            "s2": "Enroll the selected students first, then generate video access codes for eligible ones.",
+            "s3": "1. Enroll",
+            "s4": "2. Generate Codes",
+            "s5": "Go to Step 2",
+            "s6": "Enrollment failed",
+            "s7": "Skipped IDs:",
+            "s8": "Eligible for generation:",
+            "s9": "Retry failed enroll",
+            "s10": "Generation failed",
+            "s11": "Eligible students:",
+            "s12": "Complete the enrollment step first to enable this action.",
+            "s13": "Send via WhatsApp",
+            "s14": "WhatsApp format",
+            "s15": "Text code",
+            "s16": "QR code",
+            "s17": "WhatsApp sent",
+            "s18": "WhatsApp failed",
+            "s19": "Close",
+            "s20": "Back to Step 1"
+          },
+          "enrollstudentdialog": {
+            "s1": "Enroll Student",
+            "s2": "a course to enroll",
+            "s3": "Cancel"
+          },
+          "studentformdialog": {
+            "s1": "2. Optional Enrollment",
+            "s2": "Advanced options",
+            "s3": "Email, country code, and status settings.",
+            "s4": "Could not save student",
+            "s5": "Student name",
+            "s6": "student@example.com",
+            "s7": "Base number only (10 digits). Do not include country code or a leading 0.",
+            "s8": "Country code",
+            "s9": "(optional)",
+            "s10": "Optional for platform admins. Leave empty to create a student without a center.",
+            "s11": "Cancel"
+          },
+          "deletestudentdialog": {
+            "s1": "Delete Student",
+            "s2": "Permanently delete the selected student."
+          },
+          "studentenrollmentpromptdialog": {
+            "s1": "Student created",
+            "s2": "We’ve sent a notification to",
+            "s3": ". You can enroll them in a course now or do it later.",
+            "s4": "Phone ·",
+            "s5": "Tip: Enrolling now helps the student start immediately, but you can always enroll them later from the Students list.",
+            "s6": "Not now",
+            "s7": "Enroll in Course"
+          },
+          "bulkupdatestudentstatusdialog": {
+            "s1": "Bulk Change Status",
+            "s2": "Update status for",
+            "s3": "selected students.",
+            "s4": "Unable to update",
+            "s5": "Total:",
+            "s6": "Updated:",
+            "s7": "Skipped:",
+            "s8": "Failed:",
+            "s9": "Select the new status for selected students.",
+            "s10": "Close"
+          },
+          "bulkenrollstudentsdialog": {
+            "s1": "Enroll Students",
+            "s2": "a course to enroll",
+            "s3": "selected students.",
+            "s4": "Skipped student IDs:",
+            "s5": "Cancel"
+          },
+          "studentdetailsdrawer": {
+            "s1": "Student details, analytics, and device status.",
+            "s2": "Total Enrollments",
+            "s3": "Active Enrollments",
+            "s4": "Total Sessions",
+            "s5": "Full Play Sessions",
+            "s6": "Viewed Videos",
+            "s7": "Device Name:",
+            "s8": "Device Type:",
+            "s9": "Device ID:",
+            "s10": "Model:",
+            "s11": "OS:",
+            "s12": "Status:",
+            "s13": "Approved:",
+            "s14": "Last used:",
+            "s15": "No device is registered for this student yet."
+          }
+        }
+      },
+      "playback_sessions": {
+        "components": {
+          "playbacksessionsmodal": {
+            "s1": "Playback Sessions",
+            "s2": "Search by student, email, video title",
+            "s3": "Clear search",
+            "s4": "Started from",
+            "s5": "Started to",
+            "s6": "Sessions (",
+            "s7": "No playback sessions found for the selected filters.",
+            "s8": "Device / Status",
+            "s9": "Last Activity",
+            "s10": "Full play",
+            "s11": "Reason:",
+            "s12": "Close"
+          }
+        }
+      },
+      "video_access": {
+        "components": {
+          "videoaccessrequestactiondialog": {
+            "s1": "Request failed",
+            "s2": "Send generated code via WhatsApp",
+            "s3": "WhatsApp format",
+            "s4": "Text code",
+            "s5": "QR code",
+            "s6": "Decision reason",
+            "s7": "Cancel"
+          },
+          "generatevideoaccesscodedialog": {
+            "s1": "Generate Video Access Code",
+            "s2": "Generate a single-use code and optionally send it via WhatsApp.",
+            "s3": "Action failed",
+            "s4": "No students found",
+            "s5": "Expires at:",
+            "s6": "Generated QR Code",
+            "s7": "Generated by:",
+            "s8": "Generated at:",
+            "s9": "WhatsApp error:",
+            "s10": "Copy Code",
+            "s11": "WhatsApp format",
+            "s12": "Text code",
+            "s13": "QR code",
+            "s14": "Close"
+          },
+          "bulkvideoaccessrequestactiondialog": {
+            "s1": "Video Access",
+            "s2": "selected video access request",
+            "s3": "Request failed",
+            "s4": "Total:",
+            "s5": "Failed:",
+            "s6": "Codes:",
+            "s7": "Request #",
+            "s8": "Send generated codes via WhatsApp",
+            "s9": "WhatsApp format",
+            "s10": "Text code",
+            "s11": "QR code",
+            "s12": "Decision reason",
+            "s13": "Close"
+          }
+        }
+      },
+      "analytics": {
+        "components": {
+          "analyticssectioncard": {
+            "s1": "Failed to load section",
+            "s2": "Please retry this analytics request.",
+            "s3": "No analytics data for the selected range."
+          },
+          "analyticsoverviewpanel": {
+            "s1": "Overview analytics unavailable",
+            "s2": "Failed to load overview metrics.",
+            "s3": "Total Centers",
+            "s4": "Active Centers",
+            "s5": "Total Courses",
+            "s6": "Daily Active Learners",
+            "s7": "Centers by Type",
+            "s8": "Courses & Enrollments"
+          },
+          "analyticsfiltersbar": {
+            "s1": "Live updates",
+            "s2": "From date",
+            "s3": "To date",
+            "s4": "End date must be the same as or later than the start date."
+          },
+          "analyticscoursesmediapanel": {
+            "s1": "Courses & media analytics unavailable",
+            "s2": "Failed to load courses/media metrics.",
+            "s3": "Courses by Status",
+            "s4": "Media Upload Status",
+            "s5": "Top Courses by Enrollments",
+            "s6": "No top courses data in this range."
+          },
+          "charts": {
+            "analyticsdonutchart": {
+              "s1": "No chart data"
+            },
+            "analyticsbarchart": {
+              "s1": "No chart data"
+            }
+          },
+          "analyticslearnersenrollmentspanel": {
+            "s1": "Learners & enrollments analytics unavailable",
+            "s2": "Failed to load learner metrics.",
+            "s3": "Total Students",
+            "s4": "Active Students",
+            "s5": "New Students",
+            "s6": "Enrollments by Status",
+            "s7": "New Students by Center",
+            "s8": "Center breakdown is only available for platform-level analytics."
+          },
+          "analyticsdevicesrequestspanel": {
+            "s1": "Devices & requests analytics unavailable",
+            "s2": "Failed to load device/request metrics.",
+            "s3": "Total Devices",
+            "s4": "Active Devices",
+            "s5": "Revoked Devices",
+            "s6": "Pending Devices",
+            "s7": "Device Change Requests",
+            "s8": "Request Source Mix",
+            "s9": "Extra View Requests",
+            "s10": "Approval Rate",
+            "s11": "Avg Decision Hours",
+            "s12": "Enrollment Requests"
+          }
+        }
+      },
+      "system_settings": {
+        "components": {
+          "deletesystemsettingdialog": {
+            "s1": "Delete Setting",
+            "s2": "Permanently delete the selected system setting."
+          },
+          "systemsettingspreviewdialog": {
+            "s1": "Settings Preview",
+            "s2": "Read-only merged preview from",
+            "s3": "Loading preview...",
+            "s4": "Failed to load preview.",
+            "s5": "Close"
+          },
+          "systemdefaultspanel": {
+            "s1": "Global Defaults",
+            "s2": "Canonical System Settings",
+            "s3": "Edit the platform-wide defaults here. Centers inherit these values unless they have a center-scoped override.",
+            "s4": "Could not save defaults",
+            "s5": "Global defaults updated successfully.",
+            "s6": "support@example.com",
+            "s7": "Device approval required by default",
+            "s8": "Attendance required by default"
+          },
+          "systemsettingformdialog": {
+            "s1": "Could not save setting",
+            "s2": "Payload Notes",
+            "s3": "Store values as JSON objects such as",
+            "s4": "{ \"enabled\": true }",
+            "s5": "{ \"timezone\": \"UTC\" }",
+            "s6": ". Use",
+            "s7": "only when the setting intentionally carries no structured payload.",
+            "s8": "Suggested template:",
+            "s9": "Use Template",
+            "s10": "This key is edited from the Global Defaults panel above, not from the generic registry dialog.",
+            "s11": "This key already exists in the system registry. Edit the existing record instead of creating a duplicate.",
+            "s12": "Select visibility",
+            "s13": "Value (JSON object or null)",
+            "s14": "{\"code\":\"+20\"}",
+            "s15": "Cancel"
+          }
+        }
+      },
+      "notifications": {
+        "components": {
+          "adminnotificationsdropdown": {
+            "s1": "Mark all as read",
+            "s2": "Filter notifications by type",
+            "s3": "All types",
+            "s4": "Failed to load notifications.",
+            "s5": "Try again",
+            "s6": "No notifications found.",
+            "s7": "Mark as read",
+            "s8": "Delete",
+            "s9": "Load more"
+          }
+        }
+      },
+      "centers": {
+        "components": {
+          "restorecenterdialog": {
+            "s1": "Restore Center",
+            "s2": "and make it accessible again.",
+            "s3": "Unable to restore",
+            "s4": "This will restore the center and keep all existing data intact.",
+            "s5": "Cancel"
+          },
+          "retrycenteronboardingdialog": {
+            "s1": "Retry Onboarding",
+            "s2": "Retry onboarding workflow for",
+            "s3": "Unable to retry",
+            "s4": "This action re-runs onboarding operations for this center.",
+            "s5": "Cancel"
+          },
+          "bulkdeletecentersdialog": {
+            "s1": "Bulk Delete Centers",
+            "s2": "Delete",
+            "s3": "selected center",
+            "s4": "This action is destructive and should only be used for invalid or duplicate centers.",
+            "s5": "Selected Centers",
+            "s6": "more centers",
+            "s7": "Unable to delete",
+            "s8": "Total:",
+            "s9": "Deleted:",
+            "s10": "Skipped:",
+            "s11": "Failed:",
+            "s12": "Center #",
+            "s13": "to confirm",
+            "s14": "Cancel"
+          },
+          "centerpicker": {
+            "s1": "No centers found"
+          },
+          "deletecenterdialog": {
+            "s1": "Delete Center"
+          },
+          "landing_page_editor": {
+            "s1": "Missing center ID.",
+            "s2": "Landing page editor",
+            "s3": "Preparing the branded editor and fetching the latest draft.",
+            "s4": "The editor could not load the current center draft.",
+            "s5": "Unable to load",
+            "s6": "Publishing & preview",
+            "s7": "Use these page-level actions to generate a draft preview, review it inline, and publish only when the branded center is ready.",
+            "s8": "Open preview",
+            "s9": "Last updated",
+            "s10": "Preview token",
+            "s11": "Preview locale",
+            "s12": "Preview iframe",
+            "s13": "Review the branded landing page in",
+            "s14": "with the current draft token before publishing.",
+            "s15": "Center landing page preview",
+            "s16": "Meta title",
+            "s17": "Center landing page title",
+            "s18": "Meta description",
+            "s19": "Describe the center in a concise search-friendly summary.",
+            "s20": "Meta keywords",
+            "s21": "education, online learning, center name",
+            "s22": "Keep keywords as a plain comma-separated string.",
+            "s23": "Hero title",
+            "s24": "Keep hero translations structured as EN/AR objects.",
+            "s25": "Hero subtitle",
+            "s26": "Hero CTA text",
+            "s27": "Primary CTA",
+            "s28": "Hero CTA URL",
+            "s29": "Hero background URL",
+            "s30": "Hero background upload",
+            "s31": "Upload a new hero background image. The backend persists it immediately and returns the final URL.",
+            "s32": "About title",
+            "s33": "Localized copy keeps EN and AR aligned with backend translations.",
+            "s34": "About content",
+            "s35": "About image URL",
+            "s36": "About image upload",
+            "s37": "Upload the supporting about image. The backend persists it immediately and returns the final URL.",
+            "s38": "Contact email",
+            "s39": "support@example.com",
+            "s40": "Contact phone",
+            "s41": "Contact address",
+            "s42": "Cairo, Egypt",
+            "s43": "Section order",
+            "s44": "Move sections up or down to control the final public page order. Hidden sections keep their saved position and render only when enabled from the Visibility tab.",
+            "s45": "Variant:",
+            "s46": "Configure the variant and style overrides for this section.",
+            "s47": "Text align",
+            "s48": "Inherit default",
+            "s49": "Overlay opacity",
+            "s50": "Content width",
+            "s51": "Image fit",
+            "s52": "Courses remains a design-only placeholder until the landing payload includes real course card data.",
+            "s53": "Desktop columns",
+            "s54": "Mobile columns",
+            "s55": "Card style",
+            "s56": "Contact style",
+            "s57": "Show map placeholder",
+            "s58": "This is a layout hint only for now. No embed URL or coordinate data exists in the landing payload yet.",
+            "s59": "Primary color",
+            "s60": "#4F46E5",
+            "s61": "Accepts #RGB, #RRGGBB, and 8-digit alpha hex values.",
+            "s62": "Secondary color",
+            "s63": "Secondary color is optional but must keep the same hex format.",
+            "s64": "Font family",
+            "s65": "Inter, Cairo, system-ui",
+            "s66": "Existing testimonials",
+            "s67": "Use the table for status, locale coverage, quick editing, and ordering.",
+            "s68": "Edit",
+            "s69": "Delete",
+            "s70": "No testimonials created yet.",
+            "s71": "Add testimonial",
+            "s72": "New entries require author name and English content.",
+            "s73": "Author name",
+            "s74": "Author title",
+            "s75": "Parent, learner, educator",
+            "s76": "Author image URL",
+            "s77": "Author image upload",
+            "s78": "Upload a testimonial author image. The backend returns a URL only; save the testimonial afterward to persist it.",
+            "s79": "Edit testimonial",
+            "s80": "Select a testimonial from the table to edit its content and status.",
+            "s81": "Upload a replacement author image. The returned URL is applied locally; save the testimonial to persist it.",
+            "s82": "Select a testimonial from the table to edit it."
+          },
+          "bulkretrycenteronboardingdialog": {
+            "s1": "Bulk Retry Onboarding",
+            "s2": "Retry onboarding for",
+            "s3": "selected center",
+            "s4": "This action re-runs onboarding jobs for the selected centers.",
+            "s5": "Unable to retry",
+            "s6": "Total:",
+            "s7": "Updated:",
+            "s8": "Skipped:",
+            "s9": "Failed:",
+            "s10": "Center #",
+            "s11": "Cancel"
+          },
+          "updatecenterstatusdialog": {
+            "s1": "Change Status",
+            "s2": "Update status for",
+            "s3": "Unable to update",
+            "s4": "Select the new status for this center.",
+            "s5": "Cancel"
+          },
+          "bulkrestorecentersdialog": {
+            "s1": "Bulk Restore Centers",
+            "s2": "selected center",
+            "s3": "Restored centers become active in management and app resolution flows.",
+            "s4": "Unable to restore",
+            "s5": "Total:",
+            "s6": "Restored:",
+            "s7": "Skipped:",
+            "s8": "Failed:",
+            "s9": "Center #",
+            "s10": "Cancel"
+          },
+          "forms": {
+            "centerprofileform": {
+              "s1": "Unable to save",
+              "s2": "Center Name",
+              "s3": "e.g., North Campus",
+              "s4": "Slug *",
+              "s5": "e.g., north-campus",
+              "s6": "Type *",
+              "s7": "Show in featured centers"
+            },
+            "centerstatuscard": {
+              "s1": "Activate or deactivate this center.",
+              "s2": "Status update failed",
+              "s3": "Current:"
+            },
+            "centerbrandingform": {
+              "s1": "Configure center branding and visual identity.",
+              "s2": "Primary Color",
+              "s3": "#4F46E5",
+              "s4": "Center Logo (optional)",
+              "s5": "Selected logo preview",
+              "s6": "Unable to preview this file",
+              "s7": "Unable to save",
+              "s8": "Upload failed",
+              "s9": "Center Logo",
+              "s10": "Current logo",
+              "s11": "No logo uploaded yet",
+              "s12": "New logo (to be uploaded)",
+              "s13": "New logo preview",
+              "s14": "Click to expand",
+              "s15": "Upload new logo",
+              "s16": "No logo is available for preview yet.",
+              "s1043": "Unable to load preview",
+              "s1044": "Click to expand"
+            },
+            "centereducationprofileform": {
+              "s1": "Education Profile",
+              "s2": "Configure which education modules are available to students and which fields are required in the mobile education update flow.",
+              "s3": "Could not save settings",
+              "s4": "Education profile settings updated successfully.",
+              "s5": "Failed to load settings",
+              "s6": "Could not fetch education profile settings for this center.",
+              "s7": "Disabling a module affects student/mobile lookup and education update behavior. Admin CRUD for grades/schools/colleges remains available.",
+              "s8": "Enable module",
+              "s9": "Require on update"
+            },
+            "centerprimaryadminform": {
+              "s1": "Primary Admin",
+              "s2": "This admin becomes the center owner on creation.",
+              "s3": "Admin Name *",
+              "s4": "e.g., Jane Doe",
+              "s5": "Admin Email *",
+              "s6": "admin@example.com"
+            },
+            "centeronboardingcard": {
+              "s1": "Retry onboarding operations if setup got stuck or failed.",
+              "s2": "Retry failed",
+              "s3": "Current:"
+            },
+            "centerpolicyform": {
+              "s1": "Policy Settings",
+              "s2": "Loading center policies...",
+              "s3": "Edit center-specific policy controls here. Inherited values continue to follow the platform fallback chain automatically.",
+              "s4": "Center policy settings updated successfully.",
+              "s5": "Failed to load settings",
+              "s6": "Could not fetch policy settings.",
+              "s7": "Center Overrides",
+              "s8": "These fields are center-scoped and can override the platform fallback.",
+              "s9": "Default View Limit",
+              "s10": "e.g., 2",
+              "s11": "Device Limit",
+              "s12": "Video Code Expiry (Days)",
+              "s13": "e.g., 30",
+              "s14": "WhatsApp Max Retries",
+              "s15": "Allow extra view requests",
+              "s16": "Require video approval",
+              "s17": "Allow PDF downloads"
+            }
+          },
+          "bulkupdatecenterstatusdialog": {
+            "s1": "Bulk Change Status",
+            "s2": "Update status for",
+            "s3": "selected center",
+            "s4": "Unable to update",
+            "s5": "Total:",
+            "s6": "Updated:",
+            "s7": "Skipped:",
+            "s8": "Failed:",
+            "s9": "Center #",
+            "s10": "Select the new status for selected centers.",
+            "s11": "Close"
+          }
+        }
+      },
+      "role_permissions": {
+        "components": {
+          "rolepermissionsform": {
+            "s1": "Role not found",
+            "s2": "The role you requested does not exist or is no longer available.",
+            "s3": "Sync Permissions",
+            "s4": "Read only",
+            "s5": "You can view assigned permissions, but updates require manage_roles permission.",
+            "s6": "Permission validation failed",
+            "s7": "Could not update permissions",
+            "s8": "Search permissions",
+            "s9": "Select all",
+            "s10": "Search by permission, slug, or description...",
+            "s11": "Use search to filter permissions quickly. Review changes before saving.",
+            "s12": "No permissions selected.",
+            "s13": "Permission changes:",
+            "s14": "+ more",
+            "s15": "Confirm Permission Changes",
+            "s16": "Review permission updates for",
+            "s17": "before applying.",
+            "s18": "permissions selected",
+            "s19": "Could not sync permissions",
+            "s20": "Permissions to add",
+            "s21": "Permissions to remove",
+            "s22": "I understand this will change role access permissions.",
+            "s23": "Cancel"
+          },
+          "bulkmanagerolepermissionsdialog": {
+            "s1": "Bulk Manage Permissions",
+            "s2": "Assign the same permission set to",
+            "s3": "selected role",
+            "s4": "Could not update permissions",
+            "s5": "Selected roles (",
+            "s6": "Search permissions...",
+            "s7": "Clear Selection",
+            "s8": "Cancel"
+          }
+        }
+      },
+      "instructors": {
+        "components": {
+          "instructorformdialog": {
+            "s1": "Profile Details",
+            "s2": "Contact Info",
+            "s3": "Could not save instructor",
+            "s4": "JPG, PNG, or WebP. Max size 5MB.",
+            "s5": "Avatar will upload with the new instructor when you submit.",
+            "s6": "Instructor name",
+            "s7": "instructor@example.com",
+            "s8": "e.g., Senior Lecturer",
+            "s9": "Short instructor bio",
+            "s10": "Cancel"
+          },
+          "deleteinstructordialog": {
+            "s1": "Delete Instructor"
+          },
+          "instructordetailsdrawer": {
+            "s1": "Instructor profile details and full API fields.",
+            "s2": "Created By",
+            "s3": "Name Translations",
+            "s4": "Title Translations",
+            "s5": "Bio Translations",
+            "s6": "Social Links",
+            "s7": "No social links.",
+            "s8": "No metadata provided.",
+            "s9": "Created At",
+            "s10": "Updated At",
+            "s11": "Refreshing latest instructor details..."
+          }
+        }
+      },
+      "categories": {
+        "components": {
+          "categoryformdialog": {
+            "s1": "Could not save category",
+            "s2": "Title (English)",
+            "s3": "Title (Arabic)",
+            "s4": "العلوم",
+            "s5": "Description (English)",
+            "s6": "STEM courses",
+            "s7": "Description (Arabic)",
+            "s8": "دورات العلوم",
+            "s9": "Parent Category",
+            "s10": "No Parent (Root)",
+            "s11": "Order Index",
+            "s12": "Active category",
+            "s13": "Cancel"
+          },
+          "deletecategorydialog": {
+            "s1": "Delete Category"
+          },
+          "bulkdeletecategorydialog": {
+            "s1": "Delete Categories",
+            "s2": "This action cannot be undone.",
+            "s3": "Could not delete categories",
+            "s4": "Total:",
+            "s5": "Deleted:",
+            "s6": "Skipped:",
+            "s7": "Failed:",
+            "s8": "Category #",
+            "s9": "You are about to permanently delete",
+            "s10": "to confirm"
+          },
+          "bulkupdatecategorystatusdialog": {
+            "s1": "Bulk Change Status",
+            "s2": "Update status for",
+            "s3": "Unable to update",
+            "s4": "Total:",
+            "s5": "Updated:",
+            "s6": "Skipped:",
+            "s7": "Failed:",
+            "s8": "Category #",
+            "s9": "Select the new status for selected categories.",
+            "s10": "Close"
+          }
+        }
+      },
+      "education": {
+        "components": {
+          "schoolformdialog": {
+            "s1": "Could not save school",
+            "s2": "Name (English)",
+            "s3": "Cairo School",
+            "s4": "Name (Arabic)",
+            "s5": "مدرسة القاهرة",
+            "s6": "School Type",
+            "s7": "Optional address",
+            "s8": "Active school",
+            "s9": "Cancel"
+          },
+          "gradeformdialog": {
+            "s1": "Could not save grade",
+            "s2": "Name (English)",
+            "s3": "Grade 9",
+            "s4": "Name (Arabic)",
+            "s5": "الصف التاسع",
+            "s6": "Educational Stage",
+            "s7": "Active grade",
+            "s8": "Cancel"
+          },
+          "deletegradedialog": {
+            "s1": "Delete Grade"
+          },
+          "deletecollegedialog": {
+            "s1": "Delete College"
+          },
+          "collegeformdialog": {
+            "s1": "Could not save college",
+            "s2": "Name (English)",
+            "s3": "Cairo University",
+            "s4": "Name (Arabic)",
+            "s5": "جامعة القاهرة",
+            "s6": "Type (optional)",
+            "s7": "e.g. 1",
+            "s8": "Optional address",
+            "s9": "Active college",
+            "s10": "Cancel"
+          },
+          "deleteschooldialog": {
+            "s1": "Delete School"
+          }
+        }
+      },
+      "roles": {
+        "components": {
+          "roleformdialog": {
+            "s1": "Edit Role",
+            "s2": "Create Role",
+            "s3": "Update role identity and description.",
+            "s4": "Create a new role for role-based access control.",
+            "s5": "Could not save role",
+            "s6": "Content Admin",
+            "s7": "Slug",
+            "s8": "content_admin",
+            "s9": "Short description",
+            "s10": "Save Changes",
+            "s11": "Create Role"
+          },
+          "deleteroledialog": {
+            "s1": "Delete Role",
+            "s2": "this role",
+            "s3": "Deleting...",
+            "s4": "Could not delete role"
+          }
+        }
+      }
+    }
   }
 }

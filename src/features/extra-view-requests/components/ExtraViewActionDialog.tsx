@@ -17,6 +17,7 @@ import {
 } from "@/features/extra-view-requests/hooks/use-extra-view-requests";
 import type { ExtraViewRequest } from "@/features/extra-view-requests/types/extra-view-request";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 type ExtraViewActionDialogProps = {
   open: boolean;
@@ -35,6 +36,8 @@ export function ExtraViewActionDialog({
   centerId,
   onSuccess,
 }: ExtraViewActionDialogProps) {
+  const { t } = useTranslation();
+
   const approveMutation = useApproveExtraViewRequest();
   const rejectMutation = useRejectExtraViewRequest();
   const activeMutation =
@@ -134,7 +137,11 @@ export function ExtraViewActionDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Request failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.extra_view_requests.components.extraviewactiondialog.s1",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -142,7 +149,9 @@ export function ExtraViewActionDialog({
         {action === "approve" ? (
           <div className="space-y-2">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Granted views
+              {t(
+                "auto.features.extra_view_requests.components.extraviewactiondialog.s2",
+              )}
             </p>
             <Input
               type="number"
@@ -155,7 +164,9 @@ export function ExtraViewActionDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Decision reason (optional)
+            {t(
+              "auto.features.extra_view_requests.components.extraviewactiondialog.s3",
+            )}
           </p>
           <Input
             value={decisionReason}
@@ -170,7 +181,9 @@ export function ExtraViewActionDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.extra_view_requests.components.extraviewactiondialog.s4",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={activeMutation.isPending}>
             {activeMutation.isPending

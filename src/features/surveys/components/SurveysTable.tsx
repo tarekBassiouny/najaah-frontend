@@ -661,11 +661,11 @@ export function SurveysTable({
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t("pages.surveys.table.dateFilters.windowHint")}
                 <code className="ml-1 rounded bg-gray-200 px-1 py-0.5 text-[11px] dark:bg-gray-800">
-                  start_from/start_to
+                  {t("auto.features.surveys.components.surveystable.s1")}
                 </code>
-                and
+                {t("common.labels.and")}
                 <code className="ml-1 rounded bg-gray-200 px-1 py-0.5 text-[11px] dark:bg-gray-800">
-                  end_from/end_to
+                  {t("auto.features.surveys.components.surveystable.s2")}
                 </code>
                 .
               </p>

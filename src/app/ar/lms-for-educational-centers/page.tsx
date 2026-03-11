@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة LMS للمراكز التعليمية التي تحتاج أكثر من استضافة دورات عامة";
+
 export default function ArabicEducationalCentersPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="LMS للمراكز"
-      title="منصة LMS للمراكز التعليمية التي تحتاج أكثر من استضافة دورات عامة"
+      title={SEO_PAGE_TITLE}
       intro="المراكز التعليمية تعمل بطريقة مختلفة عن المدارس الواسعة أو صناع الدورات العامة. هي تبيع برامج منظمة، وتدير المعلمين بدقة، وتحمي مواداً مميزة، وتعتمد كثيراً على الثقة المحلية. لذلك يجب أن تعكس المنصة هذه الحقيقة."
       bullets={[
         "مبنية حول سير عمل المراكز والدروس الخاصة",

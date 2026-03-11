@@ -12,6 +12,7 @@ import { useDeleteSurvey } from "@/features/surveys/hooks/use-surveys";
 import { getSurveyApiErrorMessage } from "@/features/surveys/lib/api-error";
 import type { Survey } from "@/features/surveys/types/survey";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 
 type DeleteSurveyDialogProps = {
   open: boolean;
@@ -36,6 +37,8 @@ export function DeleteSurveyDialog({
   centerId,
   onSuccess,
 }: DeleteSurveyDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteSurvey({ centerId });
   const { showToast } = useModal();
@@ -72,11 +75,13 @@ export function DeleteSurveyDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Survey</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.surveys.components.deletesurveydialog.s1")}
+          </DialogTitle>
         </DialogHeader>
 
         <HardDeletePanel
-          title="Delete Survey"
+          title={t("auto.features.surveys.components.deletesurveydialog.s1")}
           entityName={getSurveyTitle(survey)}
           entityFallback="this survey"
           confirmButtonLabel="Delete Survey"

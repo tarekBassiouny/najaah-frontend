@@ -148,7 +148,7 @@ export default function CenterSettingsPage({ params }: PageProps) {
             {toTitleCase(String(centerData.tier ?? "standard"))}
           </Badge>
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            ID: {centerData.id}
+            {t("pages.centerSettings.idLabel")}: {centerData.id}
           </span>
           <span className="text-sm text-gray-500 dark:text-gray-400">
             /{centerData.slug ?? "-"}

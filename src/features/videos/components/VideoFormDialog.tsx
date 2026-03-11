@@ -42,8 +42,8 @@ import {
   getAdminResponseMessage,
 } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
-const REQUIRED_TITLE_MESSAGE = "English title is required.";
 const MAX_THUMBNAIL_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_THUMBNAIL_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -118,16 +118,6 @@ function isVideoFile(file: File) {
   return file.type.startsWith("video/");
 }
 
-function resolveModeLabel(sourceMode: VideoSourceMode) {
-  return sourceMode === "upload" ? "Upload File" : "Video URL";
-}
-
-function resolveModeDescription(sourceMode: VideoSourceMode) {
-  return sourceMode === "upload"
-    ? "Upload large video files with resumable transfer."
-    : "Create from YouTube, Vimeo, Zoom, or direct URL.";
-}
-
 function formatFileSize(bytes: number) {
   if (bytes <= 0) return "0 B";
 
@@ -199,7 +189,7 @@ function isUrlBasedVideo(video?: Video | null) {
 
 function parseDurationInput(
   value: string,
-): { ok: true; value: number | null } | { ok: false; message: string } {
+): { ok: true; value: number | null } | { ok: false; messageKey: string } {
   const trimmed = value.trim();
   if (!trimmed) {
     return { ok: true, value: null };
@@ -215,7 +205,7 @@ function parseDurationInput(
     if (segments.some((segment) => Number.isNaN(segment))) {
       return {
         ok: false,
-        message: "Duration must be seconds or mm:ss / hh:mm:ss.",
+        messageKey: "pages.videos.dialogs.form.errors.durationInvalid",
       };
     }
 
@@ -230,18 +220,8 @@ function parseDurationInput(
 
   return {
     ok: false,
-    message: "Duration must be seconds or mm:ss / hh:mm:ss.",
+    messageKey: "pages.videos.dialogs.form.errors.durationInvalid",
   };
-}
-
-function resolveUploadPhaseLabel(phase: UploadPhase) {
-  if (phase === "creating") return "Creating Session";
-  if (phase === "uploading") return "Uploading";
-  if (phase === "paused") return "Paused";
-  if (phase === "processing") return "Processing";
-  if (phase === "failed") return "Failed";
-  if (phase === "ready") return "Ready";
-  return "Idle";
 }
 
 function resolveHasCustomThumbnail(video?: Video | null) {
@@ -265,6 +245,7 @@ export function VideoFormDialog({
   allowUploadMode = true,
   onSuccess,
 }: VideoFormDialogProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const isEditMode = Boolean(video);
   const createVideoMutation = useCreateVideo();
@@ -326,6 +307,19 @@ export function VideoFormDialog({
   const isBusy = isMutating || hasActiveUpload || isThumbnailMutating;
   const canPause = uploadPhase === "uploading";
   const canResume = uploadPhase === "paused";
+  const uploadPausedText = t("pages.videos.dialogs.form.status.uploadPaused");
+  const uploadingVideoText = t(
+    "pages.videos.dialogs.form.status.uploadingVideo",
+  );
+  const creatingSessionText = t(
+    "pages.videos.dialogs.form.status.creatingUploadSession",
+  );
+  const processingStartedText = t(
+    "pages.videos.dialogs.form.status.processingStarted",
+  );
+  const preparingUploadText = t(
+    "pages.videos.dialogs.form.status.preparingUpload",
+  );
 
   const selectedFileLabel = useMemo(() => {
     if (!file) return "";
@@ -457,17 +451,20 @@ export function VideoFormDialog({
     try {
       await pauseGlobalUpload(activeUploadId);
       setUploadPhase("paused");
-      setUploadStatusText("Upload paused.");
+      setUploadStatusText(uploadPausedText);
       setUploadSpeedBps(null);
       setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "paused",
-        statusText: "Upload paused.",
+        statusText: uploadPausedText,
         bytesPerSecond: null,
         etaSeconds: null,
       });
     } catch (error) {
-      const message = getAdminApiErrorMessage(error, "Failed to pause upload.");
+      const message = getAdminApiErrorMessage(
+        error,
+        t("pages.videos.dialogs.form.errors.pauseUploadFailed"),
+      );
       setFormError(message);
       showToast(message, "error");
     }
@@ -478,19 +475,19 @@ export function VideoFormDialog({
     try {
       await resumeGlobalUpload(activeUploadId);
       setUploadPhase("uploading");
-      setUploadStatusText("Uploading video...");
+      setUploadStatusText(uploadingVideoText);
       setUploadSpeedBps(null);
       setUploadEtaSeconds(null);
       updateGlobalUpload(activeUploadId, {
         phase: "uploading",
-        statusText: "Uploading video...",
+        statusText: uploadingVideoText,
         bytesPerSecond: null,
         etaSeconds: null,
       });
     } catch (error) {
       const message = getAdminApiErrorMessage(
         error,
-        "Failed to resume upload.",
+        t("pages.videos.dialogs.form.errors.resumeUploadFailed"),
       );
       setFormError(message);
       showToast(message, "error");
@@ -508,13 +505,16 @@ export function VideoFormDialog({
         await stopGlobalUpload(activeUploadId);
       }
       uploadControllerRef.current = null;
-      const message = "Upload stopped.";
+      const message = t("pages.videos.dialogs.form.messages.uploadStopped");
       showToast(message, "success");
       setFormError(null);
       resetCreateState();
       onOpenChange(false);
     } catch (error) {
-      const message = getAdminApiErrorMessage(error, "Failed to stop upload.");
+      const message = getAdminApiErrorMessage(
+        error,
+        t("pages.videos.dialogs.form.errors.stopUploadFailed"),
+      );
       setFormError(message);
       showToast(message, "error");
     }
@@ -528,11 +528,11 @@ export function VideoFormDialog({
 
   const validateThumbnail = (nextFile: File) => {
     if (!ALLOWED_THUMBNAIL_MIME_TYPES.includes(nextFile.type)) {
-      return "Please choose a valid image (JPG, PNG, or WebP).";
+      return t("pages.videos.dialogs.form.errors.invalidThumbnailType");
     }
 
     if (nextFile.size > MAX_THUMBNAIL_SIZE_BYTES) {
-      return "Thumbnail must be 5MB or smaller.";
+      return t("pages.videos.dialogs.form.errors.thumbnailTooLarge");
     }
 
     return null;
@@ -570,7 +570,9 @@ export function VideoFormDialog({
 
   const uploadSelectedThumbnail = async (videoId: string | number) => {
     if (!centerId) {
-      setThumbnailError("Select a center before uploading a thumbnail.");
+      setThumbnailError(
+        t("pages.videos.dialogs.form.errors.centerRequiredForThumbnailUpload"),
+      );
       return null;
     }
 
@@ -594,7 +596,7 @@ export function VideoFormDialog({
     } catch (error) {
       const message = getAdminApiErrorMessage(
         error,
-        "Unable to upload custom thumbnail.",
+        t("pages.videos.dialogs.form.errors.thumbnailUploadFailed"),
       );
       if (isMountedRef.current) {
         setThumbnailError(message);
@@ -607,13 +609,15 @@ export function VideoFormDialog({
   const handleThumbnailUpload = async () => {
     if (!video) {
       setThumbnailError(
-        "Save the video first, then upload a custom thumbnail.",
+        t("pages.videos.dialogs.form.errors.saveBeforeThumbnailUpload"),
       );
       return;
     }
 
     if (!thumbnailFile) {
-      setThumbnailError("Choose an image file first.");
+      setThumbnailError(
+        t("pages.videos.dialogs.form.errors.thumbnailFileRequired"),
+      );
       return;
     }
 
@@ -622,19 +626,23 @@ export function VideoFormDialog({
 
     const successMessage = getAdminResponseMessage(
       savedVideo,
-      "Video thumbnail updated successfully.",
+      t("pages.videos.dialogs.form.messages.thumbnailUpdated"),
     );
     showToast(successMessage, "success");
   };
 
   const handleThumbnailReset = async () => {
     if (!centerId) {
-      setThumbnailError("Select a center before resetting a thumbnail.");
+      setThumbnailError(
+        t("pages.videos.dialogs.form.errors.centerRequiredForThumbnailReset"),
+      );
       return;
     }
 
     if (!video) {
-      setThumbnailError("Save the video first, then reset the thumbnail.");
+      setThumbnailError(
+        t("pages.videos.dialogs.form.errors.saveBeforeThumbnailReset"),
+      );
       return;
     }
 
@@ -651,13 +659,13 @@ export function VideoFormDialog({
       }
       const successMessage = getAdminResponseMessage(
         resetVideo,
-        "Video thumbnail reset successfully.",
+        t("pages.videos.dialogs.form.messages.thumbnailReset"),
       );
       showToast(successMessage, "success");
     } catch (error) {
       const message = getAdminApiErrorMessage(
         error,
-        "Unable to reset video thumbnail.",
+        t("pages.videos.dialogs.form.errors.thumbnailResetFailed"),
       );
       if (isMountedRef.current) {
         setThumbnailError(message);
@@ -671,7 +679,7 @@ export function VideoFormDialog({
     if (isBusy) return;
 
     if (!centerId) {
-      setFormError("Select a center before creating a video.");
+      setFormError(t("pages.videos.dialogs.form.errors.centerRequired"));
       return;
     }
 
@@ -682,7 +690,7 @@ export function VideoFormDialog({
       requireEn: true,
     });
     if (!titleTranslations?.en) {
-      setFormError(REQUIRED_TITLE_MESSAGE);
+      setFormError(t("pages.videos.dialogs.form.errors.englishTitleRequired"));
       return;
     }
     const normalizedTitleTranslations: { en: string; ar?: string } = {
@@ -697,7 +705,7 @@ export function VideoFormDialog({
     const tags = parseTags(tagsInput);
     const parsedDuration = parseDurationInput(durationInput);
     if (!parsedDuration.ok) {
-      setFormError(parsedDuration.message);
+      setFormError(t(parsedDuration.messageKey));
       return;
     }
 
@@ -735,7 +743,7 @@ export function VideoFormDialog({
 
         const successMessage = getAdminResponseMessage(
           updatedVideo,
-          "Video updated successfully.",
+          t("pages.videos.dialogs.form.messages.videoUpdated"),
         );
         showToast(successMessage, "success");
         onSuccess?.(successMessage);
@@ -743,7 +751,7 @@ export function VideoFormDialog({
       } catch (error) {
         const message = getAdminApiErrorMessage(
           error,
-          "Unable to update video.",
+          t("pages.videos.dialogs.form.errors.videoUpdateFailed"),
         );
         setFormError(message);
         showToast(message, "error");
@@ -754,14 +762,14 @@ export function VideoFormDialog({
     if (sourceMode === "url" || !allowUploadMode) {
       const normalizedUrl = sourceUrl.trim();
       if (!normalizedUrl) {
-        setFormError("Video URL is required for URL mode.");
+        setFormError(t("pages.videos.dialogs.form.errors.videoUrlRequired"));
         return;
       }
 
       try {
         new URL(normalizedUrl);
       } catch {
-        setFormError("Enter a valid video URL.");
+        setFormError(t("pages.videos.dialogs.form.errors.videoUrlInvalid"));
         return;
       }
 
@@ -795,7 +803,7 @@ export function VideoFormDialog({
 
         const successMessage = getAdminResponseMessage(
           createdVideo,
-          "Video created successfully.",
+          t("pages.videos.dialogs.form.messages.videoCreated"),
         );
         showToast(successMessage, "success");
         onSuccess?.(successMessage);
@@ -803,7 +811,7 @@ export function VideoFormDialog({
       } catch (error) {
         const message = getAdminApiErrorMessage(
           error,
-          "Unable to create video.",
+          t("pages.videos.dialogs.form.errors.videoCreateFailed"),
         );
         setFormError(message);
         showToast(message, "error");
@@ -812,12 +820,12 @@ export function VideoFormDialog({
     }
 
     if (!file) {
-      setFormError("Select a video file to upload.");
+      setFormError(t("pages.videos.dialogs.form.errors.videoFileRequired"));
       return;
     }
 
     if (!isVideoFile(file)) {
-      setFormError("Selected file must be a video.");
+      setFormError(t("pages.videos.dialogs.form.errors.videoFileInvalid"));
       return;
     }
 
@@ -825,7 +833,7 @@ export function VideoFormDialog({
     setUploadProgress(0);
     setUploadSpeedBps(null);
     setUploadEtaSeconds(null);
-    setUploadStatusText("Creating upload session...");
+    setUploadStatusText(creatingSessionText);
     let createdUploadId: string | null = null;
 
     try {
@@ -850,7 +858,9 @@ export function VideoFormDialog({
       const uploadEndpoint = resolveUploadEndpoint(uploadSession);
 
       if (!videoId || !uploadEndpoint) {
-        throw new Error("Upload session is missing endpoint or video ID.");
+        throw new Error(
+          t("pages.videos.dialogs.form.errors.uploadSessionMissingData"),
+        );
       }
 
       if (thumbnailFile) {
@@ -860,7 +870,7 @@ export function VideoFormDialog({
       const sessionId = resolveUploadSessionId(uploadSession);
       setUploadSessionId(sessionId);
       setUploadPhase("uploading");
-      setUploadStatusText("Uploading video...");
+      setUploadStatusText(uploadingVideoText);
       const uploadId = startGlobalUpload({
         centerId,
         videoId,
@@ -868,7 +878,7 @@ export function VideoFormDialog({
         fileName: file.name,
         uploadSessionId: sessionId,
         phase: "uploading",
-        statusText: "Uploading video...",
+        statusText: uploadingVideoText,
       });
       createdUploadId = uploadId;
       setActiveUploadId(uploadId);
@@ -882,20 +892,22 @@ export function VideoFormDialog({
           if (isMountedRef.current) {
             setUploadProgress(percentage);
             setUploadPhase("uploading");
-            setUploadStatusText("Uploading video...");
+            setUploadStatusText(uploadingVideoText);
             setUploadSpeedBps(bytesPerSecond);
             setUploadEtaSeconds(etaSeconds);
           }
           updateGlobalUpload(uploadId, {
             progress: percentage,
             phase: "uploading",
-            statusText: "Uploading video...",
+            statusText: uploadingVideoText,
             bytesPerSecond,
             etaSeconds,
           });
         },
         onError: (uploadError) => {
-          const message = uploadError.message || "Video upload failed.";
+          const message =
+            uploadError.message ||
+            t("pages.videos.dialogs.form.errors.uploadFailed");
           if (isMountedRef.current) {
             setUploadPhase("failed");
             setFormError(message);
@@ -914,20 +926,20 @@ export function VideoFormDialog({
           if (isMountedRef.current) {
             setUploadProgress(100);
             setUploadPhase("processing");
-            setUploadStatusText("Upload complete. Processing started...");
+            setUploadStatusText(processingStartedText);
             setUploadSpeedBps(null);
             setUploadEtaSeconds(null);
           }
           updateGlobalUpload(uploadId, {
             progress: 100,
             phase: "processing",
-            statusText: "Upload complete. Processing started...",
+            statusText: processingStartedText,
             bytesPerSecond: null,
             etaSeconds: null,
           });
           const successMessage = getAdminResponseMessage(
             createdUpload,
-            "Uploaded. Processing started.",
+            t("pages.videos.dialogs.form.messages.uploadedProcessingStarted"),
           );
           showToast(successMessage, "success");
           onSuccess?.(successMessage);
@@ -947,7 +959,7 @@ export function VideoFormDialog({
     } catch (error) {
       const message = getAdminApiErrorMessage(
         error,
-        "Unable to start video upload.",
+        t("pages.videos.dialogs.form.errors.uploadStartFailed"),
       );
       if (isMountedRef.current) {
         setUploadPhase("failed");
@@ -984,24 +996,28 @@ export function VideoFormDialog({
 
   const submitLabel = (() => {
     if (isEditMode) {
-      return updateVideoMutation.isPending ? "Saving..." : "Save Changes";
+      return updateVideoMutation.isPending
+        ? t("common.actions.saving")
+        : t("pages.videos.dialogs.form.actions.saveChanges");
     }
     if (sourceMode === "url") {
-      return createVideoMutation.isPending ? "Creating..." : "Create Video";
+      return createVideoMutation.isPending
+        ? t("pages.videos.dialogs.form.actions.creating")
+        : t("pages.videos.dialogs.form.actions.createVideo");
     }
     if (isCreatingUpload || createUploadVideoMutation.isPending) {
-      return "Creating Session...";
+      return t("pages.videos.dialogs.form.actions.creatingSession");
     }
     if (isUploading) {
-      return "Uploading...";
+      return t("pages.videos.dialogs.form.actions.uploading");
     }
     if (isProcessing) {
-      return "Processing...";
+      return t("pages.videos.dialogs.form.actions.processing");
     }
     if (uploadPhase === "failed") {
-      return "Retry Upload";
+      return t("pages.videos.dialogs.form.actions.retryUpload");
     }
-    return "Create & Upload";
+    return t("pages.videos.dialogs.form.actions.createAndUpload");
   })();
 
   return (
@@ -1015,28 +1031,32 @@ export function VideoFormDialog({
               </div>
               <div className="space-y-1">
                 <DialogTitle>
-                  {isEditMode ? "Edit Video" : "Create Video"}
+                  {isEditMode
+                    ? t("pages.videos.dialogs.form.title.edit")
+                    : t("pages.videos.dialogs.form.title.create")}
                 </DialogTitle>
                 <DialogDescription>
                   {isEditMode
-                    ? "Update video metadata."
-                    : "Create using upload or URL source mode."}
+                    ? t("pages.videos.dialogs.form.description.edit")
+                    : t("pages.videos.dialogs.form.description.create")}
                 </DialogDescription>
                 <p className="text-xs text-gray-400">
-                  {isEditMode ? "Metadata + Thumbnail" : "Source + Metadata"}
+                  {isEditMode
+                    ? t("pages.videos.dialogs.form.mode.edit")
+                    : t("pages.videos.dialogs.form.mode.create")}
                 </p>
               </div>
             </div>
             {!isEditMode ? (
               <div className="flex flex-wrap gap-2 text-xs">
                 <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                  1. Source
+                  {t("pages.videos.dialogs.form.steps.source")}
                 </span>
                 <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                  2. Metadata
+                  {t("pages.videos.dialogs.form.steps.metadata")}
                 </span>
                 <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                  3. Upload / Create
+                  {t("pages.videos.dialogs.form.steps.uploadOrCreate")}
                 </span>
               </div>
             ) : null}
@@ -1044,7 +1064,9 @@ export function VideoFormDialog({
 
           {formError ? (
             <Alert variant="destructive">
-              <AlertTitle>Could not save video</AlertTitle>
+              <AlertTitle>
+                {t("pages.videos.dialogs.form.errors.couldNotSave")}
+              </AlertTitle>
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
           ) : null}
@@ -1052,7 +1074,9 @@ export function VideoFormDialog({
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isEditMode ? (
               <div className="space-y-2">
-                <Label>Source Mode</Label>
+                <Label>
+                  {t("pages.videos.dialogs.form.fields.sourceMode")}
+                </Label>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {(
                     (allowUploadMode
@@ -1086,11 +1110,15 @@ export function VideoFormDialog({
                           {mode === "upload" ? "U" : "L"}
                         </span>
                         <span className="text-sm font-semibold">
-                          {resolveModeLabel(mode)}
+                          {t(
+                            `pages.videos.dialogs.form.sourceMode.${mode}.label`,
+                          )}
                         </span>
                       </div>
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        {resolveModeDescription(mode)}
+                        {t(
+                          `pages.videos.dialogs.form.sourceMode.${mode}.description`,
+                        )}
                       </p>
                     </button>
                   ))}
@@ -1101,31 +1129,39 @@ export function VideoFormDialog({
             <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Metadata
+                  {t("pages.videos.dialogs.form.sections.metadata.title")}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  These fields are shared for upload and URL sources.
+                  {t("pages.videos.dialogs.form.sections.metadata.description")}
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="video-title-en">Title (English) *</Label>
+                  <Label htmlFor="video-title-en">
+                    {t("pages.videos.dialogs.form.fields.titleEn")}
+                  </Label>
                   <Input
                     id="video-title-en"
                     value={titleEn}
                     onChange={(event) => setTitleEn(event.target.value)}
-                    placeholder="e.g., Lesson 1"
+                    placeholder={t(
+                      "pages.videos.dialogs.form.placeholders.titleEn",
+                    )}
                     disabled={isBusy}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="video-title-ar">Title (Arabic)</Label>
+                  <Label htmlFor="video-title-ar">
+                    {t("pages.videos.dialogs.form.fields.titleAr")}
+                  </Label>
                   <Input
                     id="video-title-ar"
                     value={titleAr}
                     onChange={(event) => setTitleAr(event.target.value)}
-                    placeholder="e.g., الدرس الأول"
+                    placeholder={t(
+                      "pages.videos.dialogs.form.placeholders.titleAr",
+                    )}
                     dir="rtl"
                     disabled={isBusy}
                   />
@@ -1135,27 +1171,31 @@ export function VideoFormDialog({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="video-description-en">
-                    Description (English)
+                    {t("pages.videos.dialogs.form.fields.descriptionEn")}
                   </Label>
                   <Textarea
                     id="video-description-en"
                     value={descriptionEn}
                     onChange={(event) => setDescriptionEn(event.target.value)}
                     rows={3}
-                    placeholder="Optional"
+                    placeholder={t(
+                      "pages.videos.dialogs.form.placeholders.descriptionEn",
+                    )}
                     disabled={isBusy}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="video-description-ar">
-                    Description (Arabic)
+                    {t("pages.videos.dialogs.form.fields.descriptionAr")}
                   </Label>
                   <Textarea
                     id="video-description-ar"
                     value={descriptionAr}
                     onChange={(event) => setDescriptionAr(event.target.value)}
                     rows={3}
-                    placeholder="اختياري"
+                    placeholder={t(
+                      "pages.videos.dialogs.form.placeholders.descriptionAr",
+                    )}
                     dir="rtl"
                     disabled={isBusy}
                   />
@@ -1163,12 +1203,14 @@ export function VideoFormDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="video-tags">Tags</Label>
+                <Label htmlFor="video-tags">
+                  {t("pages.videos.dialogs.form.fields.tags")}
+                </Label>
                 <Input
                   id="video-tags"
                   value={tagsInput}
                   onChange={(event) => setTagsInput(event.target.value)}
-                  placeholder="comma,separated,tags"
+                  placeholder={t("pages.videos.dialogs.form.placeholders.tags")}
                   disabled={isBusy}
                 />
                 {parsedTags.length > 0 ? (
@@ -1189,7 +1231,7 @@ export function VideoFormDialog({
                   </div>
                 ) : (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Optional. Separate tags with commas.
+                    {t("pages.videos.dialogs.form.hints.tags")}
                   </p>
                 )}
               </div>
@@ -1197,18 +1239,19 @@ export function VideoFormDialog({
               {showsManualDuration ? (
                 <div className="space-y-2">
                   <Label htmlFor="video-duration">
-                    Duration (seconds or mm:ss)
+                    {t("pages.videos.dialogs.form.fields.duration")}
                   </Label>
                   <Input
                     id="video-duration"
                     value={durationInput}
                     onChange={(event) => setDurationInput(event.target.value)}
-                    placeholder="e.g., 540 or 09:00"
+                    placeholder={t(
+                      "pages.videos.dialogs.form.placeholders.duration",
+                    )}
                     disabled={isBusy}
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Optional. For URL-based videos only. Uploads continue to get
-                    duration from processing.
+                    {t("pages.videos.dialogs.form.hints.duration")}
                   </p>
                 </div>
               ) : null}
@@ -1217,13 +1260,17 @@ export function VideoFormDialog({
             <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Custom Thumbnail
+                  {t("pages.videos.dialogs.form.sections.thumbnail.title")}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  JPG, PNG, or WebP up to 5MB.{" "}
+                  {t(
+                    "pages.videos.dialogs.form.sections.thumbnail.description",
+                  )}{" "}
                   {isEditMode
-                    ? "Upload a new image or reset to the default thumbnail."
-                    : "If selected, this image will be uploaded after video creation."}
+                    ? t("pages.videos.dialogs.form.sections.thumbnail.editHint")
+                    : t(
+                        "pages.videos.dialogs.form.sections.thumbnail.createHint",
+                      )}
                 </p>
               </div>
 
@@ -1242,8 +1289,8 @@ export function VideoFormDialog({
                     disabled={!thumbnailFile || isBusy}
                   >
                     {uploadThumbnailMutation.isPending
-                      ? "Uploading..."
-                      : "Upload Thumbnail"}
+                      ? t("pages.videos.dialogs.form.actions.uploading")
+                      : t("pages.videos.dialogs.form.actions.uploadThumbnail")}
                   </Button>
                 ) : null}
                 {isEditMode && hasCustomThumbnail ? (
@@ -1254,8 +1301,8 @@ export function VideoFormDialog({
                     disabled={isBusy}
                   >
                     {clearThumbnailMutation.isPending
-                      ? "Resetting..."
-                      : "Reset to Default"}
+                      ? t("pages.videos.dialogs.form.actions.resetting")
+                      : t("pages.videos.dialogs.form.actions.resetToDefault")}
                   </Button>
                 ) : null}
               </div>
@@ -1263,7 +1310,9 @@ export function VideoFormDialog({
               {selectedThumbnailLabel ? (
                 <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-900/50">
                   <span className="truncate text-gray-600 dark:text-gray-300">
-                    Selected: {selectedThumbnailLabel}
+                    {t("pages.videos.dialogs.form.selectedLabel", {
+                      value: selectedThumbnailLabel,
+                    })}
                   </span>
                   <Button
                     type="button"
@@ -1276,7 +1325,7 @@ export function VideoFormDialog({
                     }}
                     disabled={isBusy}
                   >
-                    Remove
+                    {t("common.actions.remove")}
                   </Button>
                 </div>
               ) : null}
@@ -1285,19 +1334,29 @@ export function VideoFormDialog({
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Thumbnail Preview
+                      {t("pages.videos.dialogs.form.thumbnailPreview.title")}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {thumbnailPreview
-                        ? "Local preview before upload."
+                        ? t(
+                            "pages.videos.dialogs.form.thumbnailPreview.localPreview",
+                          )
                         : isEditMode
-                          ? "Current effective thumbnail from API."
-                          : "A preview appears here after selecting an image."}
+                          ? t(
+                              "pages.videos.dialogs.form.thumbnailPreview.currentFromApi",
+                            )
+                          : t(
+                              "pages.videos.dialogs.form.thumbnailPreview.selectPrompt",
+                            )}
                     </p>
                   </div>
                   {isEditMode ? (
                     <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm dark:bg-gray-900 dark:text-gray-300">
-                      {hasCustomThumbnail ? "Custom" : "Default"}
+                      {hasCustomThumbnail
+                        ? t("pages.videos.dialogs.form.thumbnailPreview.custom")
+                        : t(
+                            "pages.videos.dialogs.form.thumbnailPreview.default",
+                          )}
                     </span>
                   ) : null}
                 </div>
@@ -1310,7 +1369,7 @@ export function VideoFormDialog({
                         currentThumbnailState?.imageUrl ??
                         ""
                       }
-                      alt="Video thumbnail preview"
+                      alt={t("pages.videos.dialogs.form.thumbnailPreview.alt")}
                       className="h-44 w-full object-cover"
                     />
                   </div>
@@ -1318,11 +1377,15 @@ export function VideoFormDialog({
                   <div className="flex h-44 w-full flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 text-center dark:border-gray-700 dark:bg-gray-900">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {currentThumbnailState?.fallbackLabel ??
-                        "No thumbnail selected"}
+                        t(
+                          "pages.videos.dialogs.form.thumbnailPreview.noThumbnail",
+                        )}
                     </p>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                       {currentThumbnailState?.fallbackHint ??
-                        "Upload a custom image or keep the default thumbnail."}
+                        t(
+                          "pages.videos.dialogs.form.thumbnailPreview.noThumbnailHint",
+                        )}
                     </p>
                   </div>
                 )}
@@ -1339,23 +1402,29 @@ export function VideoFormDialog({
               <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    URL Source
+                    {t("pages.videos.dialogs.form.sections.urlSource.title")}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Paste a valid video URL. Backend will detect provider.
+                    {t(
+                      "pages.videos.dialogs.form.sections.urlSource.description",
+                    )}
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="video-source-url">Video URL *</Label>
+                  <Label htmlFor="video-source-url">
+                    {t("pages.videos.dialogs.form.fields.videoUrl")}
+                  </Label>
                   <Input
                     id="video-source-url"
                     value={sourceUrl}
                     onChange={(event) => setSourceUrl(event.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    placeholder={t(
+                      "pages.videos.dialogs.form.placeholders.videoUrl",
+                    )}
                     disabled={isBusy}
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Supports YouTube, Vimeo, Zoom and direct links.
+                    {t("pages.videos.dialogs.form.hints.videoUrl")}
                   </p>
                 </div>
                 {urlThumbnailPreview ? (
@@ -1363,12 +1432,18 @@ export function VideoFormDialog({
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Thumbnail Preview
+                          {t(
+                            "pages.videos.dialogs.form.thumbnailPreview.title",
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {urlThumbnailPreview.source === "backend"
-                            ? "This thumbnail will be sent in the create request."
-                            : "Preview only. Backend can keep null and populate a thumbnail later."}
+                            ? t(
+                                "pages.videos.dialogs.form.thumbnailPreview.urlBackend",
+                              )
+                            : t(
+                                "pages.videos.dialogs.form.thumbnailPreview.urlPreviewOnly",
+                              )}
                         </p>
                       </div>
                       <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm dark:bg-gray-900 dark:text-gray-300">
@@ -1380,7 +1455,12 @@ export function VideoFormDialog({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={urlThumbnailPreview.imageUrl}
-                          alt={`${urlThumbnailPreview.providerLabel} thumbnail preview`}
+                          alt={t(
+                            "pages.videos.dialogs.form.thumbnailPreview.providerAlt",
+                            {
+                              provider: urlThumbnailPreview.providerLabel,
+                            },
+                          )}
                           className="h-44 w-full object-cover"
                         />
                       </div>
@@ -1391,7 +1471,9 @@ export function VideoFormDialog({
                         </p>
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                           {urlThumbnailPreview.fallbackHint ??
-                            "No thumbnail available"}
+                            t(
+                              "pages.videos.dialogs.form.thumbnailPreview.noThumbnailAvailable",
+                            )}
                         </p>
                       </div>
                     )}
@@ -1404,16 +1486,19 @@ export function VideoFormDialog({
               <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Upload Source
+                    {t("pages.videos.dialogs.form.sections.uploadSource.title")}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Use resumable upload for large files. You can pause, resume,
-                    stop, or minimize.
+                    {t(
+                      "pages.videos.dialogs.form.sections.uploadSource.description",
+                    )}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="video-upload-file">Video File *</Label>
+                  <Label htmlFor="video-upload-file">
+                    {t("pages.videos.dialogs.form.fields.videoFile")}
+                  </Label>
                   <input
                     ref={fileInputRef}
                     id="video-upload-file"
@@ -1466,10 +1551,14 @@ export function VideoFormDialog({
                     )}
                   >
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      {file ? "Replace selected file" : "Drop video file here"}
+                      {file
+                        ? t(
+                            "pages.videos.dialogs.form.actions.replaceSelectedFile",
+                          )
+                        : t("pages.videos.dialogs.form.actions.dropVideoFile")}
                     </p>
                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      or click to browse from your device
+                      {t("pages.videos.dialogs.form.hints.browseFromDevice")}
                     </p>
                     <div className="mt-3">
                       <Button
@@ -1482,7 +1571,7 @@ export function VideoFormDialog({
                           if (!isBusy) fileInputRef.current?.click();
                         }}
                       >
-                        Browse File
+                        {t("pages.videos.dialogs.form.actions.browseFile")}
                       </Button>
                     </div>
                   </div>
@@ -1494,7 +1583,9 @@ export function VideoFormDialog({
                       {file.name}
                     </p>
                     <p className="mt-0.5 text-gray-500 dark:text-gray-400">
-                      {formatFileSize(file.size)} • {file.type || "video/*"}
+                      {formatFileSize(file.size)} •{" "}
+                      {file.type ||
+                        t("pages.videos.dialogs.form.videoFileFallbackMime")}
                     </p>
                   </div>
                 ) : null}
@@ -1503,23 +1594,25 @@ export function VideoFormDialog({
                   <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900/50">
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
                       <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                        {resolveUploadPhaseLabel(uploadPhase)}
+                        {t(
+                          `pages.videos.dialogs.form.uploadPhase.${uploadPhase}`,
+                        )}
                       </span>
                       <span>{uploadProgress.toFixed(1)}%</span>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-300">
-                      {uploadStatusText || "Preparing upload..."}
+                      {uploadStatusText || preparingUploadText}
                     </div>
                     <Progress value={uploadProgress} />
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                       <span>
-                        Speed:{" "}
+                        {t("pages.videos.dialogs.form.metrics.speed")}:{" "}
                         <span className="font-medium text-gray-700 dark:text-gray-200">
                           {formatBytesPerSecond(uploadSpeedBps)}
                         </span>
                       </span>
                       <span>
-                        ETA:{" "}
+                        {t("pages.videos.dialogs.form.metrics.eta")}:{" "}
                         <span className="font-medium text-gray-700 dark:text-gray-200">
                           {formatEtaSeconds(uploadEtaSeconds)}
                         </span>
@@ -1533,7 +1626,7 @@ export function VideoFormDialog({
                         onClick={handlePauseUpload}
                         disabled={!canPause}
                       >
-                        Pause
+                        {t("pages.videos.dialogs.form.actions.pause")}
                       </Button>
                       <Button
                         type="button"
@@ -1542,7 +1635,7 @@ export function VideoFormDialog({
                         onClick={handleResumeUpload}
                         disabled={!canResume}
                       >
-                        Resume
+                        {t("pages.videos.dialogs.form.actions.resume")}
                       </Button>
                       <Button
                         type="button"
@@ -1551,7 +1644,7 @@ export function VideoFormDialog({
                         onClick={handleStopUpload}
                         className="text-red-600 hover:text-red-700"
                       >
-                        Stop
+                        {t("pages.videos.dialogs.form.actions.stop")}
                       </Button>
                       <Button
                         type="button"
@@ -1559,11 +1652,13 @@ export function VideoFormDialog({
                         variant="outline"
                         onClick={handleMinimizeUpload}
                       >
-                        Minimize
+                        {t("pages.videos.dialogs.form.actions.minimize")}
                       </Button>
                       {uploadSessionId != null ? (
                         <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
-                          Session #{String(uploadSessionId)}
+                          {t("pages.videos.dialogs.form.session", {
+                            id: String(uploadSessionId),
+                          })}
                         </span>
                       ) : null}
                     </div>
@@ -1571,7 +1666,9 @@ export function VideoFormDialog({
                 ) : null}
                 {selectedFileLabel ? (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Selected: {selectedFileLabel}
+                    {t("pages.videos.dialogs.form.selectedLabel", {
+                      value: selectedFileLabel,
+                    })}
                   </p>
                 ) : null}
               </section>
@@ -1583,7 +1680,9 @@ export function VideoFormDialog({
                 variant="outline"
                 onClick={() => handleDialogOpenChange(false)}
               >
-                {hasActiveUpload ? "Minimize" : "Cancel"}
+                {hasActiveUpload
+                  ? t("pages.videos.dialogs.form.actions.minimize")
+                  : t("common.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isBusy}>
                 {submitLabel}

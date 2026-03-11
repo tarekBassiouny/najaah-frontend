@@ -11,6 +11,7 @@ import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteRole } from "@/features/roles/hooks/use-roles";
 import type { Role } from "@/features/roles/types/role";
 import { useModal } from "@/components/ui/modal-store";
+import { useTranslation } from "@/features/localization";
 import {
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
@@ -65,6 +66,7 @@ export function DeleteRoleDialog({
   onSuccess,
   scopeCenterId,
 }: DeleteRoleDialogProps) {
+  const { t } = useTranslation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { mutate: deleteRole, isPending } = useDeleteRole({
     centerId: scopeCenterId ?? null,
@@ -113,15 +115,21 @@ export function DeleteRoleDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Role</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.roles.components.deleteroledialog.s1")}
+          </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Role"
+          title={t("auto.features.roles.components.deleteroledialog.s1")}
           entityName={roleName}
-          entityFallback="this role"
-          confirmButtonLabel="Delete Role"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete role"
+          entityFallback={t(
+            "auto.features.roles.components.deleteroledialog.s2",
+          )}
+          confirmButtonLabel={t(
+            "auto.features.roles.components.deleteroledialog.s1",
+          )}
+          pendingLabel={t("auto.features.roles.components.deleteroledialog.s3")}
+          errorTitle={t("auto.features.roles.components.deleteroledialog.s4")}
           errorMessage={errorMessage}
           isPending={isPending}
           onCancel={() => onOpenChange(false)}

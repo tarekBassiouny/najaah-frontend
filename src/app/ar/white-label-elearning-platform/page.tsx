@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة تعليم إلكتروني White-Label للعلامات التعليمية التي تريد أن تبدو مكتملة فعلاً";
+
 export default function ArabicWhiteLabelElearningPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="White-Label eLearning"
-      title="منصة تعليم إلكتروني White-Label للعلامات التعليمية التي تريد أن تبدو مكتملة فعلاً"
+      title={SEO_PAGE_TITLE}
       intro="الأعمال التعليمية القوية لا ينبغي أن تبدو كأنها تبيع فوق برنامج لشخص آخر. منصة التعليم الإلكتروني ذات الهوية البيضاء تساعد العلامة التعليمية على امتلاك رحلة المتعلم وبناء صورة أكثر احترافية."
       bullets={[
         "تساعد العلامة التعليمية على امتلاك التجربة أمام المتعلم",

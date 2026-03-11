@@ -18,6 +18,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type BulkDeleteCentersDialogProps = {
   open: boolean;
@@ -84,6 +85,8 @@ export function BulkDeleteCentersDialog({
   centers,
   onSuccess,
 }: BulkDeleteCentersDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkDeleteCenters();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkCentersActionResult | null>(null);
@@ -162,21 +165,24 @@ export function BulkDeleteCentersDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Delete Centers</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.centers.components.bulkdeletecentersdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Delete {centers.length} selected center
+            {t("auto.features.centers.components.bulkdeletecentersdialog.s2")}
+            {centers.length}{" "}
+            {t("auto.features.centers.components.bulkdeletecentersdialog.s3")}
             {centers.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
-          This action is destructive and should only be used for invalid or
-          duplicate centers.
+          {t("auto.features.centers.components.bulkdeletecentersdialog.s4")}
         </div>
 
         <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Selected Centers
+            {t("auto.features.centers.components.bulkdeletecentersdialog.s5")}
           </p>
           <div className="space-y-1 text-sm text-gray-700 dark:text-gray-200">
             {centers.slice(0, 5).map((center) => (
@@ -184,7 +190,10 @@ export function BulkDeleteCentersDialog({
             ))}
             {centers.length > 5 ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +{centers.length - 5} more centers
+                +{centers.length - 5}{" "}
+                {t(
+                  "auto.features.centers.components.bulkdeletecentersdialog.s6",
+                )}
               </p>
             ) : null}
           </div>
@@ -192,7 +201,9 @@ export function BulkDeleteCentersDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to delete</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.centers.components.bulkdeletecentersdialog.s7")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -200,10 +211,30 @@ export function BulkDeleteCentersDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || centers.length}</span>
-              <span>Deleted: {readCount(result, "deleted")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkdeletecentersdialog.s8",
+                )}
+                {readCount(result, "total") || centers.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkdeletecentersdialog.s9",
+                )}
+                {readCount(result, "deleted")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkdeletecentersdialog.s10",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkdeletecentersdialog.s11",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readActionItems(result, "failed").length > 0 ? (
@@ -218,7 +249,10 @@ export function BulkDeleteCentersDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkdeletecentersdialog.s12",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -237,7 +271,10 @@ export function BulkDeleteCentersDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkdeletecentersdialog.s12",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -248,7 +285,8 @@ export function BulkDeleteCentersDialog({
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Type {DELETE_CONFIRM_TEXT} to confirm
+            Type {DELETE_CONFIRM_TEXT}{" "}
+            {t("auto.features.centers.components.bulkdeletecentersdialog.s13")}
           </label>
           <input
             value={confirmationText}
@@ -260,7 +298,7 @@ export function BulkDeleteCentersDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.centers.components.bulkdeletecentersdialog.s14")}
           </Button>
           <Button
             variant="destructive"

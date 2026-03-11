@@ -27,6 +27,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type BulkUpdateAdminUserStatusDialogProps = {
   open: boolean;
@@ -50,6 +51,8 @@ export function BulkUpdateAdminUserStatusDialog({
   onSuccess,
   scopeCenterId,
 }: BulkUpdateAdminUserStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkUpdateAdminUserStatus({
     centerId: scopeCenterId ?? null,
   });
@@ -123,16 +126,30 @@ export function BulkUpdateAdminUserStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Change Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update status for {users.length} selected admin
+            {t(
+              "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s2",
+            )}
+            {users.length}{" "}
+            {t(
+              "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s3",
+            )}
             {users.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -140,17 +157,40 @@ export function BulkUpdateAdminUserStatusDialog({
         {result?.counts ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {result.counts.total ?? users.length}</span>
-              <span>Updated: {result.counts.updated ?? 0}</span>
-              <span>Skipped: {result.counts.skipped ?? 0}</span>
-              <span>Failed: {result.counts.failed ?? 0}</span>
+              <span>
+                {t(
+                  "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s5",
+                )}
+                {result.counts.total ?? users.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s6",
+                )}
+                {result.counts.updated ?? 0}
+              </span>
+              <span>
+                {t(
+                  "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s7",
+                )}
+                {result.counts.skipped ?? 0}
+              </span>
+              <span>
+                {t(
+                  "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s8",
+                )}
+                {result.counts.failed ?? 0}
+              </span>
             </div>
 
             {result.failed && result.failed.length > 0 ? (
               <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
                 {result.failed.map((item, index) => (
                   <p key={`failed-${item.user_id}-${index}`}>
-                    User #{item.user_id}: {item.reason ?? "Failed"}
+                    {t(
+                      "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s9",
+                    )}
+                    {item.user_id}: {item.reason ?? "Failed"}
                   </p>
                 ))}
               </div>
@@ -160,7 +200,10 @@ export function BulkUpdateAdminUserStatusDialog({
               <div className="mt-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
                 {result.skipped.map((item, index) => (
                   <p key={`skipped-${item.user_id}-${index}`}>
-                    User #{item.user_id}: {item.reason ?? "Skipped"}
+                    {t(
+                      "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s9",
+                    )}
+                    {item.user_id}: {item.reason ?? "Skipped"}
                   </p>
                 ))}
               </div>
@@ -170,7 +213,9 @@ export function BulkUpdateAdminUserStatusDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for selected admin users.
+            {t(
+              "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s10",
+            )}
           </p>
           <Select
             value={status}
@@ -189,7 +234,9 @@ export function BulkUpdateAdminUserStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.admin_users.components.bulkupdateadminuserstatusdialog.s11",
+            )}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

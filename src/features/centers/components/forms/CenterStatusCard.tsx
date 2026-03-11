@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useUpdateCenterStatus } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import { useTranslation } from "@/features/localization";
 
 type StatusValue = "active" | "inactive";
 
@@ -41,6 +42,8 @@ function resolveStatus(value: unknown, label?: string | null): StatusValue {
 }
 
 export function CenterStatusCard({ center }: CenterStatusCardProps) {
+  const { t } = useTranslation();
+
   const updateStatusMutation = useUpdateCenterStatus();
 
   const [status, setStatus] = useState<StatusValue>("active");
@@ -77,19 +80,23 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
     <Card>
       <CardHeader>
         <CardTitle>Status</CardTitle>
-        <CardDescription>Activate or deactivate this center.</CardDescription>
+        <CardDescription>
+          {t("auto.features.centers.components.forms.centerstatuscard.s1")}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {statusError ? (
           <Alert variant="destructive">
-            <AlertTitle>Status update failed</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.centers.components.forms.centerstatuscard.s2")}
+            </AlertTitle>
             <AlertDescription>{statusError}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Current:
+            {t("auto.features.centers.components.forms.centerstatuscard.s3")}
           </span>
           <Badge variant={status === "active" ? "success" : "secondary"}>
             {statusLabel}

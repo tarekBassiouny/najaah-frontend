@@ -26,6 +26,7 @@ import { useUploadCenterLogo } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type CenterBrandingFormProps = {
   center?: Center | null;
@@ -95,6 +96,8 @@ function LogoPreviewThumbnail({
   src,
   alt,
   label,
+  loadErrorText,
+  expandHintText,
   onExpandClick,
   onLoadError,
   hasError,
@@ -102,6 +105,8 @@ function LogoPreviewThumbnail({
   src: string;
   alt: string;
   label: string;
+  loadErrorText: string;
+  expandHintText: string;
   onExpandClick: () => void;
   onLoadError: () => void;
   hasError: boolean;
@@ -109,7 +114,7 @@ function LogoPreviewThumbnail({
   if (hasError) {
     return (
       <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-        Unable to load preview
+        {loadErrorText}
       </div>
     );
   }
@@ -133,7 +138,7 @@ function LogoPreviewThumbnail({
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/10 group-hover:opacity-100">
           <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-800/90 dark:text-gray-200">
-            Click to expand
+            {expandHintText}
           </span>
         </div>
       </button>
@@ -149,6 +154,8 @@ export function CenterBrandingForm({
   onPrimaryColorChange,
   refetchCenter,
 }: CenterBrandingFormProps) {
+  const { t } = useTranslation();
+
   const { data: centerSettings, refetch: refetchCenterSettings } =
     useCenterSettings(center?.id);
   const { mutateAsync: updateCenterSettings, isPending: isColorSavePending } =
@@ -317,23 +324,33 @@ export function CenterBrandingForm({
         <CardHeader>
           <CardTitle>Branding</CardTitle>
           <CardDescription>
-            Configure center branding and visual identity.
+            {t("auto.features.centers.components.forms.centerbrandingform.s1")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="primary-color">Primary Color</Label>
+            <Label htmlFor="primary-color">
+              {t(
+                "auto.features.centers.components.forms.centerbrandingform.s2",
+              )}
+            </Label>
             <Input
               id="primary-color"
               value={primaryColor}
               onChange={(event) => handlePrimaryColorChange(event.target.value)}
-              placeholder="#4F46E5"
+              placeholder={t(
+                "auto.features.centers.components.forms.centerbrandingform.s3",
+              )}
               className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             />
           </div>
 
           <div className="space-y-3">
-            <Label htmlFor="center-logo">Center Logo (optional)</Label>
+            <Label htmlFor="center-logo">
+              {t(
+                "auto.features.centers.components.forms.centerbrandingform.s4",
+              )}
+            </Label>
             <Input
               id="center-logo"
               type="file"
@@ -349,7 +366,9 @@ export function CenterBrandingForm({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                    Selected logo preview
+                    {t(
+                      "auto.features.centers.components.forms.centerbrandingform.s5",
+                    )}
                   </p>
                   <Button
                     type="button"
@@ -363,14 +382,18 @@ export function CenterBrandingForm({
                 </div>
                 {selectedLogoFailed ? (
                   <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                    Unable to preview this file
+                    {t(
+                      "auto.features.centers.components.forms.centerbrandingform.s6",
+                    )}
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={selectedLogoPreviewUrl}
-                      alt="Selected logo preview"
+                      alt={t(
+                        "auto.features.centers.components.forms.centerbrandingform.s5",
+                      )}
                       className="mx-auto h-32 w-auto object-contain p-2"
                       onError={() => setSelectedLogoFailed(true)}
                     />
@@ -403,14 +426,22 @@ export function CenterBrandingForm({
             <>
               {colorError ? (
                 <Alert variant="destructive">
-                  <AlertTitle>Unable to save</AlertTitle>
+                  <AlertTitle>
+                    {t(
+                      "auto.features.centers.components.forms.centerbrandingform.s7",
+                    )}
+                  </AlertTitle>
                   <AlertDescription>{colorError}</AlertDescription>
                 </Alert>
               ) : null}
 
               <div className="space-y-2">
                 <div className="space-y-1">
-                  <Label htmlFor="primary-color">Primary Color</Label>
+                  <Label htmlFor="primary-color">
+                    {t(
+                      "auto.features.centers.components.forms.centerbrandingform.s2",
+                    )}
+                  </Label>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {hasPrimaryColorOverride
                       ? "Custom for this center"
@@ -423,7 +454,9 @@ export function CenterBrandingForm({
                   onChange={(event) =>
                     handlePrimaryColorChange(event.target.value)
                   }
-                  placeholder="#4F46E5"
+                  placeholder={t(
+                    "auto.features.centers.components.forms.centerbrandingform.s3",
+                  )}
                   className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
                 />
               </div>
@@ -441,19 +474,35 @@ export function CenterBrandingForm({
 
           {logoError ? (
             <Alert variant="destructive">
-              <AlertTitle>Upload failed</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.centers.components.forms.centerbrandingform.s8",
+                )}
+              </AlertTitle>
               <AlertDescription>{logoError}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-3">
-            <Label>Center Logo</Label>
+            <Label>
+              {t(
+                "auto.features.centers.components.forms.centerbrandingform.s9",
+              )}
+            </Label>
 
             {centerLogoUrl && !selectedLogoPreviewUrl ? (
               <LogoPreviewThumbnail
                 src={centerLogoUrl}
                 alt={`${center?.name ?? "Center"} current logo`}
-                label="Current logo"
+                label={t(
+                  "auto.features.centers.components.forms.centerbrandingform.s10",
+                )}
+                loadErrorText={t(
+                  "auto.features.centers.components.forms.centerbrandingform.s1043",
+                )}
+                expandHintText={t(
+                  "auto.features.centers.components.forms.centerbrandingform.s1044",
+                )}
                 onExpandClick={handleOpenLogoPreview}
                 onLoadError={() => setCurrentLogoFailed(true)}
                 hasError={currentLogoFailed}
@@ -462,7 +511,9 @@ export function CenterBrandingForm({
 
             {!centerLogoUrl && !selectedLogoPreviewUrl ? (
               <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                No logo uploaded yet
+                {t(
+                  "auto.features.centers.components.forms.centerbrandingform.s11",
+                )}
               </div>
             ) : null}
 
@@ -472,7 +523,15 @@ export function CenterBrandingForm({
                   <LogoPreviewThumbnail
                     src={centerLogoUrl}
                     alt={`${center?.name ?? "Center"} current logo`}
-                    label="Current logo"
+                    label={t(
+                      "auto.features.centers.components.forms.centerbrandingform.s10",
+                    )}
+                    loadErrorText={t(
+                      "auto.features.centers.components.forms.centerbrandingform.s1043",
+                    )}
+                    expandHintText={t(
+                      "auto.features.centers.components.forms.centerbrandingform.s1044",
+                    )}
                     onExpandClick={() => {
                       setIsLogoPreviewOpen(true);
                       setLogoPreviewFailed(false);
@@ -485,7 +544,9 @@ export function CenterBrandingForm({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-green-600 dark:text-green-400">
-                      New logo (to be uploaded)
+                      {t(
+                        "auto.features.centers.components.forms.centerbrandingform.s12",
+                      )}
                     </p>
                     <Button
                       type="button"
@@ -499,7 +560,9 @@ export function CenterBrandingForm({
                   </div>
                   {selectedLogoFailed ? (
                     <div className="flex h-32 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                      Unable to preview this file
+                      {t(
+                        "auto.features.centers.components.forms.centerbrandingform.s6",
+                      )}
                     </div>
                   ) : (
                     <button
@@ -510,13 +573,17 @@ export function CenterBrandingForm({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={selectedLogoPreviewUrl}
-                        alt="New logo preview"
+                        alt={t(
+                          "auto.features.centers.components.forms.centerbrandingform.s13",
+                        )}
                         className="mx-auto h-32 w-auto object-contain p-2"
                         onError={() => setSelectedLogoFailed(true)}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/10 group-hover:opacity-100">
                         <span className="rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-800/90 dark:text-gray-200">
-                          Click to expand
+                          {t(
+                            "auto.features.centers.components.forms.centerbrandingform.s14",
+                          )}
                         </span>
                       </div>
                     </button>
@@ -530,7 +597,9 @@ export function CenterBrandingForm({
 
             <div className="pt-2">
               <Label htmlFor="center-logo" className="sr-only">
-                Upload new logo
+                {t(
+                  "auto.features.centers.components.forms.centerbrandingform.s15",
+                )}
               </Label>
               <Input
                 id="center-logo"
@@ -594,7 +663,9 @@ export function CenterBrandingForm({
             </div>
           ) : (
             <div className="flex min-h-[10rem] items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-400">
-              No logo is available for preview yet.
+              {t(
+                "auto.features.centers.components.forms.centerbrandingform.s16",
+              )}
             </div>
           )}
         </DialogContent>

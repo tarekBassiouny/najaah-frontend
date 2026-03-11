@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "An Online Exam Platform for Schools and Centers That Need Better Assessment Workflows";
+
 export default function OnlineExamPlatformForSchoolsPage() {
   return (
     <SeoPageShell
       eyebrow="Online Exam Platform"
-      title="An Online Exam Platform for Schools and Centers That Need Better Assessment Workflows"
+      title={SEO_PAGE_TITLE}
       intro="Assessment is where many learning platforms break down. Schools and educational centers need more than a quiz widget. They need a usable exam workflow tied to real content, educator review, and learner reporting."
       bullets={[
         "Supports quiz creation, exam delivery, and reporting",

@@ -7,6 +7,7 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { AnalyticsBarChart } from "./charts/AnalyticsBarChart";
 import { AnalyticsDonutChart } from "./charts/AnalyticsDonutChart";
 import type { AnalyticsOverview } from "@/features/analytics/types/analytics";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsOverviewPanelProps = {
   data?: AnalyticsOverview;
@@ -19,11 +20,17 @@ export function AnalyticsOverviewPanel({
   isLoading,
   isError,
 }: AnalyticsOverviewPanelProps) {
+  const { t } = useTranslation();
+
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Overview analytics unavailable</AlertTitle>
-        <AlertDescription>Failed to load overview metrics.</AlertDescription>
+        <AlertTitle>
+          {t("auto.features.analytics.components.analyticsoverviewpanel.s1")}
+        </AlertTitle>
+        <AlertDescription>
+          {t("auto.features.analytics.components.analyticsoverviewpanel.s2")}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -49,11 +56,28 @@ export function AnalyticsOverviewPanel({
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatsCard title="Total Centers" value={overview.total_centers} />
-        <StatsCard title="Active Centers" value={overview.active_centers} />
-        <StatsCard title="Total Courses" value={overview.total_courses} />
         <StatsCard
-          title="Daily Active Learners"
+          title={t(
+            "auto.features.analytics.components.analyticsoverviewpanel.s3",
+          )}
+          value={overview.total_centers}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsoverviewpanel.s4",
+          )}
+          value={overview.active_centers}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsoverviewpanel.s5",
+          )}
+          value={overview.total_courses}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsoverviewpanel.s6",
+          )}
           value={overview.daily_active_learners}
         />
       </div>
@@ -61,7 +85,11 @@ export function AnalyticsOverviewPanel({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Centers by Type</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticsoverviewpanel.s7",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
@@ -76,7 +104,11 @@ export function AnalyticsOverviewPanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>Courses & Enrollments</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticsoverviewpanel.s8",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart

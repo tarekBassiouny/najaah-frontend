@@ -37,6 +37,7 @@ import {
   useUpdateCategory,
 } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
+import { useTranslation } from "@/features/localization";
 
 const schema = z
   .object({
@@ -101,6 +102,8 @@ export function CategoryFormDialog({
   onSuccess,
   onSaved,
 }: CategoryFormDialogProps) {
+  const { t } = useTranslation();
+
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(category);
 
@@ -228,7 +231,9 @@ export function CategoryFormDialog({
 
         {formError && (
           <Alert variant="destructive">
-            <AlertTitle>Could not save category</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.categories.components.categoryformdialog.s1")}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         )}
@@ -243,7 +248,11 @@ export function CategoryFormDialog({
               name="titleEn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title (English)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s2",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Science" {...field} />
                   </FormControl>
@@ -257,9 +266,18 @@ export function CategoryFormDialog({
               name="titleAr"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title (Arabic)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s3",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="العلوم" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.categories.components.categoryformdialog.s4",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -271,9 +289,18 @@ export function CategoryFormDialog({
               name="descriptionEn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (English)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s5",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="STEM courses" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.categories.components.categoryformdialog.s6",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -285,9 +312,18 @@ export function CategoryFormDialog({
               name="descriptionAr"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Arabic)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s7",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="دورات العلوم" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.categories.components.categoryformdialog.s8",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -299,14 +335,22 @@ export function CategoryFormDialog({
               name="parentId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Parent Category</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s9",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="h-10 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">No Parent (Root)</SelectItem>
+                        <SelectItem value="none">
+                          {t(
+                            "auto.features.categories.components.categoryformdialog.s10",
+                          )}
+                        </SelectItem>
                         {filteredParents.map((parent) => (
                           <SelectItem key={parent.id} value={String(parent.id)}>
                             {getCategoryTitle(parent)}
@@ -325,7 +369,11 @@ export function CategoryFormDialog({
               name="orderIndex"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Order Index</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s11",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" min={0} {...field} />
                   </FormControl>
@@ -346,7 +394,9 @@ export function CategoryFormDialog({
                       onChange={(event) => field.onChange(event.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
-                    Active category
+                    {t(
+                      "auto.features.categories.components.categoryformdialog.s12",
+                    )}
                   </label>
                   <FormMessage />
                 </FormItem>
@@ -360,7 +410,9 @@ export function CategoryFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t(
+                  "auto.features.categories.components.categoryformdialog.s13",
+                )}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending

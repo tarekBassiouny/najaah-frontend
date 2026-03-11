@@ -20,20 +20,21 @@ import {
   usePublishCourse,
   useUnpublishCourse,
 } from "@/features/courses/hooks/use-courses";
+import { useTranslation } from "@/features/localization";
 import type { Course } from "../types/course";
 
 type CoursePublishActionProps = {
   course: Course;
 };
 
-const COURSE_PUBLISH_ERROR_CODE_MESSAGES: Record<string, string> = {
-  PERMISSION_DENIED:
-    "You do not have permission to change publish state for this course.",
-  NOT_FOUND: "Course not found in this center scope.",
-  VALIDATION_ERROR: "Course publish state could not be changed.",
+const COURSE_PUBLISH_ERROR_CODE_TO_KEY: Record<string, string> = {
+  PERMISSION_DENIED: "pages.coursePublishAction.errors.code.permissionDenied",
+  NOT_FOUND: "pages.coursePublishAction.errors.code.notFound",
+  VALIDATION_ERROR: "pages.coursePublishAction.errors.code.validationError",
 };
 
 export function CoursePublishAction({ course }: CoursePublishActionProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -66,11 +67,11 @@ export function CoursePublishAction({ course }: CoursePublishActionProps) {
     setErrorMessage(null);
     const action = isPublished ? unpublishCourse : publishCourse;
     const fallbackSuccess = isPublished
-      ? "Course unpublished successfully"
-      : "Course published successfully";
+      ? t("pages.coursePublishAction.messages.unpublished")
+      : t("pages.coursePublishAction.messages.published");
     const fallbackError = isPublished
-      ? "An error occurred while unpublishing the course."
-      : "An error occurred while publishing the course.";
+      ? t("pages.coursePublishAction.errors.unpublishFailed")
+      : t("pages.coursePublishAction.errors.publishFailed");
 
     action(
       { centerId, courseId: course.id },
@@ -86,9 +87,12 @@ export function CoursePublishAction({ course }: CoursePublishActionProps) {
         },
         onError: (error) => {
           const code = getAdminApiErrorCode(error);
-          const message =
-            (code ? COURSE_PUBLISH_ERROR_CODE_MESSAGES[code] : null) ??
-            getAdminApiErrorMessage(error, fallbackError);
+          const codeKey = code ? COURSE_PUBLISH_ERROR_CODE_TO_KEY[code] : null;
+          const codeMessage = codeKey ? t(codeKey) : null;
+          const message = getAdminApiErrorMessage(
+            error,
+            codeMessage ?? fallbackError,
+          );
           setErrorMessage(message);
           showToast(message, "error");
         },
@@ -123,19 +127,23 @@ export function CoursePublishAction({ course }: CoursePublishActionProps) {
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        {isPublished ? "Unpublish" : "Publish"}
+        {isPublished
+          ? t("pages.coursePublishAction.actions.unpublish")
+          : t("pages.coursePublishAction.actions.publish")}
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {isPublished ? "Unpublish Course" : "Publish Course"}
+              {isPublished
+                ? t("pages.coursePublishAction.dialog.unpublishTitle")
+                : t("pages.coursePublishAction.dialog.publishTitle")}
             </DialogTitle>
             <DialogDescription>
               {isPublished
-                ? "This will unpublish the course and hide it from students."
-                : "This will publish the course, making it available to students."}
+                ? t("pages.coursePublishAction.dialog.unpublishDescription")
+                : t("pages.coursePublishAction.dialog.publishDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -147,16 +155,16 @@ export function CoursePublishAction({ course }: CoursePublishActionProps) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => handleClose(false)}>
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button onClick={handleConfirmPublish} disabled={isSubmitting}>
               {isSubmitting
                 ? isPublished
-                  ? "Unpublishing..."
-                  : "Publishing..."
+                  ? t("pages.coursePublishAction.actions.unpublishing")
+                  : t("pages.coursePublishAction.actions.publishing")
                 : isPublished
-                  ? "Confirm Unpublish"
-                  : "Confirm Publish"}
+                  ? t("pages.coursePublishAction.actions.confirmUnpublish")
+                  : t("pages.coursePublishAction.actions.confirmPublish")}
             </Button>
           </DialogFooter>
         </DialogContent>

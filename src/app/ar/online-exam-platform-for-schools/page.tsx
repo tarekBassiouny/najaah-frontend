@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة امتحانات أونلاين للمدارس والمراكز التي تحتاج سير تقييم أفضل";
+
 export default function ArabicExamPlatformPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="منصة امتحانات"
-      title="منصة امتحانات أونلاين للمدارس والمراكز التي تحتاج سير تقييم أفضل"
+      title={SEO_PAGE_TITLE}
       intro="التقييم هو المكان الذي تنكسر فيه كثير من منصات التعلم. المدارس والمراكز لا تحتاج أداة كويز سطحية، بل مسار تقييم مرتبط بالمحتوى الحقيقي، ومراجعة المعلم، وتقارير أداء قابلة للاستخدام."
       bullets={[
         "إنشاء اختبارات وتسليمها وقياس نتائجها",

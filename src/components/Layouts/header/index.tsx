@@ -9,9 +9,11 @@ import { ThemeToggleSwitch } from "./theme-toggle";
 import { UserInfo } from "./user-info";
 import { useSidebarContext } from "../sidebar/sidebar-context";
 import { LocaleToggle } from "@/components/ui/locale-toggle";
+import { useTranslation } from "@/features/localization";
 
 export function Header() {
   const { openSidebar } = useSidebarContext();
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-stroke bg-white px-4 py-5 shadow-1 dark:border-stroke-dark dark:bg-gray-dark md:px-5 2xl:px-10">
@@ -19,7 +21,7 @@ export function Header() {
         <button
           onClick={openSidebar}
           className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white lg:hidden"
-          aria-label="Toggle Sidebar"
+          aria-label={t("header.toggleSidebarAriaLabel")}
         >
           <MenuIcon />
         </button>
@@ -29,14 +31,14 @@ export function Header() {
             src="/images/logo/logo-icon.svg"
             width={32}
             height={32}
-            alt="Najaah"
+            alt={t("header.logoAlt")}
             className="dark:hidden"
           />
           <Image
             src={darkLogo}
             width={32}
             height={32}
-            alt="Najaah"
+            alt={t("header.logoAlt")}
             className="hidden dark:block"
           />
         </Link>

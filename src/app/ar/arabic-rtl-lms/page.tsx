@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة تعليمية عربية تشعر بأنها مصممة فعلاً للجمهور العربي";
+
 export default function ArabicRtlArabicPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="منصة عربية RTL"
-      title="منصة تعليمية عربية تشعر بأنها مصممة فعلاً للجمهور العربي"
+      title={SEO_PAGE_TITLE}
       intro="الدعم العربي في كثير من المنصات لا يتجاوز الترجمة. المراكز التعليمية تحتاج شيئاً أعمق: تخطيطاً يدعم RTL، وتجربة تشغيلية طبيعية، وقدرة على التبديل بين اللغات دون كسر المنتج."
       bullets={[
         "عربية وإنجليزية داخل نفس تجربة المنتج",

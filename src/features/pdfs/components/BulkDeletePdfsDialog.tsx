@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { deletePdf } from "@/features/pdfs/services/pdfs.service";
 import type { Pdf } from "@/features/pdfs/types/pdf";
+import { useTranslation } from "@/features/localization";
 import {
   getAdminApiErrorMessage,
   getAdminResponseMessage,
@@ -33,7 +34,7 @@ function getPdfTitle(pdf: Pdf) {
   if (pdf.title_translations?.en) return pdf.title_translations.en;
   if (pdf.title_translations?.ar) return pdf.title_translations.ar;
   if (pdf.title) return String(pdf.title);
-  return `PDF #${pdf.id}`;
+  return null;
 }
 
 type DeleteResult = {
@@ -49,19 +50,27 @@ export function BulkDeletePdfsDialog({
   centerId,
   onSuccess,
 }: BulkDeletePdfsDialogProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<DeleteResult | null>(null);
   const [confirmationText, setConfirmationText] = useState("");
+  const resolveTitle = (pdf: Pdf) =>
+    getPdfTitle(pdf) ??
+    t("pages.pdfs.dialogs.bulkDelete.fallbackPdf", { id: String(pdf.id) });
 
   const handleDeletePdfs = async () => {
     if (pdfs.length === 0) {
-      setErrorMessage("No PDFs selected.");
+      setErrorMessage(t("pages.pdfs.dialogs.bulkDelete.errors.noSelection"));
       return;
     }
     if (confirmationText !== DELETE_CONFIRM_TEXT) {
-      setErrorMessage(`Type ${DELETE_CONFIRM_TEXT} to confirm.`);
+      setErrorMessage(
+        t("pages.pdfs.dialogs.bulkDelete.errors.confirmText", {
+          value: DELETE_CONFIRM_TEXT,
+        }),
+      );
       return;
     }
 
@@ -80,10 +89,10 @@ export function BulkDeletePdfsDialog({
         if (!isAdminRequestSuccessful(response)) {
           deleteResult.failed.push({
             id: pdf.id,
-            title: getPdfTitle(pdf),
+            title: resolveTitle(pdf),
             reason: getAdminResponseMessage(
               response,
-              "Failed to delete this PDF.",
+              t("pages.pdfs.dialogs.bulkDelete.errors.deleteOneFailed"),
             ),
           });
           continue;
@@ -93,8 +102,11 @@ export function BulkDeletePdfsDialog({
       } catch (error) {
         deleteResult.failed.push({
           id: pdf.id,
-          title: getPdfTitle(pdf),
-          reason: getAdminApiErrorMessage(error, "Failed to delete this PDF."),
+          title: resolveTitle(pdf),
+          reason: getAdminApiErrorMessage(
+            error,
+            t("pages.pdfs.dialogs.bulkDelete.errors.deleteOneFailed"),
+          ),
         });
       }
     }
@@ -104,7 +116,14 @@ export function BulkDeletePdfsDialog({
     setResult(deleteResult);
 
     if (deleteResult.failed.length === 0) {
-      const message = `${deleteResult.deleted} PDF${deleteResult.deleted === 1 ? "" : "s"} deleted successfully.`;
+      const message =
+        deleteResult.deleted === 1
+          ? t("pages.pdfs.dialogs.bulkDelete.messages.deletedSingle", {
+              count: deleteResult.deleted,
+            })
+          : t("pages.pdfs.dialogs.bulkDelete.messages.deletedPlural", {
+              count: deleteResult.deleted,
+            });
       onSuccess?.(message);
       onOpenChange(false);
       return;
@@ -112,7 +131,10 @@ export function BulkDeletePdfsDialog({
 
     if (deleteResult.deleted > 0) {
       setErrorMessage(
-        `Deleted ${deleteResult.deleted} of ${deleteResult.total} PDFs. Review failed items below and retry if needed.`,
+        t("pages.pdfs.dialogs.bulkDelete.messages.partialDelete", {
+          deleted: deleteResult.deleted,
+          total: deleteResult.total,
+        }),
       );
     }
   };
@@ -129,28 +151,35 @@ export function BulkDeletePdfsDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Delete PDFs</DialogTitle>
+          <DialogTitle>{t("pages.pdfs.dialogs.bulkDelete.title")}</DialogTitle>
           <DialogDescription>
-            Permanently delete {pdfs.length} selected PDF
-            {pdfs.length === 1 ? "" : "s"}.
+            {pdfs.length === 1
+              ? t("pages.pdfs.dialogs.bulkDelete.descriptionSingle", {
+                  count: pdfs.length,
+                })
+              : t("pages.pdfs.dialogs.bulkDelete.descriptionPlural", {
+                  count: pdfs.length,
+                })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
-          This action cannot be undone.
+          {t("pages.pdfs.dialogs.bulkDelete.irreversible")}
         </div>
 
         <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Selected PDFs
+            {t("pages.pdfs.dialogs.bulkDelete.selectedLabel")}
           </p>
           <div className="space-y-1 text-sm text-gray-700 dark:text-gray-200">
             {pdfs.slice(0, 5).map((pdf) => (
-              <p key={String(pdf.id)}>• {getPdfTitle(pdf)}</p>
+              <p key={String(pdf.id)}>• {resolveTitle(pdf)}</p>
             ))}
             {pdfs.length > 5 ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +{pdfs.length - 5} more PDFs
+                {t("pages.pdfs.dialogs.bulkDelete.moreSelected", {
+                  count: pdfs.length - 5,
+                })}
               </p>
             ) : null}
           </div>
@@ -158,7 +187,9 @@ export function BulkDeletePdfsDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to delete</AlertTitle>
+            <AlertTitle>
+              {t("pages.pdfs.dialogs.bulkDelete.errorTitle")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -166,9 +197,21 @@ export function BulkDeletePdfsDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {result.total}</span>
-              <span>Deleted: {result.deleted}</span>
-              <span>Failed: {result.failed.length}</span>
+              <span>
+                {t("pages.pdfs.dialogs.bulkDelete.summary.total", {
+                  count: result.total,
+                })}
+              </span>
+              <span>
+                {t("pages.pdfs.dialogs.bulkDelete.summary.deleted", {
+                  count: result.deleted,
+                })}
+              </span>
+              <span>
+                {t("pages.pdfs.dialogs.bulkDelete.summary.failed", {
+                  count: result.failed.length,
+                })}
+              </span>
             </div>
 
             {result.failed.length > 0 ? (
@@ -185,7 +228,9 @@ export function BulkDeletePdfsDialog({
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Type {DELETE_CONFIRM_TEXT} to confirm
+            {t("pages.pdfs.dialogs.bulkDelete.confirmLabel", {
+              value: DELETE_CONFIRM_TEXT,
+            })}
           </label>
           <input
             value={confirmationText}
@@ -197,14 +242,16 @@ export function BulkDeletePdfsDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={handleClose} disabled={isDeleting}>
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button
             variant="destructive"
             onClick={handleDeletePdfs}
             disabled={isDeleting || confirmationText !== DELETE_CONFIRM_TEXT}
           >
-            {isDeleting ? "Deleting..." : "Delete PDFs"}
+            {isDeleting
+              ? t("common.actions.deleting")
+              : t("pages.pdfs.dialogs.bulkDelete.actions.deletePdfs")}
           </Button>
         </div>
       </DialogContent>

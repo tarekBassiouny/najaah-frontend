@@ -28,6 +28,7 @@ import type {
   VideoAccessWhatsappFormat,
 } from "@/features/video-access/types/video-access";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 type BulkVideoAccessRequestActionDialogProps = {
   open: boolean;
@@ -66,6 +67,8 @@ export function BulkVideoAccessRequestActionDialog({
   centerId,
   onSuccess,
 }: BulkVideoAccessRequestActionDialogProps) {
+  const { t } = useTranslation();
+
   const bulkApproveMutation = useBulkApproveVideoAccessRequests();
   const bulkRejectMutation = useBulkRejectVideoAccessRequests();
   const activeMutation =
@@ -178,17 +181,27 @@ export function BulkVideoAccessRequestActionDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
           <DialogTitle>
-            Bulk {action === "approve" ? "Approve" : "Reject"} Video Access
+            Bulk {action === "approve" ? "Approve" : "Reject"}{" "}
+            {t(
+              "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s1",
+            )}
           </DialogTitle>
           <DialogDescription>
-            Process {ids.length} selected video access request
+            Process {ids.length}{" "}
+            {t(
+              "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s2",
+            )}
             {ids.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Request failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -196,14 +209,29 @@ export function BulkVideoAccessRequestActionDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || ids.length}</span>
+              <span>
+                {t(
+                  "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s4",
+                )}
+                {readCount(result, "total") || ids.length}
+              </span>
               <span>
                 {action === "approve" ? "Approved" : "Rejected"}:{" "}
                 {readCount(result, processedKey)}
               </span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s5",
+                )}
+                {readCount(result, "failed")}
+              </span>
               {action === "approve" ? (
-                <span>Codes: {readCount(result, "codes_generated")}</span>
+                <span>
+                  {t(
+                    "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s6",
+                  )}
+                  {readCount(result, "codes_generated")}
+                </span>
               ) : null}
             </div>
 
@@ -214,7 +242,10 @@ export function BulkVideoAccessRequestActionDialog({
                   const requestId = record.request_id ?? record.id ?? "unknown";
                   return (
                     <p key={`processed-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)} processed
+                      {t(
+                        "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s7",
+                      )}
+                      {String(requestId)} processed
                     </p>
                   );
                 })}
@@ -232,7 +263,10 @@ export function BulkVideoAccessRequestActionDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)}: {reason}
+                      {t(
+                        "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s7",
+                      )}
+                      {String(requestId)}: {reason}
                     </p>
                   );
                 })}
@@ -249,7 +283,9 @@ export function BulkVideoAccessRequestActionDialog({
                 checked={sendWhatsapp}
                 onChange={(event) => setSendWhatsapp(event.target.checked)}
               />
-              Send generated codes via WhatsApp
+              {t(
+                "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s8",
+              )}
             </label>
 
             <Select
@@ -260,11 +296,23 @@ export function BulkVideoAccessRequestActionDialog({
               disabled={!sendWhatsapp}
             >
               <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-                <SelectValue placeholder="WhatsApp format" />
+                <SelectValue
+                  placeholder={t(
+                    "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s9",
+                  )}
+                />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="text_code">Text code</SelectItem>
-                <SelectItem value="qr_code">QR code</SelectItem>
+                <SelectItem value="text_code">
+                  {t(
+                    "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s10",
+                  )}
+                </SelectItem>
+                <SelectItem value="qr_code">
+                  {t(
+                    "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s11",
+                  )}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -272,7 +320,10 @@ export function BulkVideoAccessRequestActionDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Decision reason {action === "reject" ? "(required)" : "(optional)"}
+            {t(
+              "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s12",
+            )}
+            {action === "reject" ? "(required)" : "(optional)"}
           </p>
           <Input
             value={decisionReason}
@@ -285,7 +336,9 @@ export function BulkVideoAccessRequestActionDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.video_access.components.bulkvideoaccessrequestactiondialog.s13",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={activeMutation.isPending}>
             {activeMutation.isPending

@@ -10,6 +10,7 @@ import {
   SearchableSelect,
   type SearchableSelectOption,
 } from "@/components/ui/searchable-select";
+import { useTranslation } from "@/features/localization";
 
 const BuildingIcon = () => (
   <svg
@@ -75,6 +76,8 @@ export function CenterPicker({
   onValueChange,
   typeFilter,
 }: CenterPickerProps) {
+  const { t } = useTranslation();
+
   const { centerSlug, centerId, centerName } = useTenant();
   const isPlatformAdmin = !centerSlug;
   const isControlled = typeof onValueChange === "function";
@@ -246,7 +249,7 @@ export function CenterPicker({
         onSearchValueChange={setSearch}
         placeholder={centerName ?? allLabel}
         searchPlaceholder="Search centers..."
-        emptyMessage="No centers found"
+        emptyMessage={t("auto.features.centers.components.centerpicker.s1")}
         emptyIcon={<span className="text-2xl">🏢</span>}
         icon={<BuildingIcon />}
         isLoading={isLoading}

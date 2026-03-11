@@ -22,6 +22,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const CENTERS_PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -51,6 +52,8 @@ export function BulkAssignCentersDialog({
   users,
   onSuccess,
 }: BulkAssignCentersDialogProps) {
+  const { t } = useTranslation();
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
@@ -179,9 +182,19 @@ export function BulkAssignCentersDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Assign Centers</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.admin_users.components.bulkassigncentersdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Select a center to assign to {users.length} selected admin
+            {t(
+              "auto.features.admin_users.components.bulkassigncentersdialog.s2",
+            )}
+            {users.length}{" "}
+            {t(
+              "auto.features.admin_users.components.bulkassigncentersdialog.s3",
+            )}
             {users.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
@@ -226,10 +239,17 @@ export function BulkAssignCentersDialog({
 
               {result.failed && result.failed.length > 0 && (
                 <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
-                  <p className="font-medium">Failed:</p>
+                  <p className="font-medium">
+                    {t(
+                      "auto.features.admin_users.components.bulkassigncentersdialog.s4",
+                    )}
+                  </p>
                   {result.failed.map((item, index) => (
                     <p key={`failed-${item.user_id}-${index}`}>
-                      User #{item.user_id}: {item.reason ?? "Failed"}
+                      {t(
+                        "auto.features.admin_users.components.bulkassigncentersdialog.s5",
+                      )}
+                      {item.user_id}: {item.reason ?? "Failed"}
                     </p>
                   ))}
                 </div>
@@ -237,10 +257,17 @@ export function BulkAssignCentersDialog({
 
               {result.skipped && result.skipped.length > 0 && (
                 <div className="mt-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
-                  <p className="font-medium">Skipped:</p>
+                  <p className="font-medium">
+                    {t(
+                      "auto.features.admin_users.components.bulkassigncentersdialog.s6",
+                    )}
+                  </p>
                   {result.skipped.map((item, index) => (
                     <p key={`skipped-${item.user_id}-${index}`}>
-                      User #{item.user_id}: {item.reason ?? "Skipped"}
+                      {t(
+                        "auto.features.admin_users.components.bulkassigncentersdialog.s5",
+                      )}
+                      {item.user_id}: {item.reason ?? "Skipped"}
                     </p>
                   ))}
                 </div>
@@ -265,7 +292,9 @@ export function BulkAssignCentersDialog({
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search centers..."
+                  placeholder={t(
+                    "auto.features.admin_users.components.bulkassigncentersdialog.s7",
+                  )}
                   className="pl-10"
                   disabled={isSubmitting}
                 />
@@ -341,7 +370,9 @@ export function BulkAssignCentersDialog({
 
               {selectedCenterId && (
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  1 center selected
+                  {t(
+                    "auto.features.admin_users.components.bulkassigncentersdialog.s8",
+                  )}
                 </p>
               )}
             </>

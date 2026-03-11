@@ -27,6 +27,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type UpdateEnrollmentStatusDialogProps = {
   open: boolean;
@@ -60,6 +61,8 @@ export function UpdateEnrollmentStatusDialog({
   centerId,
   onSuccess,
 }: UpdateEnrollmentStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useUpdateEnrollment();
   const [status, setStatus] = useState<EnrollmentStatus>("DEACTIVATED");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -118,15 +121,26 @@ export function UpdateEnrollmentStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Change Enrollment Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.student_requests.components.updateenrollmentstatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update status for enrollment #{String(enrollment?.id ?? "—")}.
+            {t(
+              "auto.features.student_requests.components.updateenrollmentstatusdialog.s2",
+            )}
+            {String(enrollment?.id ?? "—")}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Update failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.student_requests.components.updateenrollmentstatusdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -151,7 +165,9 @@ export function UpdateEnrollmentStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.student_requests.components.updateenrollmentstatusdialog.s4",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update"}

@@ -15,6 +15,7 @@ import type {
   TranslationsRecord,
 } from "@/features/instructors/types/instructor";
 import { formatDateTime } from "@/lib/format-date-time";
+import { useTranslation } from "@/features/localization";
 
 type InstructorDetailsDrawerProps = {
   open: boolean;
@@ -103,6 +104,8 @@ export function InstructorDetailsDrawer({
   instructor,
   scopeCenterId,
 }: InstructorDetailsDrawerProps) {
+  const { t } = useTranslation();
+
   const detailsQuery = useInstructor(
     instructor?.id ?? null,
     { centerId: scopeCenterId ?? null },
@@ -172,7 +175,9 @@ export function InstructorDetailsDrawer({
               {displayName}
             </DialogTitle>
             <DialogDescription>
-              Instructor profile details and full API fields.
+              {t(
+                "auto.features.instructors.components.instructordetailsdrawer.s1",
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -228,7 +233,11 @@ export function InstructorDetailsDrawer({
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Created By</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.instructors.components.instructordetailsdrawer.s2",
+                    )}
+                  </p>
                   <p className="break-words text-sm font-semibold text-gray-900 dark:text-white">
                     {creatorLabel}
                   </p>
@@ -251,7 +260,11 @@ export function InstructorDetailsDrawer({
               </h3>
               <div className="space-y-3">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Name Translations</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.instructors.components.instructordetailsdrawer.s3",
+                    )}
+                  </p>
                   <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
                     {nameTranslations.length > 0
                       ? nameTranslations
@@ -261,7 +274,11 @@ export function InstructorDetailsDrawer({
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Title Translations</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.instructors.components.instructordetailsdrawer.s4",
+                    )}
+                  </p>
                   <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
                     {titleTranslations.length > 0
                       ? titleTranslations
@@ -271,7 +288,11 @@ export function InstructorDetailsDrawer({
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Bio Translations</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.instructors.components.instructordetailsdrawer.s5",
+                    )}
+                  </p>
                   <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
                     {bioTranslations.length > 0
                       ? bioTranslations
@@ -285,7 +306,9 @@ export function InstructorDetailsDrawer({
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Social Links
+                {t(
+                  "auto.features.instructors.components.instructordetailsdrawer.s6",
+                )}
               </h3>
               {socialLinks.length > 0 ? (
                 <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
@@ -300,7 +323,9 @@ export function InstructorDetailsDrawer({
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                  No social links.
+                  {t(
+                    "auto.features.instructors.components.instructordetailsdrawer.s7",
+                  )}
                 </div>
               )}
             </section>
@@ -327,7 +352,9 @@ export function InstructorDetailsDrawer({
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                  No metadata provided.
+                  {t(
+                    "auto.features.instructors.components.instructordetailsdrawer.s8",
+                  )}
                 </div>
               )}
             </section>
@@ -338,7 +365,11 @@ export function InstructorDetailsDrawer({
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Created At</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.instructors.components.instructordetailsdrawer.s9",
+                    )}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {resolvedInstructor?.created_at
                       ? formatDateTime(resolvedInstructor.created_at)
@@ -346,7 +377,11 @@ export function InstructorDetailsDrawer({
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Updated At</p>
+                  <p className="text-xs text-gray-500">
+                    {t(
+                      "auto.features.instructors.components.instructordetailsdrawer.s10",
+                    )}
+                  </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {resolvedInstructor?.updated_at
                       ? formatDateTime(resolvedInstructor.updated_at)
@@ -358,7 +393,9 @@ export function InstructorDetailsDrawer({
 
             {detailsQuery.isFetching ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Refreshing latest instructor details...
+                {t(
+                  "auto.features.instructors.components.instructordetailsdrawer.s11",
+                )}
               </p>
             ) : null}
           </div>

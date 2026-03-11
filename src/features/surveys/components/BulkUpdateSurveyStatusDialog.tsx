@@ -23,6 +23,7 @@ import type {
   BulkUpdateSurveyStatusResult,
   Survey,
 } from "@/features/surveys/types/survey";
+import { useTranslation } from "@/features/localization";
 
 type BulkUpdateSurveyStatusDialogProps = {
   open: boolean;
@@ -60,6 +61,8 @@ export function BulkUpdateSurveyStatusDialog({
   centerId,
   onSuccess,
 }: BulkUpdateSurveyStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkUpdateSurveyStatus({ centerId });
   const [status, setStatus] = useState<SurveyStatusOption>("active");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -120,16 +123,30 @@ export function BulkUpdateSurveyStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Change Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.surveys.components.bulkupdatesurveystatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update status for {surveys.length} selected survey
+            {t(
+              "auto.features.surveys.components.bulkupdatesurveystatusdialog.s2",
+            )}
+            {surveys.length}{" "}
+            {t(
+              "auto.features.surveys.components.bulkupdatesurveystatusdialog.s3",
+            )}
             {surveys.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.surveys.components.bulkupdatesurveystatusdialog.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -137,10 +154,30 @@ export function BulkUpdateSurveyStatusDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || surveys.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkupdatesurveystatusdialog.s5",
+                )}
+                {readCount(result, "total") || surveys.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkupdatesurveystatusdialog.s6",
+                )}
+                {readCount(result, "updated")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkupdatesurveystatusdialog.s7",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkupdatesurveystatusdialog.s8",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readFailedItems(result).length > 0 ? (
@@ -154,7 +191,10 @@ export function BulkUpdateSurveyStatusDialog({
 
                   return (
                     <p key={`failed-${surveyId}-${index}`}>
-                      Survey #{String(surveyId)}: {reason}
+                      {t(
+                        "auto.features.surveys.components.bulkupdatesurveystatusdialog.s9",
+                      )}
+                      {String(surveyId)}: {reason}
                     </p>
                   );
                 })}
@@ -165,7 +205,9 @@ export function BulkUpdateSurveyStatusDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for selected surveys.
+            {t(
+              "auto.features.surveys.components.bulkupdatesurveystatusdialog.s10",
+            )}
           </p>
           <Select
             value={status}
@@ -183,7 +225,9 @@ export function BulkUpdateSurveyStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.surveys.components.bulkupdatesurveystatusdialog.s11",
+            )}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

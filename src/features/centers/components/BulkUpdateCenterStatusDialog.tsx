@@ -25,6 +25,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type BulkUpdateCenterStatusDialogProps = {
   open: boolean;
@@ -56,6 +57,8 @@ export function BulkUpdateCenterStatusDialog({
   centers,
   onSuccess,
 }: BulkUpdateCenterStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkUpdateCenterStatus();
   const [status, setStatus] = useState<CenterStatusOption>("active");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -130,16 +133,30 @@ export function BulkUpdateCenterStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Change Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.centers.components.bulkupdatecenterstatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update status for {centers.length} selected center
+            {t(
+              "auto.features.centers.components.bulkupdatecenterstatusdialog.s2",
+            )}
+            {centers.length}{" "}
+            {t(
+              "auto.features.centers.components.bulkupdatecenterstatusdialog.s3",
+            )}
             {centers.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.bulkupdatecenterstatusdialog.s4",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -147,10 +164,30 @@ export function BulkUpdateCenterStatusDialog({
         {result?.counts ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || centers.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkupdatecenterstatusdialog.s5",
+                )}
+                {readCount(result, "total") || centers.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkupdatecenterstatusdialog.s6",
+                )}
+                {readCount(result, "updated")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkupdatecenterstatusdialog.s7",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.centers.components.bulkupdatecenterstatusdialog.s8",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {Array.isArray(result.failed) && result.failed.length > 0 ? (
@@ -163,7 +200,10 @@ export function BulkUpdateCenterStatusDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(centerId)}-${index}`}>
-                      Center #{String(centerId)}: {reason}
+                      {t(
+                        "auto.features.centers.components.bulkupdatecenterstatusdialog.s9",
+                      )}
+                      {String(centerId)}: {reason}
                     </p>
                   );
                 })}
@@ -174,7 +214,9 @@ export function BulkUpdateCenterStatusDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for selected centers.
+            {t(
+              "auto.features.centers.components.bulkupdatecenterstatusdialog.s10",
+            )}
           </p>
           <Select
             value={status}
@@ -192,7 +234,9 @@ export function BulkUpdateCenterStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.centers.components.bulkupdatecenterstatusdialog.s11",
+            )}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

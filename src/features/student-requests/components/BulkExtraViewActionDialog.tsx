@@ -20,6 +20,7 @@ import type {
   ExtraViewRequest,
 } from "@/features/extra-view-requests/types/extra-view-request";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 type BulkExtraViewActionDialogProps = {
   open: boolean;
@@ -53,6 +54,8 @@ export function BulkExtraViewActionDialog({
   centerId,
   onSuccess,
 }: BulkExtraViewActionDialogProps) {
+  const { t } = useTranslation();
+
   const approveMutation = useBulkApproveExtraViewRequests();
   const rejectMutation = useBulkRejectExtraViewRequests();
   const activeMutation =
@@ -154,17 +157,27 @@ export function BulkExtraViewActionDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
           <DialogTitle>
-            Bulk {action === "approve" ? "Approve" : "Reject"} Extra Views
+            Bulk {action === "approve" ? "Approve" : "Reject"}{" "}
+            {t(
+              "auto.features.student_requests.components.bulkextraviewactiondialog.s1",
+            )}
           </DialogTitle>
           <DialogDescription>
-            Process {ids.length} selected extra view request
+            Process {ids.length}{" "}
+            {t(
+              "auto.features.student_requests.components.bulkextraviewactiondialog.s2",
+            )}
             {ids.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Request failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.student_requests.components.bulkextraviewactiondialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -172,13 +185,28 @@ export function BulkExtraViewActionDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || ids.length}</span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkextraviewactiondialog.s4",
+                )}
+                {readCount(result, "total") || ids.length}
+              </span>
               <span>
                 {action === "approve" ? "Approved" : "Rejected"}:{" "}
                 {readCount(result, processedKey)}
               </span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkextraviewactiondialog.s5",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.student_requests.components.bulkextraviewactiondialog.s6",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {processedItems.length > 0 ? (
@@ -188,7 +216,10 @@ export function BulkExtraViewActionDialog({
                   const requestId = record.request_id ?? record.id ?? "unknown";
                   return (
                     <p key={`processed-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)} processed
+                      {t(
+                        "auto.features.student_requests.components.bulkextraviewactiondialog.s7",
+                      )}
+                      {String(requestId)} processed
                     </p>
                   );
                 })}
@@ -205,7 +236,10 @@ export function BulkExtraViewActionDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)}: {reason}
+                      {t(
+                        "auto.features.student_requests.components.bulkextraviewactiondialog.s7",
+                      )}
+                      {String(requestId)}: {reason}
                     </p>
                   );
                 })}
@@ -222,7 +256,10 @@ export function BulkExtraViewActionDialog({
                     "Failed";
                   return (
                     <p key={`failed-${String(requestId)}-${index}`}>
-                      Request #{String(requestId)}: {reason}
+                      {t(
+                        "auto.features.student_requests.components.bulkextraviewactiondialog.s7",
+                      )}
+                      {String(requestId)}: {reason}
                     </p>
                   );
                 })}
@@ -234,7 +271,9 @@ export function BulkExtraViewActionDialog({
         {action === "approve" ? (
           <div className="space-y-2">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Granted views
+              {t(
+                "auto.features.student_requests.components.bulkextraviewactiondialog.s8",
+              )}
             </p>
             <Input
               type="number"
@@ -247,7 +286,10 @@ export function BulkExtraViewActionDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Decision reason {action === "reject" ? "(required)" : "(optional)"}
+            {t(
+              "auto.features.student_requests.components.bulkextraviewactiondialog.s9",
+            )}
+            {action === "reject" ? "(required)" : "(optional)"}
           </p>
           <Input
             value={decisionReason}
@@ -260,7 +302,9 @@ export function BulkExtraViewActionDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.student_requests.components.bulkextraviewactiondialog.s10",
+            )}
           </Button>
           <Button onClick={handleSubmit} disabled={activeMutation.isPending}>
             {activeMutation.isPending

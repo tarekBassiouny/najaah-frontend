@@ -13,6 +13,7 @@ import {
 import { useCloseSurvey } from "@/features/surveys/hooks/use-surveys";
 import { getSurveyApiErrorMessage } from "@/features/surveys/lib/api-error";
 import type { Survey } from "@/features/surveys/types/survey";
+import { useTranslation } from "@/features/localization";
 
 type CloseSurveyDialogProps = {
   open: boolean;
@@ -39,6 +40,8 @@ export function CloseSurveyDialog({
   centerId,
   onSuccess,
 }: CloseSurveyDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useCloseSurvey({ centerId });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmationText, setConfirmationText] = useState("");
@@ -94,28 +97,33 @@ export function CloseSurveyDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Close Survey</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.surveys.components.closesurveydialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Close <span className="font-medium">{getSurveyTitle(survey)}</span>{" "}
-            to stop accepting new responses.
+            {t("auto.features.surveys.components.closesurveydialog.s2")}
+            <span className="font-medium">{getSurveyTitle(survey)}</span>{" "}
+            {t("auto.features.surveys.components.closesurveydialog.s3")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
-          Existing responses will be kept, but students will not be able to
-          submit new responses after closing.
+          {t("auto.features.surveys.components.closesurveydialog.s4")}
         </div>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to close</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.surveys.components.closesurveydialog.s5")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Type {CLOSE_CONFIRM_TEXT} to confirm
+            Type {CLOSE_CONFIRM_TEXT}{" "}
+            {t("auto.features.surveys.components.closesurveydialog.s6")}
           </label>
           <input
             value={confirmationText}
@@ -133,7 +141,7 @@ export function CloseSurveyDialog({
               onOpenChange(false);
             }}
           >
-            Cancel
+            {t("auto.features.surveys.components.closesurveydialog.s7")}
           </Button>
           <Button
             variant="destructive"

@@ -16,6 +16,7 @@ import type {
   BulkSurveyActionResult,
   Survey,
 } from "@/features/surveys/types/survey";
+import { useTranslation } from "@/features/localization";
 
 type BulkCloseSurveysDialogProps = {
   open: boolean;
@@ -85,6 +86,8 @@ export function BulkCloseSurveysDialog({
   centerId,
   onSuccess,
 }: BulkCloseSurveysDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkCloseSurveys({ centerId });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<BulkSurveyActionResult | null>(null);
@@ -156,20 +159,24 @@ export function BulkCloseSurveysDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Close Surveys</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.surveys.components.bulkclosesurveysdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Close {surveys.length} selected survey
+            {t("auto.features.surveys.components.bulkclosesurveysdialog.s2")}
+            {surveys.length}{" "}
+            {t("auto.features.surveys.components.bulkclosesurveysdialog.s3")}
             {surveys.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-300">
-          Closing surveys stops new responses without deleting data.
+          {t("auto.features.surveys.components.bulkclosesurveysdialog.s4")}
         </div>
 
         <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Selected Surveys
+            {t("auto.features.surveys.components.bulkclosesurveysdialog.s5")}
           </p>
           <div className="space-y-1 text-sm text-gray-700 dark:text-gray-200">
             {surveys.slice(0, 5).map((survey) => (
@@ -177,7 +184,10 @@ export function BulkCloseSurveysDialog({
             ))}
             {surveys.length > 5 ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +{surveys.length - 5} more surveys
+                +{surveys.length - 5}{" "}
+                {t(
+                  "auto.features.surveys.components.bulkclosesurveysdialog.s6",
+                )}
               </p>
             ) : null}
           </div>
@@ -185,7 +195,9 @@ export function BulkCloseSurveysDialog({
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to close</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.surveys.components.bulkclosesurveysdialog.s7")}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -193,10 +205,30 @@ export function BulkCloseSurveysDialog({
         {result ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {readCount(result, "total") || surveys.length}</span>
-              <span>Updated: {readCount(result, "updated")}</span>
-              <span>Skipped: {readCount(result, "skipped")}</span>
-              <span>Failed: {readCount(result, "failed")}</span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkclosesurveysdialog.s8",
+                )}
+                {readCount(result, "total") || surveys.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkclosesurveysdialog.s9",
+                )}
+                {readCount(result, "updated")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkclosesurveysdialog.s10",
+                )}
+                {readCount(result, "skipped")}
+              </span>
+              <span>
+                {t(
+                  "auto.features.surveys.components.bulkclosesurveysdialog.s11",
+                )}
+                {readCount(result, "failed")}
+              </span>
             </div>
 
             {readActionItems(result, "failed").length > 0 ? (
@@ -211,7 +243,10 @@ export function BulkCloseSurveysDialog({
                     "Failed";
                   return (
                     <p key={`failed-${surveyId}-${index}`}>
-                      Survey #{String(surveyId)}: {reason}
+                      {t(
+                        "auto.features.surveys.components.bulkclosesurveysdialog.s12",
+                      )}
+                      {String(surveyId)}: {reason}
                     </p>
                   );
                 })}
@@ -230,7 +265,10 @@ export function BulkCloseSurveysDialog({
                     "Skipped";
                   return (
                     <p key={`skipped-${surveyId}-${index}`}>
-                      Survey #{String(surveyId)}: {reason}
+                      {t(
+                        "auto.features.surveys.components.bulkclosesurveysdialog.s12",
+                      )}
+                      {String(surveyId)}: {reason}
                     </p>
                   );
                 })}
@@ -241,7 +279,8 @@ export function BulkCloseSurveysDialog({
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Type {CLOSE_CONFIRM_TEXT} to confirm
+            Type {CLOSE_CONFIRM_TEXT}{" "}
+            {t("auto.features.surveys.components.bulkclosesurveysdialog.s13")}
           </label>
           <input
             value={confirmationText}
@@ -259,7 +298,7 @@ export function BulkCloseSurveysDialog({
               onOpenChange(false);
             }}
           >
-            Cancel
+            {t("auto.features.surveys.components.bulkclosesurveysdialog.s14")}
           </Button>
           <Button
             variant="destructive"

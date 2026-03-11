@@ -24,6 +24,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type UpdateAdminUserStatusDialogProps = {
   open: boolean;
@@ -65,6 +66,8 @@ export function UpdateAdminUserStatusDialog({
   onSuccess,
   scopeCenterId,
 }: UpdateAdminUserStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useUpdateAdminUserStatus({
     centerId: scopeCenterId ?? null,
   });
@@ -132,23 +135,35 @@ export function UpdateAdminUserStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Change Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.admin_users.components.updateadminuserstatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update account status for{" "}
+            {t(
+              "auto.features.admin_users.components.updateadminuserstatusdialog.s2",
+            )}{" "}
             <span className="font-medium">{userName}</span>.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.admin_users.components.updateadminuserstatusdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for this admin user.
+            {t(
+              "auto.features.admin_users.components.updateadminuserstatusdialog.s4",
+            )}
           </p>
           <Select
             value={status}
@@ -167,7 +182,9 @@ export function UpdateAdminUserStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.admin_users.components.updateadminuserstatusdialog.s5",
+            )}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

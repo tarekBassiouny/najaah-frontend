@@ -43,6 +43,7 @@ import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const schema = z
   .object({
@@ -95,6 +96,8 @@ export function GradeFormDialog({
   onSuccess,
   onSaved,
 }: GradeFormDialogProps) {
+  const { t } = useTranslation();
+
   const isEditMode = Boolean(grade);
   const createMutation = useCreateGrade();
   const updateMutation = useUpdateGrade();
@@ -199,7 +202,9 @@ export function GradeFormDialog({
 
         {form.formState.errors.root?.message ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not save grade</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.education.components.gradeformdialog.s1")}
+            </AlertTitle>
             <AlertDescription>
               {form.formState.errors.root.message}
             </AlertDescription>
@@ -216,9 +221,16 @@ export function GradeFormDialog({
               name="nameEn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name (English)</FormLabel>
+                  <FormLabel>
+                    {t("auto.features.education.components.gradeformdialog.s2")}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Grade 9" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.gradeformdialog.s3",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -230,9 +242,16 @@ export function GradeFormDialog({
               name="nameAr"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name (Arabic)</FormLabel>
+                  <FormLabel>
+                    {t("auto.features.education.components.gradeformdialog.s4")}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="الصف التاسع" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.gradeformdialog.s5",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -244,7 +263,9 @@ export function GradeFormDialog({
               name="stage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Educational Stage</FormLabel>
+                  <FormLabel>
+                    {t("auto.features.education.components.gradeformdialog.s6")}
+                  </FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="h-10 w-full">
@@ -290,7 +311,7 @@ export function GradeFormDialog({
                       onChange={(event) => field.onChange(event.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
-                    Active grade
+                    {t("auto.features.education.components.gradeformdialog.s7")}
                   </label>
                   <FormMessage />
                 </FormItem>
@@ -304,7 +325,7 @@ export function GradeFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("auto.features.education.components.gradeformdialog.s8")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending

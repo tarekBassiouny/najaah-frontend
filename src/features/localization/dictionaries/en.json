@@ -480,7 +480,368 @@
       "descriptionReadOnly": "View role permissions. Updates require role.manage permission."
     },
     "centerCourseDetail": {
-      "loadFailedDescription": "This course may have been deleted or you may not have permission to view it."
+      "loadFailedDescription": "This course may have been deleted or you may not have permission to view it.",
+      "scopeLabel": "Course Management",
+      "management": "Course Management",
+      "primaryInstructor": "Primary Instructor",
+      "moreInstructors": " +{count} more",
+      "createdLabel": "Created",
+      "studentsDescription": "Students currently enrolled in this course.",
+      "panels": {
+        "overview": "Overview",
+        "students": "Students",
+        "settings": "Settings"
+      },
+      "settings": {
+        "title": "Course Settings",
+        "description": "Update course details and visibility targeting.",
+        "fields": {
+          "title": "Title",
+          "slug": "Slug",
+          "category": "Category",
+          "description": "Description",
+          "selectCategory": "Select category",
+          "searchCategories": "Search categories...",
+          "noCategory": "No category"
+        }
+      },
+      "actions": {
+        "saveChanges": "Save Changes",
+        "saving": "Saving...",
+        "reset": "Reset",
+        "assign": "Assign",
+        "assigning": "Assigning...",
+        "remove": "Remove",
+        "removing": "Removing..."
+      },
+      "errors": {
+        "updateCourseFailed": "Failed to update course settings.",
+        "targetingRequired": "Select at least one education target when not showing for all students.",
+        "selectInstructor": "Select an instructor before assigning.",
+        "assignInstructorFailed": "Failed to assign instructor.",
+        "removeInstructorFailed": "Failed to remove instructor."
+      },
+      "toasts": {
+        "instructorAssigned": "Instructor assigned successfully.",
+        "instructorRemoved": "Instructor removed successfully."
+      },
+      "instructors": {
+        "title": "Instructor Management",
+        "description": "Assign or remove instructors for this course.",
+        "assignInstructor": "Assign instructor",
+        "selectInstructor": "Select instructor",
+        "searchInstructors": "Search instructors...",
+        "assigned": "Assigned instructors",
+        "total": "{count} total",
+        "empty": "No instructors assigned yet.",
+        "primary": "Primary",
+        "id": "ID"
+      },
+      "removeInstructor": {
+        "title": "Remove instructor",
+        "description": "Are you sure you want to remove this instructor from the course?",
+        "descriptionWithName": "Are you sure you want to remove \"{name}\" from the course?"
+      },
+      "unknown": {
+        "instructor": "Unknown instructor",
+        "instructorById": "Instructor #{id}",
+        "categoryById": "Category #{id}",
+        "courseById": "Course #{id}",
+        "centerById": "Center #{id}"
+      }
+    },
+    "sectionManager": {
+      "title": "Sections",
+      "description": "Create and manage sections for this course.",
+      "centerContextRequired": "Center context is required to manage sections.",
+      "breadcrumbs": {
+        "centerById": "Center {id}",
+        "courseById": "Course {id}"
+      },
+      "summary": {
+        "sectionSingle": "section",
+        "sectionPlural": "sections"
+      },
+      "actions": {
+        "addSection": "Add Section",
+        "backToCourse": "Back to Course",
+        "saveChanges": "Save Changes",
+        "createSection": "Create Section",
+        "creating": "Creating..."
+      },
+      "notFound": {
+        "scopeLabel": "Course Sections",
+        "title": "Course not found",
+        "description": "The course you requested does not exist or is no longer available in this center.",
+        "goToCourses": "Go to Courses"
+      },
+      "filters": {
+        "searchPlaceholder": "Search sections...",
+        "clearSearch": "Clear search",
+        "published": "Published",
+        "allPublishStates": "All Publish States"
+      },
+      "table": {
+        "headers": {
+          "title": "Title",
+          "order": "Order",
+          "media": "Media",
+          "updated": "Updated",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "selectAll": "Select all sections on this page",
+        "selectOne": "Select {name}"
+      },
+      "empty": {
+        "noResultsTitle": "No sections found",
+        "noResultsDescription": "Try adjusting your search terms",
+        "noDataTitle": "No sections yet",
+        "noDataDescription": "Create a section to start organizing this course"
+      },
+      "status": {
+        "published": "Published",
+        "active": "Active",
+        "draft": "Draft",
+        "pending": "Pending",
+        "inactive": "Inactive",
+        "hidden": "Hidden",
+        "failed": "Failed",
+        "unknown": "Unknown"
+      },
+      "media": {
+        "videoSingular": "video",
+        "videoPlural": "videos",
+        "pdfSingular": "PDF",
+        "pdfPlural": "PDFs"
+      },
+      "menu": {
+        "edit": "Edit",
+        "viewDetails": "View details",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "manageVideos": "Manage Videos",
+        "managePdfs": "Manage PDFs",
+        "delete": "Delete"
+      },
+      "bulk": {
+        "selected": "{count} selected",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "delete": "Delete"
+      },
+      "confirm": {
+        "deleteOne": "Delete this section? This action cannot be undone.",
+        "deleteSelected": "Delete {count} selected sections? This action cannot be undone."
+      },
+      "messages": {
+        "noChanges": "No changes were made.",
+        "sectionUpdated": "Section updated successfully.",
+        "sectionWithStructureCreated": "Section with media created successfully.",
+        "sectionCreated": "Section created successfully.",
+        "sectionUnpublished": "Section unpublished successfully.",
+        "sectionPublished": "Section published successfully.",
+        "sectionDeleted": "Section deleted successfully.",
+        "deletedSelected": "{count} sections deleted successfully."
+      },
+      "errors": {
+        "titleEnRequired": "English title is required.",
+        "orderIndexInvalid": "Order index must be a non-negative integer.",
+        "updateFailed": "Failed to update section.",
+        "sectionTitleRequired": "Section title is required.",
+        "sortOrderInvalid": "Sort order must be a non-negative integer.",
+        "createWithStructureFailed": "Failed to create section with media.",
+        "createFailed": "Failed to create section.",
+        "unpublishFailed": "Failed to unpublish section.",
+        "publishFailed": "Failed to publish section.",
+        "deleteFailed": "Failed to delete section.",
+        "deletedPartial": "Deleted {success} of {total} selected sections.",
+        "loadFailed": "Failed to load sections.",
+        "loadDetailsFailed": "Failed to load section details."
+      },
+      "unknown": {
+        "sectionById": "Section #{id}",
+        "untitledVideo": "Untitled video",
+        "untitledPdf": "Untitled PDF"
+      },
+      "details": {
+        "defaultTitle": "Section",
+        "description": "Full section details, translations, and attached media.",
+        "labels": {
+          "sectionId": "Section ID",
+          "sortOrder": "Sort Order",
+          "published": "Published",
+          "visible": "Visible",
+          "created": "Created",
+          "updated": "Updated",
+          "id": "ID"
+        },
+        "values": {
+          "visible": "Visible",
+          "hidden": "Hidden"
+        },
+        "sections": {
+          "description": "Description",
+          "titleTranslations": "Title Translations",
+          "descriptionTranslations": "Description Translations",
+          "videos": "Videos ({count})",
+          "pdfs": "PDFs ({count})",
+          "noVideos": "No videos attached.",
+          "noPdfs": "No PDFs attached."
+        }
+      },
+      "editDialog": {
+        "title": "Edit Section",
+        "description": "Update title translations, description translations, and order.",
+        "fields": {
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
+          "descriptionEn": "Description (EN)",
+          "descriptionAr": "Description (AR)",
+          "orderIndex": "Order Index"
+        },
+        "placeholders": {
+          "titleEn": "e.g., Getting Started",
+          "titleAr": "e.g., Introduction",
+          "descriptionEn": "Optional section description",
+          "descriptionAr": "Optional section description",
+          "orderIndex": "Optional, e.g., 2"
+        }
+      },
+      "createDialog": {
+        "title": "Create Section",
+        "description": "Add a section and optionally attach videos or PDFs.",
+        "fields": {
+          "title": "Title *",
+          "description": "Description (EN)",
+          "sortOrder": "Sort Order",
+          "videos": "Videos",
+          "pdfs": "PDFs"
+        },
+        "placeholders": {
+          "title": "e.g., Getting Started",
+          "description": "Optional section description",
+          "sortOrder": "Optional, e.g., 1",
+          "selectVideos": "Select videos (optional)",
+          "searchVideos": "Search videos...",
+          "selectPdfs": "Select PDFs (optional)",
+          "searchPdfs": "Search PDFs..."
+        },
+        "empty": {
+          "noMatchingVideos": "No matching videos found.",
+          "noVideos": "No videos available.",
+          "noMatchingPdfs": "No matching PDFs found.",
+          "noPdfs": "No PDFs available."
+        },
+        "structureHint": "Selecting videos or PDFs uses the section structure endpoint."
+      },
+      "bulkDialog": {
+        "actions": {
+          "publish": "Publish",
+          "unpublish": "Unpublish"
+        },
+        "titlePublish": "Publish Sections",
+        "titleUnpublish": "Unpublish Sections",
+        "description": "{action} {count} selected section(s).",
+        "errorTitle": "Could not process bulk action",
+        "errors": {
+          "noSections": "No sections selected.",
+          "publish": "Unable to publish selected sections.",
+          "publishRetry": "Unable to publish selected sections. Please try again.",
+          "unpublish": "Unable to unpublish selected sections.",
+          "unpublishRetry": "Unable to unpublish selected sections. Please try again."
+        },
+        "messages": {
+          "publishProcessed": "Bulk section publish processed.",
+          "unpublishProcessed": "Bulk section unpublish processed."
+        },
+        "stats": {
+          "total": "Total",
+          "updated": "Updated",
+          "skipped": "Skipped",
+          "failed": "Failed"
+        },
+        "failedItem": "Section #{id}: {reason}",
+        "confirmDescription": "Confirm to {action} the selected sections.",
+        "buttons": {
+          "processing": "Processing..."
+        }
+      },
+      "mediaManager": {
+        "title": "Manage {media}",
+        "description": "Attach or detach {media} for this section.",
+        "errorTitle": "Action failed",
+        "addLabel": "Add {media}",
+        "placeholders": {
+          "selectToAttach": "Select {media} to attach",
+          "search": "Search {media}..."
+        },
+        "empty": {
+          "noMatching": "No matching {media} found.",
+          "noneAvailable": "No {media} available.",
+          "noneAttachedYet": "No {media} attached yet."
+        },
+        "buttons": {
+          "attachSelected": "Attach Selected",
+          "attaching": "Attaching...",
+          "detach": "Detach",
+          "detaching": "Detaching..."
+        },
+        "attachedLabel": "Attached {media}",
+        "attachedCount": "{count} attached",
+        "messages": {
+          "attachedSingle": "{media} attached successfully.",
+          "attachedMany": "{count} {media} attached successfully.",
+          "alreadyAttached": "{count} {media} already attached.",
+          "noChanges": "No {media} changes were applied.",
+          "detached": "{media} detached successfully."
+        },
+        "errors": {
+          "selectOneToAttach": "Select at least one {media} to attach.",
+          "attachFailed": "Failed to attach {media}.",
+          "attachedPartial": "Attached {attached} of {total} selected {media}.",
+          "loadAttachedFailed": "Failed to load attached {media}.",
+          "detachFailed": "Failed to detach {media}."
+        },
+        "detachDialog": {
+          "title": "Detach {media}",
+          "description": "Are you sure you want to detach this item?",
+          "descriptionWithName": "Are you sure you want to detach \"{name}\"?"
+        }
+      }
+    },
+    "courseSectionsOverview": {
+      "title": "Course Content",
+      "description": "Drag sections to reorder. Quickly manage videos or PDFs.",
+      "actions": {
+        "manageSections": "Manage Sections",
+        "toggleDetails": "Toggle section details"
+      },
+      "empty": {
+        "noSections": "No sections yet. Add the first section to get started.",
+        "noContent": "No content yet."
+      },
+      "messages": {
+        "reordered": "Sections reordered successfully.",
+        "created": "Section created successfully."
+      },
+      "errors": {
+        "reorderFailed": "Failed to reorder sections.",
+        "createFailed": "Failed to create section.",
+        "titleRequired": "Section title is required.",
+        "sortOrderInvalid": "Sort order must be a non-negative integer."
+      },
+      "createDialog": {
+        "description": "Create a new section quickly from the overview workspace.",
+        "fields": {
+          "title": "Title *",
+          "sortOrder": "Sort Order"
+        },
+        "placeholders": {
+          "title": "e.g., Introduction",
+          "sortOrder": "Optional"
+        }
+      }
     },
     "centerStudentProfile": {
       "notFoundTitle": "Student not found",

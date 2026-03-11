@@ -32,6 +32,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const MEDIA_PICKER_PAGE_SIZE = 20;
 const MEDIA_SEARCH_DEBOUNCE_MS = 300;
@@ -54,10 +55,6 @@ type MediaOptionsPage = {
     total?: number;
   };
 };
-
-function getMediaLabel(mode: "video" | "pdf") {
-  return mode === "video" ? "Video" : "PDF";
-}
 
 function getMediaTitle(item: Record<string, unknown>, fallbackPrefix: string) {
   const title = item.title;
@@ -105,6 +102,7 @@ export function SectionMediaManagerDialog({
   courseId,
   onSuccess,
 }: SectionMediaManagerDialogProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -115,7 +113,14 @@ export function SectionMediaManagerDialog({
   const [isBatchAttaching, setIsBatchAttaching] = useState(false);
 
   const sectionId = section?.id;
-  const mediaLabel = getMediaLabel(mode);
+  const mediaLabel =
+    mode === "video"
+      ? t("pages.sectionManager.media.videoSingular")
+      : t("pages.sectionManager.media.pdfSingular");
+  const mediaLabelPlural =
+    mode === "video"
+      ? t("pages.sectionManager.media.videoPlural")
+      : t("pages.sectionManager.media.pdfPlural");
 
   const {
     data: detailsData,
@@ -256,7 +261,9 @@ export function SectionMediaManagerDialog({
       .map(normalizeMediaId);
     if (idsToAttach.length === 0) {
       setErrorMessage(
-        `Select at least one ${mediaLabel.toLowerCase()} to attach.`,
+        t("pages.sectionManager.mediaManager.errors.selectOneToAttach", {
+          media: mediaLabel,
+        }),
       );
       return;
     }
@@ -286,7 +293,9 @@ export function SectionMediaManagerDialog({
         setErrorMessage(
           getAdminResponseMessage(
             result,
-            `Failed to attach ${mediaLabel.toLowerCase()}s.`,
+            t("pages.sectionManager.mediaManager.errors.attachFailed", {
+              media: mediaLabelPlural,
+            }),
           ),
         );
         return;
@@ -300,12 +309,25 @@ export function SectionMediaManagerDialog({
       if (attached > 0 || skipped > 0) {
         const fallbackMessage =
           attached === 1
-            ? `${mediaLabel} attached successfully.`
+            ? t("pages.sectionManager.mediaManager.messages.attachedSingle", {
+                media: mediaLabel,
+              })
             : attached > 1
-              ? `${attached} ${mediaLabel.toLowerCase()}s attached successfully.`
+              ? t("pages.sectionManager.mediaManager.messages.attachedMany", {
+                  count: attached,
+                  media: mediaLabelPlural,
+                })
               : skipped > 0
-                ? `${skipped} ${mediaLabel.toLowerCase()}s already attached.`
-                : `No ${mediaLabel.toLowerCase()} changes were applied.`;
+                ? t(
+                    "pages.sectionManager.mediaManager.messages.alreadyAttached",
+                    {
+                      count: skipped,
+                      media: mediaLabelPlural,
+                    },
+                  )
+                : t("pages.sectionManager.mediaManager.messages.noChanges", {
+                    media: mediaLabelPlural,
+                  });
         const message = getAdminResponseMessage(result, fallbackMessage);
 
         if (failed === 0) {
@@ -328,8 +350,14 @@ export function SectionMediaManagerDialog({
         const firstFailedReason = result.data?.details?.failed?.[0]?.reason;
         const errorMsg =
           attached > 0
-            ? `Attached ${attached} of ${idsToAttach.length} selected ${mediaLabel.toLowerCase()}s.`
-            : `Failed to attach ${mediaLabel.toLowerCase()}s.`;
+            ? t("pages.sectionManager.mediaManager.errors.attachedPartial", {
+                attached,
+                total: idsToAttach.length,
+                media: mediaLabelPlural,
+              })
+            : t("pages.sectionManager.mediaManager.errors.attachFailed", {
+                media: mediaLabelPlural,
+              });
         setErrorMessage(
           firstFailedReason ? `${errorMsg} ${firstFailedReason}` : errorMsg,
         );
@@ -339,7 +367,9 @@ export function SectionMediaManagerDialog({
       setErrorMessage(
         getSectionApiErrorMessage(
           error,
-          `Failed to attach ${mediaLabel.toLowerCase()}s.`,
+          t("pages.sectionManager.mediaManager.errors.attachFailed", {
+            media: mediaLabelPlural,
+          }),
         ),
       );
     }
@@ -368,7 +398,9 @@ export function SectionMediaManagerDialog({
 
       const message = getAdminResponseMessage(
         response,
-        `${mediaLabel} detached successfully.`,
+        t("pages.sectionManager.mediaManager.messages.detached", {
+          media: mediaLabel,
+        }),
       );
       onSuccess?.(message);
       setDetachTarget(null);
@@ -377,7 +409,9 @@ export function SectionMediaManagerDialog({
       setErrorMessage(
         getSectionApiErrorMessage(
           error,
-          `Failed to detach ${mediaLabel.toLowerCase()}.`,
+          t("pages.sectionManager.mediaManager.errors.detachFailed", {
+            media: mediaLabel,
+          }),
         ),
       );
     }
@@ -394,27 +428,45 @@ export function SectionMediaManagerDialog({
       >
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader className="space-y-2">
-            <DialogTitle>Manage {mediaLabel}s</DialogTitle>
+            <DialogTitle>
+              {t("pages.sectionManager.mediaManager.title", {
+                media: mediaLabelPlural,
+              })}
+            </DialogTitle>
             <DialogDescription>
-              Attach or detach {mediaLabel.toLowerCase()}s for this section.
+              {t("pages.sectionManager.mediaManager.description", {
+                media: mediaLabelPlural,
+              })}
             </DialogDescription>
           </DialogHeader>
 
           {errorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Action failed</AlertTitle>
+              <AlertTitle>
+                {t("pages.sectionManager.mediaManager.errorTitle")}
+              </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-2">
-            <Label>Add {mediaLabel}s</Label>
+            <Label>
+              {t("pages.sectionManager.mediaManager.addLabel", {
+                media: mediaLabelPlural,
+              })}
+            </Label>
             <SearchableMultiSelect
               values={selectedIds}
               onValuesChange={setSelectedIds}
               options={options}
-              placeholder={`Select ${mediaLabel.toLowerCase()}s to attach`}
-              searchPlaceholder={`Search ${mediaLabel.toLowerCase()}s...`}
+              placeholder={t(
+                "pages.sectionManager.mediaManager.placeholders.selectToAttach",
+                { media: mediaLabelPlural },
+              )}
+              searchPlaceholder={t(
+                "pages.sectionManager.mediaManager.placeholders.search",
+                { media: mediaLabelPlural },
+              )}
               searchValue={search}
               onSearchValueChange={setSearch}
               filterOptions={false}
@@ -427,22 +479,36 @@ export function SectionMediaManagerDialog({
               }}
               emptyMessage={
                 debouncedSearch
-                  ? `No matching ${mediaLabel.toLowerCase()}s found.`
-                  : `No ${mediaLabel.toLowerCase()}s available.`
+                  ? t("pages.sectionManager.mediaManager.empty.noMatching", {
+                      media: mediaLabelPlural,
+                    })
+                  : t("pages.sectionManager.mediaManager.empty.noneAvailable", {
+                      media: mediaLabelPlural,
+                    })
               }
             />
             <div className="flex justify-end">
               <Button onClick={handleAttachSelected} disabled={isMutating}>
-                {isBatchAttaching ? "Attaching..." : "Attach Selected"}
+                {isBatchAttaching
+                  ? t("pages.sectionManager.mediaManager.buttons.attaching")
+                  : t(
+                      "pages.sectionManager.mediaManager.buttons.attachSelected",
+                    )}
               </Button>
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Attached {mediaLabel}s</Label>
+              <Label>
+                {t("pages.sectionManager.mediaManager.attachedLabel", {
+                  media: mediaLabelPlural,
+                })}
+              </Label>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {attachedItems.length} attached
+                {t("pages.sectionManager.mediaManager.attachedCount", {
+                  count: attachedItems.length,
+                })}
               </span>
             </div>
 
@@ -455,13 +521,20 @@ export function SectionMediaManagerDialog({
 
             {isDetailsError && !sectionData ? (
               <p className="text-sm text-red-600 dark:text-red-400">
-                Failed to load attached {mediaLabel.toLowerCase()}s.
+                {t(
+                  "pages.sectionManager.mediaManager.errors.loadAttachedFailed",
+                  {
+                    media: mediaLabelPlural,
+                  },
+                )}
               </p>
             ) : null}
 
             {!isDetailsLoading && attachedItems.length === 0 ? (
               <p className="rounded-lg border border-dashed border-gray-300 px-3 py-4 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                No {mediaLabel.toLowerCase()}s attached yet.
+                {t("pages.sectionManager.mediaManager.empty.noneAttachedYet", {
+                  media: mediaLabelPlural,
+                })}
               </p>
             ) : null}
 
@@ -480,7 +553,7 @@ export function SectionMediaManagerDialog({
                         )}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ID: {item.id}
+                        {t("pages.sectionManager.details.labels.id")}: {item.id}
                       </p>
                     </div>
                     <Button
@@ -490,7 +563,7 @@ export function SectionMediaManagerDialog({
                       onClick={() => setDetachTarget(item)}
                       disabled={isMutating}
                     >
-                      Detach
+                      {t("pages.sectionManager.mediaManager.buttons.detach")}
                     </Button>
                   </div>
                 ))}
@@ -500,7 +573,7 @@ export function SectionMediaManagerDialog({
 
           <div className="mt-4 flex justify-end">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Close
+              {t("common.actions.close")}
             </Button>
           </div>
         </DialogContent>
@@ -515,11 +588,25 @@ export function SectionMediaManagerDialog({
       >
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader className="space-y-2">
-            <DialogTitle>Detach {mediaLabel}</DialogTitle>
+            <DialogTitle>
+              {t("pages.sectionManager.mediaManager.detachDialog.title", {
+                media: mediaLabel,
+              })}
+            </DialogTitle>
             <DialogDescription>
               {detachTarget
-                ? `Are you sure you want to detach "${getMediaTitle(detachTarget as Record<string, unknown>, mediaLabel)}"?`
-                : "Are you sure you want to detach this item?"}
+                ? t(
+                    "pages.sectionManager.mediaManager.detachDialog.descriptionWithName",
+                    {
+                      name: getMediaTitle(
+                        detachTarget as Record<string, unknown>,
+                        mediaLabel,
+                      ),
+                    },
+                  )
+                : t(
+                    "pages.sectionManager.mediaManager.detachDialog.description",
+                  )}
             </DialogDescription>
           </DialogHeader>
 
@@ -529,14 +616,16 @@ export function SectionMediaManagerDialog({
               onClick={() => setDetachTarget(null)}
               disabled={isMutating}
             >
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button
               onClick={handleDetachConfirm}
               disabled={isMutating}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDetachingVideo || isDetachingPdf ? "Detaching..." : "Detach"}
+              {isDetachingVideo || isDetachingPdf
+                ? t("pages.sectionManager.mediaManager.buttons.detaching")
+                : t("pages.sectionManager.mediaManager.buttons.detach")}
             </Button>
           </div>
         </DialogContent>

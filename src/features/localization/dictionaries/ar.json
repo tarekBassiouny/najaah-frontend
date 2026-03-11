@@ -480,7 +480,368 @@
       "descriptionReadOnly": "عرض صلاحيات الدور. التحديثات تتطلب صلاحية role.manage."
     },
     "centerCourseDetail": {
-      "loadFailedDescription": "قد تكون هذه الدورة محذوفة أو ليس لديك صلاحية لعرضها."
+      "loadFailedDescription": "قد تكون هذه الدورة محذوفة أو ليس لديك صلاحية لعرضها.",
+      "scopeLabel": "إدارة الدورة",
+      "management": "إدارة الدورة",
+      "primaryInstructor": "المدرب الأساسي",
+      "moreInstructors": " +{count} إضافي",
+      "createdLabel": "تاريخ الإنشاء",
+      "studentsDescription": "الطلاب المسجلون حالياً في هذه الدورة.",
+      "panels": {
+        "overview": "نظرة عامة",
+        "students": "الطلاب",
+        "settings": "الإعدادات"
+      },
+      "settings": {
+        "title": "إعدادات الدورة",
+        "description": "تحديث تفاصيل الدورة واستهداف الظهور.",
+        "fields": {
+          "title": "العنوان",
+          "slug": "الرابط المختصر",
+          "category": "التصنيف",
+          "description": "الوصف",
+          "selectCategory": "اختر تصنيفاً",
+          "searchCategories": "البحث في التصنيفات...",
+          "noCategory": "بلا تصنيف"
+        }
+      },
+      "actions": {
+        "saveChanges": "حفظ التغييرات",
+        "saving": "جاري الحفظ...",
+        "reset": "إعادة تعيين",
+        "assign": "تعيين",
+        "assigning": "جاري التعيين...",
+        "remove": "إزالة",
+        "removing": "جاري الإزالة..."
+      },
+      "errors": {
+        "updateCourseFailed": "فشل تحديث إعدادات الدورة.",
+        "targetingRequired": "اختر هدفاً تعليمياً واحداً على الأقل عند تعطيل الإظهار لجميع الطلاب.",
+        "selectInstructor": "اختر مدرباً قبل التعيين.",
+        "assignInstructorFailed": "فشل تعيين المدرب.",
+        "removeInstructorFailed": "فشل إزالة المدرب."
+      },
+      "toasts": {
+        "instructorAssigned": "تم تعيين المدرب بنجاح.",
+        "instructorRemoved": "تمت إزالة المدرب بنجاح."
+      },
+      "instructors": {
+        "title": "إدارة المدربين",
+        "description": "تعيين المدربين أو إزالتهم من هذه الدورة.",
+        "assignInstructor": "تعيين مدرب",
+        "selectInstructor": "اختر مدرباً",
+        "searchInstructors": "البحث في المدربين...",
+        "assigned": "المدربون المعيّنون",
+        "total": "{count} إجمالي",
+        "empty": "لا يوجد مدربون معيّنون بعد.",
+        "primary": "أساسي",
+        "id": "المعرف"
+      },
+      "removeInstructor": {
+        "title": "إزالة المدرب",
+        "description": "هل أنت متأكد من إزالة هذا المدرب من الدورة؟",
+        "descriptionWithName": "هل أنت متأكد من إزالة \"{name}\" من الدورة؟"
+      },
+      "unknown": {
+        "instructor": "مدرب غير معروف",
+        "instructorById": "المدرب #{id}",
+        "categoryById": "التصنيف #{id}",
+        "courseById": "الدورة #{id}",
+        "centerById": "المركز #{id}"
+      }
+    },
+    "sectionManager": {
+      "title": "الأقسام",
+      "description": "إنشاء وإدارة أقسام هذه الدورة.",
+      "centerContextRequired": "سياق المركز مطلوب لإدارة الأقسام.",
+      "breadcrumbs": {
+        "centerById": "المركز {id}",
+        "courseById": "الدورة {id}"
+      },
+      "summary": {
+        "sectionSingle": "قسم",
+        "sectionPlural": "أقسام"
+      },
+      "actions": {
+        "addSection": "إضافة قسم",
+        "backToCourse": "العودة إلى الدورة",
+        "saveChanges": "حفظ التغييرات",
+        "createSection": "إنشاء قسم",
+        "creating": "جاري الإنشاء..."
+      },
+      "notFound": {
+        "scopeLabel": "أقسام الدورة",
+        "title": "الدورة غير موجودة",
+        "description": "الدورة المطلوبة غير موجودة أو لم تعد متاحة في هذا المركز.",
+        "goToCourses": "الانتقال إلى الدورات"
+      },
+      "filters": {
+        "searchPlaceholder": "البحث في الأقسام...",
+        "clearSearch": "مسح البحث",
+        "published": "النشر",
+        "allPublishStates": "كل حالات النشر"
+      },
+      "table": {
+        "headers": {
+          "title": "العنوان",
+          "order": "الترتيب",
+          "media": "الوسائط",
+          "updated": "آخر تحديث",
+          "status": "الحالة",
+          "actions": "الإجراءات"
+        },
+        "selectAll": "تحديد كل الأقسام في هذه الصفحة",
+        "selectOne": "تحديد {name}"
+      },
+      "empty": {
+        "noResultsTitle": "لا توجد أقسام",
+        "noResultsDescription": "جرّب تعديل كلمات البحث",
+        "noDataTitle": "لا توجد أقسام بعد",
+        "noDataDescription": "أنشئ قسماً للبدء في تنظيم هذه الدورة"
+      },
+      "status": {
+        "published": "منشور",
+        "active": "نشط",
+        "draft": "مسودة",
+        "pending": "قيد الانتظار",
+        "inactive": "غير نشط",
+        "hidden": "مخفي",
+        "failed": "فشل",
+        "unknown": "غير معروف"
+      },
+      "media": {
+        "videoSingular": "فيديو",
+        "videoPlural": "فيديوهات",
+        "pdfSingular": "PDF",
+        "pdfPlural": "ملفات PDF"
+      },
+      "menu": {
+        "edit": "تعديل",
+        "viewDetails": "عرض التفاصيل",
+        "publish": "نشر",
+        "unpublish": "إلغاء النشر",
+        "manageVideos": "إدارة الفيديوهات",
+        "managePdfs": "إدارة ملفات PDF",
+        "delete": "حذف"
+      },
+      "bulk": {
+        "selected": "{count} محدد",
+        "publish": "نشر",
+        "unpublish": "إلغاء النشر",
+        "delete": "حذف"
+      },
+      "confirm": {
+        "deleteOne": "حذف هذا القسم؟ لا يمكن التراجع عن هذا الإجراء.",
+        "deleteSelected": "حذف {count} من الأقسام المحددة؟ لا يمكن التراجع عن هذا الإجراء."
+      },
+      "messages": {
+        "noChanges": "لم يتم إجراء أي تغييرات.",
+        "sectionUpdated": "تم تحديث القسم بنجاح.",
+        "sectionWithStructureCreated": "تم إنشاء القسم مع الوسائط بنجاح.",
+        "sectionCreated": "تم إنشاء القسم بنجاح.",
+        "sectionUnpublished": "تم إلغاء نشر القسم بنجاح.",
+        "sectionPublished": "تم نشر القسم بنجاح.",
+        "sectionDeleted": "تم حذف القسم بنجاح.",
+        "deletedSelected": "تم حذف {count} قسم بنجاح."
+      },
+      "errors": {
+        "titleEnRequired": "عنوان اللغة الإنجليزية مطلوب.",
+        "orderIndexInvalid": "ترتيب القسم يجب أن يكون رقماً صحيحاً غير سالب.",
+        "updateFailed": "فشل تحديث القسم.",
+        "sectionTitleRequired": "عنوان القسم مطلوب.",
+        "sortOrderInvalid": "ترتيب العرض يجب أن يكون رقماً صحيحاً غير سالب.",
+        "createWithStructureFailed": "فشل إنشاء القسم مع الوسائط.",
+        "createFailed": "فشل إنشاء القسم.",
+        "unpublishFailed": "فشل إلغاء نشر القسم.",
+        "publishFailed": "فشل نشر القسم.",
+        "deleteFailed": "فشل حذف القسم.",
+        "deletedPartial": "تم حذف {success} من أصل {total} من الأقسام المحددة.",
+        "loadFailed": "فشل تحميل الأقسام.",
+        "loadDetailsFailed": "فشل تحميل تفاصيل القسم."
+      },
+      "unknown": {
+        "sectionById": "القسم #{id}",
+        "untitledVideo": "فيديو بدون عنوان",
+        "untitledPdf": "ملف PDF بدون عنوان"
+      },
+      "details": {
+        "defaultTitle": "قسم",
+        "description": "تفاصيل القسم الكاملة والترجمات والوسائط المرفقة.",
+        "labels": {
+          "sectionId": "معرف القسم",
+          "sortOrder": "ترتيب العرض",
+          "published": "النشر",
+          "visible": "الظهور",
+          "created": "تاريخ الإنشاء",
+          "updated": "آخر تحديث",
+          "id": "المعرف"
+        },
+        "values": {
+          "visible": "مرئي",
+          "hidden": "مخفي"
+        },
+        "sections": {
+          "description": "الوصف",
+          "titleTranslations": "ترجمات العنوان",
+          "descriptionTranslations": "ترجمات الوصف",
+          "videos": "الفيديوهات ({count})",
+          "pdfs": "ملفات PDF ({count})",
+          "noVideos": "لا توجد فيديوهات مرفقة.",
+          "noPdfs": "لا توجد ملفات PDF مرفقة."
+        }
+      },
+      "editDialog": {
+        "title": "تعديل القسم",
+        "description": "تحديث ترجمات العنوان والوصف والترتيب.",
+        "fields": {
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
+          "descriptionEn": "الوصف (EN)",
+          "descriptionAr": "الوصف (AR)",
+          "orderIndex": "ترتيب القسم"
+        },
+        "placeholders": {
+          "titleEn": "مثال: مقدمة",
+          "titleAr": "مثال: مقدمة",
+          "descriptionEn": "وصف اختياري للقسم",
+          "descriptionAr": "وصف اختياري للقسم",
+          "orderIndex": "اختياري، مثل: 2"
+        }
+      },
+      "createDialog": {
+        "title": "إنشاء قسم",
+        "description": "أضف قسماً ويمكنك إرفاق فيديوهات أو ملفات PDF اختيارياً.",
+        "fields": {
+          "title": "العنوان *",
+          "description": "الوصف (EN)",
+          "sortOrder": "ترتيب العرض",
+          "videos": "الفيديوهات",
+          "pdfs": "ملفات PDF"
+        },
+        "placeholders": {
+          "title": "مثال: مقدمة",
+          "description": "وصف اختياري للقسم",
+          "sortOrder": "اختياري، مثل: 1",
+          "selectVideos": "اختر فيديوهات (اختياري)",
+          "searchVideos": "البحث في الفيديوهات...",
+          "selectPdfs": "اختر ملفات PDF (اختياري)",
+          "searchPdfs": "البحث في ملفات PDF..."
+        },
+        "empty": {
+          "noMatchingVideos": "لا توجد فيديوهات مطابقة.",
+          "noVideos": "لا توجد فيديوهات متاحة.",
+          "noMatchingPdfs": "لا توجد ملفات PDF مطابقة.",
+          "noPdfs": "لا توجد ملفات PDF متاحة."
+        },
+        "structureHint": "اختيار الفيديوهات أو ملفات PDF يستخدم نقطة نهاية هيكل القسم."
+      },
+      "bulkDialog": {
+        "actions": {
+          "publish": "نشر",
+          "unpublish": "إلغاء النشر"
+        },
+        "titlePublish": "نشر الأقسام",
+        "titleUnpublish": "إلغاء نشر الأقسام",
+        "description": "{action} {count} قسم(أقسام) محدد.",
+        "errorTitle": "تعذر تنفيذ الإجراء المجمع",
+        "errors": {
+          "noSections": "لم يتم تحديد أي أقسام.",
+          "publish": "تعذر نشر الأقسام المحددة.",
+          "publishRetry": "تعذر نشر الأقسام المحددة. يرجى المحاولة مرة أخرى.",
+          "unpublish": "تعذر إلغاء نشر الأقسام المحددة.",
+          "unpublishRetry": "تعذر إلغاء نشر الأقسام المحددة. يرجى المحاولة مرة أخرى."
+        },
+        "messages": {
+          "publishProcessed": "تمت معالجة النشر المجمع للأقسام.",
+          "unpublishProcessed": "تمت معالجة إلغاء النشر المجمع للأقسام."
+        },
+        "stats": {
+          "total": "الإجمالي",
+          "updated": "تم التحديث",
+          "skipped": "تم التخطي",
+          "failed": "فشل"
+        },
+        "failedItem": "القسم #{id}: {reason}",
+        "confirmDescription": "أكّد {action} الأقسام المحددة.",
+        "buttons": {
+          "processing": "جاري المعالجة..."
+        }
+      },
+      "mediaManager": {
+        "title": "إدارة {media}",
+        "description": "إرفاق أو إزالة {media} لهذا القسم.",
+        "errorTitle": "فشل الإجراء",
+        "addLabel": "إضافة {media}",
+        "placeholders": {
+          "selectToAttach": "اختر {media} للإرفاق",
+          "search": "البحث في {media}..."
+        },
+        "empty": {
+          "noMatching": "لا توجد عناصر مطابقة في {media}.",
+          "noneAvailable": "لا توجد {media} متاحة.",
+          "noneAttachedYet": "لا توجد {media} مرفقة بعد."
+        },
+        "buttons": {
+          "attachSelected": "إرفاق المحدد",
+          "attaching": "جاري الإرفاق...",
+          "detach": "إزالة",
+          "detaching": "جاري الإزالة..."
+        },
+        "attachedLabel": "{media} المرفقة",
+        "attachedCount": "{count} مرفق",
+        "messages": {
+          "attachedSingle": "تم إرفاق {media} بنجاح.",
+          "attachedMany": "تم إرفاق {count} من {media} بنجاح.",
+          "alreadyAttached": "{count} من {media} مرفقة مسبقاً.",
+          "noChanges": "لم يتم تطبيق تغييرات على {media}.",
+          "detached": "تمت إزالة {media} بنجاح."
+        },
+        "errors": {
+          "selectOneToAttach": "اختر عنصراً واحداً على الأقل من {media} للإرفاق.",
+          "attachFailed": "فشل إرفاق {media}.",
+          "attachedPartial": "تم إرفاق {attached} من أصل {total} من {media} المحددة.",
+          "loadAttachedFailed": "فشل تحميل {media} المرفقة.",
+          "detachFailed": "فشل إزالة {media}."
+        },
+        "detachDialog": {
+          "title": "إزالة {media}",
+          "description": "هل أنت متأكد من إزالة هذا العنصر؟",
+          "descriptionWithName": "هل أنت متأكد من إزالة \"{name}\"؟"
+        }
+      }
+    },
+    "courseSectionsOverview": {
+      "title": "محتوى الدورة",
+      "description": "اسحب الأقسام لإعادة الترتيب، وإدارة الفيديوهات أو ملفات PDF بسرعة.",
+      "actions": {
+        "manageSections": "إدارة الأقسام",
+        "toggleDetails": "تبديل تفاصيل القسم"
+      },
+      "empty": {
+        "noSections": "لا توجد أقسام بعد. أضف أول قسم للبدء.",
+        "noContent": "لا يوجد محتوى بعد."
+      },
+      "messages": {
+        "reordered": "تمت إعادة ترتيب الأقسام بنجاح.",
+        "created": "تم إنشاء القسم بنجاح."
+      },
+      "errors": {
+        "reorderFailed": "فشل إعادة ترتيب الأقسام.",
+        "createFailed": "فشل إنشاء القسم.",
+        "titleRequired": "عنوان القسم مطلوب.",
+        "sortOrderInvalid": "ترتيب العرض يجب أن يكون رقماً صحيحاً غير سالب."
+      },
+      "createDialog": {
+        "description": "أنشئ قسماً جديداً بسرعة من مساحة النظرة العامة.",
+        "fields": {
+          "title": "العنوان *",
+          "sortOrder": "ترتيب العرض"
+        },
+        "placeholders": {
+          "title": "مثال: مقدمة",
+          "sortOrder": "اختياري"
+        }
+      }
     },
     "centerStudentProfile": {
       "notFoundTitle": "الطالب غير موجود",

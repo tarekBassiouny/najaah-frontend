@@ -42,6 +42,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 function getInitials(value: string) {
   const parts = value.trim().split(" ").filter(Boolean);
@@ -125,6 +126,8 @@ export function StudentFormDialog({
   onSuccess,
   onCreated,
 }: StudentFormDialogProps) {
+  const { t } = useTranslation();
+
   const [formError, setFormError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditMode = Boolean(student);
@@ -310,7 +313,7 @@ export function StudentFormDialog({
             </span>
             {!isEditMode ? (
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                2. Optional Enrollment
+                {t("auto.features.students.components.studentformdialog.s1")}
               </span>
             ) : null}
           </div>
@@ -319,10 +322,10 @@ export function StudentFormDialog({
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900">
           <div>
             <p className="font-medium text-gray-900 dark:text-white">
-              Advanced options
+              {t("auto.features.students.components.studentformdialog.s2")}
             </p>
             <p className="text-xs text-gray-400">
-              Email, country code, and status settings.
+              {t("auto.features.students.components.studentformdialog.s3")}
             </p>
           </div>
           <Button
@@ -337,7 +340,9 @@ export function StudentFormDialog({
 
         {formError && (
           <Alert variant="destructive">
-            <AlertTitle>Could not save student</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.students.components.studentformdialog.s4")}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         )}
@@ -354,7 +359,12 @@ export function StudentFormDialog({
                 <FormItem className="md:col-span-2">
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Student name" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.students.components.studentformdialog.s5",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -369,7 +379,12 @@ export function StudentFormDialog({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="student@example.com" {...field} />
+                      <Input
+                        placeholder={t(
+                          "auto.features.students.components.studentformdialog.s6",
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -392,8 +407,9 @@ export function StudentFormDialog({
                     <Input placeholder="1225291841" {...field} />
                   </FormControl>
                   <p className="text-xs text-gray-400">
-                    Base number only (10 digits). Do not include country code or
-                    a leading 0.
+                    {t(
+                      "auto.features.students.components.studentformdialog.s7",
+                    )}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -406,7 +422,11 @@ export function StudentFormDialog({
                 name="countryCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country code</FormLabel>
+                    <FormLabel>
+                      {t(
+                        "auto.features.students.components.studentformdialog.s8",
+                      )}
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="+20" {...field} />
                     </FormControl>
@@ -422,7 +442,12 @@ export function StudentFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Center <span className="text-gray-400">(optional)</span>
+                    Center{" "}
+                    <span className="text-gray-400">
+                      {t(
+                        "auto.features.students.components.studentformdialog.s9",
+                      )}
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <CenterPicker
@@ -444,8 +469,9 @@ export function StudentFormDialog({
                   <FormMessage />
                   {!isEditMode ? (
                     <p className="text-xs text-gray-400">
-                      Optional for platform admins. Leave empty to create a
-                      student without a center.
+                      {t(
+                        "auto.features.students.components.studentformdialog.s10",
+                      )}
                     </p>
                   ) : null}
                 </FormItem>
@@ -487,7 +513,7 @@ export function StudentFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("auto.features.students.components.studentformdialog.s11")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending

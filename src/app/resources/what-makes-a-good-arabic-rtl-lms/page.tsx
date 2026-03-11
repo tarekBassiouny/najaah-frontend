@@ -17,11 +17,13 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE = "What Makes a Good Arabic RTL LMS";
+
 export default function ArabicRtlLmsGuidePage() {
   return (
     <ArticlePageShell
       category="Arabic RTL LMS"
-      title="What Makes a Good Arabic RTL LMS"
+      title={SEO_PAGE_TITLE}
       intro="A platform is not truly Arabic-ready just because the labels are translated. A good Arabic RTL LMS should feel natural across layouts, forms, navigation, and the day-to-day workflows that teachers and learners actually use."
       sections={[
         {

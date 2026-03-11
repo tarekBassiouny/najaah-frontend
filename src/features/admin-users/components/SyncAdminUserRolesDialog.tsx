@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRoles } from "@/features/roles/hooks/use-roles";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
 import type { Role } from "@/features/roles/types/role";
+import { useTranslation } from "@/features/localization";
 
 function getInitials(value: string) {
   const parts = value.trim().split(" ").filter(Boolean);
@@ -40,6 +41,8 @@ export function SyncAdminUserRolesDialog({
   onContinue,
   onClose,
 }: SyncAdminUserRolesDialogProps) {
+  const { t } = useTranslation();
+
   const [search, setSearch] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [initialSelectedRoleIds, setInitialSelectedRoleIds] = useState<
@@ -210,11 +213,18 @@ export function SyncAdminUserRolesDialog({
           </div>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white">
-              Sync Roles
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s1",
+              )}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Update roles for {user?.name ?? `user #${user?.id ?? ""}`} using
-              role selections with permission preview.
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s2",
+              )}
+              {user?.name ?? `user #${user?.id ?? ""}`}{" "}
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s3",
+              )}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3 pb-3 text-xs text-gray-400">
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
@@ -230,7 +240,11 @@ export function SyncAdminUserRolesDialog({
 
       {errorMessage && (
         <Alert variant="destructive">
-          <AlertTitle>Could not sync roles</AlertTitle>
+          <AlertTitle>
+            {t(
+              "auto.features.admin_users.components.syncadminuserrolesdialog.s4",
+            )}
+          </AlertTitle>
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
       )}
@@ -238,7 +252,11 @@ export function SyncAdminUserRolesDialog({
       <div className="space-y-3">
         <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/40">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label htmlFor="roles-search">Search roles</Label>
+            <Label htmlFor="roles-search">
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s5",
+              )}
+            </Label>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -249,7 +267,9 @@ export function SyncAdminUserRolesDialog({
                 }
                 disabled={roleOptions.length === 0}
               >
-                Select all
+                {t(
+                  "auto.features.admin_users.components.syncadminuserrolesdialog.s6",
+                )}
               </Button>
               <Button
                 variant="outline"
@@ -266,11 +286,14 @@ export function SyncAdminUserRolesDialog({
             id="roles-search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by role, slug, or permission..."
+            placeholder={t(
+              "auto.features.admin_users.components.syncadminuserrolesdialog.s7",
+            )}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Use search to filter roles quickly. Changes preview below before
-            applying.
+            {t(
+              "auto.features.admin_users.components.syncadminuserrolesdialog.s8",
+            )}
           </p>
         </div>
 
@@ -283,7 +306,9 @@ export function SyncAdminUserRolesDialog({
             ))
           ) : (
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              No roles selected.
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s9",
+              )}
             </p>
           )}
         </div>
@@ -292,7 +317,11 @@ export function SyncAdminUserRolesDialog({
           permissionChanges.removed.length > 0) && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">Permission changes:</span>
+              <span className="font-medium">
+                {t(
+                  "auto.features.admin_users.components.syncadminuserrolesdialog.s10",
+                )}
+              </span>
               <span className="text-green-700 dark:text-green-300">
                 +{permissionChanges.added.length} added
               </span>
@@ -323,7 +352,9 @@ export function SyncAdminUserRolesDialog({
                 permissionChanges.removed.length >
               12 ? (
                 <Badge variant="outline" className="text-[11px]">
-                  + more
+                  {t(
+                    "auto.features.admin_users.components.syncadminuserrolesdialog.s11",
+                  )}
                 </Badge>
               ) : null}
             </div>
@@ -333,11 +364,15 @@ export function SyncAdminUserRolesDialog({
         <div className="max-h-72 space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-white/80 p-2 dark:border-gray-700 dark:bg-gray-900/40">
           {isRolesLoading ? (
             <p className="p-2 text-sm text-gray-500 dark:text-gray-400">
-              Loading roles...
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s12",
+              )}
             </p>
           ) : filteredRoles.length === 0 ? (
             <p className="p-2 text-sm text-gray-500 dark:text-gray-400">
-              No roles match your search.
+              {t(
+                "auto.features.admin_users.components.syncadminuserrolesdialog.s13",
+              )}
             </p>
           ) : (
             filteredRoles.map((role) => {
@@ -405,7 +440,9 @@ export function SyncAdminUserRolesDialog({
 
       <DialogFooter className="mt-4">
         <Button variant="outline" onClick={handleClose}>
-          Cancel
+          {t(
+            "auto.features.admin_users.components.syncadminuserrolesdialog.s14",
+          )}
         </Button>
         <Button
           onClick={handleContinue}

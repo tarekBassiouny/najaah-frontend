@@ -42,6 +42,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const keyPattern = /^[a-zA-Z0-9._-]+$/;
 
@@ -145,6 +146,8 @@ export function SystemSettingFormDialog({
   setting,
   onSuccess,
 }: SystemSettingFormDialogProps) {
+  const { t } = useTranslation();
+
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(setting);
   const createMutation = useCreateSystemSetting();
@@ -300,27 +303,52 @@ export function SystemSettingFormDialog({
         <div className="space-y-5 p-6">
           {formError && (
             <Alert variant="destructive">
-              <AlertTitle>Could not save setting</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.system_settings.components.systemsettingformdialog.s1",
+                )}
+              </AlertTitle>
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
           )}
 
           <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-800 dark:bg-gray-950/50">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
-              Payload Notes
+              {t(
+                "auto.features.system_settings.components.systemsettingformdialog.s2",
+              )}
             </p>
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
-              Store values as JSON objects such as{" "}
-              <span className="font-mono">{`{ "enabled": true }`}</span> or{" "}
-              <span className="font-mono">{`{ "timezone": "UTC" }`}</span>. Use{" "}
-              <span className="font-mono">null</span> only when the setting
-              intentionally carries no structured payload.
+              {t(
+                "auto.features.system_settings.components.systemsettingformdialog.s3",
+              )}{" "}
+              <span className="font-mono">
+                {t(
+                  "auto.features.system_settings.components.systemsettingformdialog.s4",
+                )}
+              </span>{" "}
+              or{" "}
+              <span className="font-mono">
+                {t(
+                  "auto.features.system_settings.components.systemsettingformdialog.s5",
+                )}
+              </span>
+              {t(
+                "auto.features.system_settings.components.systemsettingformdialog.s6",
+              )}{" "}
+              <span className="font-mono">null</span>{" "}
+              {t(
+                "auto.features.system_settings.components.systemsettingformdialog.s7",
+              )}
             </p>
             {suggestedTemplate && !isEditMode ? (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/80 bg-white/90 px-3 py-3 dark:border-amber-900/60 dark:bg-gray-900/80">
                 <div>
                   <p className="text-xs font-medium text-gray-900 dark:text-white">
-                    Suggested template: {suggestedTemplate.label}
+                    {t(
+                      "auto.features.system_settings.components.systemsettingformdialog.s8",
+                    )}
+                    {suggestedTemplate.label}
                   </p>
                   <p className="mt-1 font-mono text-xs text-gray-600 dark:text-gray-300">
                     {JSON.stringify(suggestedTemplate.value)}
@@ -339,14 +367,17 @@ export function SystemSettingFormDialog({
                   }
                   disabled={isPending}
                 >
-                  Use Template
+                  {t(
+                    "auto.features.system_settings.components.systemsettingformdialog.s9",
+                  )}
                 </Button>
               </div>
             ) : null}
             {!isEditMode && CANONICAL_DEFAULT_KEYS.has(normalizedDraftKey) ? (
               <div className="mt-4 rounded-xl border border-blue-200/80 bg-blue-50/80 px-3 py-3 text-sm text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-300">
-                This key is edited from the Global Defaults panel above, not
-                from the generic registry dialog.
+                {t(
+                  "auto.features.system_settings.components.systemsettingformdialog.s10",
+                )}
               </div>
             ) : null}
           </div>
@@ -369,8 +400,9 @@ export function SystemSettingFormDialog({
                     </FormControl>
                     {!isEditMode && matchingExistingSetting ? (
                       <p className="text-xs text-amber-600 dark:text-amber-400">
-                        This key already exists in the system registry. Edit the
-                        existing record instead of creating a duplicate.
+                        {t(
+                          "auto.features.system_settings.components.systemsettingformdialog.s11",
+                        )}
                       </p>
                     ) : null}
                     <FormMessage />
@@ -391,7 +423,11 @@ export function SystemSettingFormDialog({
                     >
                       <FormControl>
                         <SelectTrigger className="h-11 rounded-xl">
-                          <SelectValue placeholder="Select visibility" />
+                          <SelectValue
+                            placeholder={t(
+                              "auto.features.system_settings.components.systemsettingformdialog.s12",
+                            )}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -409,11 +445,17 @@ export function SystemSettingFormDialog({
                 name="valueText"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Value (JSON object or null)</FormLabel>
+                    <FormLabel>
+                      {t(
+                        "auto.features.system_settings.components.systemsettingformdialog.s13",
+                      )}
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         rows={12}
-                        placeholder='{"code":"+20"}'
+                        placeholder={t(
+                          "auto.features.system_settings.components.systemsettingformdialog.s14",
+                        )}
                         className="min-h-[260px] rounded-2xl border-gray-200 bg-gray-50 font-mono text-xs leading-6 dark:border-gray-800 dark:bg-gray-950/80"
                         {...field}
                         disabled={isPending}
@@ -431,7 +473,9 @@ export function SystemSettingFormDialog({
                   onClick={() => onOpenChange(false)}
                   disabled={isPending}
                 >
-                  Cancel
+                  {t(
+                    "auto.features.system_settings.components.systemsettingformdialog.s15",
+                  )}
                 </Button>
                 <Button
                   type="submit"

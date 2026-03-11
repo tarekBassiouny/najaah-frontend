@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslation } from "@/features/localization";
+
 type PlaceholderItem = {
   title: string;
   description?: string;
@@ -17,6 +21,8 @@ export function PlaceholderPage({
   items = [],
   footerNote,
 }: PlaceholderPageProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <header className="space-y-2">
@@ -53,7 +59,7 @@ export function PlaceholderPage({
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-900 dark:text-dark-4">
-          Nothing here yet. Add the first record once the API is connected.
+          {t("ui.placeholderPage.emptyMessage")}
         </div>
       )}
 

@@ -5,6 +5,7 @@ import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { useCollegeOptions } from "@/features/education/hooks/use-college-options";
 import { useGradeOptions } from "@/features/education/hooks/use-grade-options";
 import { useSchoolOptions } from "@/features/education/hooks/use-school-options";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 import type { CourseEducationTargetingValues } from "@/features/courses/utils/education-targeting";
 import { normalizeIdList } from "@/features/courses/utils/education-targeting";
@@ -26,6 +27,7 @@ export function CourseEducationTargetingSection({
   error = null,
   className,
 }: CourseEducationTargetingSectionProps) {
+  const { t } = useTranslation();
   const isTargeted = !values.showForAllStudents;
 
   const {
@@ -82,10 +84,10 @@ export function CourseEducationTargetingSection({
     >
       <div className="space-y-1">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Course Audience
+          {t("pages.courseAudience.title")}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          Control who can see this course in mobile explore/search.
+          {t("pages.courseAudience.description")}
         </p>
       </div>
 
@@ -109,10 +111,10 @@ export function CourseEducationTargetingSection({
           />
           <span>
             <span className="block font-medium text-gray-900 dark:text-white">
-              Show For All Students
+              {t("pages.courseAudience.allStudents.title")}
             </span>
             <span className="block text-xs text-gray-500 dark:text-gray-400">
-              Visible to all students in this center.
+              {t("pages.courseAudience.allStudents.description")}
             </span>
           </span>
         </label>
@@ -136,10 +138,10 @@ export function CourseEducationTargetingSection({
           />
           <span>
             <span className="block font-medium text-gray-900 dark:text-white">
-              Target By Education
+              {t("pages.courseAudience.targeted.title")}
             </span>
             <span className="block text-xs text-gray-500 dark:text-gray-400">
-              Visible only for selected grades, schools, or colleges.
+              {t("pages.courseAudience.targeted.description")}
             </span>
           </span>
         </label>
@@ -149,66 +151,72 @@ export function CourseEducationTargetingSection({
         className={cn("grid gap-4 md:grid-cols-3", !isTargeted && "opacity-60")}
       >
         <div className="space-y-2">
-          <Label>Grades</Label>
+          <Label>{t("pages.courseAudience.fields.grades")}</Label>
           <SearchableMultiSelect
             values={values.gradeIds}
             onValuesChange={(nextValues) =>
               updateValues({ gradeIds: normalizeIdList(nextValues) })
             }
             options={gradeOptions}
-            placeholder="Select grades"
-            searchPlaceholder="Search grades..."
+            placeholder={t("pages.courseAudience.placeholders.selectGrades")}
+            searchPlaceholder={t(
+              "pages.courseAudience.placeholders.searchGrades",
+            )}
             searchValue={gradeSearch}
             onSearchValueChange={setGradeSearch}
             filterOptions={false}
             isLoading={isGradesLoading}
             disabled={disabled || !isTargeted}
-            emptyMessage="No grades found"
+            emptyMessage={t("pages.courseAudience.empty.noGrades")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label>Schools</Label>
+          <Label>{t("pages.courseAudience.fields.schools")}</Label>
           <SearchableMultiSelect
             values={values.schoolIds}
             onValuesChange={(nextValues) =>
               updateValues({ schoolIds: normalizeIdList(nextValues) })
             }
             options={schoolOptions}
-            placeholder="Select schools"
-            searchPlaceholder="Search schools..."
+            placeholder={t("pages.courseAudience.placeholders.selectSchools")}
+            searchPlaceholder={t(
+              "pages.courseAudience.placeholders.searchSchools",
+            )}
             searchValue={schoolSearch}
             onSearchValueChange={setSchoolSearch}
             filterOptions={false}
             isLoading={isSchoolsLoading}
             disabled={disabled || !isTargeted}
-            emptyMessage="No schools found"
+            emptyMessage={t("pages.courseAudience.empty.noSchools")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label>Colleges</Label>
+          <Label>{t("pages.courseAudience.fields.colleges")}</Label>
           <SearchableMultiSelect
             values={values.collegeIds}
             onValuesChange={(nextValues) =>
               updateValues({ collegeIds: normalizeIdList(nextValues) })
             }
             options={collegeOptions}
-            placeholder="Select colleges"
-            searchPlaceholder="Search colleges..."
+            placeholder={t("pages.courseAudience.placeholders.selectColleges")}
+            searchPlaceholder={t(
+              "pages.courseAudience.placeholders.searchColleges",
+            )}
             searchValue={collegeSearch}
             onSearchValueChange={setCollegeSearch}
             filterOptions={false}
             isLoading={isCollegesLoading}
             disabled={disabled || !isTargeted}
-            emptyMessage="No colleges found"
+            emptyMessage={t("pages.courseAudience.empty.noColleges")}
           />
         </div>
       </div>
 
       {isTargeted ? (
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          Choose at least one grade, school, or college.
+          {t("pages.courseAudience.targeted.hint")}
         </p>
       ) : null}
 

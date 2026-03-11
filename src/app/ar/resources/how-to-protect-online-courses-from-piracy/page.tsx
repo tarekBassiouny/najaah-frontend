@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "كيف تحمي الدورات أونلاين من القرصنة دون الإضرار بتجربة المتعلم";
+
 export default function ArabicProtectCoursesPage() {
   return (
     <ArticlePageShell
       locale="ar"
       category="حماية المحتوى"
-      title="كيف تحمي الدورات أونلاين من القرصنة دون الإضرار بتجربة المتعلم"
+      title={SEO_PAGE_TITLE}
       intro="حماية القرصنة لا تعني جعل النسخ مستحيلاً بالكامل. معناها جعل الوصول المدفوع أكثر دفاعية مع الحفاظ على تجربة الطالب الشرعي سلسة بما يكفي للحفاظ على الثقة."
       sections={[
         {

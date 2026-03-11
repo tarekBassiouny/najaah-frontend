@@ -17,12 +17,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE = "ما الذي يجعل منصة عربية RTL جيدة";
+
 export default function ArabicRtlGuideArabicPage() {
   return (
     <ArticlePageShell
       locale="ar"
       category="منصة عربية RTL"
-      title="ما الذي يجعل منصة عربية RTL جيدة"
+      title={SEO_PAGE_TITLE}
       intro="المنصة ليست عربية فعلاً لمجرد أن النصوص مترجمة. المنصة الجيدة يجب أن تبدو طبيعية في التخطيط والتنقل والنماذج وسير العمل اليومي للمعلمين والطلاب."
       sections={[
         {

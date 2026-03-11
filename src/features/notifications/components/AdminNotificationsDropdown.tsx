@@ -37,6 +37,7 @@ import {
   type AdminNotificationPayload,
   type AdminNotificationType,
 } from "../types/notification";
+import { useTranslation } from "@/features/localization";
 
 type NotificationIconProps = {
   iconName: string;
@@ -353,6 +354,8 @@ function mergeUniqueNotifications(
 }
 
 export function AdminNotificationsDropdown() {
+  const { t } = useTranslation();
+
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -550,7 +553,9 @@ export function AdminNotificationsDropdown() {
               onClick={handleMarkAllAsRead}
               disabled={!hasUnread || markAllAsReadMutation.isPending}
             >
-              Mark all as read
+              {t(
+                "auto.features.notifications.components.adminnotificationsdropdown.s1",
+              )}
             </Button>
           </div>
 
@@ -585,13 +590,23 @@ export function AdminNotificationsDropdown() {
             <div className="ml-auto w-[9.25rem] max-w-[44vw] shrink-0">
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger
-                  aria-label="Filter notifications by type"
+                  aria-label={t(
+                    "auto.features.notifications.components.adminnotificationsdropdown.s2",
+                  )}
                   className="h-8 w-full px-2 text-xs"
                 >
-                  <SelectValue placeholder="All types" />
+                  <SelectValue
+                    placeholder={t(
+                      "auto.features.notifications.components.adminnotificationsdropdown.s3",
+                    )}
+                  />
                 </SelectTrigger>
                 <SelectContent data-click-outside-ignore="true">
-                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="all">
+                    {t(
+                      "auto.features.notifications.components.adminnotificationsdropdown.s3",
+                    )}
+                  </SelectItem>
                   {ADMIN_NOTIFICATION_TYPE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={String(option.value)}>
                       {option.label}
@@ -616,14 +631,18 @@ export function AdminNotificationsDropdown() {
         {isError ? (
           <div className="px-3 pb-3 pt-4">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load notifications.
+              {t(
+                "auto.features.notifications.components.adminnotificationsdropdown.s4",
+              )}
             </p>
             <button
               type="button"
               className="mt-2 text-xs font-medium text-primary"
               onClick={() => refetchNotifications()}
             >
-              Try again
+              {t(
+                "auto.features.notifications.components.adminnotificationsdropdown.s5",
+              )}
             </button>
           </div>
         ) : null}
@@ -645,7 +664,9 @@ export function AdminNotificationsDropdown() {
               <BellIcon className="h-6 w-6 text-gray-400" />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              No notifications found.
+              {t(
+                "auto.features.notifications.components.adminnotificationsdropdown.s6",
+              )}
             </p>
           </div>
         ) : null}
@@ -743,7 +764,9 @@ export function AdminNotificationsDropdown() {
                             }}
                             disabled={markAsReadMutation.isPending}
                           >
-                            Mark as read
+                            {t(
+                              "auto.features.notifications.components.adminnotificationsdropdown.s7",
+                            )}
                           </button>
                         ) : null}
                         <button
@@ -756,7 +779,9 @@ export function AdminNotificationsDropdown() {
                           }}
                           disabled={deleteNotificationMutation.isPending}
                         >
-                          Delete
+                          {t(
+                            "auto.features.notifications.components.adminnotificationsdropdown.s8",
+                          )}
                         </button>
                       </DropdownContent>
                     </Dropdown>
@@ -775,7 +800,9 @@ export function AdminNotificationsDropdown() {
               onClick={() => setPage((current) => current + 1)}
               disabled={isFetching}
             >
-              Load more
+              {t(
+                "auto.features.notifications.components.adminnotificationsdropdown.s9",
+              )}
             </button>
           </div>
         ) : null}

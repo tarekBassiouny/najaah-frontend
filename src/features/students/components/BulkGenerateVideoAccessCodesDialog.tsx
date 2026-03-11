@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/features/localization";
 
 const FETCH_PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -85,6 +86,8 @@ export function BulkGenerateVideoAccessCodesDialog({
   allowCenterChange = false,
   onGenerated,
 }: BulkGenerateVideoAccessCodesDialogProps) {
+  const { t } = useTranslation();
+
   const tenant = useTenant();
   const isPlatformAdmin = !tenant.centerSlug;
   const showCenterPicker = allowCenterChange && isPlatformAdmin;
@@ -391,9 +394,19 @@ export function BulkGenerateVideoAccessCodesDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Generate Access Codes</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Generate a single-use code for {studentIds.length} selected student
+            {t(
+              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s2",
+            )}
+            {studentIds.length}{" "}
+            {t(
+              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s3",
+            )}
             {studentIds.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
@@ -401,7 +414,11 @@ export function BulkGenerateVideoAccessCodesDialog({
         <div className="space-y-3">
           {errorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Action failed</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s4",
+                )}
+              </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
@@ -494,14 +511,18 @@ export function BulkGenerateVideoAccessCodesDialog({
                   onChange={(event) => setSendWhatsapp(event.target.checked)}
                   disabled={isSubmitting}
                 />
-                Send via WhatsApp
+                {t(
+                  "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s5",
+                )}
               </label>
             </div>
 
             {sendWhatsapp ? (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  WhatsApp format
+                  {t(
+                    "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s6",
+                  )}
                 </p>
                 <Select
                   value={whatsappFormat}
@@ -513,8 +534,16 @@ export function BulkGenerateVideoAccessCodesDialog({
                     <SelectValue placeholder="Format" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="text_code">Text code</SelectItem>
-                    <SelectItem value="qr_code">QR code</SelectItem>
+                    <SelectItem value="text_code">
+                      {t(
+                        "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s7",
+                      )}
+                    </SelectItem>
+                    <SelectItem value="qr_code">
+                      {t(
+                        "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s8",
+                      )}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -543,13 +572,21 @@ export function BulkGenerateVideoAccessCodesDialog({
                   </p>
                 </div>
                 <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-center text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20">
-                  <p>WhatsApp sent</p>
+                  <p>
+                    {t(
+                      "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s9",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-blue-800 dark:text-blue-200">
                     {whatsappSent}
                   </p>
                 </div>
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-red-700 dark:border-red-900/40 dark:bg-red-900/20">
-                  <p>WhatsApp failed</p>
+                  <p>
+                    {t(
+                      "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s10",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
                     {whatsappFailed}
                   </p>
@@ -572,7 +609,9 @@ export function BulkGenerateVideoAccessCodesDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting || bulkGenerateMutation.isPending}
           >
-            Close
+            {t(
+              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s11",
+            )}
           </Button>
           <Button
             onClick={handleGenerate}

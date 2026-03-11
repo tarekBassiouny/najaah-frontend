@@ -45,6 +45,7 @@ import type {
 } from "@/features/surveys/types/survey";
 import { listVideos } from "@/features/videos/services/videos.service";
 import type { AdminUser } from "@/types/auth";
+import { useTranslation } from "@/features/localization";
 
 const QUESTION_TYPES: Array<{ value: SurveyQuestionType; label: string }> = [
   { value: 1, label: "Single Choice" },
@@ -359,6 +360,8 @@ export function SurveyFormDialog({
   survey,
   onSuccess,
 }: SurveyFormDialogProps) {
+  const { t } = useTranslation();
+
   const isEditMode = Boolean(survey);
   const normalizedCenterId = useMemo(() => {
     if (centerId == null) return null;
@@ -881,7 +884,8 @@ export function SurveyFormDialog({
         {formError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              Could not {isEditMode ? "update" : "create"} survey
+              {t("auto.features.surveys.components.surveyformdialog.s1")}
+              {isEditMode ? "update" : "create"} survey
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -889,10 +893,13 @@ export function SurveyFormDialog({
 
         {scopeType === 1 && !isAdminLoading && !isSystemScopeAllowed ? (
           <Alert>
-            <AlertTitle>Permission required</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.surveys.components.surveyformdialog.s2")}
+            </AlertTitle>
             <AlertDescription>
-              Only super admins can {isEditMode ? "update" : "create"} system
-              surveys.
+              {t("auto.features.surveys.components.surveyformdialog.s3")}
+              {isEditMode ? "update" : "create"}{" "}
+              {t("auto.features.surveys.components.surveyformdialog.s4")}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -905,7 +912,9 @@ export function SurveyFormDialog({
             <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Customer Satisfaction"
+              placeholder={t(
+                "auto.features.surveys.components.surveyformdialog.s5",
+              )}
             />
           </div>
 
@@ -917,13 +926,15 @@ export function SurveyFormDialog({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={3}
-              placeholder="Add short context for this survey"
+              placeholder={t(
+                "auto.features.surveys.components.surveyformdialog.s6",
+              )}
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Survey Type
+              {t("auto.features.surveys.components.surveyformdialog.s7")}
             </label>
             <Select
               value={String(surveyType)}
@@ -953,7 +964,7 @@ export function SurveyFormDialog({
           {!isEditMode ? (
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Assignment Mode
+                {t("auto.features.surveys.components.surveyformdialog.s8")}
               </label>
               <Select
                 value={assignmentType}
@@ -989,7 +1000,7 @@ export function SurveyFormDialog({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Start Date
+              {t("auto.features.surveys.components.surveyformdialog.s9")}
             </label>
             <Input
               type="date"
@@ -1000,7 +1011,7 @@ export function SurveyFormDialog({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              End Date
+              {t("auto.features.surveys.components.surveyformdialog.s10")}
             </label>
             <Input
               type="date"
@@ -1015,7 +1026,7 @@ export function SurveyFormDialog({
               {scopeType === 1 ? (
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Unbranded Center
+                    {t("auto.features.surveys.components.surveyformdialog.s11")}
                   </label>
                   <SearchableSelect
                     value={
@@ -1028,9 +1039,13 @@ export function SurveyFormDialog({
                       setAssignmentCourseId("none");
                     }}
                     options={unbrandedCenterOptions}
-                    placeholder="Select a center first"
+                    placeholder={t(
+                      "auto.features.surveys.components.surveyformdialog.s12",
+                    )}
                     searchPlaceholder="Search centers..."
-                    emptyMessage="No unbranded centers found"
+                    emptyMessage={t(
+                      "auto.features.surveys.components.surveyformdialog.s13",
+                    )}
                     isLoading={isUnbrandedCentersLoading}
                     disabled={isUnbrandedCentersLoading}
                     showSearch={unbrandedCenterOptions.length > 6}
@@ -1063,7 +1078,9 @@ export function SurveyFormDialog({
                       : "Select a course"
                   }
                   searchPlaceholder="Search courses..."
-                  emptyMessage="No courses found"
+                  emptyMessage={t(
+                    "auto.features.surveys.components.surveyformdialog.s14",
+                  )}
                   isLoading={isCoursesLoading}
                   disabled={
                     isCoursesLoading ||
@@ -1092,9 +1109,13 @@ export function SurveyFormDialog({
                 value={assignmentUserId === "none" ? null : assignmentUserId}
                 onValueChange={(value) => setAssignmentUserId(value ?? "none")}
                 options={studentOptions}
-                placeholder="Select a student"
+                placeholder={t(
+                  "auto.features.surveys.components.surveyformdialog.s15",
+                )}
                 searchPlaceholder="Search students..."
-                emptyMessage="No students found"
+                emptyMessage={t(
+                  "auto.features.surveys.components.surveyformdialog.s16",
+                )}
                 isLoading={isStudentsLoading}
                 disabled={isStudentsLoading}
                 showSearch={studentOptions.length > 6}
@@ -1112,15 +1133,19 @@ export function SurveyFormDialog({
           {!isEditMode && assignmentType === "video" ? (
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Video (Full Play)
+                {t("auto.features.surveys.components.surveyformdialog.s17")}
               </label>
               <SearchableSelect
                 value={assignmentVideoId === "none" ? null : assignmentVideoId}
                 onValueChange={(value) => setAssignmentVideoId(value ?? "none")}
                 options={videoOptions}
-                placeholder="Select a full-play video"
+                placeholder={t(
+                  "auto.features.surveys.components.surveyformdialog.s18",
+                )}
                 searchPlaceholder="Search videos..."
-                emptyMessage="No eligible full-play videos found"
+                emptyMessage={t(
+                  "auto.features.surveys.components.surveyformdialog.s19",
+                )}
                 isLoading={isVideosLoading}
                 disabled={isVideosLoading}
                 showSearch={videoOptions.length > 6}
@@ -1134,7 +1159,7 @@ export function SurveyFormDialog({
               />
               {videoOptions.length === 0 && !isVideosLoading ? (
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  No eligible full-play videos were found for this center.
+                  {t("auto.features.surveys.components.surveyformdialog.s20")}
                 </p>
               ) : null}
             </div>
@@ -1173,12 +1198,11 @@ export function SurveyFormDialog({
                   setAllowMultipleSubmissions(event.target.checked)
                 }
               />
-              Multiple Submissions
+              {t("auto.features.surveys.components.surveyformdialog.s21")}
             </label>
           </div>
           <p className="text-xs text-amber-700 dark:text-amber-400">
-            Multiple submissions is currently not enforced by mobile submit
-            flow.
+            {t("auto.features.surveys.components.surveyformdialog.s22")}
           </p>
         </div>
 
@@ -1198,7 +1222,7 @@ export function SurveyFormDialog({
                 )
               }
             >
-              Add Question
+              {t("auto.features.surveys.components.surveyformdialog.s23")}
             </Button>
           </div>
 
@@ -1233,7 +1257,7 @@ export function SurveyFormDialog({
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Question Text
+                    {t("auto.features.surveys.components.surveyformdialog.s24")}
                   </label>
                   <Input
                     value={question.question}
@@ -1243,7 +1267,9 @@ export function SurveyFormDialog({
                         question: event.target.value,
                       }))
                     }
-                    placeholder="How satisfied are you?"
+                    placeholder={t(
+                      "auto.features.surveys.components.surveyformdialog.s25",
+                    )}
                   />
                 </div>
 
@@ -1296,7 +1322,9 @@ export function SurveyFormDialog({
                           }))
                         }
                       />
-                      Required question
+                      {t(
+                        "auto.features.surveys.components.surveyformdialog.s26",
+                      )}
                     </label>
                   </div>
                 </div>
@@ -1318,7 +1346,9 @@ export function SurveyFormDialog({
                           }))
                         }
                       >
-                        Add Option
+                        {t(
+                          "auto.features.surveys.components.surveyformdialog.s27",
+                        )}
                       </Button>
                     </div>
 
@@ -1375,7 +1405,7 @@ export function SurveyFormDialog({
             disabled={isPending}
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("auto.features.surveys.components.surveyformdialog.s28")}
           </Button>
           <Button
             type="button"

@@ -1,15 +1,23 @@
+"use client";
+
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
+import { useTranslation } from "@/features/localization";
 
 export default function GlobalNotFoundPage() {
+  const { t } = useTranslation();
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <AppNotFoundState
-        title="Page not found"
-        description="The page you requested does not exist or is no longer available."
-        primaryAction={{ href: "/dashboard", label: "Go to Dashboard" }}
+        title={t("pages.globalNotFound.title")}
+        description={t("pages.globalNotFound.description")}
+        primaryAction={{
+          href: "/dashboard",
+          label: t("pages.globalNotFound.goToDashboard"),
+        }}
         secondaryAction={{
           href: "/login",
-          label: "Go to Login",
+          label: t("pages.globalNotFound.goToLogin"),
           variant: "outline",
         }}
       />

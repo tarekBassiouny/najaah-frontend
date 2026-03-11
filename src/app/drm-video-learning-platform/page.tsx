@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "A DRM Video Learning Platform for Centers That Sell Premium Content";
+
 export default function DrmVideoLearningPlatformPage() {
   return (
     <SeoPageShell
       eyebrow="Content Protection"
-      title="A DRM Video Learning Platform for Centers That Sell Premium Content"
+      title={SEO_PAGE_TITLE}
       intro="If your center depends on recorded lectures, premium revision sessions, or paid PDF materials, weak content protection becomes a revenue problem. Najaah is designed for centers that need secure delivery, not just video hosting."
       bullets={[
         "DRM-backed video protection with secure access controls",

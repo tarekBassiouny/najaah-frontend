@@ -23,6 +23,7 @@ import type {
 import { AnalyticsBarChart } from "@/features/analytics/components/charts/AnalyticsBarChart";
 import { AnalyticsDonutChart } from "@/features/analytics/components/charts/AnalyticsDonutChart";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 type SurveyResultsDrawerProps = {
   open: boolean;
@@ -199,11 +200,13 @@ function getRatingStats(question: SurveyAnalyticsQuestionView) {
   };
 }
 
-function renderGenericData(data: unknown) {
+function renderGenericData(data: unknown, t: (_key: string) => string) {
   if (Array.isArray(data)) {
     if (data.length === 0) {
       return (
-        <p className="text-sm text-gray-500 dark:text-gray-400">No data.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {t("auto.features.surveys.components.surveyresultsdrawer.s1")}
+        </p>
       );
     }
 
@@ -257,7 +260,9 @@ function renderGenericData(data: unknown) {
 
     if (entries.length === 0) {
       return (
-        <p className="text-sm text-gray-500 dark:text-gray-400">No data.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {t("auto.features.surveys.components.surveyresultsdrawer.s1")}
+        </p>
       );
     }
 
@@ -292,6 +297,8 @@ export function SurveyResultsDrawer({
   centerId,
   initialTab,
 }: SurveyResultsDrawerProps) {
+  const { t } = useTranslation();
+
   const surveyId = survey?.id;
   const [activeTab, setActiveTab] = useState<SurveyResultsTab>("overview");
   const [questionSearch, setQuestionSearch] = useState("");
@@ -429,7 +436,7 @@ export function SurveyResultsDrawer({
               {getSurveyTitle(survey)}
             </DialogTitle>
             <DialogDescription>
-              Survey analytics and response breakdown for survey #
+              {t("auto.features.surveys.components.surveyresultsdrawer.s2")}
               {surveyId ?? "—"}.
             </DialogDescription>
             <div className="flex flex-wrap gap-2">
@@ -476,9 +483,17 @@ export function SurveyResultsDrawer({
 
               {isError ? (
                 <Alert variant="destructive">
-                  <AlertTitle>Failed to load survey analytics</AlertTitle>
+                  <AlertTitle>
+                    {t(
+                      "auto.features.surveys.components.surveyresultsdrawer.s3",
+                    )}
+                  </AlertTitle>
                   <AlertDescription className="space-y-3">
-                    <p>Could not fetch survey results. Please try again.</p>
+                    <p>
+                      {t(
+                        "auto.features.surveys.components.surveyresultsdrawer.s4",
+                      )}
+                    </p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -496,7 +511,9 @@ export function SurveyResultsDrawer({
                     <section className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-2">
                         <StatsCard
-                          title="Submitted Users"
+                          title={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s5",
+                          )}
                           value={submittedCount.toLocaleString()}
                         />
                         <StatsCard
@@ -504,11 +521,15 @@ export function SurveyResultsDrawer({
                           value={totalQuestions.toLocaleString()}
                         />
                         <StatsCard
-                          title="Answered Questions"
+                          title={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s6",
+                          )}
                           value={`${answeredQuestions}/${totalQuestions || 0}`}
                         />
                         <StatsCard
-                          title="Text Responses"
+                          title={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s7",
+                          )}
                           value={totalTextResponses.toLocaleString()}
                         />
                       </div>
@@ -516,7 +537,9 @@ export function SurveyResultsDrawer({
                       <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                         <div className="mb-3 flex items-center justify-between gap-2">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Response Health
+                            {t(
+                              "auto.features.surveys.components.surveyresultsdrawer.s8",
+                            )}
                           </h3>
                           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                             {formatPercent(questionEngagement)}
@@ -531,15 +554,19 @@ export function SurveyResultsDrawer({
                           />
                         </div>
                         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          {answeredQuestions} of {totalQuestions} questions have
-                          response data.
+                          {answeredQuestions} of {totalQuestions}{" "}
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s9",
+                          )}
                         </p>
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50">
                           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            Most Answered Question
+                            {t(
+                              "auto.features.surveys.components.surveyresultsdrawer.s10",
+                            )}
                           </p>
                           <p className="mt-2 line-clamp-2 text-sm font-medium text-gray-900 dark:text-white">
                             {topQuestion?.title ?? "No question data"}
@@ -553,7 +580,9 @@ export function SurveyResultsDrawer({
 
                         <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50">
                           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            Most Selected Option
+                            {t(
+                              "auto.features.surveys.components.surveyresultsdrawer.s11",
+                            )}
                           </p>
                           <p className="mt-2 line-clamp-2 text-sm font-medium text-gray-900 dark:text-white">
                             {topOption?.optionLabel ?? "No option data"}
@@ -567,7 +596,9 @@ export function SurveyResultsDrawer({
 
                         <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50 sm:col-span-2 lg:col-span-1">
                           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                            Survey Window
+                            {t(
+                              "auto.features.surveys.components.surveyresultsdrawer.s12",
+                            )}
                           </p>
                           <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                             {windowStatus.label}
@@ -582,7 +613,9 @@ export function SurveyResultsDrawer({
                       {viewModel.metrics.length > 0 ? (
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Additional Metrics
+                            {t(
+                              "auto.features.surveys.components.surveyresultsdrawer.s13",
+                            )}
                           </h4>
                           <div className="grid gap-2 sm:grid-cols-2">
                             {viewModel.metrics.slice(0, 12).map((metric) => (
@@ -608,20 +641,26 @@ export function SurveyResultsDrawer({
                     <section className="space-y-4">
                       <div className="space-y-2">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Question Analytics
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s14",
+                          )}
                         </h3>
                         <Input
                           value={questionSearch}
                           onChange={(event) =>
                             setQuestionSearch(event.target.value)
                           }
-                          placeholder="Search questions..."
+                          placeholder={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s15",
+                          )}
                         />
                       </div>
 
                       {filteredQuestions.length === 0 ? (
                         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                          No question analytics available for this filter.
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s16",
+                          )}
                         </div>
                       ) : (
                         <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -810,7 +849,9 @@ export function SurveyResultsDrawer({
                                             </div>
                                             <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/50">
                                               <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                Rated Responses
+                                                {t(
+                                                  "auto.features.surveys.components.surveyresultsdrawer.s17",
+                                                )}
                                               </p>
                                               <p className="text-base font-semibold text-gray-900 dark:text-white">
                                                 {stats.total.toLocaleString()}
@@ -826,7 +867,9 @@ export function SurveyResultsDrawer({
                               {selectedQuestion.textResponses.length > 0 ? (
                                 <div className="space-y-2">
                                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Text Responses (
+                                    {t(
+                                      "auto.features.surveys.components.surveyresultsdrawer.s18",
+                                    )}
                                     {selectedQuestion.textResponses.length})
                                   </p>
                                   <div className="space-y-2">
@@ -854,28 +897,37 @@ export function SurveyResultsDrawer({
                     <section className="space-y-4">
                       <div className="space-y-2">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                          Qualitative Responses
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s19",
+                          )}
                         </h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Aggregate text responses only. No respondent identity
-                          is shown.
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s20",
+                          )}
                         </p>
                         <Input
                           value={responseSearch}
                           onChange={(event) =>
                             setResponseSearch(event.target.value)
                           }
-                          placeholder="Search text responses..."
+                          placeholder={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s21",
+                          )}
                         />
                       </div>
 
                       <div className="grid gap-3 sm:grid-cols-3">
                         <StatsCard
-                          title="Total Text Responses"
+                          title={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s22",
+                          )}
                           value={totalTextResponses.toLocaleString()}
                         />
                         <StatsCard
-                          title="Questions With Text"
+                          title={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s23",
+                          )}
                           value={viewModel.questions
                             .filter(
                               (question) => question.textResponses.length > 0,
@@ -883,14 +935,18 @@ export function SurveyResultsDrawer({
                             .length.toLocaleString()}
                         />
                         <StatsCard
-                          title="Filtered Results"
+                          title={t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s24",
+                          )}
                           value={textResponseItems.length.toLocaleString()}
                         />
                       </div>
 
                       {textResponseItems.length === 0 ? (
                         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400">
-                          No text responses matched your search.
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s25",
+                          )}
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -909,8 +965,9 @@ export function SurveyResultsDrawer({
                           ))}
                           {textResponseItems.length > 100 ? (
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Showing first 100 matched responses for
-                              performance.
+                              {t(
+                                "auto.features.surveys.components.surveyresultsdrawer.s26",
+                              )}
                             </p>
                           ) : null}
                         </div>
@@ -923,7 +980,9 @@ export function SurveyResultsDrawer({
                       {viewModel.extraSections.length > 0 ? (
                         <div className="space-y-3">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Additional Analytics Data
+                            {t(
+                              "auto.features.surveys.components.surveyresultsdrawer.s27",
+                            )}
                           </h3>
 
                           {viewModel.extraSections.map((section) => (
@@ -934,7 +993,7 @@ export function SurveyResultsDrawer({
                               <p className="text-sm font-semibold text-gray-900 dark:text-white">
                                 {section.title}
                               </p>
-                              {renderGenericData(section.data)}
+                              {renderGenericData(section.data, t)}
                             </div>
                           ))}
                         </div>
@@ -942,7 +1001,9 @@ export function SurveyResultsDrawer({
 
                       <details className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                         <summary className="cursor-pointer text-sm font-semibold text-gray-900 dark:text-white">
-                          Raw Analytics Payload
+                          {t(
+                            "auto.features.surveys.components.surveyresultsdrawer.s28",
+                          )}
                         </summary>
                         <pre className="mt-3 max-h-96 overflow-auto rounded-lg bg-gray-950 p-3 text-xs text-gray-100">
                           {JSON.stringify(viewModel.raw, null, 2)}
@@ -963,7 +1024,9 @@ export function SurveyResultsDrawer({
             >
               {isLoading || isFetching ? "Refreshing..." : "Refresh"}
             </Button>
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
+            <Button onClick={() => onOpenChange(false)}>
+              {t("auto.features.surveys.components.surveyresultsdrawer.s29")}
+            </Button>
           </div>
         </div>
       </DialogContent>

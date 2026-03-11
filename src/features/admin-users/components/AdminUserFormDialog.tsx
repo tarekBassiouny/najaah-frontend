@@ -36,6 +36,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
 const COUNTRY_CODE_REGEX = /^\+[1-9]\d{0,3}$/;
@@ -110,6 +111,8 @@ export function AdminUserFormDialog({
   onCreated,
   scopeCenterId,
 }: AdminUserFormDialogProps) {
+  const { t } = useTranslation();
+
   const [formError, setFormError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditMode = Boolean(user);
@@ -297,10 +300,10 @@ export function AdminUserFormDialog({
         </div>
         <div className="mt-1 flex flex-wrap gap-3 pb-3 text-xs">
           <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            Account Details
+            {t("auto.features.admin_users.components.adminuserformdialog.s1")}
           </span>
           <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            Account Access
+            {t("auto.features.admin_users.components.adminuserformdialog.s2")}
           </span>
         </div>
       </DialogHeader>
@@ -308,10 +311,10 @@ export function AdminUserFormDialog({
       <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900">
         <div>
           <p className="font-medium text-gray-900 dark:text-white">
-            Advanced options
+            {t("auto.features.admin_users.components.adminuserformdialog.s3")}
           </p>
           <p className="text-xs text-gray-400">
-            Center, country code, and status settings.
+            {t("auto.features.admin_users.components.adminuserformdialog.s4")}
           </p>
         </div>
         <Button
@@ -326,7 +329,9 @@ export function AdminUserFormDialog({
 
       {formError && (
         <Alert variant="destructive">
-          <AlertTitle>Could not save admin user</AlertTitle>
+          <AlertTitle>
+            {t("auto.features.admin_users.components.adminuserformdialog.s5")}
+          </AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       )}
@@ -346,7 +351,9 @@ export function AdminUserFormDialog({
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Jane Admin"
+                    placeholder={t(
+                      "auto.features.admin_users.components.adminuserformdialog.s6",
+                    )}
                     {...field}
                     disabled={isPending}
                   />
@@ -366,7 +373,9 @@ export function AdminUserFormDialog({
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="jane.admin@example.com"
+                    placeholder={t(
+                      "auto.features.admin_users.components.adminuserformdialog.s7",
+                    )}
                     {...field}
                     disabled={isPending}
                   />
@@ -393,8 +402,9 @@ export function AdminUserFormDialog({
                   />
                 </FormControl>
                 <p className="text-xs text-gray-400">
-                  Base number only (10 digits). Do not include country code or a
-                  leading 0.
+                  {t(
+                    "auto.features.admin_users.components.adminuserformdialog.s8",
+                  )}
                 </p>
                 <FormMessage />
               </FormItem>
@@ -407,7 +417,11 @@ export function AdminUserFormDialog({
               name="countryCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country code</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.admin_users.components.adminuserformdialog.s9",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="+20" {...field} disabled={isPending} />
                   </FormControl>
@@ -424,7 +438,12 @@ export function AdminUserFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Center <span className="text-gray-400">(optional)</span>
+                    Center{" "}
+                    <span className="text-gray-400">
+                      {t(
+                        "auto.features.admin_users.components.adminuserformdialog.s10",
+                      )}
+                    </span>
                   </FormLabel>
                   <FormControl>
                     <CenterPicker
@@ -445,13 +464,16 @@ export function AdminUserFormDialog({
                   </FormControl>
                   {isCenterScoped ? (
                     <p className="text-xs text-gray-400">
-                      Locked to current center: {centerName ?? "Current center"}
-                      .
+                      {t(
+                        "auto.features.admin_users.components.adminuserformdialog.s11",
+                      )}
+                      {centerName ?? "Current center"}.
                     </p>
                   ) : (
                     <p className="text-xs text-gray-400">
-                      Leave empty to create system-level admin without center
-                      assignment.
+                      {t(
+                        "auto.features.admin_users.components.adminuserformdialog.s12",
+                      )}
                     </p>
                   )}
                   <FormMessage />
@@ -496,7 +518,9 @@ export function AdminUserFormDialog({
               onClick={onClose}
               disabled={isPending}
             >
-              Cancel
+              {t(
+                "auto.features.admin_users.components.adminuserformdialog.s13",
+              )}
             </Button>
             <Button type="submit" disabled={isSubmitDisabled}>
               {isPending

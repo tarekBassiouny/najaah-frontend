@@ -24,6 +24,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type UpdateCenterStatusDialogProps = {
   open: boolean;
@@ -51,6 +52,8 @@ export function UpdateCenterStatusDialog({
   center,
   onSuccess,
 }: UpdateCenterStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useUpdateCenterStatus();
   const [status, setStatus] = useState<CenterStatusOption>("active");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -121,22 +124,29 @@ export function UpdateCenterStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Change Status</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.centers.components.updatecenterstatusdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Update status for <span className="font-medium">{centerName}</span>.
+            {t("auto.features.centers.components.updatecenterstatusdialog.s2")}
+            <span className="font-medium">{centerName}</span>.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.updatecenterstatusdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for this center.
+            {t("auto.features.centers.components.updatecenterstatusdialog.s4")}
           </p>
           <Select
             value={status}
@@ -154,7 +164,7 @@ export function UpdateCenterStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.centers.components.updatecenterstatusdialog.s5")}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnalyticsBarChart } from "./charts/AnalyticsBarChart";
 import type { AnalyticsCoursesMedia } from "@/features/analytics/types/analytics";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsCoursesMediaPanelProps = {
   data?: AnalyticsCoursesMedia;
@@ -17,12 +18,20 @@ export function AnalyticsCoursesMediaPanel({
   isLoading,
   isError,
 }: AnalyticsCoursesMediaPanelProps) {
+  const { t } = useTranslation();
+
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Courses & media analytics unavailable</AlertTitle>
+        <AlertTitle>
+          {t(
+            "auto.features.analytics.components.analyticscoursesmediapanel.s1",
+          )}
+        </AlertTitle>
         <AlertDescription>
-          Failed to load courses/media metrics.
+          {t(
+            "auto.features.analytics.components.analyticscoursesmediapanel.s2",
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -41,7 +50,11 @@ export function AnalyticsCoursesMediaPanel({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Courses by Status</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticscoursesmediapanel.s3",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart
@@ -65,7 +78,11 @@ export function AnalyticsCoursesMediaPanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>Media Upload Status</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticscoursesmediapanel.s4",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart
@@ -91,13 +108,19 @@ export function AnalyticsCoursesMediaPanel({
 
       <Card>
         <CardHeader>
-          <CardTitle>Top Courses by Enrollments</CardTitle>
+          <CardTitle>
+            {t(
+              "auto.features.analytics.components.analyticscoursesmediapanel.s5",
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {data.courses.top_by_enrollments.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                No top courses data in this range.
+                {t(
+                  "auto.features.analytics.components.analyticscoursesmediapanel.s6",
+                )}
               </p>
             ) : (
               data.courses.top_by_enrollments.slice(0, 8).map((row) => (

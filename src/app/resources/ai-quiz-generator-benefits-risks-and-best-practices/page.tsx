@@ -17,11 +17,13 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE = "AI Quiz Generator: Benefits, Risks, and Best Practices";
+
 export default function AiQuizBestPracticesPage() {
   return (
     <ArticlePageShell
       category="AI Assessments"
-      title="AI Quiz Generator: Benefits, Risks, and Best Practices"
+      title={SEO_PAGE_TITLE}
       intro="AI quiz generation can save substantial teacher time, but only when it is used as a controlled drafting layer rather than a blind replacement for educator judgment."
       sections={[
         {

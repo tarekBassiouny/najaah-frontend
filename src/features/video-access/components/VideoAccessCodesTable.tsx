@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
+import { useTranslation } from "@/features/localization";
 import { getStudentRequestApiErrorMessage } from "@/features/student-requests/lib/api-error";
 import { listStudents } from "@/features/students/services/students.service";
 import { listVideos } from "@/features/videos/services/videos.service";
@@ -105,7 +106,7 @@ function resolveStatusVariant(
 
 function resolveStatusLabel(value: string | null | undefined) {
   const raw = String(value ?? "").trim();
-  if (!raw) return "Unknown";
+  if (!raw) return "unknown";
   return raw
     .replace(/[_-]/g, " ")
     .toLowerCase()
@@ -114,9 +115,7 @@ function resolveStatusLabel(value: string | null | undefined) {
 
 function resolveStudentLabel(code: VideoAccessCode): string {
   const student = asRecord(code.student) ?? asRecord(code.user);
-  return (
-    asString(student?.name) ?? asString(code.user_name) ?? "Unknown Student"
-  );
+  return asString(student?.name) ?? asString(code.user_name) ?? "unknown";
 }
 
 function resolveStudentPhone(code: VideoAccessCode): string {
@@ -130,15 +129,13 @@ function resolveCourseLabel(code: VideoAccessCode): string {
     asString(course?.title) ??
     asString(course?.name) ??
     asString(code.course_name) ??
-    "Unknown Course"
+    "unknown"
   );
 }
 
 function resolveVideoLabel(code: VideoAccessCode): string {
   const video = asRecord(code.video);
-  return (
-    asString(video?.title) ?? asString(code.video_title) ?? "Unknown Video"
-  );
+  return asString(video?.title) ?? asString(code.video_title) ?? "unknown";
 }
 
 function resolveJobStatus(job: BulkWhatsappJob | undefined): string {
@@ -191,6 +188,7 @@ export function VideoAccessCodesTable({
   hideHeader = false,
   showCenterFilter = true,
 }: VideoAccessCodesTableProps) {
+  const { t } = useTranslation();
   const tenant = useTenant();
   const isTenantCenterScoped = Boolean(tenant.centerSlug);
   const selectedCenterId = tenant.centerId ?? undefined;
@@ -357,10 +355,11 @@ export function VideoAccessCodesTable({
     students.forEach((student) => {
       cachedStudentsRef.current.set(
         String(student.id),
-        asString(student.name) ?? `Student ${student.id}`,
+        asString(student.name) ??
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.student")} ${student.id}`,
       );
     });
-  }, [studentsQuery.data?.pages]);
+  }, [studentsQuery.data?.pages, t]);
 
   useEffect(() => {
     const courses = (coursesQuery.data?.pages ?? []).flatMap(
@@ -370,12 +369,12 @@ export function VideoAccessCodesTable({
       cachedCoursesRef.current.set(String(course.id), {
         label:
           asString((course as { title?: unknown }).title) ??
-          `Course ${course.id}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.course")} ${course.id}`,
         centerId:
           (course as Course).center_id ?? (course as Course).center?.id ?? null,
       });
     });
-  }, [coursesQuery.data?.pages]);
+  }, [coursesQuery.data?.pages, t]);
 
   useEffect(() => {
     const videos = (videosQuery.data?.pages ?? []).flatMap(
@@ -387,15 +386,20 @@ export function VideoAccessCodesTable({
           asString(video.title) ??
           asString(video.title_translations?.en) ??
           asString(video.title_translations?.ar) ??
-          `Video ${video.id}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.video")} ${video.id}`,
         courseId: video.course_id != null ? String(video.course_id) : undefined,
       });
     });
-  }, [videosQuery.data?.pages]);
+  }, [videosQuery.data?.pages, t]);
 
   const studentOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_STUDENTS_VALUE, label: "All students" },
+      {
+        value: ALL_STUDENTS_VALUE,
+        label: t(
+          "pages.studentRequests.tables.videoAccessCodes.filters.allStudents",
+        ),
+      },
     ];
 
     if (!hasCenterContext) return defaults;
@@ -409,7 +413,9 @@ export function VideoAccessCodesTable({
       )
       .map((student) => ({
         value: String(student.id),
-        label: asString(student.name) ?? `Student ${student.id}`,
+        label:
+          asString(student.name) ??
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.student")} ${student.id}`,
       }));
 
     if (
@@ -420,16 +426,21 @@ export function VideoAccessCodesTable({
         value: selectedStudent,
         label:
           cachedStudentsRef.current.get(selectedStudent) ??
-          `Student ${selectedStudent}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.student")} ${selectedStudent}`,
       });
     }
 
     return [...defaults, ...students];
-  }, [hasCenterContext, selectedStudent, studentsQuery.data?.pages]);
+  }, [hasCenterContext, selectedStudent, studentsQuery.data?.pages, t]);
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_COURSES_VALUE, label: "All courses" },
+      {
+        value: ALL_COURSES_VALUE,
+        label: t(
+          "pages.studentRequests.tables.videoAccessCodes.filters.allCourses",
+        ),
+      },
     ];
 
     if (!hasCenterContext) return defaults;
@@ -445,7 +456,7 @@ export function VideoAccessCodesTable({
         value: String(course.id),
         label:
           asString((course as { title?: unknown }).title) ??
-          `Course ${course.id}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.course")} ${course.id}`,
       }));
 
     if (
@@ -456,16 +467,21 @@ export function VideoAccessCodesTable({
         value: selectedCourse,
         label:
           cachedCoursesRef.current.get(selectedCourse)?.label ??
-          `Course ${selectedCourse}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.course")} ${selectedCourse}`,
       });
     }
 
     return [...defaults, ...courses];
-  }, [coursesQuery.data?.pages, hasCenterContext, selectedCourse]);
+  }, [coursesQuery.data?.pages, hasCenterContext, selectedCourse, t]);
 
   const videoOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_VIDEOS_VALUE, label: "All videos" },
+      {
+        value: ALL_VIDEOS_VALUE,
+        label: t(
+          "pages.studentRequests.tables.videoAccessCodes.filters.allVideos",
+        ),
+      },
     ];
 
     if (!hasCenterContext) return defaults;
@@ -483,7 +499,7 @@ export function VideoAccessCodesTable({
           asString(video.title) ??
           asString(video.title_translations?.en) ??
           asString(video.title_translations?.ar) ??
-          `Video ${video.id}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.video")} ${video.id}`,
       }));
 
     if (
@@ -494,12 +510,12 @@ export function VideoAccessCodesTable({
         value: selectedVideo,
         label:
           cachedVideosRef.current.get(selectedVideo)?.title ??
-          `Video ${selectedVideo}`,
+          `${t("pages.studentRequests.tables.videoAccessCodes.filters.video")} ${selectedVideo}`,
       });
     }
 
     return [...defaults, ...videos];
-  }, [hasCenterContext, selectedVideo, videosQuery.data?.pages]);
+  }, [hasCenterContext, selectedVideo, t, videosQuery.data?.pages]);
 
   useEffect(() => {
     setPage(1);
@@ -660,7 +676,9 @@ export function VideoAccessCodesTable({
           setJobError(
             getStudentRequestApiErrorMessage(
               error,
-              "Unable to send code via WhatsApp.",
+              t(
+                "pages.studentRequests.tables.videoAccessCodes.errors.sendFailed",
+              ),
             ),
           );
         },
@@ -690,7 +708,9 @@ export function VideoAccessCodesTable({
           setJobError(
             getStudentRequestApiErrorMessage(
               error,
-              "Unable to bulk send codes via WhatsApp.",
+              t(
+                "pages.studentRequests.tables.videoAccessCodes.errors.bulkSendFailed",
+              ),
             ),
           );
         },
@@ -717,10 +737,10 @@ export function VideoAccessCodesTable({
       {!hideHeader ? (
         <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Video Access Codes
+            {t("pages.studentRequests.tables.videoAccessCodes.title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage generated codes and send them via WhatsApp.
+            {t("pages.studentRequests.tables.videoAccessCodes.description")}
           </p>
         </div>
       ) : null}
@@ -728,7 +748,11 @@ export function VideoAccessCodesTable({
       {jobError ? (
         <div className="px-4 pt-4">
           <Alert variant="destructive">
-            <AlertTitle>WhatsApp action failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.errors.jobFailed",
+              )}
+            </AlertTitle>
             <AlertDescription>{jobError}</AlertDescription>
           </Alert>
         </div>
@@ -740,10 +764,17 @@ export function VideoAccessCodesTable({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Bulk WhatsApp Job #{String(activeJobData.id)}
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.job.title",
+                    {
+                      id: String(activeJobData.id),
+                    },
+                  )}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Track sending progress for large batches.
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.job.description",
+                  )}
                 </p>
               </div>
               <Badge variant={resolveJobStatusVariant(activeJobStatus)}>
@@ -759,12 +790,45 @@ export function VideoAccessCodesTable({
             </div>
 
             <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-300">
-              <span>Total: {Number(activeJobData.total_codes ?? 0)}</span>
-              <span>Sent: {Number(activeJobData.sent_count ?? 0)}</span>
-              <span>Failed: {Number(activeJobData.failed_count ?? 0)}</span>
-              <span>Pending: {Number(activeJobData.pending_count ?? 0)}</span>
-              <span>Progress: {readProgressPercent(activeJobData)}%</span>
-              <span>Max retries (runtime): {runtimeMaxRetries}</span>
+              <span>
+                {t("pages.studentRequests.tables.videoAccessCodes.job.total", {
+                  count: Number(activeJobData.total_codes ?? 0),
+                })}
+              </span>
+              <span>
+                {t("pages.studentRequests.tables.videoAccessCodes.job.sent", {
+                  count: Number(activeJobData.sent_count ?? 0),
+                })}
+              </span>
+              <span>
+                {t("pages.studentRequests.tables.videoAccessCodes.job.failed", {
+                  count: Number(activeJobData.failed_count ?? 0),
+                })}
+              </span>
+              <span>
+                {t(
+                  "pages.studentRequests.tables.videoAccessCodes.job.pending",
+                  {
+                    count: Number(activeJobData.pending_count ?? 0),
+                  },
+                )}
+              </span>
+              <span>
+                {t(
+                  "pages.studentRequests.tables.videoAccessCodes.job.progress",
+                  {
+                    value: readProgressPercent(activeJobData),
+                  },
+                )}
+              </span>
+              <span>
+                {t(
+                  "pages.studentRequests.tables.videoAccessCodes.job.retries",
+                  {
+                    count: runtimeMaxRetries,
+                  },
+                )}
+              </span>
             </div>
 
             {activeJobIsTerminal ? (
@@ -774,7 +838,7 @@ export function VideoAccessCodesTable({
                   variant="outline"
                   onClick={() => setActiveJob(null)}
                 >
-                  Clear Job
+                  {t("pages.studentRequests.tables.videoAccessCodes.job.clear")}
                 </Button>
               </div>
             ) : null}
@@ -802,7 +866,16 @@ export function VideoAccessCodesTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "code" : "codes"}
+            {total === 1
+              ? t("pages.studentRequests.tables.videoAccessCodes.summary", {
+                  count: total,
+                })
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.summaryPlural",
+                  {
+                    count: total,
+                  },
+                )}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-3 lg:grid-cols-5"
@@ -823,10 +896,26 @@ export function VideoAccessCodesTable({
           options={studentOptions}
           searchValue={studentSearch}
           onSearchValueChange={setStudentSearch}
-          placeholder={hasCenterContext ? "Student" : "Select center first"}
-          searchPlaceholder="Search students..."
+          placeholder={
+            hasCenterContext
+              ? t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.student",
+                )
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.selectCenter",
+                )
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.videoAccessCodes.filters.searchStudents",
+          )}
           emptyMessage={
-            hasCenterContext ? "No students found" : "Select a center first"
+            hasCenterContext
+              ? t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.noStudents",
+                )
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.selectCenter",
+                )
           }
           isLoading={studentsQuery.isLoading}
           filterOptions={false}
@@ -849,10 +938,26 @@ export function VideoAccessCodesTable({
           options={courseOptions}
           searchValue={courseSearch}
           onSearchValueChange={setCourseSearch}
-          placeholder={hasCenterContext ? "Course" : "Select center first"}
-          searchPlaceholder="Search courses..."
+          placeholder={
+            hasCenterContext
+              ? t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.course",
+                )
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.selectCenter",
+                )
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.videoAccessCodes.filters.searchCourses",
+          )}
           emptyMessage={
-            hasCenterContext ? "No courses found" : "Select a center first"
+            hasCenterContext
+              ? t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.noCourses",
+                )
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.selectCenter",
+                )
           }
           isLoading={coursesQuery.isLoading}
           filterOptions={false}
@@ -873,10 +978,24 @@ export function VideoAccessCodesTable({
           options={videoOptions}
           searchValue={videoSearch}
           onSearchValueChange={setVideoSearch}
-          placeholder={hasCenterContext ? "Video" : "Select center first"}
-          searchPlaceholder="Search videos..."
+          placeholder={
+            hasCenterContext
+              ? t("pages.studentRequests.tables.videoAccessCodes.filters.video")
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.selectCenter",
+                )
+          }
+          searchPlaceholder={t(
+            "pages.studentRequests.tables.videoAccessCodes.filters.searchVideos",
+          )}
           emptyMessage={
-            hasCenterContext ? "No videos found" : "Select a center first"
+            hasCenterContext
+              ? t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.noVideos",
+                )
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.filters.selectCenter",
+                )
           }
           isLoading={videosQuery.isLoading}
           filterOptions={false}
@@ -893,14 +1012,36 @@ export function VideoAccessCodesTable({
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.status",
+              )}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="used">Used</SelectItem>
-            <SelectItem value="revoked">Revoked</SelectItem>
-            <SelectItem value="expired">Expired</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.allStatuses",
+              )}
+            </SelectItem>
+            <SelectItem value="active">
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.active",
+              )}
+            </SelectItem>
+            <SelectItem value="used">
+              {t("pages.studentRequests.tables.videoAccessCodes.filters.used")}
+            </SelectItem>
+            <SelectItem value="revoked">
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.revoked",
+              )}
+            </SelectItem>
+            <SelectItem value="expired">
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.expired",
+              )}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -911,11 +1052,23 @@ export function VideoAccessCodesTable({
           }
         >
           <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-            <SelectValue placeholder="WhatsApp format" />
+            <SelectValue
+              placeholder={t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.whatsappFormat",
+              )}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="text_code">WhatsApp: Text</SelectItem>
-            <SelectItem value="qr_code">WhatsApp: QR</SelectItem>
+            <SelectItem value="text_code">
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.whatsappText",
+              )}
+            </SelectItem>
+            <SelectItem value="qr_code">
+              {t(
+                "pages.studentRequests.tables.videoAccessCodes.filters.whatsappQr",
+              )}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -925,7 +1078,9 @@ export function VideoAccessCodesTable({
             onClick={() => setGenerateDialogOpen(true)}
             disabled={!hasCenterContext}
           >
-            Generate Code
+            {t(
+              "pages.studentRequests.tables.videoAccessCodes.actions.generateCode",
+            )}
           </Button>
         </div>
       </ListingFilters>
@@ -933,8 +1088,12 @@ export function VideoAccessCodesTable({
       {!hasCenterContext ? (
         <div className="p-6">
           <EmptyState
-            title="Select a center first"
-            description="Video access code endpoints are center-scoped. Choose a center to continue."
+            title={t(
+              "pages.studentRequests.tables.videoAccessCodes.empty.selectCenterTitle",
+            )}
+            description={t(
+              "pages.studentRequests.tables.videoAccessCodes.empty.selectCenterDescription",
+            )}
             className="border-0 bg-transparent"
           />
         </div>
@@ -942,7 +1101,7 @@ export function VideoAccessCodesTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load video access codes. Please try again.
+              {t("pages.studentRequests.tables.videoAccessCodes.loadFailed")}
             </p>
           </div>
         </div>
@@ -958,17 +1117,51 @@ export function VideoAccessCodesTable({
                     checked={isAllPageSelected}
                     onChange={handleToggleAllSelections}
                     disabled={isLoading || items.length === 0}
-                    aria-label="Select all codes on this page"
+                    aria-label={t(
+                      "pages.studentRequests.tables.videoAccessCodes.selectAll",
+                    )}
                   />
                 </TableHead>
-                <TableHead>Student</TableHead>
-                <TableHead>Video</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Code</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expires At</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.student",
+                  )}
+                </TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.video",
+                  )}
+                </TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.course",
+                  )}
+                </TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.code",
+                  )}
+                </TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.status",
+                  )}
+                </TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.expiresAt",
+                  )}
+                </TableHead>
+                <TableHead>
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.createdAt",
+                  )}
+                </TableHead>
+                <TableHead className="text-right">
+                  {t(
+                    "pages.studentRequests.tables.videoAccessCodes.headers.actions",
+                  )}
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -1009,8 +1202,12 @@ export function VideoAccessCodesTable({
                 <TableRow>
                   <TableCell colSpan={9} className="h-48">
                     <EmptyState
-                      title="No video access codes found"
-                      description="Try adjusting your filters or generate a new code."
+                      title={t(
+                        "pages.studentRequests.tables.videoAccessCodes.empty.noResultsTitle",
+                      )}
+                      description={t(
+                        "pages.studentRequests.tables.videoAccessCodes.empty.noResultsDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
@@ -1021,9 +1218,15 @@ export function VideoAccessCodesTable({
                     asString(code.status_key) ??
                     asString(code.status) ??
                     "unknown";
-                  const statusLabel =
+                  const statusLabelRaw =
                     asString(code.status_label) ??
                     resolveStatusLabel(statusKey);
+                  const statusLabel =
+                    statusLabelRaw === "unknown"
+                      ? t(
+                          "pages.studentRequests.tables.videoAccessCodes.unknown.status",
+                        )
+                      : statusLabelRaw;
 
                   const isSending =
                     processingSendId === code.id &&
@@ -1040,13 +1243,20 @@ export function VideoAccessCodesTable({
                           className="text-primary-600 focus:ring-primary-500 h-4 w-4 cursor-pointer rounded border-gray-300"
                           checked={Boolean(selectedCodes[String(code.id)])}
                           onChange={() => handleToggleSelection(code)}
-                          aria-label={`Select code ${String(code.id)}`}
+                          aria-label={t(
+                            "pages.studentRequests.tables.videoAccessCodes.selectCode",
+                            { id: String(code.id) },
+                          )}
                         />
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium text-gray-900 dark:text-white">
-                            {resolveStudentLabel(code)}
+                            {resolveStudentLabel(code) === "unknown"
+                              ? t(
+                                  "pages.studentRequests.tables.videoAccessCodes.unknown.student",
+                                )
+                              : resolveStudentLabel(code)}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {resolveStudentPhone(code)}
@@ -1054,10 +1264,18 @@ export function VideoAccessCodesTable({
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {resolveVideoLabel(code)}
+                        {resolveVideoLabel(code) === "unknown"
+                          ? t(
+                              "pages.studentRequests.tables.videoAccessCodes.unknown.video",
+                            )
+                          : resolveVideoLabel(code)}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
-                        {resolveCourseLabel(code)}
+                        {resolveCourseLabel(code) === "unknown"
+                          ? t(
+                              "pages.studentRequests.tables.videoAccessCodes.unknown.course",
+                            )
+                          : resolveCourseLabel(code)}
                       </TableCell>
                       <TableCell>
                         <code className="rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800 dark:bg-gray-800 dark:text-gray-100">
@@ -1082,7 +1300,13 @@ export function VideoAccessCodesTable({
                           onClick={() => handleSendSingle(code)}
                           disabled={isSending}
                         >
-                          {isSending ? "Sending..." : "Send WhatsApp"}
+                          {isSending
+                            ? t(
+                                "pages.studentRequests.tables.videoAccessCodes.actions.sending",
+                              )
+                            : t(
+                                "pages.studentRequests.tables.videoAccessCodes.actions.sendWhatsapp",
+                              )}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -1097,14 +1321,20 @@ export function VideoAccessCodesTable({
       {selectedCount > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
-            {selectedCount} selected
+            {t("pages.studentRequests.tables.videoAccessCodes.bulk.selected", {
+              count: selectedCount,
+            })}
           </div>
           <Button
             size="sm"
             onClick={handleBulkSend}
             disabled={bulkSendMutation.isPending}
           >
-            {bulkSendMutation.isPending ? "Queueing..." : "Bulk Send WhatsApp"}
+            {bulkSendMutation.isPending
+              ? t("pages.studentRequests.tables.videoAccessCodes.bulk.queueing")
+              : t(
+                  "pages.studentRequests.tables.videoAccessCodes.bulk.sendWhatsapp",
+                )}
           </Button>
         </div>
       ) : null}
@@ -1137,7 +1367,9 @@ export function VideoAccessCodesTable({
                   cachedCoursesRef.current.get(selectedCourse);
                 return {
                   id: selectedCourse,
-                  label: cachedCourse?.label ?? `Course ${selectedCourse}`,
+                  label:
+                    cachedCourse?.label ??
+                    `${t("pages.studentRequests.tables.videoAccessCodes.filters.course")} ${selectedCourse}`,
                   centerId: cachedCourse?.centerId ?? null,
                 };
               })()
@@ -1149,7 +1381,7 @@ export function VideoAccessCodesTable({
                 id: selectedVideo,
                 label:
                   cachedVideosRef.current.get(selectedVideo)?.title ??
-                  `Video ${selectedVideo}`,
+                  `${t("pages.studentRequests.tables.videoAccessCodes.filters.video")} ${selectedVideo}`,
               }
             : null
         }

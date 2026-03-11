@@ -17,6 +17,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type RetryCenterOnboardingDialogProps = {
   open: boolean;
@@ -37,6 +38,8 @@ export function RetryCenterOnboardingDialog({
   center,
   onSuccess,
 }: RetryCenterOnboardingDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useRetryCenterOnboarding();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -90,27 +93,39 @@ export function RetryCenterOnboardingDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Retry Onboarding</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.centers.components.retrycenteronboardingdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Retry onboarding workflow for{" "}
+            {t(
+              "auto.features.centers.components.retrycenteronboardingdialog.s2",
+            )}{" "}
             <span className="font-medium">{getCenterName(center)}</span>.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to retry</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.retrycenteronboardingdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-900/20 dark:text-blue-300">
-          This action re-runs onboarding operations for this center.
+          {t("auto.features.centers.components.retrycenteronboardingdialog.s4")}
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t(
+              "auto.features.centers.components.retrycenteronboardingdialog.s5",
+            )}
           </Button>
           <Button onClick={handleRetry} disabled={mutation.isPending}>
             {mutation.isPending ? "Retrying..." : "Retry Onboarding"}

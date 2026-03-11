@@ -15,6 +15,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DeleteCenterDialogProps = {
   open: boolean;
@@ -35,6 +36,8 @@ export function DeleteCenterDialog({
   center,
   onSuccess,
 }: DeleteCenterDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteCenter();
 
@@ -80,11 +83,13 @@ export function DeleteCenterDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Center</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.centers.components.deletecenterdialog.s1")}
+          </DialogTitle>
         </DialogHeader>
 
         <HardDeletePanel
-          title="Delete Center"
+          title={t("auto.features.centers.components.deletecenterdialog.s1")}
           entityName={getCenterName(center)}
           entityFallback="this center"
           confirmButtonLabel="Delete Center"

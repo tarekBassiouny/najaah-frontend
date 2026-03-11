@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة فيديو تعليمية محمية بتقنية DRM للمراكز التي تبيع محتوى مميزاً";
+
 export default function ArabicDrmVideoPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="حماية المحتوى"
-      title="منصة فيديو تعليمية محمية بتقنية DRM للمراكز التي تبيع محتوى مميزاً"
+      title={SEO_PAGE_TITLE}
       intro="إذا كان مركزك يعتمد على المحاضرات المسجلة أو جلسات المراجعة المميزة أو ملفات PDF المدفوعة، فإن ضعف حماية المحتوى يتحول سريعاً إلى مشكلة إيراد. نجاح مصممة للمراكز التي تحتاج تسليماً آمناً، لا مجرد استضافة فيديو."
       bullets={[
         "حماية فيديو مدعومة بـ DRM مع ضوابط وصول أقوى",

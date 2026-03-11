@@ -16,6 +16,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DeleteStudentDialogProps = {
   open: boolean;
@@ -39,6 +40,8 @@ export function DeleteStudentDialog({
   onSuccess,
   scopeCenterId,
 }: DeleteStudentDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteStudent({ centerId: scopeCenterId ?? null });
 
@@ -81,13 +84,15 @@ export function DeleteStudentDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Student</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.students.components.deletestudentdialog.s1")}
+          </DialogTitle>
           <DialogDescription className="sr-only">
-            Permanently delete the selected student.
+            {t("auto.features.students.components.deletestudentdialog.s2")}
           </DialogDescription>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Student"
+          title={t("auto.features.students.components.deletestudentdialog.s1")}
           entityName={studentName}
           entityFallback="this student"
           confirmButtonLabel="Delete Student"

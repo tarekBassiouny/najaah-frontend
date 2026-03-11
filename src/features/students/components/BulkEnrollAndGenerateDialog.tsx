@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 const FETCH_PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -71,6 +72,8 @@ export function BulkEnrollAndGenerateDialog({
   centerId,
   allowCenterChange = false,
 }: BulkEnrollAndGenerateDialogProps) {
+  const { t } = useTranslation();
+
   const tenant = useTenant();
   const queryClient = useQueryClient();
   const isPlatformAdmin = !tenant.centerSlug;
@@ -569,10 +572,15 @@ export function BulkEnrollAndGenerateDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Enroll & Generate</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.students.components.bulkenrollandgeneratedialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Enroll the selected students first, then generate video access codes
-            for eligible ones.
+            {t(
+              "auto.features.students.components.bulkenrollandgeneratedialog.s2",
+            )}
           </DialogDescription>
           <div className="mt-3 flex items-center gap-2">
             <span
@@ -581,7 +589,9 @@ export function BulkEnrollAndGenerateDialog({
                 stepLabel(1),
               )}
             >
-              1. Enroll
+              {t(
+                "auto.features.students.components.bulkenrollandgeneratedialog.s3",
+              )}
             </span>
             <span
               className={cn(
@@ -589,7 +599,9 @@ export function BulkEnrollAndGenerateDialog({
                 stepLabel(2),
               )}
             >
-              2. Generate Codes
+              {t(
+                "auto.features.students.components.bulkenrollandgeneratedialog.s4",
+              )}
             </span>
             {hasEligibleStudents ? (
               <Button
@@ -598,7 +610,9 @@ export function BulkEnrollAndGenerateDialog({
                 onClick={() => setStep(2)}
                 disabled={step === 2}
               >
-                Go to Step 2
+                {t(
+                  "auto.features.students.components.bulkenrollandgeneratedialog.s5",
+                )}
               </Button>
             ) : null}
           </div>
@@ -608,7 +622,11 @@ export function BulkEnrollAndGenerateDialog({
           <div className="space-y-4">
             {enrollError ? (
               <Alert variant="destructive">
-                <AlertTitle>Enrollment failed</AlertTitle>
+                <AlertTitle>
+                  {t(
+                    "auto.features.students.components.bulkenrollandgeneratedialog.s6",
+                  )}
+                </AlertTitle>
                 <AlertDescription>{enrollError}</AlertDescription>
               </Alert>
             ) : null}
@@ -703,11 +721,19 @@ export function BulkEnrollAndGenerateDialog({
                 ) : null}
                 {enrollResult.skipped && enrollResult.skipped.length > 0 ? (
                   <div className="mt-3 text-xs">
-                    Skipped IDs: {enrollResult.skipped.join(", ")}
+                    {t(
+                      "auto.features.students.components.bulkenrollandgeneratedialog.s7",
+                    )}
+                    {enrollResult.skipped.join(", ")}
                   </div>
                 ) : null}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                  <p>Eligible for generation: {eligibleStudentIds.length}</p>
+                  <p>
+                    {t(
+                      "auto.features.students.components.bulkenrollandgeneratedialog.s8",
+                    )}
+                    {eligibleStudentIds.length}
+                  </p>
                   {hasFailedEnrollments ? (
                     <Button
                       variant="ghost"
@@ -715,7 +741,9 @@ export function BulkEnrollAndGenerateDialog({
                       onClick={() => handleEnrollment(failedEnrollStudents)}
                       disabled={isEnrollSubmitting}
                     >
-                      Retry failed enroll
+                      {t(
+                        "auto.features.students.components.bulkenrollandgeneratedialog.s9",
+                      )}
                     </Button>
                   ) : null}
                 </div>
@@ -726,18 +754,27 @@ export function BulkEnrollAndGenerateDialog({
           <div className="space-y-4">
             {generateError ? (
               <Alert variant="destructive">
-                <AlertTitle>Generation failed</AlertTitle>
+                <AlertTitle>
+                  {t(
+                    "auto.features.students.components.bulkenrollandgeneratedialog.s10",
+                  )}
+                </AlertTitle>
                 <AlertDescription>{generateError}</AlertDescription>
               </Alert>
             ) : null}
 
             <div className="text-sm text-gray-600 dark:text-gray-300">
-              Eligible students: {eligibleStudentIds.length}
+              {t(
+                "auto.features.students.components.bulkenrollandgeneratedialog.s11",
+              )}
+              {eligibleStudentIds.length}
             </div>
 
             {!hasEligibleStudents ? (
               <p className="text-xs text-gray-500">
-                Complete the enrollment step first to enable this action.
+                {t(
+                  "auto.features.students.components.bulkenrollandgeneratedialog.s12",
+                )}
               </p>
             ) : (
               <>
@@ -848,14 +885,18 @@ export function BulkEnrollAndGenerateDialog({
                       }
                       disabled={isGenerating}
                     />
-                    Send via WhatsApp
+                    {t(
+                      "auto.features.students.components.bulkenrollandgeneratedialog.s13",
+                    )}
                   </label>
                 </div>
 
                 {sendWhatsapp ? (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      WhatsApp format
+                      {t(
+                        "auto.features.students.components.bulkenrollandgeneratedialog.s14",
+                      )}
                     </p>
                     <Select
                       value={whatsappFormat}
@@ -868,8 +909,16 @@ export function BulkEnrollAndGenerateDialog({
                         <SelectValue placeholder="Format" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="text_code">Text code</SelectItem>
-                        <SelectItem value="qr_code">QR code</SelectItem>
+                        <SelectItem value="text_code">
+                          {t(
+                            "auto.features.students.components.bulkenrollandgeneratedialog.s15",
+                          )}
+                        </SelectItem>
+                        <SelectItem value="qr_code">
+                          {t(
+                            "auto.features.students.components.bulkenrollandgeneratedialog.s16",
+                          )}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -900,13 +949,21 @@ export function BulkEnrollAndGenerateDialog({
                     </p>
                   </div>
                   <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-center text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20">
-                    <p>WhatsApp sent</p>
+                    <p>
+                      {t(
+                        "auto.features.students.components.bulkenrollandgeneratedialog.s17",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-blue-800 dark:text-blue-200">
                       {generateResult.counts?.whatsapp_sent ?? 0}
                     </p>
                   </div>
                   <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-red-700 dark:border-red-900/40 dark:bg-red-900/20">
-                    <p>WhatsApp failed</p>
+                    <p>
+                      {t(
+                        "auto.features.students.components.bulkenrollandgeneratedialog.s18",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
                       {generateResult.counts?.whatsapp_failed ?? 0}
                     </p>
@@ -934,7 +991,9 @@ export function BulkEnrollAndGenerateDialog({
               bulkGenerateMutation.isPending
             }
           >
-            Close
+            {t(
+              "auto.features.students.components.bulkenrollandgeneratedialog.s19",
+            )}
           </Button>
           {step === 1 ? (
             <Button
@@ -954,7 +1013,9 @@ export function BulkEnrollAndGenerateDialog({
                 onClick={() => setStep(1)}
                 disabled={isGenerating}
               >
-                Back to Step 1
+                {t(
+                  "auto.features.students.components.bulkenrollandgeneratedialog.s20",
+                )}
               </Button>
               <Button
                 onClick={handleGenerate}

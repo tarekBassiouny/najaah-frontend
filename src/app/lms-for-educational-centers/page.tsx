@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "An LMS for Educational Centers That Need More Than Generic Course Hosting";
+
 export default function LmsForEducationalCentersPage() {
   return (
     <SeoPageShell
       eyebrow="Educational Center LMS"
-      title="An LMS for Educational Centers That Need More Than Generic Course Hosting"
+      title={SEO_PAGE_TITLE}
       intro="Educational centers operate differently from broad schools, universities, and casual course creators. They sell structured programs, manage instructors closely, protect premium materials, and often rely on local brand trust. Their LMS should reflect that."
       bullets={[
         "Built around tutoring, coaching, and educational center workflows",

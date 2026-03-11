@@ -17,11 +17,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "How to Protect Online Courses from Piracy Without Breaking the Learner Experience";
+
 export default function ProtectCoursesFromPiracyPage() {
   return (
     <ArticlePageShell
       category="Content Protection"
-      title="How to Protect Online Courses from Piracy Without Breaking the Learner Experience"
+      title={SEO_PAGE_TITLE}
       intro="Piracy protection is not about making content impossible to copy. It is about making paid access more defensible while keeping the legitimate student experience smooth enough to preserve trust."
       sections={[
         {

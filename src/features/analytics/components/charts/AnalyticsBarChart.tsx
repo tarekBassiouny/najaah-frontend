@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsBarChartProps = {
   title?: string;
@@ -22,6 +23,8 @@ export function AnalyticsBarChart({
   color = "#3c50e0",
   height = 280,
 }: AnalyticsBarChartProps) {
+  const { t } = useTranslation();
+
   const safeCategories = useMemo(
     () =>
       categories.filter((item) => typeof item === "string" && item.length > 0),
@@ -40,7 +43,7 @@ export function AnalyticsBarChart({
         className="flex items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
         style={{ minHeight: height }}
       >
-        No chart data
+        {t("auto.features.analytics.components.charts.analyticsbarchart.s1")}
       </div>
     );
   }

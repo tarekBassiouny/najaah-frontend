@@ -17,12 +17,15 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "منصة متعددة المستأجرين للمجموعات التعليمية التي تحتاج فصلاً واضحاً دون فوضى";
+
 export default function ArabicMultiTenantPage() {
   return (
     <SeoPageShell
       locale="ar"
       eyebrow="Multi-Tenant LMS"
-      title="منصة متعددة المستأجرين للمجموعات التعليمية التي تحتاج فصلاً واضحاً دون فوضى"
+      title={SEO_PAGE_TITLE}
       intro="الجهات التعليمية التي تدير عدة مراكز أو فروع أو شركاء تحتاج أكثر من مجرد صلاحيات مستخدمين. هي تحتاج حدوداً تشغيلية واضحة، وتحكماً محلياً، وإشرافاً مركزياً يمكنه التوسع دون إعادة اختراع التشغيل في كل مرة."
       bullets={[
         "فصل تشغيلي لكل مركز أو فرع",

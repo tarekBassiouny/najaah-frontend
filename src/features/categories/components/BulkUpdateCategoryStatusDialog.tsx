@@ -21,6 +21,7 @@ import {
 import { useBulkUpdateCategoryStatus } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
 import type { BulkUpdateCategoryStatusResult } from "@/features/categories/services/categories.service";
+import { useTranslation } from "@/features/localization";
 
 type BulkUpdateCategoryStatusDialogProps = {
   centerId: string | number;
@@ -61,6 +62,8 @@ export function BulkUpdateCategoryStatusDialog({
   categories,
   onSuccess,
 }: BulkUpdateCategoryStatusDialogProps) {
+  const { t } = useTranslation();
+
   const mutation = useBulkUpdateCategoryStatus(centerId);
   const [status, setStatus] = useState<"active" | "inactive">("active");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -116,16 +119,27 @@ export function BulkUpdateCategoryStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Bulk Change Status</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.categories.components.bulkupdatecategorystatusdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Update status for {categories.length} selected{" "}
+            {t(
+              "auto.features.categories.components.bulkupdatecategorystatusdialog.s2",
+            )}
+            {categories.length} selected{" "}
             {categories.length === 1 ? "category" : "categories"}.
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Unable to update</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.categories.components.bulkupdatecategorystatusdialog.s3",
+              )}
+            </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -133,17 +147,40 @@ export function BulkUpdateCategoryStatusDialog({
         {result?.counts ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
             <div className="flex flex-wrap gap-3">
-              <span>Total: {result.counts.total ?? categories.length}</span>
-              <span>Updated: {result.counts.updated ?? 0}</span>
-              <span>Skipped: {result.counts.skipped ?? 0}</span>
-              <span>Failed: {result.counts.failed ?? 0}</span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkupdatecategorystatusdialog.s4",
+                )}
+                {result.counts.total ?? categories.length}
+              </span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkupdatecategorystatusdialog.s5",
+                )}
+                {result.counts.updated ?? 0}
+              </span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkupdatecategorystatusdialog.s6",
+                )}
+                {result.counts.skipped ?? 0}
+              </span>
+              <span>
+                {t(
+                  "auto.features.categories.components.bulkupdatecategorystatusdialog.s7",
+                )}
+                {result.counts.failed ?? 0}
+              </span>
             </div>
 
             {result.failed && result.failed.length > 0 ? (
               <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
                 {result.failed.map((item, index) => (
                   <p key={`failed-${item.category_id}-${index}`}>
-                    Category #{item.category_id}: {item.reason ?? "Failed"}
+                    {t(
+                      "auto.features.categories.components.bulkupdatecategorystatusdialog.s8",
+                    )}
+                    {item.category_id}: {item.reason ?? "Failed"}
                   </p>
                 ))}
               </div>
@@ -153,7 +190,10 @@ export function BulkUpdateCategoryStatusDialog({
               <div className="mt-3 space-y-1 text-xs text-amber-700 dark:text-amber-300">
                 {result.skipped.map((item, index) => (
                   <p key={`skipped-${item.category_id}-${index}`}>
-                    Category #{item.category_id}: {item.reason ?? "Skipped"}
+                    {t(
+                      "auto.features.categories.components.bulkupdatecategorystatusdialog.s8",
+                    )}
+                    {item.category_id}: {item.reason ?? "Skipped"}
                   </p>
                 ))}
               </div>
@@ -163,7 +203,9 @@ export function BulkUpdateCategoryStatusDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Select the new status for selected categories.
+            {t(
+              "auto.features.categories.components.bulkupdatecategorystatusdialog.s9",
+            )}
           </p>
           <Select
             value={status}
@@ -181,7 +223,9 @@ export function BulkUpdateCategoryStatusDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t(
+              "auto.features.categories.components.bulkupdatecategorystatusdialog.s10",
+            )}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
             {mutation.isPending ? "Updating..." : "Update Status"}

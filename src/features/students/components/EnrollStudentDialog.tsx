@@ -20,6 +20,7 @@ import { useTenant } from "@/app/tenant-provider";
 import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { useCreateCenterEnrollment } from "@/features/enrollments/hooks/use-enrollments";
+import { useTranslation } from "@/features/localization";
 
 const FILTER_LIST_PAGE_SIZE = 20;
 const FILTER_SEARCH_DEBOUNCE_MS = 300;
@@ -119,6 +120,8 @@ export function EnrollStudentDialog({
   allowCenterChange = false,
   onSuccess,
 }: EnrollStudentDialogProps) {
+  const { t } = useTranslation();
+
   const { centerSlug, centerId: tenantCenterId } = useTenant();
   const enrollMutation = useCreateCenterEnrollment();
   const queryClient = useQueryClient();
@@ -300,9 +303,12 @@ export function EnrollStudentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Enroll Student</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.students.components.enrollstudentdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Choose {showCenterPicker ? "a center and " : ""}a course to enroll{" "}
+            Choose {showCenterPicker ? "a center and " : ""}
+            {t("auto.features.students.components.enrollstudentdialog.s2")}{" "}
             {student?.name ?? "this student"}.
           </DialogDescription>
         </DialogHeader>
@@ -372,7 +378,7 @@ export function EnrollStudentDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("auto.features.students.components.enrollstudentdialog.s3")}
           </Button>
           <Button onClick={handleEnroll} disabled={enrollMutation.isPending}>
             {enrollMutation.isPending ? "Enrolling..." : "Enroll"}

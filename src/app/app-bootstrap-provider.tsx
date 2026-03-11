@@ -22,6 +22,7 @@ const PUBLIC_MARKETING_ROUTE_PREFIXES = [
   "/white-label-elearning-platform",
   "/student-progress-tracking-software",
 ] as const;
+const LOADING_CENTER_SETTINGS_TEXT = "Loading center settings...";
 
 function isPublicMarketingPath(pathname: string) {
   if (pathname === "/") return true;
@@ -141,7 +142,7 @@ export function AppBootstrapProvider({
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-2 px-4 dark:bg-[#020d1a]">
         <p className="text-sm text-dark-6 dark:text-dark-5">
-          Loading center settings...
+          {LOADING_CENTER_SETTINGS_TEXT}
         </p>
       </div>
     );

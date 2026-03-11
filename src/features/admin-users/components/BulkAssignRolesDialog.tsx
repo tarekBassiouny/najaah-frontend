@@ -21,6 +21,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const ROLES_PAGE_SIZE = 100;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -59,6 +60,8 @@ export function BulkAssignRolesDialog({
   onSuccess,
   scopeCenterId,
 }: BulkAssignRolesDialogProps) {
+  const { t } = useTranslation();
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<Set<string>>(
@@ -186,9 +189,13 @@ export function BulkAssignRolesDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Assign Roles</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.admin_users.components.bulkassignrolesdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Select roles to assign to {users.length} selected admin
+            {t("auto.features.admin_users.components.bulkassignrolesdialog.s2")}
+            {users.length}{" "}
+            {t("auto.features.admin_users.components.bulkassignrolesdialog.s3")}
             {users.length === 1 ? "" : "s"}.
           </DialogDescription>
         </DialogHeader>
@@ -233,10 +240,17 @@ export function BulkAssignRolesDialog({
 
               {result.failed && result.failed.length > 0 && (
                 <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
-                  <p className="font-medium">Failed:</p>
+                  <p className="font-medium">
+                    {t(
+                      "auto.features.admin_users.components.bulkassignrolesdialog.s4",
+                    )}
+                  </p>
                   {result.failed.map((item, index) => (
                     <p key={`failed-${item.user_id}-${index}`}>
-                      User #{item.user_id}: {item.reason ?? "Failed"}
+                      {t(
+                        "auto.features.admin_users.components.bulkassignrolesdialog.s5",
+                      )}
+                      {item.user_id}: {item.reason ?? "Failed"}
                     </p>
                   ))}
                 </div>
@@ -244,10 +258,17 @@ export function BulkAssignRolesDialog({
 
               {result.skipped && result.skipped.length > 0 && (
                 <div className="mt-3 text-xs text-amber-700 dark:text-amber-300">
-                  <p className="font-medium">Skipped:</p>
+                  <p className="font-medium">
+                    {t(
+                      "auto.features.admin_users.components.bulkassignrolesdialog.s6",
+                    )}
+                  </p>
                   {result.skipped.map((item, index) => (
                     <p key={`skipped-${item.user_id}-${index}`}>
-                      User #{item.user_id}: {item.reason ?? "Skipped"}
+                      {t(
+                        "auto.features.admin_users.components.bulkassignrolesdialog.s5",
+                      )}
+                      {item.user_id}: {item.reason ?? "Skipped"}
                     </p>
                   ))}
                 </div>
@@ -272,7 +293,9 @@ export function BulkAssignRolesDialog({
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search roles..."
+                  placeholder={t(
+                    "auto.features.admin_users.components.bulkassignrolesdialog.s7",
+                  )}
                   className="pl-10"
                   disabled={isSubmitting}
                 />

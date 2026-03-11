@@ -7,6 +7,7 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { AnalyticsBarChart } from "./charts/AnalyticsBarChart";
 import { AnalyticsDonutChart } from "./charts/AnalyticsDonutChart";
 import type { AnalyticsDevicesRequests } from "@/features/analytics/types/analytics";
+import { useTranslation } from "@/features/localization";
 
 type AnalyticsDevicesRequestsPanelProps = {
   data?: AnalyticsDevicesRequests;
@@ -19,12 +20,20 @@ export function AnalyticsDevicesRequestsPanel({
   isLoading,
   isError,
 }: AnalyticsDevicesRequestsPanelProps) {
+  const { t } = useTranslation();
+
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Devices & requests analytics unavailable</AlertTitle>
+        <AlertTitle>
+          {t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.s1",
+          )}
+        </AlertTitle>
         <AlertDescription>
-          Failed to load device/request metrics.
+          {t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.s2",
+          )}
         </AlertDescription>
       </Alert>
     );
@@ -39,16 +48,40 @@ export function AnalyticsDevicesRequestsPanel({
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatsCard title="Total Devices" value={devices.total} />
-        <StatsCard title="Active Devices" value={devices.active} />
-        <StatsCard title="Revoked Devices" value={devices.revoked} />
-        <StatsCard title="Pending Devices" value={devices.pending} />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.s3",
+          )}
+          value={devices.total}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.s4",
+          )}
+          value={devices.active}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.s5",
+          )}
+          value={devices.revoked}
+        />
+        <StatsCard
+          title={t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.s6",
+          )}
+          value={devices.pending}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Device Change Requests</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticsdevicesrequestspanel.s7",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart
@@ -66,7 +99,11 @@ export function AnalyticsDevicesRequestsPanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>Request Source Mix</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticsdevicesrequestspanel.s8",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
@@ -84,16 +121,24 @@ export function AnalyticsDevicesRequestsPanel({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Extra View Requests</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticsdevicesrequestspanel.s9",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="mb-4 grid gap-3 sm:grid-cols-2">
               <StatsCard
-                title="Approval Rate"
+                title={t(
+                  "auto.features.analytics.components.analyticsdevicesrequestspanel.s10",
+                )}
                 value={`${Math.round(requests.extra_views.approval_rate * 100)}%`}
               />
               <StatsCard
-                title="Avg Decision Hours"
+                title={t(
+                  "auto.features.analytics.components.analyticsdevicesrequestspanel.s11",
+                )}
                 value={requests.extra_views.avg_decision_hours.toFixed(2)}
               />
             </div>
@@ -112,7 +157,11 @@ export function AnalyticsDevicesRequestsPanel({
 
         <Card>
           <CardHeader>
-            <CardTitle>Enrollment Requests</CardTitle>
+            <CardTitle>
+              {t(
+                "auto.features.analytics.components.analyticsdevicesrequestspanel.s12",
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsBarChart

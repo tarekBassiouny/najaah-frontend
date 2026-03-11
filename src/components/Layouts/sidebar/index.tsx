@@ -154,9 +154,12 @@ export function Sidebar({ sections }: SidebarProps) {
     scopedCenterIdForRestrictions ?? undefined,
   );
   const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
-  const centerName = center?.name ?? (centerId ? `Center ${centerId}` : null);
+  const centerName =
+    center?.name ??
+    (centerId ? t("sidebar.centerWithId", { id: centerId }) : null);
   const isTenantSubdomainCenter = Boolean(tenantCenterSlug);
-  const subdomainCenterName = tenantCenterName || tenantCenterSlug || "Center";
+  const subdomainCenterName =
+    tenantCenterName || tenantCenterSlug || t("common.labels.center");
   const subdomainCenterLogo =
     typeof branding?.logoUrl === "string" ? branding.logoUrl : null;
   const resolvedSections = useMemo(() => {
@@ -265,7 +268,7 @@ export function Sidebar({ sections }: SidebarProps) {
                         type="button"
                         onClick={closeSidebar}
                         className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                        aria-label="Close Sidebar"
+                        aria-label={t("sidebar.closeSidebarAriaLabel")}
                       >
                         <ArrowLeftIcon className="size-6" />
                       </button>
@@ -280,7 +283,7 @@ export function Sidebar({ sections }: SidebarProps) {
                       type="button"
                       onClick={closeSidebar}
                       className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                      aria-label="Close Sidebar"
+                      aria-label={t("sidebar.closeSidebarAriaLabel")}
                     >
                       <ArrowLeftIcon className="size-6" />
                     </button>
@@ -318,7 +321,9 @@ export function Sidebar({ sections }: SidebarProps) {
                           backgroundImage: `url(${subdomainCenterLogo})`,
                         }}
                         role="img"
-                        aria-label={`${subdomainCenterName} logo`}
+                        aria-label={t("sidebar.centerLogoAriaLabel", {
+                          name: subdomainCenterName,
+                        })}
                       />
                     ) : (
                       subdomainCenterName.charAt(0).toUpperCase()
@@ -339,7 +344,7 @@ export function Sidebar({ sections }: SidebarProps) {
                     type="button"
                     onClick={closeSidebar}
                     className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
-                    aria-label="Close Sidebar"
+                    aria-label={t("sidebar.closeSidebarAriaLabel")}
                   >
                     <ArrowLeftIcon className="ml-auto size-7" />
                   </button>
@@ -356,7 +361,7 @@ export function Sidebar({ sections }: SidebarProps) {
                       src="/images/logo/logo-icon.svg"
                       width={20}
                       height={20}
-                      alt="Najaah"
+                      alt={t("header.logoAlt")}
                       className="brightness-0 invert"
                     />
                   </div>
@@ -370,7 +375,7 @@ export function Sidebar({ sections }: SidebarProps) {
                     type="button"
                     onClick={closeSidebar}
                     className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
-                    aria-label="Close Sidebar"
+                    aria-label={t("sidebar.closeSidebarAriaLabel")}
                   >
                     <ArrowLeftIcon className="ml-auto size-7" />
                   </button>

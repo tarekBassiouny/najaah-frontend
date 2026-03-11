@@ -51,11 +51,11 @@ function resolveStatusVariant(status: string) {
   return "default";
 }
 
-function formatDateTime(isoString: string | null): string {
+function formatDateTime(isoString: string | null, locale: string): string {
   if (!isoString) return "—";
   try {
     const date = new Date(isoString);
-    return date.toLocaleString("en-US", {
+    return date.toLocaleString(locale === "ar" ? "ar-EG" : "en-US", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -78,24 +78,33 @@ type ProfileDevice = {
   last_used_at?: string | null;
 } | null;
 
-function formatActiveDevice(device: ProfileDevice): string {
-  if (!device) return "No active device";
+function formatActiveDevice(
+  device: ProfileDevice,
+  labels: { noActive: string; fallbackActive: string },
+): string {
+  if (!device) return labels.noActive;
 
   const name = device.device_name?.trim() || device.model?.trim() || null;
   const type = device.device_type?.trim() || null;
   const deviceId = device.device_id?.trim() || null;
 
-  return [name, type, deviceId].filter(Boolean).join(" • ") || "Active device";
+  return (
+    [name, type, deviceId].filter(Boolean).join(" • ") || labels.fallbackActive
+  );
 }
 
-function formatActiveDeviceMeta(device: ProfileDevice): string {
+function formatActiveDeviceMeta(
+  device: ProfileDevice,
+  locale: string,
+  lastUsedLabel: string,
+): string {
   if (!device) return "";
 
   const osVersion = device.os_version?.trim() || null;
   const status =
     device.status_label?.trim() || device.status_key?.trim() || null;
   const lastUsed = device.last_used_at
-    ? `Last used: ${formatDateTime(device.last_used_at)}`
+    ? `${lastUsedLabel}: ${formatDateTime(device.last_used_at, locale)}`
     : null;
 
   return [osVersion, status, lastUsed].filter(Boolean).join(" • ");
@@ -166,7 +175,7 @@ export default function StudentProfilePage({
   params,
   searchParams,
 }: PageProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { centerId, studentId } = use(params);
   const { from, courseId } = use(searchParams);
   const { showToast } = useModal();
@@ -236,7 +245,8 @@ export default function StudentProfilePage({
     : `/centers/${centerId}/students`;
 
   const profileInitials = useMemo(() => {
-    const value = profile?.name ?? "Student";
+    const value =
+      profile?.name ?? t("pages.centerStudentProfile.defaults.student");
     return value
       .split(" ")
       .map((part) => part.trim().charAt(0))
@@ -244,7 +254,7 @@ export default function StudentProfilePage({
       .join("")
       .slice(0, 2)
       .toUpperCase();
-  }, [profile?.name]);
+  }, [profile?.name, t]);
 
   const filteredEnrollments = useMemo(() => {
     if (!profile?.enrollments) return [];
@@ -254,7 +264,11 @@ export default function StudentProfilePage({
     );
   }, [profile?.enrollments, selectedCourseCategory]);
   const activeDevice = profile?.device ?? profile?.active_device ?? null;
-  const activeDeviceMeta = formatActiveDeviceMeta(activeDevice);
+  const activeDeviceMeta = formatActiveDeviceMeta(
+    activeDevice,
+    locale,
+    t("pages.centerStudentProfile.device.lastUsedLabel"),
+  );
 
   const handleGrantViews = async () => {
     if (!grantTarget || extraViews < 1) return;
@@ -273,7 +287,11 @@ export default function StudentProfilePage({
       });
 
       showToast(
-        `Granted ${extraViews} extra view${extraViews === 1 ? "" : "s"} for ${grantTarget.videoName}.`,
+        t("pages.centerStudentProfile.messages.grantSuccess", {
+          count: extraViews,
+          plural: extraViews === 1 ? "" : "s",
+          name: grantTarget.videoName,
+        }),
         "success",
       );
       setGrantTarget(null);
@@ -281,7 +299,7 @@ export default function StudentProfilePage({
     } catch (error) {
       const message = getStudentRequestApiErrorMessage(
         error,
-        "Unable to grant extra views.",
+        t("pages.centerStudentProfile.messages.grantFailedFallback"),
       );
       setGrantError(message);
       showToast(message, "error");
@@ -293,11 +311,12 @@ export default function StudentProfilePage({
       <Card>
         <CardContent className="space-y-4 py-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Open this student profile from Center Students or from Enrolled
-            Students inside course details.
+            {t("pages.centerStudentProfile.entry.directAccessHint")}
           </p>
           <Link href={`/centers/${centerId}/students`}>
-            <Button>Back to Center Students</Button>
+            <Button>
+              {t("pages.centerStudentProfile.entry.backToCenterStudents")}
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -310,10 +329,21 @@ export default function StudentProfilePage({
         <PageHeader
           title={<Skeleton className="h-8 w-48" />}
           breadcrumbs={[
-            { label: "Centers", href: "/centers" },
-            { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-            { label: "Students", href: `/centers/${centerId}/students` },
-            { label: "Profile" },
+            {
+              label: t("pages.centerStudentProfile.breadcrumbs.centers"),
+              href: "/centers",
+            },
+            {
+              label: t("pages.centerStudentProfile.breadcrumbs.centerById", {
+                id: centerId,
+              }),
+              href: `/centers/${centerId}`,
+            },
+            {
+              label: t("pages.centerStudentProfile.breadcrumbs.students"),
+              href: `/centers/${centerId}/students`,
+            },
+            { label: t("pages.centerStudentProfile.breadcrumbs.profile") },
           ]}
         />
         <Card>
@@ -371,13 +401,22 @@ export default function StudentProfilePage({
 
   const studentProfile = profile!;
   const gradeLabel = studentProfile.grade
-    ? getEducationName(studentProfile.grade, "Grade")
+    ? getEducationName(
+        studentProfile.grade,
+        t("pages.centerStudentProfile.education.grade"),
+      )
     : "—";
   const schoolLabel = studentProfile.school
-    ? getEducationName(studentProfile.school, "School")
+    ? getEducationName(
+        studentProfile.school,
+        t("pages.centerStudentProfile.education.school"),
+      )
     : "—";
   const collegeLabel = studentProfile.college
-    ? getEducationName(studentProfile.college, "College")
+    ? getEducationName(
+        studentProfile.college,
+        t("pages.centerStudentProfile.education.college"),
+      )
     : "—";
 
   return (
@@ -385,14 +424,25 @@ export default function StudentProfilePage({
       <PageHeader
         title={studentProfile.name}
         breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Students", href: `/centers/${centerId}/students` },
-          { label: "Profile" },
+          {
+            label: t("pages.centerStudentProfile.breadcrumbs.centers"),
+            href: "/centers",
+          },
+          {
+            label: t("pages.centerStudentProfile.breadcrumbs.centerById", {
+              id: centerId,
+            }),
+            href: `/centers/${centerId}`,
+          },
+          {
+            label: t("pages.centerStudentProfile.breadcrumbs.students"),
+            href: `/centers/${centerId}/students`,
+          },
+          { label: t("pages.centerStudentProfile.breadcrumbs.profile") },
         ]}
         actions={
           <Link href={backHref}>
-            <Button variant="outline">Back</Button>
+            <Button variant="outline">{t("common.actions.back")}</Button>
           </Link>
         }
       />
@@ -432,18 +482,23 @@ export default function StudentProfilePage({
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Last Activity
+                {t("pages.centerStudentProfile.summary.lastActivity")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {formatDateTime(studentProfile.last_activity_at)}
+                {formatDateTime(studentProfile.last_activity_at, locale)}
               </p>
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Active Device
+                {t("pages.centerStudentProfile.summary.activeDevice")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                {formatActiveDevice(activeDevice)}
+                {formatActiveDevice(activeDevice, {
+                  noActive: t("pages.centerStudentProfile.device.noActive"),
+                  fallbackActive: t(
+                    "pages.centerStudentProfile.device.fallbackActive",
+                  ),
+                })}
               </p>
               {activeDeviceMeta ? (
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -453,7 +508,7 @@ export default function StudentProfilePage({
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Total Enrollments
+                {t("pages.centerStudentProfile.summary.totalEnrollments")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {studentProfile.total_enrollments}
@@ -461,7 +516,7 @@ export default function StudentProfilePage({
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Device Changes
+                {t("pages.centerStudentProfile.summary.deviceChanges")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {studentProfile.device_changes_count}
@@ -473,13 +528,15 @@ export default function StudentProfilePage({
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Education</CardTitle>
+          <CardTitle className="text-base">
+            {t("pages.centerStudentProfile.education.title")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-lg border border-gray-200/80 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Grade
+                {t("pages.centerStudentProfile.education.grade")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {gradeLabel}
@@ -487,7 +544,7 @@ export default function StudentProfilePage({
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                School
+                {t("pages.centerStudentProfile.education.school")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {schoolLabel}
@@ -495,7 +552,7 @@ export default function StudentProfilePage({
             </div>
             <div className="rounded-lg border border-gray-200/80 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/50">
               <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                College
+                {t("pages.centerStudentProfile.education.college")}
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                 {collegeLabel}
@@ -507,21 +564,33 @@ export default function StudentProfilePage({
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Device Change Log</CardTitle>
+          <CardTitle className="text-base">
+            {t("pages.centerStudentProfile.deviceLog.title")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {studentProfile.device_change_log.length === 0 ? (
             <p className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-              No device changes recorded.
+              {t("pages.centerStudentProfile.deviceLog.empty")}
             </p>
           ) : (
             <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Device</TableHead>
-                  <TableHead>Device ID</TableHead>
-                  <TableHead>Changed At</TableHead>
-                  <TableHead>Reason</TableHead>
+                  <TableHead>
+                    {t("pages.centerStudentProfile.deviceLog.headers.device")}
+                  </TableHead>
+                  <TableHead>
+                    {t("pages.centerStudentProfile.deviceLog.headers.deviceId")}
+                  </TableHead>
+                  <TableHead>
+                    {t(
+                      "pages.centerStudentProfile.deviceLog.headers.changedAt",
+                    )}
+                  </TableHead>
+                  <TableHead>
+                    {t("pages.centerStudentProfile.deviceLog.headers.reason")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -531,7 +600,9 @@ export default function StudentProfilePage({
                       {log.device_name}
                     </TableCell>
                     <TableCell>{log.device_id}</TableCell>
-                    <TableCell>{formatDateTime(log.changed_at)}</TableCell>
+                    <TableCell>
+                      {formatDateTime(log.changed_at, locale)}
+                    </TableCell>
                     <TableCell>{log.reason ?? "—"}</TableCell>
                   </TableRow>
                 ))}
@@ -543,7 +614,9 @@ export default function StudentProfilePage({
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Enrolled Courses</CardTitle>
+          <CardTitle className="text-base">
+            {t("pages.centerStudentProfile.enrollments.title")}
+          </CardTitle>
           <div className="mt-3 flex flex-wrap gap-2">
             {(["all", "active", "completed", "paused"] as const).map(
               (category) => (
@@ -556,9 +629,9 @@ export default function StudentProfilePage({
                   size="sm"
                   onClick={() => setSelectedCourseCategory(category)}
                 >
-                  {category === "all"
-                    ? "All"
-                    : category.charAt(0).toUpperCase() + category.slice(1)}
+                  {t(
+                    `pages.centerStudentProfile.enrollments.categories.${category}`,
+                  )}
                 </Button>
               ),
             )}
@@ -567,17 +640,33 @@ export default function StudentProfilePage({
         <CardContent className="overflow-x-auto">
           {studentProfile.enrollments.length === 0 ? (
             <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-              No enrollments found.
+              {t("pages.centerStudentProfile.enrollments.empty")}
             </p>
           ) : (
             <Table className="min-w-[860px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Enrolled At</TableHead>
-                  <TableHead className="text-right">Content</TableHead>
+                  <TableHead>
+                    {t("pages.centerStudentProfile.enrollments.headers.course")}
+                  </TableHead>
+                  <TableHead>
+                    {t("pages.centerStudentProfile.enrollments.headers.status")}
+                  </TableHead>
+                  <TableHead>
+                    {t(
+                      "pages.centerStudentProfile.enrollments.headers.progress",
+                    )}
+                  </TableHead>
+                  <TableHead>
+                    {t(
+                      "pages.centerStudentProfile.enrollments.headers.enrolledAt",
+                    )}
+                  </TableHead>
+                  <TableHead className="text-right">
+                    {t(
+                      "pages.centerStudentProfile.enrollments.headers.content",
+                    )}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -618,7 +707,11 @@ export default function StudentProfilePage({
                         <TableCell>
                           <div className="w-40">
                             <div className="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                              <span>Progress</span>
+                              <span>
+                                {t(
+                                  "pages.centerStudentProfile.enrollments.progressLabel",
+                                )}
+                              </span>
                               <span>{enrollment.progress_percentage}%</span>
                             </div>
                             <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
@@ -632,7 +725,7 @@ export default function StudentProfilePage({
                           </div>
                         </TableCell>
                         <TableCell>
-                          {formatDateTime(enrollment.enrolled_at)}
+                          {formatDateTime(enrollment.enrolled_at, locale)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -649,8 +742,15 @@ export default function StudentProfilePage({
                             }}
                           >
                             {isExpanded
-                              ? "Hide videos"
-                              : `Show videos (${enrollment.course.video_count})`}
+                              ? t(
+                                  "pages.centerStudentProfile.actions.hideVideos",
+                                )
+                              : t(
+                                  "pages.centerStudentProfile.actions.showVideos",
+                                  {
+                                    count: enrollment.course.video_count,
+                                  },
+                                )}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -673,18 +773,28 @@ export default function StudentProfilePage({
                                     [enrollment.course.id]: value,
                                   }));
                                 }}
-                                placeholder="Search videos in this course"
+                                placeholder={t(
+                                  "pages.centerStudentProfile.enrollments.searchVideosPlaceholder",
+                                )}
                               />
                             </div>
                             <Table className="min-w-[720px]">
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>Video Name</TableHead>
+                                  <TableHead>
+                                    {t(
+                                      "pages.centerStudentProfile.enrollments.videoHeaders.videoName",
+                                    )}
+                                  </TableHead>
                                   <TableHead className="text-center">
-                                    Watch Count / Limit
+                                    {t(
+                                      "pages.centerStudentProfile.enrollments.videoHeaders.watchCountLimit",
+                                    )}
                                   </TableHead>
                                   <TableHead className="text-right">
-                                    Actions
+                                    {t(
+                                      "pages.centerStudentProfile.enrollments.videoHeaders.actions",
+                                    )}
                                   </TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -695,7 +805,9 @@ export default function StudentProfilePage({
                                       colSpan={3}
                                       className="py-5 text-center text-sm text-gray-500 dark:text-gray-400"
                                     >
-                                      No videos match your search.
+                                      {t(
+                                        "pages.centerStudentProfile.enrollments.noVideosMatch",
+                                      )}
                                     </TableCell>
                                   </TableRow>
                                 ) : null}
@@ -712,12 +824,17 @@ export default function StudentProfilePage({
                                             /* eslint-disable-next-line @next/next/no-img-element */
                                             <img
                                               src={video.thumbnail_url}
-                                              alt={`${video.title} thumbnail`}
+                                              alt={t(
+                                                "pages.centerStudentProfile.enrollments.thumbnailAlt",
+                                                { title: video.title },
+                                              )}
                                               className="h-14 w-24 rounded-lg border border-gray-200 object-cover dark:border-gray-700"
                                             />
                                           ) : (
                                             <div className="flex h-14 w-24 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-[11px] font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
-                                              No thumbnail
+                                              {t(
+                                                "pages.centerStudentProfile.enrollments.noThumbnail",
+                                              )}
                                             </div>
                                           )}
                                           <div className="min-w-0">
@@ -729,7 +846,9 @@ export default function StudentProfilePage({
                                                 {
                                                   video.watch_progress_percentage
                                                 }
-                                                % watched
+                                                {t(
+                                                  "pages.centerStudentProfile.enrollments.watchedSuffix",
+                                                )}
                                               </p>
                                               {formattedDuration ? (
                                                 <p>{formattedDuration}</p>
@@ -758,7 +877,9 @@ export default function StudentProfilePage({
                                               )
                                             }
                                           >
-                                            Statistics
+                                            {t(
+                                              "pages.centerStudentProfile.actions.statistics",
+                                            )}
                                           </Button>
                                           <Button
                                             size="sm"
@@ -775,7 +896,9 @@ export default function StudentProfilePage({
                                               setExtraViews(1);
                                             }}
                                           >
-                                            Grant extra views
+                                            {t(
+                                              "pages.centerStudentProfile.actions.grantExtraViews",
+                                            )}
                                           </Button>
                                           {canGenerateVideoCode ? (
                                             <Button
@@ -792,7 +915,9 @@ export default function StudentProfilePage({
                                                 });
                                               }}
                                             >
-                                              Generate code
+                                              {t(
+                                                "pages.centerStudentProfile.actions.generateCode",
+                                              )}
                                             </Button>
                                           ) : null}
                                         </div>
@@ -814,7 +939,9 @@ export default function StudentProfilePage({
                       colSpan={5}
                       className="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
                     >
-                      No courses in this category.
+                      {t(
+                        "pages.centerStudentProfile.enrollments.emptyByCategory",
+                      )}
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -851,14 +978,23 @@ export default function StudentProfilePage({
       >
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader>
-            <DialogTitle>Grant Extra Views</DialogTitle>
+            <DialogTitle>
+              {t("pages.centerStudentProfile.dialog.grantExtraViewsTitle")}
+            </DialogTitle>
             <DialogDescription>
-              Add extra views for {grantTarget?.videoName}.
+              {t(
+                "pages.centerStudentProfile.dialog.grantExtraViewsDescription",
+                {
+                  name: grantTarget?.videoName ?? "",
+                },
+              )}
             </DialogDescription>
           </DialogHeader>
           {grantError ? (
             <Alert variant="destructive">
-              <AlertTitle>Could not grant extra views</AlertTitle>
+              <AlertTitle>
+                {t("pages.centerStudentProfile.dialog.grantFailedTitle")}
+              </AlertTitle>
               <AlertDescription>{grantError}</AlertDescription>
             </Alert>
           ) : null}
@@ -878,7 +1014,9 @@ export default function StudentProfilePage({
               ))}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="extra-views">Custom extra views</Label>
+              <Label htmlFor="extra-views">
+                {t("pages.centerStudentProfile.dialog.customExtraViews")}
+              </Label>
               <Input
                 id="extra-views"
                 type="number"
@@ -902,15 +1040,18 @@ export default function StudentProfilePage({
                 setGrantError(null);
               }}
             >
-              Cancel
+              {t("common.actions.cancel")}
             </Button>
             <Button
               onClick={handleGrantViews}
               disabled={extraViews < 1 || grantExtraViewsMutation.isPending}
             >
               {grantExtraViewsMutation.isPending
-                ? "Granting..."
-                : `Grant ${extraViews} view${extraViews === 1 ? "" : "s"}`}
+                ? t("pages.centerStudentProfile.actions.granting")
+                : t("pages.centerStudentProfile.actions.grantViews", {
+                    count: extraViews,
+                    plural: extraViews === 1 ? "" : "s",
+                  })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -927,7 +1068,8 @@ export default function StudentProfilePage({
         studentCenter={profile?.center ?? null}
         studentPreset={{
           id: profile?.id ?? studentId,
-          label: profile?.name ?? "Student",
+          label:
+            profile?.name ?? t("pages.centerStudentProfile.defaults.student"),
         }}
         coursePreset={
           generateCodeTarget

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useTenant } from "@/app/tenant-provider";
+import { useTranslation } from "@/features/localization";
 
 type TenantIdentityBadgeProps = {
   className?: string;
@@ -10,9 +11,12 @@ type TenantIdentityBadgeProps = {
 export function TenantIdentityBadge({ className }: TenantIdentityBadgeProps) {
   const { centerSlug, centerName, branding } = useTenant();
   const isCenter = Boolean(centerSlug);
+  const { t } = useTranslation();
 
-  const label = isCenter ? "Center" : "Admin";
-  const name = isCenter ? centerName || centerSlug || "Center" : "Najaah Admin";
+  const label = isCenter ? t("common.labels.center") : t("common.labels.admin");
+  const name = isCenter
+    ? centerName || centerSlug || t("common.labels.center")
+    : t("sidebar.najaahAdmin");
   const centerLogoUrl =
     isCenter && typeof branding?.logoUrl === "string" ? branding.logoUrl : null;
 
@@ -26,7 +30,7 @@ export function TenantIdentityBadge({ className }: TenantIdentityBadgeProps) {
             className="h-full w-full bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${centerLogoUrl})` }}
             role="img"
-            aria-label={`${name} logo`}
+            aria-label={t("ui.tenantIdentity.logoAriaLabel", { name })}
           />
         ) : isCenter ? (
           name.charAt(0).toUpperCase()
@@ -35,7 +39,7 @@ export function TenantIdentityBadge({ className }: TenantIdentityBadgeProps) {
             src="/images/logo/logo-icon.svg"
             width={20}
             height={20}
-            alt="Najaah Admin"
+            alt={t("ui.tenantIdentity.adminLogoAlt")}
             className="brightness-0 saturate-0"
           />
         )}

@@ -7,6 +7,15 @@ export const size = {
 };
 export const contentType = "image/png";
 
+const OG_TITLE = "White-Label LMS for Educational Centers";
+const OG_SUBTITLE =
+  "AI quizzes, DRM-protected content, Arabic RTL support, and multi-tenant administration.";
+const OG_FEATURES = [
+  "AI Quiz Generator",
+  "DRM Protection",
+  "Arabic RTL",
+] as const;
+
 export default function OpenGraphImage() {
   return new ImageResponse(
     <div
@@ -58,18 +67,17 @@ export default function OpenGraphImage() {
             whiteSpace: "pre-wrap",
           }}
         >
-          {"White-Label LMS for\nEducational Centers"}
+          {OG_TITLE.replace(" for ", " for\n")}
         </div>
         <div style={{ fontSize: "28px", lineHeight: 1.4, opacity: 0.92 }}>
-          AI quizzes, DRM-protected content, Arabic RTL support, and
-          multi-tenant administration.
+          {OG_SUBTITLE}
         </div>
       </div>
 
       <div style={{ display: "flex", gap: "18px", fontSize: "24px" }}>
-        <div>AI Quiz Generator</div>
-        <div>DRM Protection</div>
-        <div>Arabic RTL</div>
+        {OG_FEATURES.map((feature) => (
+          <div key={feature}>{feature}</div>
+        ))}
       </div>
     </div>,
     size,

@@ -18,11 +18,14 @@ export const metadata = buildPageMetadata({
   },
 });
 
+const SEO_PAGE_TITLE =
+  "An AI Quiz Generator Built for Real School and Center Workflows";
+
 export default function AiQuizGeneratorPage() {
   return (
     <SeoPageShell
       eyebrow="AI Assessments"
-      title="An AI Quiz Generator Built for Real School and Center Workflows"
+      title={SEO_PAGE_TITLE}
       intro="Most AI quiz tools stop at novelty. Schools and educational centers need something more disciplined: an assessment workflow that starts from their own content, respects curriculum structure, and saves teachers time without losing control."
       bullets={[
         "Generate quizzes from uploaded materials and past exams",

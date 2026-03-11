@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRetryCenterOnboarding } from "@/features/centers/hooks/use-centers";
 import { getCenterApiErrorMessage } from "@/features/centers/lib/api-error";
 import type { Center } from "@/features/centers/types/center";
+import { useTranslation } from "@/features/localization";
 
 type CenterOnboardingCardProps = {
   center: Center;
@@ -32,6 +33,8 @@ function toTitleCase(value: string) {
 }
 
 export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
+  const { t } = useTranslation();
+
   const retryMutation = useRetryCenterOnboarding();
 
   const [retryError, setRetryError] = useState<string | null>(null);
@@ -57,20 +60,26 @@ export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
       <CardHeader>
         <CardTitle>Onboarding</CardTitle>
         <CardDescription>
-          Retry onboarding operations if setup got stuck or failed.
+          {t("auto.features.centers.components.forms.centeronboardingcard.s1")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {retryError ? (
           <Alert variant="destructive">
-            <AlertTitle>Retry failed</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.centers.components.forms.centeronboardingcard.s2",
+              )}
+            </AlertTitle>
             <AlertDescription>{retryError}</AlertDescription>
           </Alert>
         ) : null}
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Current:
+            {t(
+              "auto.features.centers.components.forms.centeronboardingcard.s3",
+            )}
           </span>
           <Badge variant={getOnboardingBadgeVariant(onboardingStatus)}>
             {toTitleCase(onboardingStatus.replace(/_/g, " "))}

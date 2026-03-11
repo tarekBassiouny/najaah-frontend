@@ -18,6 +18,7 @@ import {
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DeleteSchoolDialogProps = {
   centerId: string | number;
@@ -48,6 +49,8 @@ export function DeleteSchoolDialog({
   school,
   onSuccess,
 }: DeleteSchoolDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteSchool();
 
@@ -90,10 +93,12 @@ export function DeleteSchoolDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete School</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.education.components.deleteschooldialog.s1")}
+          </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete School"
+          title={t("auto.features.education.components.deleteschooldialog.s1")}
           entityName={schoolLabel}
           entityFallback="this school"
           confirmButtonLabel="Delete School"

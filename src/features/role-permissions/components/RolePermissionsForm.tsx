@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 type RolePermissionsFormProps = {
   roleId: string;
@@ -255,6 +256,8 @@ export function RolePermissionsForm({
   readOnly = false,
   onApplied,
 }: RolePermissionsFormProps) {
+  const { t } = useTranslation();
+
   const { roleQuery, updateMutation } = useRolePermissions(roleId, {
     centerId: scopeCenterId ?? null,
   });
@@ -418,8 +421,12 @@ export function RolePermissionsForm({
     return (
       <AppNotFoundState
         scopeLabel="Role Permissions"
-        title="Role not found"
-        description="The role you requested does not exist or is no longer available."
+        title={t(
+          "auto.features.role_permissions.components.rolepermissionsform.s1",
+        )}
+        description={t(
+          "auto.features.role_permissions.components.rolepermissionsform.s2",
+        )}
         primaryAction={{
           href: scopeCenterId ? `/centers/${scopeCenterId}/roles` : "/roles",
           label: scopeCenterId ? "Go to Roles" : "Go to Platform Roles",
@@ -522,7 +529,9 @@ export function RolePermissionsForm({
           </div>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white">
-              Sync Permissions
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s3",
+              )}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {readOnly
@@ -543,24 +552,37 @@ export function RolePermissionsForm({
 
       {readOnly ? (
         <Alert>
-          <AlertTitle>Read only</AlertTitle>
+          <AlertTitle>
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s4",
+            )}
+          </AlertTitle>
           <AlertDescription>
-            You can view assigned permissions, but updates require manage_roles
-            permission.
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s5",
+            )}
           </AlertDescription>
         </Alert>
       ) : null}
 
       {permissionIdsError ? (
         <Alert variant="destructive">
-          <AlertTitle>Permission validation failed</AlertTitle>
+          <AlertTitle>
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s6",
+            )}
+          </AlertTitle>
           <AlertDescription>{permissionIdsError}</AlertDescription>
         </Alert>
       ) : null}
 
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Could not update permissions</AlertTitle>
+          <AlertTitle>
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s7",
+            )}
+          </AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
@@ -574,7 +596,11 @@ export function RolePermissionsForm({
       {!readOnly ? (
         <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/40">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label htmlFor="permissions-search">Search permissions</Label>
+            <Label htmlFor="permissions-search">
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s8",
+              )}
+            </Label>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -583,7 +609,9 @@ export function RolePermissionsForm({
                 onClick={handleSelectAll}
                 disabled={permissions.length === 0 || isLoading}
               >
-                Select all
+                {t(
+                  "auto.features.role_permissions.components.rolepermissionsform.s9",
+                )}
               </Button>
               <Button
                 variant="outline"
@@ -600,24 +628,31 @@ export function RolePermissionsForm({
             id="permissions-search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by permission, slug, or description..."
+            placeholder={t(
+              "auto.features.role_permissions.components.rolepermissionsform.s10",
+            )}
             disabled={isLoading}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Use search to filter permissions quickly. Review changes before
-            saving.
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s11",
+            )}
           </p>
         </div>
       ) : (
         <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/40">
           <Label htmlFor="permissions-search-readonly">
-            Search permissions
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s8",
+            )}
           </Label>
           <Input
             id="permissions-search-readonly"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by permission, slug, or description..."
+            placeholder={t(
+              "auto.features.role_permissions.components.rolepermissionsform.s10",
+            )}
             disabled={isLoading}
           />
         </div>
@@ -632,7 +667,9 @@ export function RolePermissionsForm({
           ))
         ) : (
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            No permissions selected.
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s12",
+            )}
           </p>
         )}
       </div>
@@ -642,7 +679,11 @@ export function RolePermissionsForm({
         permissionChanges.removed.length > 0) ? (
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium">Permission changes:</span>
+            <span className="font-medium">
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s13",
+              )}
+            </span>
             <span className="text-green-700 dark:text-green-300">
               +{permissionChanges.added.length} added
             </span>
@@ -672,7 +713,9 @@ export function RolePermissionsForm({
             {permissionChanges.added.length + permissionChanges.removed.length >
             12 ? (
               <Badge variant="outline" className="text-[11px]">
-                + more
+                {t(
+                  "auto.features.role_permissions.components.rolepermissionsform.s14",
+                )}
               </Badge>
             ) : null}
           </div>
@@ -782,9 +825,19 @@ export function RolePermissionsForm({
           }}
         >
           <DialogHeader className="space-y-2">
-            <DialogTitle>Confirm Permission Changes</DialogTitle>
+            <DialogTitle>
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s15",
+              )}
+            </DialogTitle>
             <DialogDescription>
-              Review permission updates for {roleName} before applying.
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s16",
+              )}
+              {roleName}{" "}
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s17",
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -793,13 +846,20 @@ export function RolePermissionsForm({
               {roleName}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {pendingPermissionIds.length} permissions selected
+              {pendingPermissionIds.length}{" "}
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s18",
+              )}
             </p>
           </div>
 
           {confirmError ? (
             <Alert variant="destructive">
-              <AlertTitle>Could not sync permissions</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.role_permissions.components.rolepermissionsform.s19",
+                )}
+              </AlertTitle>
               <AlertDescription>{confirmError}</AlertDescription>
             </Alert>
           ) : null}
@@ -807,7 +867,9 @@ export function RolePermissionsForm({
           <div className="space-y-4 text-sm">
             <div>
               <p className="font-semibold text-green-700 dark:text-green-300">
-                Permissions to add
+                {t(
+                  "auto.features.role_permissions.components.rolepermissionsform.s20",
+                )}
               </p>
               <ul className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
                 {pendingPermissionChanges.added.length > 0 ? (
@@ -822,7 +884,9 @@ export function RolePermissionsForm({
 
             <div>
               <p className="font-semibold text-red-700 dark:text-red-300">
-                Permissions to remove
+                {t(
+                  "auto.features.role_permissions.components.rolepermissionsform.s21",
+                )}
               </p>
               <ul className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
                 {pendingPermissionChanges.removed.length > 0 ? (
@@ -844,7 +908,9 @@ export function RolePermissionsForm({
               onChange={(event) => setConfirmChecked(event.target.checked)}
               disabled={updateMutation.isPending}
             />
-            I understand this will change role access permissions.
+            {t(
+              "auto.features.role_permissions.components.rolepermissionsform.s22",
+            )}
           </label>
 
           <DialogFooter>
@@ -854,7 +920,9 @@ export function RolePermissionsForm({
               onClick={() => setConfirmOpen(false)}
               disabled={updateMutation.isPending}
             >
-              Cancel
+              {t(
+                "auto.features.role_permissions.components.rolepermissionsform.s23",
+              )}
             </Button>
             <Button
               type="button"

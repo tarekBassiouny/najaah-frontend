@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 
 type RequestStatus =
@@ -54,6 +55,7 @@ function isRejectedStatus(status: string): boolean {
 
 function formatRelativeTime(
   dateString: string | null | undefined,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
 ): string | null {
   if (!dateString) return null;
 
@@ -67,10 +69,24 @@ function formatRelativeTime(
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) {
+      return t("pages.studentRequests.requestActions.relative.justNow");
+    }
+    if (diffMins < 60) {
+      return t("pages.studentRequests.requestActions.relative.minutesAgo", {
+        count: diffMins,
+      });
+    }
+    if (diffHours < 24) {
+      return t("pages.studentRequests.requestActions.relative.hoursAgo", {
+        count: diffHours,
+      });
+    }
+    if (diffDays < 7) {
+      return t("pages.studentRequests.requestActions.relative.daysAgo", {
+        count: diffDays,
+      });
+    }
 
     return date.toLocaleDateString();
   } catch {
@@ -92,15 +108,18 @@ export function RequestActionButtons({
   size = "sm",
   className,
 }: RequestActionButtonsProps) {
+  const { t } = useTranslation();
   const isPending = isPendingStatus(status);
   const isPreApproved = isPreApprovedStatus(status);
   const isApproved = isApprovedStatus(status);
   const isRejected = isRejectedStatus(status);
   const showActions = isPending || isPreApproved;
 
-  const relativeTime = formatRelativeTime(decidedAt);
+  const relativeTime = formatRelativeTime(decidedAt, t);
   const decisionInfo = decidedByName
-    ? `by ${decidedByName}${relativeTime ? ` · ${relativeTime}` : ""}`
+    ? `${t("pages.studentRequests.requestActions.by", { name: decidedByName })}${
+        relativeTime ? ` · ${relativeTime}` : ""
+      }`
     : relativeTime
       ? relativeTime
       : null;
@@ -110,11 +129,11 @@ export function RequestActionButtons({
       <div className={cn("flex flex-col items-end text-right", className)}>
         {isApproved ? (
           <span className="text-xs font-medium text-green-600 dark:text-green-400">
-            Approved
+            {t("pages.studentRequests.requestActions.status.approved")}
           </span>
         ) : isRejected ? (
           <span className="text-xs font-medium text-red-600 dark:text-red-400">
-            Rejected
+            {t("pages.studentRequests.requestActions.status.rejected")}
           </span>
         ) : null}
         {decisionInfo ? (
@@ -142,7 +161,9 @@ export function RequestActionButtons({
           onClick={onPreApprove}
           disabled={isDisabled || !onPreApprove}
         >
-          {isPreApproving ? "..." : "Pre-Approve"}
+          {isPreApproving
+            ? t("pages.studentRequests.requestActions.loading")
+            : t("pages.studentRequests.requestActions.buttons.preApprove")}
         </Button>
       ) : null}
 
@@ -156,7 +177,9 @@ export function RequestActionButtons({
         onClick={onApprove}
         disabled={isDisabled || !onApprove}
       >
-        {isApproving ? "..." : "Approve"}
+        {isApproving
+          ? t("pages.studentRequests.requestActions.loading")
+          : t("pages.studentRequests.requestActions.buttons.approve")}
       </Button>
 
       <Button
@@ -169,7 +192,9 @@ export function RequestActionButtons({
         onClick={onReject}
         disabled={isDisabled || !onReject}
       >
-        {isRejecting ? "..." : "Reject"}
+        {isRejecting
+          ? t("pages.studentRequests.requestActions.loading")
+          : t("pages.studentRequests.requestActions.buttons.reject")}
       </Button>
     </div>
   );

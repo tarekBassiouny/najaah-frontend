@@ -33,6 +33,7 @@ import { useColleges } from "@/features/education/hooks/use-colleges";
 import type { College } from "@/features/education/types/education";
 import { getEducationName } from "@/features/education/types/education";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -61,13 +62,18 @@ type CollegesTableProps = {
   onDelete?: (_college: College) => void;
 };
 
-function getCollegeTypeLabel(college: College) {
+function getCollegeTypeLabel(
+  college: College,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   if (college.type_label && college.type_label.trim()) {
     return college.type_label.trim();
   }
 
   if (college.type != null && String(college.type).trim()) {
-    return `Type ${college.type}`;
+    return t("pages.education.tables.colleges.typeValue", {
+      value: college.type,
+    });
   }
 
   return "—";
@@ -78,6 +84,7 @@ export function CollegesTable({
   onEdit,
   onDelete,
 }: CollegesTableProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -140,7 +147,11 @@ export function CollegesTable({
         }}
         summary={
           <>
-            {total} {total === 1 ? "college" : "colleges"}
+            {total === 1
+              ? t("pages.education.tables.colleges.summary", { count: total })
+              : t("pages.education.tables.colleges.summaryPlural", {
+                  count: total,
+                })}
           </>
         }
         gridClassName="grid-cols-1 md:grid-cols-2"
@@ -162,7 +173,7 @@ export function CollegesTable({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search colleges..."
+            placeholder={t("pages.education.tables.colleges.searchPlaceholder")}
             className="pl-10 pr-9 transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30"
           />
           <button
@@ -178,7 +189,7 @@ export function CollegesTable({
                 ? "opacity-100"
                 : "pointer-events-none opacity-0",
             )}
-            aria-label="Clear search"
+            aria-label={t("pages.education.tables.colleges.clearSearch")}
             tabIndex={search.trim().length > 0 ? 0 : -1}
           >
             <svg
@@ -208,12 +219,20 @@ export function CollegesTable({
             className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
             icon={<StatusIcon />}
           >
-            <SelectValue placeholder="Status" />
+            <SelectValue
+              placeholder={t("pages.education.tables.colleges.filters.status")}
+            />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_STATUS_VALUE}>All Statuses</SelectItem>
-            <SelectItem value={STATUS_ACTIVE_VALUE}>Active</SelectItem>
-            <SelectItem value={STATUS_INACTIVE_VALUE}>Inactive</SelectItem>
+            <SelectItem value={ALL_STATUS_VALUE}>
+              {t("pages.education.tables.colleges.filters.allStatuses")}
+            </SelectItem>
+            <SelectItem value={STATUS_ACTIVE_VALUE}>
+              {t("pages.education.tables.colleges.filters.active")}
+            </SelectItem>
+            <SelectItem value={STATUS_INACTIVE_VALUE}>
+              {t("pages.education.tables.colleges.filters.inactive")}
+            </SelectItem>
           </SelectContent>
         </Select>
       </ListingFilters>
@@ -222,7 +241,7 @@ export function CollegesTable({
         <div className="p-6">
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-900 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Failed to load colleges. Please try again.
+              {t("pages.education.tables.colleges.loadFailed")}
             </p>
             <Button
               variant="outline"
@@ -230,7 +249,7 @@ export function CollegesTable({
               className="mt-2"
               onClick={() => window.location.reload()}
             >
-              Retry
+              {t("pages.education.tables.colleges.retry")}
             </Button>
           </div>
         </div>
@@ -244,12 +263,20 @@ export function CollegesTable({
           <Table className="min-w-[980px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
-                <TableHead className="font-medium">Name</TableHead>
-                <TableHead className="font-medium">Type</TableHead>
-                <TableHead className="font-medium">Address</TableHead>
-                <TableHead className="font-medium">Status</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.colleges.headers.name")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.colleges.headers.type")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.colleges.headers.address")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.education.tables.colleges.headers.status")}
+                </TableHead>
                 <TableHead className="w-10 text-right font-medium">
-                  Actions
+                  {t("pages.education.tables.colleges.headers.actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -280,11 +307,23 @@ export function CollegesTable({
                 <TableRow>
                   <TableCell colSpan={5} className="h-48">
                     <EmptyState
-                      title={query ? "No colleges found" : "No colleges yet"}
+                      title={
+                        query
+                          ? t(
+                              "pages.education.tables.colleges.empty.noResultsTitle",
+                            )
+                          : t(
+                              "pages.education.tables.colleges.empty.noDataTitle",
+                            )
+                      }
                       description={
                         query
-                          ? "Try adjusting your search terms"
-                          : "Colleges will appear here once they are added."
+                          ? t(
+                              "pages.education.tables.colleges.empty.noResultsDescription",
+                            )
+                          : t(
+                              "pages.education.tables.colleges.empty.noDataDescription",
+                            )
                       }
                       className="border-0 bg-transparent"
                     />
@@ -300,17 +339,26 @@ export function CollegesTable({
                   return (
                     <TableRow key={college.id}>
                       <TableCell className="font-medium text-gray-900 dark:text-white">
-                        {getEducationName(college, "College")}
+                        {getEducationName(
+                          college,
+                          t("pages.education.tables.colleges.entityName"),
+                        )}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {getCollegeTypeLabel(college)}
+                        {getCollegeTypeLabel(college, t)}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
                         {college.address?.trim() ? college.address : "—"}
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusVariant}>
-                          {college.is_active === false ? "Inactive" : "Active"}
+                          {college.is_active === false
+                            ? t(
+                                "pages.education.tables.colleges.filters.inactive",
+                              )
+                            : t(
+                                "pages.education.tables.colleges.filters.active",
+                              )}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -338,7 +386,9 @@ export function CollegesTable({
                                   onEdit(college);
                                 }}
                               >
-                                Edit
+                                {t(
+                                  "pages.education.tables.colleges.actions.edit",
+                                )}
                               </button>
                             ) : null}
                             {onDelete ? (
@@ -349,7 +399,9 @@ export function CollegesTable({
                                   onDelete(college);
                                 }}
                               >
-                                Delete
+                                {t(
+                                  "pages.education.tables.colleges.actions.delete",
+                                )}
                               </button>
                             ) : null}
                           </DropdownContent>

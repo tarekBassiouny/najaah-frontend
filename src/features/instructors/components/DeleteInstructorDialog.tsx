@@ -12,6 +12,7 @@ import { useDeleteInstructor } from "@/features/instructors/hooks/use-instructor
 import type { Instructor } from "@/features/instructors/types/instructor";
 import { useModal } from "@/components/ui/modal-store";
 import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
+import { useTranslation } from "@/features/localization";
 
 type DeleteInstructorDialogProps = {
   open: boolean;
@@ -28,6 +29,8 @@ export function DeleteInstructorDialog({
   scopeCenterId,
   onSuccess,
 }: DeleteInstructorDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteInstructor({
     centerId: scopeCenterId ?? null,
@@ -68,10 +71,16 @@ export function DeleteInstructorDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Instructor</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t(
+              "auto.features.instructors.components.deleteinstructordialog.s1",
+            )}
+          </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Instructor"
+          title={t(
+            "auto.features.instructors.components.deleteinstructordialog.s1",
+          )}
           entityName={instructorName}
           entityFallback="this instructor"
           confirmButtonLabel="Delete Instructor"

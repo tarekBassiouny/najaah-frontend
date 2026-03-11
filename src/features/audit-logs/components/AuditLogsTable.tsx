@@ -41,6 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTranslation } from "@/features/localization";
 import { formatDateTime } from "@/lib/format-date-time";
 import { cn } from "@/lib/utils";
 
@@ -53,13 +54,13 @@ const COURSE_ENTITY_TYPE = "App\\Models\\Course";
 const FILTER_SEARCH_DEBOUNCE_MS = 300;
 
 const ACTION_OPTIONS = [
-  { value: ALL_ACTIONS_VALUE, label: "All actions" },
-  { value: "create", label: "Create" },
-  { value: "update", label: "Update" },
-  { value: "delete", label: "Delete" },
-  { value: "login", label: "Login" },
-  { value: "logout", label: "Logout" },
-];
+  { value: ALL_ACTIONS_VALUE, key: "allActions" },
+  { value: "create", key: "create" },
+  { value: "update", key: "update" },
+  { value: "delete", key: "delete" },
+  { value: "login", key: "login" },
+  { value: "logout", key: "logout" },
+] as const;
 
 const TODAY_RANGE = "today";
 const LAST_7_DAYS_RANGE = "last7";
@@ -155,14 +156,22 @@ function getMetadataSizeLabel(metadata: unknown) {
   return "1 value";
 }
 
-function buildEventSummary(log: AuditLog) {
-  const actor = log.user?.name || `User #${log.user_id ?? "Unknown"}`;
-  const entityType = formatEntityType(log.entity_type);
+function buildEventSummary(
+  log: AuditLog,
+  options: {
+    unknownUserLabel: string;
+    getActionLabel: (_value?: string | null) => string;
+    getEntityTypeLabel: (_value?: string | null) => string;
+  },
+) {
+  const actor =
+    log.user?.name || `${options.unknownUserLabel} #${log.user_id ?? "?"}`;
+  const entityType = options.getEntityTypeLabel(log.entity_type);
   const entityPart = log.entity_label
     ? `${entityType} "${String(log.entity_label)}"`
     : `${entityType} #${log.entity_id ?? "?"}`;
 
-  return `${actor} ${formatActionLabel(log.action).toLowerCase()} ${entityPart}`;
+  return `${actor} ${options.getActionLabel(log.action)} ${entityPart}`;
 }
 
 type AuditLogsTableProps = {
@@ -170,6 +179,7 @@ type AuditLogsTableProps = {
 };
 
 export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
+  const { t } = useTranslation();
   const { centerSlug, centerId: tenantCenterId } = useTenant();
   const isCenterScoped = Boolean(scopeCenterId);
   const centerId = scopeCenterId ?? tenantCenterId;
@@ -202,6 +212,27 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
   const cachedCoursesRef = useRef<
     Map<string, { id: string | number; title?: string | null }>
   >(new Map());
+
+  const getActionLabel = (value?: string | null) => {
+    const normalized = String(value ?? "")
+      .trim()
+      .toLowerCase();
+    if (!normalized) {
+      return t("pages.auditLogs.table.actions.unknown");
+    }
+    const option = ACTION_OPTIONS.find((item) => item.value === normalized);
+    if (option) {
+      return t(`pages.auditLogs.table.actions.${option.key}`);
+    }
+    return formatActionLabel(value);
+  };
+
+  const getEntityTypeLabel = (value?: string | null) => {
+    const formatted = formatEntityType(value);
+    return formatted === "Unknown"
+      ? t("pages.auditLogs.table.unknown.entityType")
+      : formatted;
+  };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -312,7 +343,10 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
 
   const userOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_USERS_VALUE, label: "All users" },
+      {
+        value: ALL_USERS_VALUE,
+        label: t("pages.auditLogs.table.filters.allUsers"),
+      },
     ];
 
     const users = (usersQuery.data?.pages ?? [])
@@ -324,7 +358,8 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
       )
       .map((user) => ({
         value: String(user.id),
-        label: user.name || `User ${user.id}`,
+        label:
+          user.name || `${t("pages.auditLogs.table.filters.user")} ${user.id}`,
         description: user.email || undefined,
       }));
 
@@ -336,17 +371,22 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
       const selected = cachedUsersRef.current.get(selectedUser);
       users.unshift({
         value: selectedUser,
-        label: selected?.name ?? `User ${selectedUser}`,
+        label:
+          selected?.name ??
+          `${t("pages.auditLogs.table.filters.user")} ${selectedUser}`,
         description: selected?.email ?? undefined,
       });
     }
 
     return [...defaults, ...users];
-  }, [selectedUser, usersQuery.data?.pages]);
+  }, [selectedUser, t, usersQuery.data?.pages]);
 
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [
-      { value: ALL_COURSES_VALUE, label: "All courses" },
+      {
+        value: ALL_COURSES_VALUE,
+        label: t("pages.auditLogs.table.filters.allCourses"),
+      },
     ];
 
     if (!centerId) {
@@ -362,7 +402,9 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
       )
       .map((course) => ({
         value: String(course.id),
-        label: course.title || `Course ${course.id}`,
+        label:
+          course.title ||
+          `${t("pages.auditLogs.table.filters.course")} ${course.id}`,
       }));
 
     if (
@@ -373,12 +415,14 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
       const selected = cachedCoursesRef.current.get(selectedCourse);
       courses.unshift({
         value: selectedCourse,
-        label: selected?.title ?? `Course ${selectedCourse}`,
+        label:
+          selected?.title ??
+          `${t("pages.auditLogs.table.filters.course")} ${selectedCourse}`,
       });
     }
 
     return [...defaults, ...courses];
-  }, [centerId, coursesQuery.data?.pages, selectedCourse]);
+  }, [centerId, coursesQuery.data?.pages, selectedCourse, t]);
 
   const params = useMemo(
     () => ({
@@ -492,7 +536,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
           isFetching={isFetching}
           isLoading={isLoading}
           hasActiveFilters={hasActiveFilters}
-          clearLabel="Reset"
+          clearLabel={t("pages.auditLogs.table.clear")}
           clearDisabled={isFetching}
           onClear={resetFilters}
           summary={
@@ -502,7 +546,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 className="h-8 px-3 text-xs"
                 onClick={() => applyDatePreset(TODAY_RANGE)}
               >
-                Today
+                {t("pages.auditLogs.table.datePresets.today")}
               </Button>
               <Button
                 variant={
@@ -511,7 +555,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 className="h-8 px-3 text-xs"
                 onClick={() => applyDatePreset(LAST_7_DAYS_RANGE)}
               >
-                Last 7 days
+                {t("pages.auditLogs.table.datePresets.last7Days")}
               </Button>
               <Button
                 variant={
@@ -520,10 +564,10 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 className="h-8 px-3 text-xs"
                 onClick={() => applyDatePreset(LAST_30_DAYS_RANGE)}
               >
-                Last 30 days
+                {t("pages.auditLogs.table.datePresets.last30Days")}
               </Button>
               <span className="text-xs text-dark-5 dark:text-dark-4">
-                {total} results
+                {t("pages.auditLogs.table.results", { count: total })}
               </span>
             </div>
           }
@@ -545,12 +589,18 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
               options={courseOptions}
               searchValue={courseSearch}
               onSearchValueChange={setCourseSearch}
-              placeholder={centerId ? "Course" : "Select center first"}
-              searchPlaceholder="Search courses..."
+              placeholder={
+                centerId
+                  ? t("pages.auditLogs.table.filters.course")
+                  : t("pages.auditLogs.table.filters.selectCenter")
+              }
+              searchPlaceholder={t(
+                "pages.auditLogs.table.filters.searchCourses",
+              )}
               emptyMessage={
                 centerId
-                  ? "No courses found"
-                  : "Select a center to load courses"
+                  ? t("pages.auditLogs.table.filters.noCourses")
+                  : t("pages.auditLogs.table.filters.selectCenterToLoad")
               }
               isLoading={coursesQuery.isLoading}
               filterOptions={false}
@@ -574,9 +624,9 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
               options={userOptions}
               searchValue={userSearch}
               onSearchValueChange={setUserSearch}
-              placeholder="User"
-              searchPlaceholder="Search users..."
-              emptyMessage="No users found"
+              placeholder={t("pages.auditLogs.table.filters.user")}
+              searchPlaceholder={t("pages.auditLogs.table.filters.searchUsers")}
+              emptyMessage={t("pages.auditLogs.table.filters.noUsers")}
               isLoading={usersQuery.isLoading}
               filterOptions={false}
               showSearch
@@ -594,12 +644,14 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
           <div className="lg:col-span-2">
             <Select value={action} onValueChange={setAction}>
               <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-                <SelectValue placeholder="Action" />
+                <SelectValue
+                  placeholder={t("pages.auditLogs.table.filters.action")}
+                />
               </SelectTrigger>
               <SelectContent>
                 {ACTION_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {t(`pages.auditLogs.table.actions.${option.key}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -609,7 +661,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
           <div className="lg:col-span-2">
             <input
               type="date"
-              title="From date"
+              title={t("pages.auditLogs.table.filters.fromDate")}
               className={cn(
                 "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
                 !dateFrom && "text-gray-500",
@@ -625,7 +677,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
           <div className="lg:col-span-2">
             <input
               type="date"
-              title="To date"
+              title={t("pages.auditLogs.table.filters.toDate")}
               className={cn(
                 "h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900",
                 !dateTo && "text-gray-500",
@@ -645,19 +697,20 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
             <div className="flex flex-wrap items-center gap-2">
               {action !== ALL_ACTIONS_VALUE ? (
                 <Badge variant="secondary" className="gap-1">
-                  Action: {formatActionLabel(action)}
+                  {t("pages.auditLogs.table.activeFilters.action")}:{" "}
+                  {getActionLabel(action)}
                 </Badge>
               ) : null}
               {selectedUser !== ALL_USERS_VALUE ? (
                 <Badge variant="secondary" className="gap-1">
-                  User:{" "}
+                  {t("pages.auditLogs.table.activeFilters.user")}:{" "}
                   {userOptions.find((option) => option.value === selectedUser)
                     ?.label ?? selectedUser}
                 </Badge>
               ) : null}
               {selectedCourse !== ALL_COURSES_VALUE ? (
                 <Badge variant="secondary" className="gap-1">
-                  Course:{" "}
+                  {t("pages.auditLogs.table.activeFilters.course")}:{" "}
                   {courseOptions.find(
                     (option) => option.value === selectedCourse,
                   )?.label ?? selectedCourse}
@@ -665,12 +718,12 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
               ) : null}
               {dateFrom ? (
                 <Badge variant="secondary" className="gap-1">
-                  From: {dateFrom}
+                  {t("pages.auditLogs.table.activeFilters.from")}: {dateFrom}
                 </Badge>
               ) : null}
               {dateTo ? (
                 <Badge variant="secondary" className="gap-1">
-                  To: {dateTo}
+                  {t("pages.auditLogs.table.activeFilters.to")}: {dateTo}
                 </Badge>
               ) : null}
             </div>
@@ -679,7 +732,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
 
         {isError ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-dark-5 dark:border-gray-700 dark:bg-gray-800 dark:text-dark-4">
-            Failed to load data. Please try again later.
+            {t("pages.auditLogs.table.loadFailed")}
           </div>
         ) : null}
 
@@ -693,11 +746,17 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
             <TableHeader>
               <TableRow className="bg-gray-50/80 dark:bg-gray-800/60">
                 <TableHead className="whitespace-nowrap font-medium">
-                  Action
+                  {t("pages.auditLogs.table.headers.action")}
                 </TableHead>
-                <TableHead className="font-medium">Event</TableHead>
-                <TableHead className="font-medium">Metadata</TableHead>
-                <TableHead className="font-medium">Created At</TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.auditLogs.table.headers.event")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.auditLogs.table.headers.metadata")}
+                </TableHead>
+                <TableHead className="font-medium">
+                  {t("pages.auditLogs.table.headers.createdAt")}
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -723,8 +782,10 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 <TableRow>
                   <TableCell colSpan={4} className="h-48">
                     <EmptyState
-                      title="No audit logs found"
-                      description="There are no audit logs matching the current criteria."
+                      title={t("pages.auditLogs.table.empty.noResultsTitle")}
+                      description={t(
+                        "pages.auditLogs.table.empty.noResultsDescription",
+                      )}
                       className="border-0 bg-transparent"
                     />
                   </TableCell>
@@ -737,18 +798,26 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                   >
                     <TableCell>
                       <Badge variant={getActionVariant(log.action)}>
-                        {formatActionLabel(log.action)}
+                        {getActionLabel(log.action)}
                       </Badge>
                     </TableCell>
 
                     <TableCell className="max-w-[460px]">
                       <p className="truncate font-medium text-gray-900 dark:text-white">
-                        {buildEventSummary(log)}
+                        {buildEventSummary(log, {
+                          unknownUserLabel: t(
+                            "pages.auditLogs.table.unknown.user",
+                          ),
+                          getActionLabel,
+                          getEntityTypeLabel,
+                        })}
                       </p>
                       <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                        User #{log.user_id ?? "-"} | Center #
+                        {t("pages.auditLogs.table.labels.user")} #
+                        {log.user_id ?? "-"} |{" "}
+                        {t("pages.auditLogs.table.labels.center")} #
                         {log.center_id ?? "-"} |{" "}
-                        {formatEntityType(log.entity_type)} #
+                        {getEntityTypeLabel(log.entity_type)} #
                         {log.entity_id ?? "-"}
                       </p>
                     </TableCell>
@@ -763,7 +832,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                         className="mt-1 h-7 px-2 text-xs"
                         onClick={() => openDetails(log)}
                       >
-                        View details
+                        {t("pages.auditLogs.table.actions.viewDetails")}
                       </Button>
                     </TableCell>
 
@@ -797,33 +866,45 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
         <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-4xl overflow-hidden p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
           <DialogHeader className="space-y-2">
             <DialogTitle className="flex flex-wrap items-center gap-2">
-              <span>Audit Log #{selectedLog?.id ?? "-"}</span>
+              <span>
+                {t("pages.auditLogs.table.dialog.title", {
+                  id: selectedLog?.id ?? "-",
+                })}
+              </span>
               <Badge variant={getActionVariant(selectedLog?.action)}>
-                {formatActionLabel(selectedLog?.action)}
+                {getActionLabel(selectedLog?.action)}
               </Badge>
             </DialogTitle>
             <DialogDescription>
-              Full event details and metadata payload.
+              {t("pages.auditLogs.table.dialog.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="max-h-[calc(100dvh-12.5rem)] space-y-4 overflow-y-auto pr-1 sm:max-h-[calc(100dvh-13rem)]">
             <section className="rounded-xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-700 dark:bg-gray-900/40 sm:p-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Event Details
+                {t("pages.auditLogs.table.dialog.eventDetails")}
               </p>
               <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
                   <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Summary
+                    {t("pages.auditLogs.table.dialog.summary")}
                   </dt>
                   <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white sm:min-h-[2.5rem]">
-                    {selectedLog ? buildEventSummary(selectedLog) : "-"}
+                    {selectedLog
+                      ? buildEventSummary(selectedLog, {
+                          unknownUserLabel: t(
+                            "pages.auditLogs.table.unknown.user",
+                          ),
+                          getActionLabel,
+                          getEntityTypeLabel,
+                        })
+                      : "-"}
                   </dd>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
                   <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    User
+                    {t("pages.auditLogs.table.labels.user")}
                   </dt>
                   <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
                     {selectedLog?.user?.name ?? "-"} (#
@@ -832,7 +913,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
                   <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Center
+                    {t("pages.auditLogs.table.labels.center")}
                   </dt>
                   <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
                     #{selectedLog?.center_id ?? "-"}
@@ -840,16 +921,16 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900">
                   <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Entity
+                    {t("pages.auditLogs.table.dialog.entity")}
                   </dt>
                   <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
-                    {formatEntityType(selectedLog?.entity_type)} #
+                    {getEntityTypeLabel(selectedLog?.entity_type)} #
                     {selectedLog?.entity_id ?? "-"}
                   </dd>
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900 sm:col-span-2">
                   <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Label
+                    {t("pages.auditLogs.table.dialog.label")}
                   </dt>
                   <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
                     {selectedLog?.entity_label ?? "-"}
@@ -857,7 +938,7 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
                 </div>
                 <div className="rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-gray-900 sm:col-span-2">
                   <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Created
+                    {t("pages.auditLogs.table.dialog.created")}
                   </dt>
                   <dd className="mt-1 break-words text-sm text-gray-900 dark:text-white">
                     {formatDateTime(selectedLog?.created_at)}
@@ -870,10 +951,11 @@ export function AuditLogsTable({ scopeCenterId }: AuditLogsTableProps = {}) {
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-gray-50/80 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/70 sm:px-4">
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Metadata
+                    {t("pages.auditLogs.table.headers.metadata")}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Type: {getMetadataTypeLabel(selectedLog?.metadata)}
+                    {t("pages.auditLogs.table.dialog.metadataType")}:{" "}
+                    {getMetadataTypeLabel(selectedLog?.metadata)}
                   </p>
                 </div>
                 <Badge variant="secondary">

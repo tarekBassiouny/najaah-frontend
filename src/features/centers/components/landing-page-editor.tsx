@@ -82,6 +82,7 @@ import {
   LANDING_PAGE_LAYOUT_VARIANT_OPTIONS,
   LANDING_PAGE_SECTION_IDS,
 } from "@/features/centers/types/landing-page";
+import { useTranslation } from "@/features/localization";
 
 const emptyLocalized: LocalizedString = { en: "", ar: "" };
 const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{3,8}$/;
@@ -591,6 +592,7 @@ function LocalizedField({
 }
 
 type ImageUploadFieldProps = {
+  t: (_key: string, _params?: Record<string, string | number>) => string;
   inputId: string;
   label: string;
   description: string;
@@ -607,6 +609,7 @@ type ImageUploadFieldProps = {
 };
 
 function ImageUploadField({
+  t,
   inputId,
   label,
   description,
@@ -642,7 +645,7 @@ function ImageUploadField({
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            No image selected yet.
+            {t("auto.features.centers.components.landing_page_editor.s1")}
           </div>
         )}
 
@@ -658,12 +661,15 @@ function ImageUploadField({
             }}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Accepts image files up to {maxSizeLabel}.
+            {t("auto.features.centers.components.landing_page_editor.s2", {
+              maxSizeLabel,
+            })}
             {selectedFileName ? ` Selected: ${selectedFileName}` : ""}
           </p>
           {currentUrl ? (
             <p className="break-all text-xs text-gray-500 dark:text-gray-400">
-              Current URL: {currentUrl}
+              {t("auto.features.centers.components.landing_page_editor.s3")}{" "}
+              {currentUrl}
             </p>
           ) : null}
         </div>
@@ -675,17 +681,17 @@ function ImageUploadField({
             onClick={onUpload}
             disabled={isPending || !selectedFileName}
           >
-            {isPending ? "Uploading..." : uploadLabel}
+            {isPending ? t("common.actions.loading") : uploadLabel}
           </Button>
           {onClearSelection && selectedFileName ? (
             <Button type="button" variant="ghost" onClick={onClearSelection}>
-              Clear selection
+              {t("auto.features.centers.components.landing_page_editor.s4")}
             </Button>
           ) : null}
           {currentUrl ? (
             <Button asChild type="button" variant="ghost">
               <a href={currentUrl} target="_blank" rel="noreferrer">
-                Open current
+                {t("auto.features.centers.components.landing_page_editor.s5")}
               </a>
             </Button>
           ) : null}
@@ -704,6 +710,8 @@ type Props = {
 };
 
 export function LandingPageEditor({ centerId }: Props) {
+  const { t } = useTranslation();
+
   const queryClient = useQueryClient();
   const { locale } = useLocale();
 
@@ -1671,7 +1679,7 @@ export function LandingPageEditor({ centerId }: Props) {
       <Card>
         <CardContent className="py-6">
           <p className="text-sm text-red-600 dark:text-red-400">
-            Missing center ID.
+            {t("auto.features.centers.components.landing_page_editor.s1")}
           </p>
         </CardContent>
       </Card>
@@ -1682,9 +1690,11 @@ export function LandingPageEditor({ centerId }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Landing page editor</CardTitle>
+          <CardTitle>
+            {t("auto.features.centers.components.landing_page_editor.s2")}
+          </CardTitle>
           <CardDescription>
-            Preparing the branded editor and fetching the latest draft.
+            {t("auto.features.centers.components.landing_page_editor.s3")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -1715,14 +1725,18 @@ export function LandingPageEditor({ centerId }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Landing page editor</CardTitle>
+          <CardTitle>
+            {t("auto.features.centers.components.landing_page_editor.s2")}
+          </CardTitle>
           <CardDescription>
-            The editor could not load the current center draft.
+            {t("auto.features.centers.components.landing_page_editor.s4")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
-            <AlertTitle>Unable to load</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.centers.components.landing_page_editor.s5")}
+            </AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
         </CardContent>
@@ -1736,7 +1750,9 @@ export function LandingPageEditor({ centerId }: Props) {
         <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <CardTitle>Publishing & preview</CardTitle>
+              <CardTitle>
+                {t("auto.features.centers.components.landing_page_editor.s6")}
+              </CardTitle>
               <Badge
                 variant="outline"
                 className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
@@ -1751,8 +1767,7 @@ export function LandingPageEditor({ centerId }: Props) {
               </Badge>
             </div>
             <CardDescription>
-              Use these page-level actions to generate a draft preview, review
-              it inline, and publish only when the branded center is ready.
+              {t("auto.features.centers.components.landing_page_editor.s7")}
             </CardDescription>
           </div>
 
@@ -1771,7 +1786,7 @@ export function LandingPageEditor({ centerId }: Props) {
             {previewUrl ? (
               <Button asChild variant="secondary">
                 <a href={previewUrl} target="_blank" rel="noreferrer">
-                  Open preview
+                  {t("auto.features.centers.components.landing_page_editor.s8")}
                 </a>
               </Button>
             ) : null}
@@ -1806,7 +1821,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                Last updated
+                {t("auto.features.centers.components.landing_page_editor.s9")}
               </p>
               <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                 {formatDateTime(landing?.updated_at)}
@@ -1815,7 +1830,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                Preview token
+                {t("auto.features.centers.components.landing_page_editor.s10")}
               </p>
               <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                 {previewExpiresAt
@@ -1826,7 +1841,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                Preview locale
+                {t("auto.features.centers.components.landing_page_editor.s11")}
               </p>
               <div className="mt-3 flex gap-2">
                 {SUPPORTED_LOCALES.map((localeCode) => (
@@ -1855,10 +1870,13 @@ export function LandingPageEditor({ centerId }: Props) {
         <Card>
           <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
-              <CardTitle>Preview iframe</CardTitle>
+              <CardTitle>
+                {t("auto.features.centers.components.landing_page_editor.s12")}
+              </CardTitle>
               <CardDescription>
-                Review the branded landing page in {previewLocale.toUpperCase()}{" "}
-                with the current draft token before publishing.
+                {t("auto.features.centers.components.landing_page_editor.s13")}
+                {previewLocale.toUpperCase()}{" "}
+                {t("auto.features.centers.components.landing_page_editor.s14")}
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -1880,7 +1898,9 @@ export function LandingPageEditor({ centerId }: Props) {
             <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
               <iframe
                 src={previewUrl}
-                title="Center landing page preview"
+                title={t(
+                  "auto.features.centers.components.landing_page_editor.s15",
+                )}
                 className="h-[720px] w-full bg-white"
               />
             </div>
@@ -1928,7 +1948,11 @@ export function LandingPageEditor({ centerId }: Props) {
           {activeTab === "meta" ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="meta-title">Meta title</Label>
+                <Label htmlFor="meta-title">
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s16",
+                  )}
+                </Label>
                 <Input
                   id="meta-title"
                   value={metaDraft.meta_title ?? ""}
@@ -1939,12 +1963,18 @@ export function LandingPageEditor({ centerId }: Props) {
                       meta_title: nextValue,
                     }));
                   }}
-                  placeholder="Center landing page title"
+                  placeholder={t(
+                    "auto.features.centers.components.landing_page_editor.s17",
+                  )}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="meta-description">Meta description</Label>
+                <Label htmlFor="meta-description">
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s18",
+                  )}
+                </Label>
                 <Textarea
                   id="meta-description"
                   className="min-h-[140px]"
@@ -1956,12 +1986,18 @@ export function LandingPageEditor({ centerId }: Props) {
                       meta_description: nextValue,
                     }));
                   }}
-                  placeholder="Describe the center in a concise search-friendly summary."
+                  placeholder={t(
+                    "auto.features.centers.components.landing_page_editor.s19",
+                  )}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="meta-keywords">Meta keywords</Label>
+                <Label htmlFor="meta-keywords">
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s20",
+                  )}
+                </Label>
                 <Input
                   id="meta-keywords"
                   value={metaDraft.meta_keywords ?? ""}
@@ -1972,10 +2008,14 @@ export function LandingPageEditor({ centerId }: Props) {
                       meta_keywords: nextValue,
                     }));
                   }}
-                  placeholder="education, online learning, center name"
+                  placeholder={t(
+                    "auto.features.centers.components.landing_page_editor.s21",
+                  )}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Keep keywords as a plain comma-separated string.
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s22",
+                  )}
                 </p>
               </div>
 
@@ -2000,9 +2040,13 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <LocalizedField
                 id="hero-title"
-                label="Hero title"
+                label={t(
+                  "auto.features.centers.components.landing_page_editor.s23",
+                )}
                 values={heroDraft.hero_title ?? emptyLocalized}
-                description="Keep hero translations structured as EN/AR objects."
+                description={t(
+                  "auto.features.centers.components.landing_page_editor.s24",
+                )}
                 onChange={(localeCode, nextValue) =>
                   setHeroDraft((current) => ({
                     ...current,
@@ -2016,7 +2060,9 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <LocalizedField
                 id="hero-subtitle"
-                label="Hero subtitle"
+                label={t(
+                  "auto.features.centers.components.landing_page_editor.s25",
+                )}
                 values={heroDraft.hero_subtitle ?? emptyLocalized}
                 onChange={(localeCode, nextValue) =>
                   setHeroDraft((current) => ({
@@ -2031,7 +2077,11 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="hero-cta-text">Hero CTA text</Label>
+                  <Label htmlFor="hero-cta-text">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s26",
+                    )}
+                  </Label>
                   <Input
                     id="hero-cta-text"
                     value={heroDraft.hero_cta_text ?? ""}
@@ -2042,12 +2092,18 @@ export function LandingPageEditor({ centerId }: Props) {
                         hero_cta_text: nextValue,
                       }));
                     }}
-                    placeholder="Primary CTA"
+                    placeholder={t(
+                      "auto.features.centers.components.landing_page_editor.s27",
+                    )}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="hero-cta-url">Hero CTA URL</Label>
+                  <Label htmlFor="hero-cta-url">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s28",
+                    )}
+                  </Label>
                   <Input
                     id="hero-cta-url"
                     type="url"
@@ -2065,7 +2121,11 @@ export function LandingPageEditor({ centerId }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hero-background-url">Hero background URL</Label>
+                <Label htmlFor="hero-background-url">
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s29",
+                  )}
+                </Label>
                 <Input
                   id="hero-background-url"
                   value={heroDraft.hero_background_url ?? ""}
@@ -2081,9 +2141,14 @@ export function LandingPageEditor({ centerId }: Props) {
               </div>
 
               <ImageUploadField
+                t={t}
                 inputId="hero-background-upload"
-                label="Hero background upload"
-                description="Upload a new hero background image. The backend persists it immediately and returns the final URL."
+                label={t(
+                  "auto.features.centers.components.landing_page_editor.s30",
+                )}
+                description={t(
+                  "auto.features.centers.components.landing_page_editor.s31",
+                )}
                 currentUrl={heroDraft.hero_background_url}
                 selectedFileName={heroImageFile?.name ?? null}
                 previewUrl={
@@ -2133,9 +2198,13 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <LocalizedField
                 id="about-title"
-                label="About title"
+                label={t(
+                  "auto.features.centers.components.landing_page_editor.s32",
+                )}
                 values={aboutDraft.about_title ?? emptyLocalized}
-                description="Localized copy keeps EN and AR aligned with backend translations."
+                description={t(
+                  "auto.features.centers.components.landing_page_editor.s33",
+                )}
                 onChange={(localeCode, nextValue) =>
                   setAboutDraft((current) => ({
                     ...current,
@@ -2149,7 +2218,9 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <LocalizedField
                 id="about-content"
-                label="About content"
+                label={t(
+                  "auto.features.centers.components.landing_page_editor.s34",
+                )}
                 textarea
                 values={aboutDraft.about_content ?? emptyLocalized}
                 onChange={(localeCode, nextValue) =>
@@ -2164,7 +2235,11 @@ export function LandingPageEditor({ centerId }: Props) {
               />
 
               <div className="space-y-2">
-                <Label htmlFor="about-image-url">About image URL</Label>
+                <Label htmlFor="about-image-url">
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s35",
+                  )}
+                </Label>
                 <Input
                   id="about-image-url"
                   value={aboutDraft.about_image_url ?? ""}
@@ -2180,9 +2255,14 @@ export function LandingPageEditor({ centerId }: Props) {
               </div>
 
               <ImageUploadField
+                t={t}
                 inputId="about-image-upload"
-                label="About image upload"
-                description="Upload the supporting about image. The backend persists it immediately and returns the final URL."
+                label={t(
+                  "auto.features.centers.components.landing_page_editor.s36",
+                )}
+                description={t(
+                  "auto.features.centers.components.landing_page_editor.s37",
+                )}
                 currentUrl={aboutDraft.about_image_url}
                 selectedFileName={aboutImageFile?.name ?? null}
                 previewUrl={aboutImagePreviewUrl ?? aboutDraft.about_image_url}
@@ -2228,7 +2308,11 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="contact-email">Contact email</Label>
+                  <Label htmlFor="contact-email">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s38",
+                    )}
+                  </Label>
                   <Input
                     id="contact-email"
                     type="email"
@@ -2240,12 +2324,18 @@ export function LandingPageEditor({ centerId }: Props) {
                         contact_email: nextValue,
                       }));
                     }}
-                    placeholder="support@example.com"
+                    placeholder={t(
+                      "auto.features.centers.components.landing_page_editor.s39",
+                    )}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contact-phone">Contact phone</Label>
+                  <Label htmlFor="contact-phone">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s40",
+                    )}
+                  </Label>
                   <Input
                     id="contact-phone"
                     value={contactDraft.contact_phone ?? ""}
@@ -2262,7 +2352,11 @@ export function LandingPageEditor({ centerId }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contact-address">Contact address</Label>
+                <Label htmlFor="contact-address">
+                  {t(
+                    "auto.features.centers.components.landing_page_editor.s41",
+                  )}
+                </Label>
                 <Textarea
                   id="contact-address"
                   className="min-h-[120px]"
@@ -2274,7 +2368,9 @@ export function LandingPageEditor({ centerId }: Props) {
                       contact_address: nextValue,
                     }));
                   }}
-                  placeholder="Cairo, Egypt"
+                  placeholder={t(
+                    "auto.features.centers.components.landing_page_editor.s42",
+                  )}
                 />
               </div>
 
@@ -2342,12 +2438,14 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                 <div className="space-y-1">
                   <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                    Section order
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s43",
+                    )}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Move sections up or down to control the final public page
-                    order. Hidden sections keep their saved position and render
-                    only when enabled from the Visibility tab.
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s44",
+                    )}
                   </p>
                 </div>
 
@@ -2379,7 +2477,9 @@ export function LandingPageEditor({ centerId }: Props) {
                           </Badge>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Variant:{" "}
+                          {t(
+                            "auto.features.centers.components.landing_page_editor.s45",
+                          )}{" "}
                           {layoutDraft.section_layouts?.[sectionId] ??
                             LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId][0]}
                         </p>
@@ -2432,8 +2532,9 @@ export function LandingPageEditor({ centerId }: Props) {
                           {layoutSectionLabels[sectionId]}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Configure the variant and style overrides for this
-                          section.
+                          {t(
+                            "auto.features.centers.components.landing_page_editor.s46",
+                          )}
                         </p>
                       </div>
                       <Badge variant="outline">{sectionId.toUpperCase()}</Badge>
@@ -2475,7 +2576,11 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "hero" ? (
                       <div className="grid gap-4 md:grid-cols-3">
                         <div className="space-y-2">
-                          <Label>Text align</Label>
+                          <Label>
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s47",
+                            )}
+                          </Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.hero?.text_align ??
@@ -2502,7 +2607,9 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                Inherit default
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s48",
+                                )}
                               </SelectItem>
                               <SelectItem value="left">Left</SelectItem>
                               <SelectItem value="center">Center</SelectItem>
@@ -2513,7 +2620,9 @@ export function LandingPageEditor({ centerId }: Props) {
 
                         <div className="space-y-2">
                           <Label htmlFor="hero-overlay-opacity">
-                            Overlay opacity
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s49",
+                            )}
                           </Label>
                           <Input
                             id="hero-overlay-opacity"
@@ -2545,7 +2654,11 @@ export function LandingPageEditor({ centerId }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Content width</Label>
+                          <Label>
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s50",
+                            )}
+                          </Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.hero?.content_width ??
@@ -2572,7 +2685,9 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                Inherit default
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s48",
+                                )}
                               </SelectItem>
                               <SelectItem value="narrow">Narrow</SelectItem>
                               <SelectItem value="medium">Medium</SelectItem>
@@ -2586,7 +2701,11 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "about" ? (
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Text align</Label>
+                          <Label>
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s47",
+                            )}
+                          </Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.about?.text_align ??
@@ -2613,7 +2732,9 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                Inherit default
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s48",
+                                )}
                               </SelectItem>
                               <SelectItem value="left">Left</SelectItem>
                               <SelectItem value="center">Center</SelectItem>
@@ -2623,7 +2744,11 @@ export function LandingPageEditor({ centerId }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Image fit</Label>
+                          <Label>
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s51",
+                            )}
+                          </Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.about?.image_fit ??
@@ -2650,7 +2775,9 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                Inherit default
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s48",
+                                )}
                               </SelectItem>
                               <SelectItem value="cover">Cover</SelectItem>
                               <SelectItem value="contain">Contain</SelectItem>
@@ -2663,14 +2790,17 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "courses" ? (
                       <div className="space-y-4">
                         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                          Courses remains a design-only placeholder until the
-                          landing payload includes real course card data.
+                          {t(
+                            "auto.features.centers.components.landing_page_editor.s52",
+                          )}
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="courses-columns-desktop">
-                              Desktop columns
+                              {t(
+                                "auto.features.centers.components.landing_page_editor.s53",
+                              )}
                             </Label>
                             <Input
                               id="courses-columns-desktop"
@@ -2703,7 +2833,9 @@ export function LandingPageEditor({ centerId }: Props) {
 
                           <div className="space-y-2">
                             <Label htmlFor="courses-columns-mobile">
-                              Mobile columns
+                              {t(
+                                "auto.features.centers.components.landing_page_editor.s54",
+                              )}
                             </Label>
                             <Input
                               id="courses-columns-mobile"
@@ -2740,7 +2872,11 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "testimonials" ? (
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>Card style</Label>
+                          <Label>
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s55",
+                            )}
+                          </Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.testimonials
@@ -2768,7 +2904,9 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                Inherit default
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s48",
+                                )}
                               </SelectItem>
                               <SelectItem value="soft">Soft</SelectItem>
                               <SelectItem value="outline">Outline</SelectItem>
@@ -2779,7 +2917,9 @@ export function LandingPageEditor({ centerId }: Props) {
 
                         <div className="space-y-2">
                           <Label htmlFor="testimonials-columns-desktop">
-                            Desktop columns
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s53",
+                            )}
                           </Label>
                           <Input
                             id="testimonials-columns-desktop"
@@ -2816,7 +2956,11 @@ export function LandingPageEditor({ centerId }: Props) {
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Contact style</Label>
+                            <Label>
+                              {t(
+                                "auto.features.centers.components.landing_page_editor.s56",
+                              )}
+                            </Label>
                             <Select
                               value={
                                 layoutDraft.section_styles?.contact?.layout ??
@@ -2844,7 +2988,9 @@ export function LandingPageEditor({ centerId }: Props) {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="inherit">
-                                  Inherit default
+                                  {t(
+                                    "auto.features.centers.components.landing_page_editor.s48",
+                                  )}
                                 </SelectItem>
                                 <SelectItem value="cards">Cards</SelectItem>
                                 <SelectItem value="stacked">Stacked</SelectItem>
@@ -2875,12 +3021,14 @@ export function LandingPageEditor({ centerId }: Props) {
                             />
                             <div className="space-y-1">
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                Show map placeholder
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s57",
+                                )}
                               </p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                This is a layout hint only for now. No embed URL
-                                or coordinate data exists in the landing payload
-                                yet.
+                                {t(
+                                  "auto.features.centers.components.landing_page_editor.s58",
+                                )}
                               </p>
                             </div>
                           </label>
@@ -2906,7 +3054,11 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <div className="grid gap-4 lg:grid-cols-[1fr,1fr,0.9fr]">
                 <div className="space-y-2">
-                  <Label htmlFor="primary-color">Primary color</Label>
+                  <Label htmlFor="primary-color">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s59",
+                    )}
+                  </Label>
                   <Input
                     id="primary-color"
                     value={stylingDraft.primary_color ?? ""}
@@ -2917,7 +3069,9 @@ export function LandingPageEditor({ centerId }: Props) {
                         primary_color: nextValue,
                       }));
                     }}
-                    placeholder="#4F46E5"
+                    placeholder={t(
+                      "auto.features.centers.components.landing_page_editor.s60",
+                    )}
                   />
                   <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-800">
                     <span
@@ -2932,13 +3086,19 @@ export function LandingPageEditor({ centerId }: Props) {
                       }
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Accepts #RGB, #RRGGBB, and 8-digit alpha hex values.
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s61",
+                      )}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="secondary-color">Secondary color</Label>
+                  <Label htmlFor="secondary-color">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s62",
+                    )}
+                  </Label>
                   <Input
                     id="secondary-color"
                     value={stylingDraft.secondary_color ?? ""}
@@ -2964,14 +3124,19 @@ export function LandingPageEditor({ centerId }: Props) {
                       }
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Secondary color is optional but must keep the same hex
-                      format.
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s63",
+                      )}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="font-family">Font family</Label>
+                  <Label htmlFor="font-family">
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s64",
+                    )}
+                  </Label>
                   <Input
                     id="font-family"
                     value={stylingDraft.font_family ?? ""}
@@ -2982,7 +3147,9 @@ export function LandingPageEditor({ centerId }: Props) {
                         font_family: nextValue,
                       }));
                     }}
-                    placeholder="Inter, Cairo, system-ui"
+                    placeholder={t(
+                      "auto.features.centers.components.landing_page_editor.s65",
+                    )}
                   />
                 </div>
               </div>
@@ -3060,11 +3227,14 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                    Existing testimonials
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s66",
+                    )}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Use the table for status, locale coverage, quick editing,
-                    and ordering.
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s67",
+                    )}
                   </p>
                 </div>
 
@@ -3137,7 +3307,9 @@ export function LandingPageEditor({ centerId }: Props) {
                                       }
                                     }}
                                   >
-                                    Edit
+                                    {t(
+                                      "auto.features.centers.components.landing_page_editor.s68",
+                                    )}
                                   </Button>
                                   <Button
                                     type="button"
@@ -3173,7 +3345,9 @@ export function LandingPageEditor({ centerId }: Props) {
                                       }
                                     }}
                                   >
-                                    Delete
+                                    {t(
+                                      "auto.features.centers.components.landing_page_editor.s69",
+                                    )}
                                   </Button>
                                 </div>
                               </TableCell>
@@ -3185,7 +3359,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                    No testimonials created yet.
+                    {t(
+                      "auto.features.centers.components.landing_page_editor.s70",
+                    )}
                   </div>
                 )}
 
@@ -3224,10 +3400,14 @@ export function LandingPageEditor({ centerId }: Props) {
                 <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                      Add testimonial
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s71",
+                      )}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      New entries require author name and English content.
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s72",
+                      )}
                     </p>
                   </div>
 
@@ -3254,7 +3434,9 @@ export function LandingPageEditor({ centerId }: Props) {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="new-testimonial-author">
-                          Author name
+                          {t(
+                            "auto.features.centers.components.landing_page_editor.s73",
+                          )}
                         </Label>
                         <Input
                           id="new-testimonial-author"
@@ -3266,13 +3448,17 @@ export function LandingPageEditor({ centerId }: Props) {
                               author_name: nextValue,
                             }));
                           }}
-                          placeholder="Author name"
+                          placeholder={t(
+                            "auto.features.centers.components.landing_page_editor.s73",
+                          )}
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="new-testimonial-title">
-                          Author title
+                          {t(
+                            "auto.features.centers.components.landing_page_editor.s74",
+                          )}
                         </Label>
                         <Input
                           id="new-testimonial-title"
@@ -3284,7 +3470,9 @@ export function LandingPageEditor({ centerId }: Props) {
                               author_title: nextValue,
                             }));
                           }}
-                          placeholder="Parent, learner, educator"
+                          placeholder={t(
+                            "auto.features.centers.components.landing_page_editor.s75",
+                          )}
                         />
                       </div>
                     </div>
@@ -3292,7 +3480,9 @@ export function LandingPageEditor({ centerId }: Props) {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="new-testimonial-image">
-                          Author image URL
+                          {t(
+                            "auto.features.centers.components.landing_page_editor.s76",
+                          )}
                         </Label>
                         <Input
                           id="new-testimonial-image"
@@ -3328,9 +3518,14 @@ export function LandingPageEditor({ centerId }: Props) {
                     </div>
 
                     <ImageUploadField
+                      t={t}
                       inputId="new-testimonial-image-upload"
-                      label="Author image upload"
-                      description="Upload a testimonial author image. The backend returns a URL only; save the testimonial afterward to persist it."
+                      label={t(
+                        "auto.features.centers.components.landing_page_editor.s77",
+                      )}
+                      description={t(
+                        "auto.features.centers.components.landing_page_editor.s78",
+                      )}
                       currentUrl={newTestimonial.author_image_url}
                       selectedFileName={newTestimonialImageFile?.name ?? null}
                       previewUrl={
@@ -3396,11 +3591,14 @@ export function LandingPageEditor({ centerId }: Props) {
                 <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                      Edit testimonial
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s79",
+                      )}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Select a testimonial from the table to edit its content
-                      and status.
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s80",
+                      )}
                     </p>
                   </div>
 
@@ -3435,7 +3633,9 @@ export function LandingPageEditor({ centerId }: Props) {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-author">
-                            Author name
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s73",
+                            )}
                           </Label>
                           <Input
                             id="selected-testimonial-author"
@@ -3458,7 +3658,9 @@ export function LandingPageEditor({ centerId }: Props) {
 
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-title">
-                            Author title
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s74",
+                            )}
                           </Label>
                           <Input
                             id="selected-testimonial-title"
@@ -3483,7 +3685,9 @@ export function LandingPageEditor({ centerId }: Props) {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-image">
-                            Author image URL
+                            {t(
+                              "auto.features.centers.components.landing_page_editor.s76",
+                            )}
                           </Label>
                           <Input
                             id="selected-testimonial-image"
@@ -3534,9 +3738,14 @@ export function LandingPageEditor({ centerId }: Props) {
                       </div>
 
                       <ImageUploadField
+                        t={t}
                         inputId="selected-testimonial-image-upload"
-                        label="Author image upload"
-                        description="Upload a replacement author image. The returned URL is applied locally; save the testimonial to persist it."
+                        label={t(
+                          "auto.features.centers.components.landing_page_editor.s77",
+                        )}
+                        description={t(
+                          "auto.features.centers.components.landing_page_editor.s81",
+                        )}
                         currentUrl={selectedTestimonial.author_image_url}
                         selectedFileName={
                           selectedTestimonialImageFile?.name ?? null
@@ -3616,7 +3825,9 @@ export function LandingPageEditor({ centerId }: Props) {
                     </div>
                   ) : (
                     <div className="mt-4 rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                      Select a testimonial from the table to edit it.
+                      {t(
+                        "auto.features.centers.components.landing_page_editor.s82",
+                      )}
                     </div>
                   )}
                 </div>

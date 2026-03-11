@@ -49,16 +49,8 @@ type PageProps = {
   params: Promise<{ centerId: string }>;
 };
 
-const DIFFICULTY_OPTIONS = [
-  { value: "beginner", label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced", label: "Advanced" },
-];
-
-const LANGUAGE_OPTIONS = [
-  { value: "en", label: "English" },
-  { value: "ar", label: "Arabic" },
-];
+const DIFFICULTY_VALUES = ["beginner", "intermediate", "advanced"] as const;
+const LANGUAGE_VALUES = ["en", "ar"] as const;
 
 const MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -78,16 +70,13 @@ function mapVideoApprovalOverrideToPayload(
   return null;
 }
 
-function extractErrorMessage(error: unknown): string {
+function extractErrorMessage(error: unknown, fallbackMessage: string): string {
   const firstFieldError = getAdminApiFirstFieldError(error);
   if (firstFieldError) {
     return firstFieldError;
   }
 
-  return getAdminApiErrorMessage(
-    error,
-    "Failed to create course. Please try again.",
-  );
+  return getAdminApiErrorMessage(error, fallbackMessage);
 }
 
 function isEducationTargetingFieldKey(key: string) {
@@ -237,7 +226,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
       !hasAnyEducationTarget(educationTargeting)
     ) {
       setEducationTargetingValidationError(
-        "Select at least one grade, school, or college for targeted visibility.",
+        t("pages.courseForm.errors.targetingRequired"),
       );
       return;
     }
@@ -344,9 +333,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setThumbnailFile(null);
       setThumbnailPreview(null);
-      setThumbnailError(
-        "Please select a valid image file (JPG, PNG, GIF, or WebP).",
-      );
+      setThumbnailError(t("pages.courseForm.errors.invalidImageType"));
       e.target.value = "";
       return;
     }
@@ -354,7 +341,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     if (file.size > MAX_THUMBNAIL_SIZE) {
       setThumbnailFile(null);
       setThumbnailPreview(null);
-      setThumbnailError("File size must be less than 5MB.");
+      setThumbnailError(t("pages.courseForm.errors.fileTooLarge"));
       e.target.value = "";
       return;
     }
@@ -391,7 +378,10 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
         description={t("pages.centerCourseCreate.description")}
         breadcrumbs={[
           { label: t("common.labels.centers"), href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
+          {
+            label: t("pages.centerCourseCreate.centerById", { id: centerId }),
+            href: `/centers/${centerId}`,
+          },
           {
             label: t("pages.coursesPage.title"),
             href: `/centers/${centerId}/courses`,
@@ -410,43 +400,51 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
           <div className="space-y-6 lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Course Information</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.infoTitle")}
+                </CardTitle>
                 <CardDescription>
-                  Basic details about your course
+                  {t("pages.courseForm.sections.infoDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Title (English) *</Label>
+                    <Label htmlFor="title">
+                      {t("pages.courseForm.fields.titleEn")}
+                    </Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={handleChange("title")}
-                      placeholder="e.g., Introduction to React"
+                      placeholder={t("pages.courseForm.placeholders.titleEn")}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="titleAr">Title (Arabic)</Label>
+                    <Label htmlFor="titleAr">
+                      {t("pages.courseForm.fields.titleAr")}
+                    </Label>
                     <Input
                       id="titleAr"
                       value={formData.titleAr}
                       onChange={handleChange("titleAr")}
-                      placeholder="e.g., مقدمة في React"
+                      placeholder={t("pages.courseForm.placeholders.titleAr")}
                       dir="rtl"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">
+                    {t("pages.courseForm.fields.slug")}
+                  </Label>
                   <div className="flex gap-2">
                     <Input
                       id="slug"
                       value={formData.slug}
                       onChange={handleChange("slug")}
-                      placeholder="e.g., intro-to-react"
+                      placeholder={t("pages.courseForm.placeholders.slug")}
                     />
                     <Button
                       type="button"
@@ -454,31 +452,39 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       onClick={generateSlug}
                       disabled={!formData.title}
                     >
-                      Generate
+                      {t("pages.courseForm.actions.generateSlug")}
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description (English)</Label>
+                    <Label htmlFor="description">
+                      {t("pages.courseForm.fields.descriptionEn")}
+                    </Label>
                     <textarea
                       id="description"
                       value={formData.description}
                       onChange={handleChange("description")}
                       rows={3}
-                      placeholder="Course description in English"
+                      placeholder={t(
+                        "pages.courseForm.placeholders.descriptionEn",
+                      )}
                       className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="descriptionAr">Description (Arabic)</Label>
+                    <Label htmlFor="descriptionAr">
+                      {t("pages.courseForm.fields.descriptionAr")}
+                    </Label>
                     <textarea
                       id="descriptionAr"
                       value={formData.descriptionAr}
                       onChange={handleChange("descriptionAr")}
                       rows={3}
-                      placeholder="وصف الدورة بالعربية"
+                      placeholder={t(
+                        "pages.courseForm.placeholders.descriptionAr",
+                      )}
                       dir="rtl"
                       className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                     />
@@ -489,15 +495,19 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Course Settings</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.settingsTitle")}
+                </CardTitle>
                 <CardDescription>
-                  Configure course difficulty, language, and pricing
+                  {t("pages.courseForm.sections.settingsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-2">
-                    <Label htmlFor="difficulty">Difficulty</Label>
+                    <Label htmlFor="difficulty">
+                      {t("pages.courseForm.fields.difficulty")}
+                    </Label>
                     <Select
                       value={formData.difficulty}
                       onValueChange={handleSelectChange("difficulty")}
@@ -509,12 +519,16 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                             "border-red-500 focus:ring-red-500",
                         )}
                       >
-                        <SelectValue placeholder="Select difficulty" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.placeholders.difficulty",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {DIFFICULTY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                        {DIFFICULTY_VALUES.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {t(`pages.courseForm.difficulty.${value}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -525,18 +539,24 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
+                    <Label htmlFor="language">
+                      {t("pages.courseForm.fields.language")}
+                    </Label>
                     <Select
                       value={formData.language}
                       onValueChange={handleSelectChange("language")}
                     >
                       <SelectTrigger id="language">
-                        <SelectValue placeholder="Select language" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.placeholders.language",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {LANGUAGE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                        {LANGUAGE_VALUES.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {t(`pages.courseForm.language.${value}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -544,7 +564,9 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
+                    <Label htmlFor="price">
+                      {t("pages.courseForm.fields.price")}
+                    </Label>
                     <Input
                       id="price"
                       type="number"
@@ -552,13 +574,13 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       step="0.01"
                       value={formData.price}
                       onChange={handleChange("price")}
-                      placeholder="e.g., 99.99"
+                      placeholder={t("pages.courseForm.placeholders.price")}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="requires-video-approval">
-                      Video Approval
+                      {t("pages.courseForm.videoApproval.label")}
                     </Label>
                     <Select
                       value={formData.requiresVideoApproval}
@@ -567,14 +589,22 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       )}
                     >
                       <SelectTrigger id="requires-video-approval">
-                        <SelectValue placeholder="Use center policy" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.videoApproval.options.inherit",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="inherit">
-                          Use center policy
+                          {t("pages.courseForm.videoApproval.options.inherit")}
                         </SelectItem>
-                        <SelectItem value="enabled">Force enabled</SelectItem>
-                        <SelectItem value="disabled">Force disabled</SelectItem>
+                        <SelectItem value="enabled">
+                          {t("pages.courseForm.videoApproval.options.enabled")}
+                        </SelectItem>
+                        <SelectItem value="disabled">
+                          {t("pages.courseForm.videoApproval.options.disabled")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -583,7 +613,8 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="category">
-                      Category <span className="text-red-500">*</span>
+                      {t("pages.courseForm.fields.category")}{" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <SearchableSelect
                       value={formData.categoryId || null}
@@ -599,8 +630,10 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                         });
                       }}
                       options={categoryOptions}
-                      placeholder="Select category"
-                      searchPlaceholder="Search categories..."
+                      placeholder={t("pages.courseForm.placeholders.category")}
+                      searchPlaceholder={t(
+                        "pages.courseForm.placeholders.searchCategories",
+                      )}
                       searchValue={categorySearch}
                       onSearchValueChange={setCategorySearch}
                       filterOptions={false}
@@ -632,13 +665,15 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       <p className="text-xs text-red-600">{categoryError}</p>
                     ) : (
                       <p className="text-xs text-gray-500">
-                        Required. Choose the category this course belongs to.
+                        {t("pages.courseForm.hints.categoryRequired")}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="instructor">Primary Instructor</Label>
+                    <Label htmlFor="instructor">
+                      {t("pages.courseForm.fields.primaryInstructor")}
+                    </Label>
                     <SearchableSelect
                       value={formData.instructorId || null}
                       onValueChange={(value) =>
@@ -648,8 +683,12 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                         }))
                       }
                       options={instructorOptions}
-                      placeholder="Select instructor"
-                      searchPlaceholder="Search instructors..."
+                      placeholder={t(
+                        "pages.courseForm.placeholders.instructor",
+                      )}
+                      searchPlaceholder={t(
+                        "pages.courseForm.placeholders.searchInstructors",
+                      )}
                       searchValue={instructorSearch}
                       onSearchValueChange={setInstructorSearch}
                       filterOptions={false}
@@ -675,7 +714,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                       }
                     />
                     <p className="text-xs text-gray-500">
-                      Optional. You can assign an instructor later.
+                      {t("pages.courseForm.hints.instructorOptional")}
                     </p>
                   </div>
                 </div>
@@ -692,15 +731,19 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Thumbnail</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.thumbnailTitle")}
+                </CardTitle>
                 <CardDescription>
-                  Upload a thumbnail image for this course.
+                  {t("pages.courseForm.sections.thumbnailDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">Upload Thumbnail</p>
+                    <p className="text-sm font-medium">
+                      {t("pages.courseForm.thumbnail.uploadTitle")}
+                    </p>
                     {thumbnailFile ? (
                       <Button
                         type="button"
@@ -708,7 +751,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                         size="sm"
                         onClick={handleClearSelectedThumbnail}
                       >
-                        Clear
+                        {t("pages.courseForm.actions.clear")}
                       </Button>
                     ) : null}
                   </div>
@@ -720,7 +763,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                     className="max-w-xs"
                   />
                   <p className="text-xs text-gray-500">
-                    Max 5MB. Supported formats: JPG, PNG, GIF, WebP.
+                    {t("pages.courseForm.thumbnail.restrictions")}
                   </p>
                   {thumbnailError ? (
                     <p className="text-sm text-red-600">{thumbnailError}</p>
@@ -729,11 +772,13 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
                 {thumbnailPreview && (
                   <div className="mt-2">
-                    <p className="mb-2 text-sm text-gray-600">Preview:</p>
+                    <p className="mb-2 text-sm text-gray-600">
+                      {t("pages.courseForm.thumbnail.previewLabel")}
+                    </p>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={thumbnailPreview}
-                      alt="Thumbnail preview"
+                      alt={t("pages.courseForm.thumbnail.previewAlt")}
                       className="h-32 w-auto rounded-lg border object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
@@ -748,7 +793,9 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>
+                  {t("pages.courseForm.sections.actionsTitle")}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -756,16 +803,23 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                   className="w-full"
                   disabled={isPending || !formData.title}
                 >
-                  {isPending ? "Creating..." : "Create Course"}
+                  {isPending
+                    ? t("pages.courseForm.actions.creating")
+                    : t("pages.courseForm.actions.createCourse")}
                 </Button>
               </CardContent>
             </Card>
 
             {isError && Object.keys(fieldErrors).length === 0 && (
               <Alert variant="destructive">
-                <AlertTitle>Could not create course</AlertTitle>
+                <AlertTitle>
+                  {t("pages.courseForm.errors.couldNotCreate")}
+                </AlertTitle>
                 <AlertDescription>
-                  {extractErrorMessage(error)}
+                  {extractErrorMessage(
+                    error,
+                    t("pages.courseForm.errors.createFailed"),
+                  )}
                 </AlertDescription>
               </Alert>
             )}

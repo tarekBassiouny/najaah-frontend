@@ -43,6 +43,7 @@ import {
   getAdminApiErrorMessage,
   getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 const schema = z
   .object({
@@ -95,6 +96,8 @@ export function SchoolFormDialog({
   onSuccess,
   onSaved,
 }: SchoolFormDialogProps) {
+  const { t } = useTranslation();
+
   const isEditMode = Boolean(school);
   const createMutation = useCreateSchool();
   const updateMutation = useUpdateSchool();
@@ -192,7 +195,9 @@ export function SchoolFormDialog({
 
         {form.formState.errors.root?.message ? (
           <Alert variant="destructive">
-            <AlertTitle>Could not save school</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.education.components.schoolformdialog.s1")}
+            </AlertTitle>
             <AlertDescription>
               {form.formState.errors.root.message}
             </AlertDescription>
@@ -209,9 +214,18 @@ export function SchoolFormDialog({
               name="nameEn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name (English)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.education.components.schoolformdialog.s2",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Cairo School" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.schoolformdialog.s3",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -223,9 +237,18 @@ export function SchoolFormDialog({
               name="nameAr"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name (Arabic)</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.education.components.schoolformdialog.s4",
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="مدرسة القاهرة" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.schoolformdialog.s5",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -237,7 +260,11 @@ export function SchoolFormDialog({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>School Type</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "auto.features.education.components.schoolformdialog.s6",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="h-10 w-full">
@@ -264,7 +291,12 @@ export function SchoolFormDialog({
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional address" {...field} />
+                    <Input
+                      placeholder={t(
+                        "auto.features.education.components.schoolformdialog.s7",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -283,7 +315,9 @@ export function SchoolFormDialog({
                       onChange={(event) => field.onChange(event.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
-                    Active school
+                    {t(
+                      "auto.features.education.components.schoolformdialog.s8",
+                    )}
                   </label>
                   <FormMessage />
                 </FormItem>
@@ -297,7 +331,7 @@ export function SchoolFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                Cancel
+                {t("auto.features.education.components.schoolformdialog.s9")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending

@@ -18,6 +18,7 @@ import {
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DeleteGradeDialogProps = {
   centerId: string | number;
@@ -48,6 +49,8 @@ export function DeleteGradeDialog({
   grade,
   onSuccess,
 }: DeleteGradeDialogProps) {
+  const { t } = useTranslation();
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteGrade();
 
@@ -90,10 +93,12 @@ export function DeleteGradeDialog({
     >
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Grade</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t("auto.features.education.components.deletegradedialog.s1")}
+          </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Grade"
+          title={t("auto.features.education.components.deletegradedialog.s1")}
           entityName={gradeLabel}
           entityFallback="this grade"
           confirmButtonLabel="Delete Grade"

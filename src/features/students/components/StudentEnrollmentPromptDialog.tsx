@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Student } from "@/features/students/types/student";
+import { useTranslation } from "@/features/localization";
 
 type StudentEnrollmentPromptDialogProps = {
   open: boolean;
@@ -25,6 +26,8 @@ export function StudentEnrollmentPromptDialog({
   onEnroll,
   onSkip,
 }: StudentEnrollmentPromptDialogProps) {
+  const { t } = useTranslation();
+
   const name = student?.name ? String(student.name) : "this student";
   const phone = student?.phone ? String(student.phone) : null;
 
@@ -43,28 +46,49 @@ export function StudentEnrollmentPromptDialog({
                 .toUpperCase()}
             </div>
             <div className="space-y-1">
-              <DialogTitle>Student created</DialogTitle>
+              <DialogTitle>
+                {t(
+                  "auto.features.students.components.studentenrollmentpromptdialog.s1",
+                )}
+              </DialogTitle>
               <DialogDescription>
-                We’ve sent a notification to {name}. You can enroll them in a
-                course now or do it later.
+                {t(
+                  "auto.features.students.components.studentenrollmentpromptdialog.s2",
+                )}
+                {name}
+                {t(
+                  "auto.features.students.components.studentenrollmentpromptdialog.s3",
+                )}
               </DialogDescription>
               {phone ? (
-                <p className="text-xs text-gray-400">Phone · {phone}</p>
+                <p className="text-xs text-gray-400">
+                  {t(
+                    "auto.features.students.components.studentenrollmentpromptdialog.s4",
+                  )}
+                  {phone}
+                </p>
               ) : null}
             </div>
           </div>
         </DialogHeader>
 
         <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
-          Tip: Enrolling now helps the student start immediately, but you can
-          always enroll them later from the Students list.
+          {t(
+            "auto.features.students.components.studentenrollmentpromptdialog.s5",
+          )}
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={onSkip}>
-            Not now
+            {t(
+              "auto.features.students.components.studentenrollmentpromptdialog.s6",
+            )}
           </Button>
-          <Button onClick={onEnroll}>Enroll in Course</Button>
+          <Button onClick={onEnroll}>
+            {t(
+              "auto.features.students.components.studentenrollmentpromptdialog.s7",
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

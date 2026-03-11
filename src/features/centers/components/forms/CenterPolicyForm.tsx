@@ -22,6 +22,7 @@ import type {
   CenterSettingsMap,
 } from "@/features/centers/types/center";
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type CenterPolicyFormProps = {
   centerId: string | number;
@@ -185,6 +186,8 @@ function getCenterSettingSourceLabel(
 }
 
 export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
+  const { t } = useTranslation();
+
   const {
     data,
     isLoading,
@@ -370,8 +373,12 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Policy Settings</CardTitle>
-          <CardDescription>Loading center policies...</CardDescription>
+          <CardTitle>
+            {t("auto.features.centers.components.forms.centerpolicyform.s1")}
+          </CardTitle>
+          <CardDescription>
+            {t("auto.features.centers.components.forms.centerpolicyform.s2")}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Skeleton className="h-10 w-full" />
@@ -385,10 +392,11 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
   return (
     <Card className="overflow-hidden border-gray-200/80 shadow-sm dark:border-gray-800">
       <CardHeader className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#fff7ed_100%)] dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(17,24,39,0.96)_48%,rgba(41,37,36,0.92)_100%)]">
-        <CardTitle>Policy Settings</CardTitle>
+        <CardTitle>
+          {t("auto.features.centers.components.forms.centerpolicyform.s1")}
+        </CardTitle>
         <CardDescription>
-          Edit center-specific policy controls here. Inherited values continue
-          to follow the platform fallback chain automatically.
+          {t("auto.features.centers.components.forms.centerpolicyform.s3")}
         </CardDescription>
       </CardHeader>
 
@@ -404,16 +412,22 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
           <Alert>
             <AlertTitle>Saved</AlertTitle>
             <AlertDescription>
-              Center policy settings updated successfully.
+              {t("auto.features.centers.components.forms.centerpolicyform.s4")}
             </AlertDescription>
           </Alert>
         ) : null}
 
         {isError ? (
           <Alert variant="destructive">
-            <AlertTitle>Failed to load settings</AlertTitle>
+            <AlertTitle>
+              {t("auto.features.centers.components.forms.centerpolicyform.s5")}
+            </AlertTitle>
             <AlertDescription className="space-y-2">
-              <p>Could not fetch policy settings.</p>
+              <p>
+                {t(
+                  "auto.features.centers.components.forms.centerpolicyform.s6",
+                )}
+              </p>
               <Button
                 variant="outline"
                 size="sm"
@@ -428,18 +442,21 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
         <div className="space-y-4">
           <div className="space-y-1">
             <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-gray-400">
-              Center Overrides
+              {t("auto.features.centers.components.forms.centerpolicyform.s7")}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              These fields are center-scoped and can override the platform
-              fallback.
+              {t("auto.features.centers.components.forms.centerpolicyform.s8")}
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="default-view-limit">Default View Limit</Label>
+                <Label htmlFor="default-view-limit">
+                  {t(
+                    "auto.features.centers.components.forms.centerpolicyform.s9",
+                  )}
+                </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
                     "default_view_limit",
@@ -453,7 +470,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                 onChange={(event) =>
                   handleInputChange("default_view_limit", event.target.value)
                 }
-                placeholder="e.g., 2"
+                placeholder={t(
+                  "auto.features.centers.components.forms.centerpolicyform.s10",
+                )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
               />
@@ -461,7 +480,11 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
 
             <div className="space-y-2">
               <div className="space-y-1">
-                <Label htmlFor="device-limit">Device Limit</Label>
+                <Label htmlFor="device-limit">
+                  {t(
+                    "auto.features.centers.components.forms.centerpolicyform.s11",
+                  )}
+                </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
                     "device_limit",
@@ -475,7 +498,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                 onChange={(event) =>
                   handleInputChange("device_limit", event.target.value)
                 }
-                placeholder="e.g., 2"
+                placeholder={t(
+                  "auto.features.centers.components.forms.centerpolicyform.s10",
+                )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
               />
@@ -484,7 +509,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
             <div className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="video-code-expiry-days">
-                  Video Code Expiry (Days)
+                  {t(
+                    "auto.features.centers.components.forms.centerpolicyform.s12",
+                  )}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
@@ -502,7 +529,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                     event.target.value,
                   )
                 }
-                placeholder="e.g., 30"
+                placeholder={t(
+                  "auto.features.centers.components.forms.centerpolicyform.s13",
+                )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
               />
@@ -511,7 +540,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
             <div className="space-y-2">
               <div className="space-y-1">
                 <Label htmlFor="whatsapp-max-retries">
-                  WhatsApp Max Retries
+                  {t(
+                    "auto.features.centers.components.forms.centerpolicyform.s14",
+                  )}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
@@ -526,7 +557,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                 onChange={(event) =>
                   handleInputChange("whatsapp_max_retries", event.target.value)
                 }
-                placeholder="e.g., 2"
+                placeholder={t(
+                  "auto.features.centers.components.forms.centerpolicyform.s10",
+                )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
               />
@@ -546,7 +579,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                     )
                   }
                 />
-                Allow extra view requests
+                {t(
+                  "auto.features.centers.components.forms.centerpolicyform.s15",
+                )}
               </span>
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(
@@ -568,7 +603,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                     )
                   }
                 />
-                Require video approval
+                {t(
+                  "auto.features.centers.components.forms.centerpolicyform.s16",
+                )}
               </span>
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(
@@ -590,7 +627,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                     )
                   }
                 />
-                Allow PDF downloads
+                {t(
+                  "auto.features.centers.components.forms.centerpolicyform.s17",
+                )}
               </span>
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(

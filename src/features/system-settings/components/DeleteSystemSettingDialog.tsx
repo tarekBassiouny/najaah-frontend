@@ -15,6 +15,7 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
+import { useTranslation } from "@/features/localization";
 
 type DeleteSystemSettingDialogProps = {
   open: boolean;
@@ -36,6 +37,8 @@ export function DeleteSystemSettingDialog({
   setting,
   onSuccess,
 }: DeleteSystemSettingDialogProps) {
+  const { t } = useTranslation();
+
   const deleteMutation = useDeleteSystemSetting();
   const errorMessage =
     deleteMutation.isError && deleteMutation.error
@@ -71,13 +74,21 @@ export function DeleteSystemSettingDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="sr-only">Delete Setting</DialogTitle>
+          <DialogTitle className="sr-only">
+            {t(
+              "auto.features.system_settings.components.deletesystemsettingdialog.s1",
+            )}
+          </DialogTitle>
           <DialogDescription className="sr-only">
-            Permanently delete the selected system setting.
+            {t(
+              "auto.features.system_settings.components.deletesystemsettingdialog.s2",
+            )}
           </DialogDescription>
         </DialogHeader>
         <HardDeletePanel
-          title="Delete Setting"
+          title={t(
+            "auto.features.system_settings.components.deletesystemsettingdialog.s1",
+          )}
           entityName={setting?.key ? String(setting.key) : null}
           entityFallback="this setting"
           confirmButtonLabel="Delete Setting"

@@ -23,6 +23,7 @@ import {
   getEnrollErrorMessage,
   isAlreadyEnrolledMessage,
 } from "@/features/students/lib/enrollment-utils";
+import { useTranslation } from "@/features/localization";
 
 const FILTER_LIST_PAGE_SIZE = 20;
 const FILTER_SEARCH_DEBOUNCE_MS = 300;
@@ -49,6 +50,8 @@ export function BulkEnrollStudentsDialog({
   allowCenterChange = false,
   onSuccess,
 }: BulkEnrollStudentsDialogProps) {
+  const { t } = useTranslation();
+
   const queryClient = useQueryClient();
   const { centerSlug, centerId: tenantCenterId } = useTenant();
   const isPlatformAdmin = !centerSlug;
@@ -310,10 +313,16 @@ export function BulkEnrollStudentsDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>Enroll Students</DialogTitle>
+          <DialogTitle>
+            {t("auto.features.students.components.bulkenrollstudentsdialog.s1")}
+          </DialogTitle>
           <DialogDescription>
-            Choose {showCenterPicker ? "a center and " : ""}a course to enroll{" "}
-            {students.length} selected students.
+            Choose {showCenterPicker ? "a center and " : ""}
+            {t(
+              "auto.features.students.components.bulkenrollstudentsdialog.s2",
+            )}{" "}
+            {students.length}{" "}
+            {t("auto.features.students.components.bulkenrollstudentsdialog.s3")}
           </DialogDescription>
         </DialogHeader>
 
@@ -365,7 +374,10 @@ export function BulkEnrollStudentsDialog({
               ) : null}
               {result.skipped && result.skipped.length > 0 ? (
                 <div className="mt-3 text-xs">
-                  Skipped student IDs: {result.skipped.join(", ")}
+                  {t(
+                    "auto.features.students.components.bulkenrollstudentsdialog.s4",
+                  )}
+                  {result.skipped.join(", ")}
                 </div>
               ) : null}
             </div>
@@ -431,7 +443,7 @@ export function BulkEnrollStudentsDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("auto.features.students.components.bulkenrollstudentsdialog.s5")}
           </Button>
           <Button onClick={handleEnroll} disabled={isSubmitting}>
             {isSubmitting ? "Enrolling..." : "Enroll Students"}

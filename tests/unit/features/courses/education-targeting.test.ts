@@ -57,4 +57,22 @@ describe("education-targeting utils", () => {
       collegeIds: [],
     });
   });
+
+  it("reads saved targeting from education_targets payload shape", () => {
+    const values = getCourseEducationTargetingValues({
+      show_for_all_students: false,
+      education_targets: {
+        grades: [{ id: 1, name: "Grade 1" }],
+        schools: [{ id: "2", name: "School 2" }],
+        colleges: [{ id: 3, name: "College 3" }],
+      },
+    } as never);
+
+    expect(values).toEqual({
+      showForAllStudents: false,
+      gradeIds: ["1"],
+      schoolIds: ["2"],
+      collegeIds: ["3"],
+    });
+  });
 });

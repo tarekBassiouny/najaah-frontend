@@ -101,6 +101,27 @@ function hasExplicitCollectionShape(values: unknown): boolean {
   return false;
 }
 
+function getValueByPath(
+  source: Record<string, unknown>,
+  keyPath: string,
+): unknown {
+  if (!keyPath.includes(".")) {
+    return source[keyPath];
+  }
+
+  const keys = keyPath.split(".");
+  let current: unknown = source;
+
+  for (const key of keys) {
+    if (current == null || typeof current !== "object") {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[key];
+  }
+
+  return current;
+}
+
 function resolveCourseEducationIds(
   course: Course | null | undefined,
   keys: string[],
@@ -108,7 +129,7 @@ function resolveCourseEducationIds(
   const source = (course ?? {}) as Record<string, unknown>;
 
   for (const key of keys) {
-    const value = source[key];
+    const value = getValueByPath(source, key);
     const normalized = normalizeIdCollection(value);
 
     if (normalized.length > 0 || hasExplicitCollectionShape(value)) {
@@ -154,16 +175,22 @@ export function getCourseEducationTargetingValues(
       "grade_ids",
       "gradeIds",
       "grades",
+      "education_targets.grades",
+      "educationTargets.grades",
     ]),
     schoolIds: resolveCourseEducationIds(course, [
       "school_ids",
       "schoolIds",
       "schools",
+      "education_targets.schools",
+      "educationTargets.schools",
     ]),
     collegeIds: resolveCourseEducationIds(course, [
       "college_ids",
       "collegeIds",
       "colleges",
+      "education_targets.colleges",
+      "educationTargets.colleges",
     ]),
   };
 }

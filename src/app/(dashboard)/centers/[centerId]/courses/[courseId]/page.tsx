@@ -586,6 +586,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         id: courseData.id,
       }),
   );
+  const assetsWorkspaceHref = `/centers/${centerId}/courses/${courseId}/assets`;
 
   return (
     <div className="space-y-6">
@@ -668,6 +669,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     isRtl ? "justify-end" : "justify-start",
                   )}
                 >
+                  <Link href={assetsWorkspaceHref}>
+                    <Button variant="outline">
+                      {t(
+                        "pages.centerCourseDetail.aiPanels.openAssetsWorkspace",
+                      )}
+                    </Button>
+                  </Link>
                   <CoursePublishAction course={courseData} />
                 </div>
               </div>

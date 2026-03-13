@@ -59,6 +59,7 @@ export const SYSTEM_ONLY_PREFIXES: readonly string[] = [
   "/roles/",
   "/audit-logs/",
   "/audit/",
+  "/settings/",
 ];
 
 /**

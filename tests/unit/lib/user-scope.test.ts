@@ -117,6 +117,7 @@ describe("isSystemOnlyRoute", () => {
     expect(isSystemOnlyRoute("/agents/execute")).toBe(true);
     expect(isSystemOnlyRoute("/roles/1/edit")).toBe(true);
     expect(isSystemOnlyRoute("/audit-logs/details")).toBe(true);
+    expect(isSystemOnlyRoute("/settings/ai-providers")).toBe(true);
   });
 
   it("returns false for center-scoped routes", () => {
@@ -227,5 +228,6 @@ describe("exported constants", () => {
     expect(Array.isArray(SYSTEM_ONLY_PREFIXES)).toBe(true);
     expect(SYSTEM_ONLY_PREFIXES).toContain("/agents/");
     expect(SYSTEM_ONLY_PREFIXES).toContain("/roles/");
+    expect(SYSTEM_ONLY_PREFIXES).toContain("/settings/");
   });
 });

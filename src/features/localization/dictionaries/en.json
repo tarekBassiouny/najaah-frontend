@@ -404,6 +404,42 @@
       },
       "registryUpdated": "Registry updated"
     },
+    "aiSystemProviders": {
+      "title": "AI Providers",
+      "description": "Manage system-wide AI provider availability and model catalogs.",
+      "backToSettings": "Back to Settings",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "dirty": "Dirty",
+      "providerKey": "Provider",
+      "models": "Models",
+      "defaultModel": "Default model",
+      "apiKey": "API key",
+      "apiKeyHint": "Set a provider API key",
+      "apiKeyMasked": "Hidden after save",
+      "apiKeyDescription": "API keys are never returned by the backend after save.",
+      "newModelPlaceholder": "Add model then press Enter",
+      "addModel": "Add model",
+      "noModels": "No models configured yet.",
+      "saveProvider": "Save provider",
+      "saveFailed": "Failed to save AI provider settings.",
+      "loadFailed": "Failed to load AI providers.",
+      "noProviders": "No providers returned from backend.",
+      "readOnlyTitle": "Read-only mode",
+      "readOnlyDescription": "You can view provider state, but saving requires settings.manage.",
+      "states": {
+        "saving": "Saving...",
+        "saved": "Saved",
+        "error": "Error",
+        "ready": "Ready"
+      },
+      "validation": {
+        "modelsRequired": "Add at least one model before saving.",
+        "defaultModelInvalid": "Default model must be one of the configured models."
+      }
+    },
     "settingsPlaceholders": {
       "center": {
         "title": "Center Settings",
@@ -549,7 +585,33 @@
       "panels": {
         "overview": "Overview",
         "students": "Students",
-        "settings": "Settings"
+        "settings": "Settings",
+        "assets": "Assets",
+        "summary": "Summary",
+        "quiz": "Quiz",
+        "assignment": "Assignment",
+        "flashcards": "Flashcards",
+        "interactiveActivity": "Interactive Activity"
+      },
+      "aiPanels": {
+        "summaryDescription": "Generate and review AI summaries for this course.",
+        "quizDescription": "Generate and review AI quizzes for this course.",
+        "assignmentDescription": "Generate and review AI assignments for this course.",
+        "flashcardsDescription": "Generate and review AI flashcards for this course.",
+        "interactiveDescription": "Generate and review AI interactive activities for this course.",
+        "manualPath": "Manual path",
+        "manualTitle": "Create and edit manually",
+        "manualDescription": "Use the standard module screens for full authoring and lifecycle control.",
+        "manualUnavailable": "Manual CRUD screens for this target type are not available yet.",
+        "openManual": "Open Manual Screen",
+        "manualNotSupported": "Manual Screen Pending",
+        "aiPath": "AI path",
+        "aiTitle": "Generate with AI",
+        "aiDescription": "Create a job draft, review output, approve, and publish with full audit trail.",
+        "openAssetsWorkspace": "Open Assets Workspace",
+        "openStudio": "Open AI Studio",
+        "openAllJobs": "Open All AI Jobs",
+        "parityHint": "Use the Assets workspace for both AI generation and manual quiz/assignment creation."
       },
       "settings": {
         "title": "Course Settings",
@@ -1017,6 +1079,533 @@
       "centerContextRequired": "Center context is required to manage settings.",
       "workspaceDescription": "Manage your center's branding and operational preferences",
       "idLabel": "ID"
+    },
+    "centerAISettings": {
+      "title": "AI Provider Overrides",
+      "description": "Configure center-level provider enablement, model allowlist, and limits.",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "systemEnabled": "System enabled",
+      "centerEnabled": "Center enabled",
+      "effectiveEnabled": "Effective enabled",
+      "effectiveDisabled": "Effective disabled",
+      "allowedModels": "Allowed models",
+      "defaultModel": "Default model",
+      "limits": "Limits",
+      "dirty": "Dirty",
+      "synced": "Synced",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "error": "Error",
+      "saveProvider": "Save override",
+      "saveFailed": "Failed to save center AI provider settings.",
+      "loadFailed": "Failed to load center AI provider settings.",
+      "modelsRequired": "Select at least one allowed model.",
+      "defaultModelInvalid": "Default model must be one of the allowed models.",
+      "limitValidationFailed": "Limits must be valid non-negative numbers.",
+      "providerUnavailable": "This provider is not configured at system level.",
+      "systemDisabled": "System disabled this provider, so center override is read-only.",
+      "readOnlyProviderTitle": "Provider locked",
+      "readOnlyTitle": "Read-only mode",
+      "readOnlyDescription": "You can view provider state, but updating requires settings.manage.",
+      "noProviders": "No center providers returned from backend.",
+      "fields": {
+        "dailyJobLimit": "Daily job limit",
+        "monthlyJobLimit": "Monthly job limit",
+        "dailyTokenLimit": "Daily token limit",
+        "monthlyTokenLimit": "Monthly token limit",
+        "maxInputChars": "Max input chars",
+        "maxOutputChars": "Max output chars",
+        "maxConcurrentJobs": "Max concurrent jobs",
+        "defaultOutputTokenEstimate": "Default output token estimate"
+      }
+    },
+    "centerAIContent": {
+      "title": "AI Studio · {target}",
+      "description": "Create, review, and publish {target} assets for this course.",
+      "allTypes": "All target types",
+      "backToCourse": "Back to Course",
+      "targetSwitcher": "Switch target type",
+      "courseId": "Course #{id}",
+      "footerNote": "This route is reserved for AI job creation/list/review in upcoming phases.",
+      "entry": {
+        "manualLabel": "Manual authoring",
+        "manualDescription": "Open the standard module and continue with existing create/edit forms.",
+        "manualUnavailable": "Manual module screens are not available for this target type.",
+        "manualNotSupported": "Manual screen pending",
+        "createManually": "Create manually",
+        "aiLabel": "AI-assisted authoring",
+        "aiDescription": "Use generation jobs, then review and publish to canonical modules.",
+        "generateWithAI": "Generate with AI"
+      },
+      "items": {
+        "generate": {
+          "title": "Generate",
+          "description": "Create jobs using source + target mapping and provider/model selection."
+        },
+        "review": {
+          "title": "Review",
+          "description": "Edit generated payload, then approve changes before publish."
+        },
+        "publish": {
+          "title": "Publish",
+          "description": "Publish approved content and deep-link to the created asset."
+        }
+      },
+      "workspace": {
+        "subtitle": "Run AI generation jobs, monitor status, review payloads, and publish to canonical modules.",
+        "focus": {
+          "title": "Jobs and review workspace",
+          "description": "Use Course Assets for source-bound generation. Use this page for advanced single-job creation, monitoring, review, and publish.",
+          "openAssets": "Open Course Assets"
+        },
+        "sourceTypes": {
+          "video": "Video",
+          "pdf": "PDF",
+          "section": "Section",
+          "course": "Course"
+        },
+        "difficulty": {
+          "easy": "Easy",
+          "medium": "Medium",
+          "hard": "Hard"
+        },
+        "length": {
+          "short": "Short",
+          "medium": "Medium",
+          "long": "Long"
+        },
+        "tone": {
+          "simple": "Simple",
+          "academic": "Academic"
+        },
+        "activityStyle": {
+          "steps": "Steps",
+          "scenario": "Scenario",
+          "practice": "Practice"
+        },
+        "statusLabels": {
+          "pending": "Pending",
+          "processing": "Processing",
+          "completed": "Completed",
+          "failed": "Failed",
+          "approved": "Approved",
+          "published": "Published",
+          "discarded": "Discarded",
+          "unknown": "Unknown"
+        },
+        "validation": {
+          "title": "Please fix the following before submitting:",
+          "courseRequired": "Course is required.",
+          "sourceRequired": "Source is required.",
+          "providerRequired": "AI provider is required.",
+          "modelRequired": "AI model is required.",
+          "quizRange": "Question count must be between 1 and 50.",
+          "flashcardsRange": "Cards count must be between 1 and 100.",
+          "stepsRange": "Steps count must be between 1 and 20.",
+          "assignmentScore": "Passing score cannot exceed max points.",
+          "targetIdInvalid": "Target ID must be a positive number when provided."
+        },
+        "create": {
+          "title": "Generate Job",
+          "description": "Advanced mode: create a single generation job with source, target, provider, model, and target-specific configuration.",
+          "showAdvanced": "Show advanced create",
+          "hideAdvanced": "Hide advanced create",
+          "advancedHint": "Use Course Assets for day-to-day generation. Open advanced create only for debugging or one-off jobs.",
+          "loadOptionsFailed": "Unable to load center AI options.",
+          "noProvidersTitle": "No available providers",
+          "noProvidersDescription": "No enabled and configured providers were returned from ai/options.",
+          "targetIdPlaceholder": "Optional existing asset id",
+          "providerPlaceholder": "Select provider",
+          "modelPlaceholder": "Select model",
+          "configTitle": "{target} generation config",
+          "fields": {
+            "courseId": "Course ID",
+            "targetType": "Target type",
+            "sourceType": "Source type",
+            "sourceId": "Source ID",
+            "targetId": "Target ID (optional)",
+            "provider": "AI provider",
+            "model": "AI model"
+          },
+          "actions": {
+            "submit": "Create Job",
+            "submitting": "Creating job...",
+            "reset": "Reset form"
+          },
+          "config": {
+            "quiz": {
+              "questionCount": "Question count",
+              "difficulty": "Difficulty",
+              "explanations": "Include explanations"
+            },
+            "assignment": {
+              "type": "Assignment type",
+              "maxPoints": "Max points",
+              "passingScore": "Passing score",
+              "submissionTypes": "Submission types (enum ids)",
+              "types": {
+                "homework": "Homework",
+                "project": "Project",
+                "examPrep": "Exam prep"
+              }
+            },
+            "summary": {
+              "length": "Length",
+              "tone": "Tone",
+              "bullets": "Bullet points",
+              "keyTerms": "Include key terms"
+            },
+            "flashcards": {
+              "cardsCount": "Cards count",
+              "difficulty": "Difficulty",
+              "definitions": "Include definitions"
+            },
+            "interactive": {
+              "style": "Activity style",
+              "stepsCount": "Steps count",
+              "minutes": "Estimated minutes",
+              "reflection": "Include reflection"
+            }
+          }
+        },
+        "provider": {
+          "title": "Provider Context",
+          "description": "Read effective limits and available models for the selected provider.",
+          "enabled": "Enabled",
+          "defaultModel": "Default model: {model}",
+          "models": "Available models",
+          "selectPrompt": "Select an enabled provider to preview limits and models.",
+          "limits": {
+            "dailyJobs": "Daily jobs",
+            "monthlyJobs": "Monthly jobs",
+            "dailyTokens": "Daily tokens",
+            "monthlyTokens": "Monthly tokens",
+            "maxConcurrent": "Max concurrent jobs",
+            "maxInput": "Max input chars",
+            "maxOutput": "Max output chars"
+          }
+        },
+        "jobs": {
+          "title": "Jobs",
+          "description": "Filter and monitor AI jobs. Pending/processing jobs auto-refresh every few seconds.",
+          "empty": "No jobs found for current filters.",
+          "loadFailed": "Failed to load jobs list.",
+          "discardConfirm": "Discard this AI job? This cannot be undone for review workflow.",
+          "filters": {
+            "courseId": "Course ID",
+            "batchKey": "Batch key",
+            "targetType": "Target type",
+            "status": "Status"
+          },
+          "columns": {
+            "job": "Job",
+            "target": "Target",
+            "source": "Source",
+            "model": "Provider / Model",
+            "status": "Status",
+            "createdAt": "Created at"
+          },
+          "actions": {
+            "discard": "Discard"
+          }
+        },
+        "details": {
+          "title": "Job #{id} Details",
+          "emptyTitle": "Job Details",
+          "description": "Inspect generated/reviewed payloads, edit reviewed draft, then approve and publish.",
+          "noSelection": "Select a job to inspect details and review payload.",
+          "loadFailed": "Failed to load selected job details.",
+          "generatedPayload": "Generated payload",
+          "reviewedPayload": "Reviewed payload",
+          "reviewEditor": "Review editor",
+          "reviewJson": "Reviewed payload JSON",
+          "invalidPayload": "Reviewed payload must be a JSON object.",
+          "invalidJson": "Invalid JSON format in reviewed payload.",
+          "reviewHint": "Use quick fields for common edits, then finalize through JSON editor before saving.",
+          "reviewLocked": "Review editing is available only when job status is Completed or Approved.",
+          "failureTitle": "Job failed",
+          "dirty": "Unsaved review changes",
+          "synced": "Review payload synced",
+          "savedAt": "Last saved",
+          "polling": "Auto-refresh active while job is pending or processing.",
+          "meta": {
+            "target": "Target",
+            "source": "Source",
+            "model": "Provider / Model",
+            "createdAt": "Created",
+            "startedAt": "Started",
+            "completedAt": "Completed"
+          },
+          "actions": {
+            "saveReview": "Save reviewed draft",
+            "approve": "Approve",
+            "publish": "Publish"
+          },
+          "reviewPermissionRequired": "Review/approve/publish requires ai_content.review_publish permission."
+        },
+        "review": {
+          "summary": {
+            "title": "Summary title",
+            "content": "Summary content"
+          },
+          "quiz": {
+            "title": "Quiz title",
+            "description": "Quiz description",
+            "questions": "Questions count"
+          },
+          "assignment": {
+            "title": "Assignment title",
+            "description": "Assignment description",
+            "maxPoints": "Max points",
+            "passingScore": "Passing score",
+            "submissionTypes": "Submission types (enum ids)"
+          },
+          "flashcards": {
+            "title": "Flashcards title",
+            "cards": "Cards count"
+          },
+          "interactive": {
+            "title": "Activity title",
+            "instructions": "Instructions",
+            "steps": "Steps count"
+          }
+        },
+        "published": {
+          "successTitle": "Published successfully",
+          "successDescription": "Published {target} asset #{id}.",
+          "dismiss": "Dismiss"
+        },
+        "toasts": {
+          "jobCreated": "AI job created successfully.",
+          "reviewSaved": "Reviewed payload saved.",
+          "jobApproved": "AI job approved.",
+          "jobPublished": "AI job published.",
+          "jobDiscarded": "AI job discarded."
+        },
+        "errors": {
+          "createFailed": "Failed to create AI job.",
+          "reviewFailed": "Failed to save reviewed payload.",
+          "approveFailed": "Failed to approve AI job.",
+          "publishFailed": "Failed to publish AI job.",
+          "discardFailed": "Failed to discard AI job."
+        }
+      }
+    },
+    "courseAssessments": {
+      "backToCourse": "Back to Course",
+      "generateWithAI": "Generate with AI",
+      "openAIWorkspace": "Open AI Workspace",
+      "footer": "Manual and AI-assisted authoring are both supported. Choose the flow that fits your workflow.",
+      "quiz": {
+        "title": "Course Quizzes",
+        "description": "Manage manual quiz authoring and AI-assisted quiz generation for this course.",
+        "items": {
+          "manual": {
+            "title": "Manual authoring",
+            "description": "Create, edit, and organize quiz content using your standard module workflow."
+          },
+          "ai": {
+            "title": "AI-assisted draft",
+            "description": "Generate quiz drafts from source content, then review and publish."
+          }
+        }
+      },
+      "assignment": {
+        "title": "Course Assignments",
+        "description": "Manage manual assignment authoring and AI-assisted assignment generation for this course.",
+        "items": {
+          "manual": {
+            "title": "Manual authoring",
+            "description": "Create and edit assignments with full control over submission and grading settings."
+          },
+          "ai": {
+            "title": "AI-assisted draft",
+            "description": "Generate assignment drafts from source content, then review and publish."
+          }
+        }
+      }
+    },
+    "courseAssets": {
+      "title": "Course Assets",
+      "description": "Manage AI and manual asset workflows for each video or PDF source.",
+      "emptyTitle": "No source assets yet",
+      "empty": "No source items found for this course yet.",
+      "summary": {
+        "sources": "Sources",
+        "generating": "Generating",
+        "reviewRequired": "Review Required",
+        "published": "Published",
+        "failed": "Failed"
+      },
+      "permission": {
+        "title": "Access restricted",
+        "description": "You do not have permission to manage course assets."
+      },
+      "labels": {
+        "video": "Video",
+        "pdf": "PDF",
+        "unsectioned": "Unsectioned"
+      },
+      "slotTypes": {
+        "summary": "Summary",
+        "quiz": "Quiz",
+        "flashcards": "Flashcards",
+        "assignment": "Assignment"
+      },
+      "slotStates": {
+        "missing": "Missing",
+        "draft": "Draft",
+        "generating": "Generating",
+        "review_required": "Review Required",
+        "approved": "Approved",
+        "published": "Published",
+        "failed": "Failed"
+      },
+      "actions": {
+        "backToCourse": "Back to Course",
+        "generateAssets": "Generate Assets",
+        "generate": "Generate",
+        "regenerate": "Regenerate",
+        "generateSelected": "Generate Selected",
+        "generating": "Generating...",
+        "createQuiz": "Create Quiz",
+        "createAssignment": "Create Assignment",
+        "edit": "Edit",
+        "review": "Review",
+        "viewProgress": "View Progress",
+        "refreshCatalog": "Refresh Catalog",
+        "openWorkspace": "Open Workspace",
+        "generateWithAI": "Generate with AI",
+        "createManually": "Create Manually"
+      },
+      "generateModal": {
+        "title": "Generate Assets",
+        "description": "Select which assets you want to generate.",
+        "descriptionWithSource": "Generate assets for {type}: {title}.",
+        "source": "Source",
+        "section": "Section",
+        "assets": "Assets",
+        "assetsHint": "Select one or more assets to generate with AI for this source.",
+        "mixedModeHint": "AI jobs will be queued now. Manual assets should be created from source-row actions after the batch starts.",
+        "modes": {
+          "ai": "AI Generate",
+          "manual": "Manual Create"
+        },
+        "summary": {
+          "length": "Summary length",
+          "lengthOptions": {
+            "short": "Short",
+            "medium": "Medium",
+            "long": "Long"
+          },
+          "includeKeyPoints": "Include key points"
+        },
+        "quiz": {
+          "mode": "Quiz mode",
+          "questionCount": "Question count",
+          "difficulty": "Difficulty",
+          "questionStyles": "Question styles",
+          "styleOptions": {
+            "singleChoice": "Single choice",
+            "multipleChoice": "Multiple choice",
+            "trueFalse": "True/False"
+          },
+          "difficultyOptions": {
+            "easy": "Easy",
+            "medium": "Medium",
+            "hard": "Hard"
+          }
+        },
+        "flashcards": {
+          "cardCount": "Cards count",
+          "focus": "Focus topics",
+          "focusOptions": {
+            "definitions": "Definitions",
+            "concepts": "Concepts",
+            "formulas": "Formulas"
+          }
+        },
+        "assignment": {
+          "mode": "Assignment mode",
+          "style": "Assignment style",
+          "styleOptions": {
+            "practice": "Practice",
+            "essay": "Essay",
+            "project": "Project"
+          },
+          "maxPoints": "Max points",
+          "submissionTypes": "Submission types",
+          "submissionTypeOptions": {
+            "file": "File",
+            "text": "Text",
+            "link": "Link"
+          },
+          "manualHint": "Manual assignment mode will open the existing assignment form from the source row."
+        }
+      },
+      "batch": {
+        "title": "Batch Progress",
+        "description": "Track generation progress for this batch.",
+        "descriptionWithKey": "Batch: {key}",
+        "empty": "No jobs found in this batch yet.",
+        "autoRefresh": {
+          "running": "Auto-refresh is active while jobs are pending or processing.",
+          "stopped": "Auto-refresh stopped. Refresh manually to check for updates."
+        },
+        "summary": {
+          "processing": "Processing: {count}",
+          "completed": "Completed: {count}",
+          "failed": "Failed: {count}"
+        }
+      },
+      "errors": {
+        "loadFailed": "Failed to load course assets.",
+        "selectAsset": "Select at least one asset type.",
+        "chooseSinglePath": "Choose one path: AI generation or manual creation. Mixed submissions are disabled in one step.",
+        "manualOneAtATime": "Manual quiz and assignment cannot be started together from this modal.",
+        "batchCreateFailed": "Failed to create AI generation batch."
+      },
+      "toasts": {
+        "batchCreated": "AI generation batch queued successfully.",
+        "manualFromRow": "Use source-row actions to start manual creation.",
+        "refreshed": "Course asset catalog refreshed."
+      },
+      "manualModal": {
+        "title": "Create Manually",
+        "description": "Choose which manual authoring flow to open for this source.",
+        "descriptionWithSource": "Choose a manual flow for {type}: {title}.",
+        "quizDescription": "Open quiz create and question builder with this source prefilled.",
+        "assignmentDescription": "Open assignment create flow with this source prefilled."
+      }
+    },
+    "learningAssets": {
+      "title": "Learning Asset",
+      "actions": {
+        "backToAssets": "Back to Assets"
+      },
+      "permission": {
+        "readOnlyTitle": "Read-only access",
+        "readOnlyDescription": "You can view this asset, but you cannot edit it."
+      },
+      "fields": {
+        "titleEn": "Title (EN)",
+        "titleAr": "Title (AR)",
+        "contentEn": "Content (EN)",
+        "contentAr": "Content (AR)",
+        "payload": "Payload (JSON)",
+        "status": "Status"
+      },
+      "errors": {
+        "invalidPayload": "Payload must be valid JSON object.",
+        "loadFailed": "Failed to load learning asset.",
+        "saveFailed": "Failed to save learning asset changes.",
+        "statusFailed": "Failed to update learning asset status."
+      },
+      "toasts": {
+        "saveSuccess": "Learning asset saved successfully.",
+        "statusUpdated": "Learning asset status updated."
+      }
     },
     "centerSurveys": {
       "title": "Center Surveys",
@@ -3454,6 +4043,212 @@
       "description": "The page you requested does not exist or is no longer available.",
       "goToDashboard": "Go to Dashboard",
       "goToLogin": "Go to Login"
+    },
+    "courseQuizzes": {
+      "permission": {
+        "readOnlyTitle": "Read-only access",
+        "readOnlyDescription": "You can view quizzes, but create/delete requires quiz.manage."
+      },
+      "create": {
+        "title": "Create Quiz",
+        "dialogTitle": "Create Quiz",
+        "dialogDescription": "Set quiz settings, then add questions from the builder page.",
+        "sourceContext": "Source context: {source}. This quiz will be attached to this source item."
+      },
+      "fields": {
+        "titleEn": "Title (EN)",
+        "titleAr": "Title (AR)",
+        "descriptionEn": "Description (EN)",
+        "descriptionAr": "Description (AR)",
+        "passingScore": "Passing score",
+        "maxAttempts": "Max attempts",
+        "timeLimitMinutes": "Time limit (minutes)",
+        "scorePolicy": "Attempt score policy",
+        "attachableType": "Attachable type",
+        "attachableId": "Attachable ID",
+        "isActive": "Active",
+        "isRequired": "Required"
+      },
+      "scorePolicy": {
+        "best": "Best score",
+        "latest": "Latest score",
+        "average": "Average score"
+      },
+      "attachable": {
+        "course": "Course",
+        "section": "Section",
+        "video": "Video",
+        "pdf": "PDF"
+      },
+      "errors": {
+        "titleRequired": "English title is required.",
+        "createFailed": "Failed to create quiz.",
+        "deleteFailed": "Failed to delete quiz.",
+        "loadFailed": "Failed to load quizzes."
+      },
+      "dialogs": {
+        "deleteConfirm": "Delete quiz \"{title}\"?"
+      },
+      "toasts": {
+        "createSuccess": "Quiz created successfully.",
+        "deleteSuccess": "Quiz deleted successfully."
+      },
+      "actions": {
+        "creating": "Creating...",
+        "create": "Create quiz",
+        "manageQuestions": "Manage questions",
+        "openAssetsWorkspace": "Open Assets Workspace"
+      },
+      "list": {
+        "title": "Quizzes",
+        "activeFilter": "Active filter",
+        "builderHintTitle": "Recommended flow",
+        "builderHint": "Create the quiz first, then open Manage Questions to choose question type and add answers.",
+        "empty": "No quizzes found for this course.",
+        "total": "Total quizzes: {count}"
+      },
+      "table": {
+        "id": "ID",
+        "title": "Title",
+        "active": "Active",
+        "required": "Required",
+        "questions": "Questions",
+        "score": "Passing / Attempts",
+        "createdAt": "Created at"
+      }
+    },
+    "quizBuilder": {
+      "title": "Quiz Builder #{id}",
+      "description": "Create and organize quiz questions with answer keys and scoring.",
+      "backToQuizzes": "Back to Quizzes",
+      "confirm": {
+        "deleteQuestion": "Delete this question?"
+      },
+      "toasts": {
+        "created": "Question created successfully.",
+        "updated": "Question updated successfully.",
+        "deleted": "Question deleted successfully.",
+        "reordered": "Question order saved."
+      },
+      "errors": {
+        "loadFailed": "Failed to load quiz questions.",
+        "saveFailed": "Failed to save question.",
+        "deleteFailed": "Failed to delete question.",
+        "reorderFailed": "Failed to reorder questions."
+      },
+      "validation": {
+        "questionRequired": "Question text (EN) is required.",
+        "answersMin": "At least 2 answers are required.",
+        "answersMax": "Maximum 10 answers are allowed.",
+        "answerRequired": "All answers must include English text.",
+        "singleCorrect": "Single choice questions must have exactly 1 correct answer.",
+        "multipleCorrect": "Multiple choice questions must have at least 1 correct answer."
+      },
+      "form": {
+        "createTitle": "Add Question",
+        "editTitle": "Edit Question",
+        "answersTitle": "Answers",
+        "questionTypes": {
+          "single": "Single choice",
+          "multiple": "Multiple choice"
+        },
+        "fields": {
+          "questionEn": "Question (EN)",
+          "questionAr": "Question (AR)",
+          "questionType": "Question type",
+          "points": "Points",
+          "isActive": "Active",
+          "explanationEn": "Explanation (EN)",
+          "explanationAr": "Explanation (AR)",
+          "answerEn": "Answer (EN)",
+          "answerAr": "Answer (AR)",
+          "correct": "Correct"
+        },
+        "actions": {
+          "create": "Create question",
+          "update": "Update question",
+          "reset": "Reset",
+          "addAnswer": "Add answer"
+        }
+      },
+      "list": {
+        "title": "Questions",
+        "empty": "No questions added yet.",
+        "questionNumber": "Question {number}",
+        "points": "{points} points",
+        "correct": "Correct",
+        "actions": {
+          "moveUp": "Move up",
+          "moveDown": "Move down"
+        }
+      }
+    },
+    "courseAssignments": {
+      "permission": {
+        "readOnlyTitle": "Read-only access",
+        "readOnlyDescription": "You can view assignments, but create/delete requires assignment.manage."
+      },
+      "create": {
+        "title": "Create Assignment",
+        "sourceContext": "Source context: {source}. This assignment will be attached to this source item."
+      },
+      "fields": {
+        "titleEn": "Title (EN)",
+        "titleAr": "Title (AR)",
+        "descriptionEn": "Description (EN)",
+        "descriptionAr": "Description (AR)",
+        "submissionTypes": "Submission types (enum ids)",
+        "maxPoints": "Max points",
+        "passingScore": "Passing score",
+        "dueDate": "Due date",
+        "groupAssignment": "Group assignment",
+        "maxGroupSize": "Max group size",
+        "isActive": "Active",
+        "isRequired": "Required",
+        "attachableType": "Attachable type",
+        "attachableId": "Attachable ID"
+      },
+      "attachable": {
+        "course": "Course",
+        "section": "Section",
+        "video": "Video",
+        "pdf": "PDF"
+      },
+      "errors": {
+        "titleRequired": "English title is required.",
+        "groupSizeRequired": "Group assignments require max group size >= 2.",
+        "createFailed": "Failed to create assignment.",
+        "deleteFailed": "Failed to delete assignment.",
+        "loadFailed": "Failed to load assignments."
+      },
+      "dialogs": {
+        "deleteConfirm": "Delete assignment \"{title}\"?"
+      },
+      "toasts": {
+        "createSuccess": "Assignment created successfully.",
+        "deleteSuccess": "Assignment deleted successfully."
+      },
+      "actions": {
+        "creating": "Creating...",
+        "create": "Create assignment",
+        "openAssetsWorkspace": "Open Assets Workspace"
+      },
+      "list": {
+        "title": "Assignments",
+        "empty": "No assignments found for this course.",
+        "total": "Total assignments: {count}"
+      },
+      "table": {
+        "id": "ID",
+        "title": "Title",
+        "active": "Active",
+        "required": "Required",
+        "submissionTypes": "Submission types",
+        "group": "Group",
+        "dueDate": "Due date",
+        "groupEnabled": "Enabled (max {size})",
+        "groupDisabled": "Disabled"
+      }
     }
   },
   "tables": {

@@ -25,3 +25,10 @@ Source: `/Users/tarekbassiouny/projects/najaah/backend/postman/najaah.postman.js
 - This mapping mirrors the Postman collection structure one-to-one.
 - Admin – Users maps to admin users; keep label “Admins” in the sidebar to avoid confusion.
 - Platform-only sections should remain gated by tenant and capability rules.
+
+## Course Asset Authoring Route Ownership (MVP)
+
+- New planned route: `/centers/{centerId}/courses/{courseId}/assets`
+- Ownership: this is a **course-internal tab/page**, not a new sidebar item.
+- Purpose: source-bound authoring entry point for summary/quiz/flashcards/assignment.
+- Existing `/centers/{centerId}/ai-content` remains available as advanced job workspace, but not the primary authoring entry.

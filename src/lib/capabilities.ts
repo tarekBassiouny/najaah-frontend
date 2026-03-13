@@ -9,6 +9,8 @@ export type Capability =
   | "execute_bulk_enrollment_agent"
   | "manage_centers"
   | "manage_courses"
+  | "manage_quizzes"
+  | "manage_assignments"
   | "publish_courses"
   | "manage_sections"
   | "manage_surveys"
@@ -30,6 +32,9 @@ export type Capability =
   | "view_audit_logs"
   | "manage_notifications"
   | "manage_settings"
+  | "manage_learning_assets"
+  | "generate_ai_content"
+  | "review_publish_ai_content"
   | "view_settings";
 
 const capabilityPermissions: Record<Capability, string[]> = {
@@ -41,6 +46,8 @@ const capabilityPermissions: Record<Capability, string[]> = {
   execute_bulk_enrollment_agent: ["agent.enrollment.bulk"],
   manage_centers: ["center.manage"],
   manage_courses: ["course.manage"],
+  manage_quizzes: ["quiz.manage"],
+  manage_assignments: ["assignment.manage"],
   publish_courses: ["course.publish"],
   manage_sections: ["section.manage"],
   manage_surveys: ["survey.manage"],
@@ -62,6 +69,9 @@ const capabilityPermissions: Record<Capability, string[]> = {
   view_audit_logs: ["audit.view"],
   manage_notifications: ["notification.manage"],
   manage_settings: ["settings.manage"],
+  manage_learning_assets: ["learning_asset.manage"],
+  generate_ai_content: ["ai_content.generate"],
+  review_publish_ai_content: ["ai_content.review_publish"],
   view_settings: ["settings.view"],
 };
 

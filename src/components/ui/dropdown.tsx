@@ -210,7 +210,7 @@ export function DropdownContent({
         left: position.left,
       }}
       className={cn(
-        "animate-in fade-in-0 zoom-in-95 pointer-events-auto z-99 max-h-[min(24rem,calc(100vh-2rem))] min-w-[8rem] overflow-y-auto overscroll-contain rounded-lg",
+        "animate-in fade-in-0 zoom-in-95 pointer-events-auto z-99 min-w-[8rem] rounded-lg",
         isRtl &&
           "[&_[role='menuitem']]:!text-right [&_a]:!text-right [&_button]:!text-right",
         originClass,

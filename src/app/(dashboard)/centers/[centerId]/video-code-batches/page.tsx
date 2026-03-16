@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/features/localization";
 import { VideoCodeBatchesTable } from "@/features/video-code-batches/components/VideoCodeBatchesTable";
 import { CreateVideoCodeBatchDialog } from "@/features/video-code-batches/components/CreateVideoCodeBatchDialog";
 
@@ -14,6 +15,7 @@ type PageProps = {
 };
 
 export default function CenterVideoCodeBatchesPage({ params }: PageProps) {
+  const { t } = useTranslation();
   const { centerId } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,18 +25,34 @@ export default function CenterVideoCodeBatchesPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Video Code Batches"
-        description="Generate, export, expand, and close anonymous video access code batches for this center."
+        title={t(
+          "auto.features.video_code_batches.pages.videocodebatches.title",
+        )}
+        description={t(
+          "auto.features.video_code_batches.pages.videocodebatches.description",
+        )}
         breadcrumbs={[
           { label: "Centers", href: "/centers" },
           { label: `Center ${centerId}`, href: `/centers/${centerId}` },
-          { label: "Video Code Batches" },
+          {
+            label: t(
+              "auto.features.video_code_batches.pages.videocodebatches.title",
+            ),
+          },
         ]}
         actions={
           <>
-            <Button onClick={() => setIsCreateOpen(true)}>Create Batch</Button>
+            <Button onClick={() => setIsCreateOpen(true)}>
+              {t(
+                "auto.features.video_code_batches.pages.videocodebatches.createBatch",
+              )}
+            </Button>
             <Link href={`/centers/${centerId}`}>
-              <Button variant="outline">Back to Center</Button>
+              <Button variant="outline">
+                {t(
+                  "auto.features.video_code_batches.pages.videocodebatches.backToCenter",
+                )}
+              </Button>
             </Link>
           </>
         }

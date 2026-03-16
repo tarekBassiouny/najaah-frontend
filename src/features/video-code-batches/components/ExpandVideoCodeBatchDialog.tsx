@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "@/features/localization";
 import { useExpandVideoCodeBatch } from "@/features/video-code-batches/hooks/use-video-code-batches";
 import type { VideoCodeBatch } from "@/features/video-code-batches/types/video-code-batch";
 
@@ -31,6 +32,7 @@ export function ExpandVideoCodeBatchDialog({
   batch,
   onCompleted,
 }: ExpandVideoCodeBatchDialogProps) {
+  const { t } = useTranslation();
   const expandMutation = useExpandVideoCodeBatch();
   const [additionalQuantity, setAdditionalQuantity] = useState("50");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -80,23 +82,37 @@ export function ExpandVideoCodeBatchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Expand Batch {batch?.batch_code ?? ""}</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.video_code_batches.components.expandvideocodebatchdialog.title",
+            )}{" "}
+            {batch?.batch_code ?? ""}
+          </DialogTitle>
           <DialogDescription>
-            Add more codes to the current open batch without starting a new
-            batch.
+            {t(
+              "auto.features.video_code_batches.components.expandvideocodebatchdialog.description",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {errorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to expand batch</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.video_code_batches.components.expandvideocodebatchdialog.errorTitle",
+                )}
+              </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="expand-batch-quantity">Additional Quantity</Label>
+            <Label htmlFor="expand-batch-quantity">
+              {t(
+                "auto.features.video_code_batches.components.expandvideocodebatchdialog.additionalQuantity",
+              )}
+            </Label>
             <Input
               id="expand-batch-quantity"
               type="number"
@@ -108,10 +124,19 @@ export function ExpandVideoCodeBatchDialog({
           </div>
 
           <Alert>
-            <AlertTitle>Current batch</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_code_batches.components.expandvideocodebatchdialog.currentBatch",
+              )}
+            </AlertTitle>
             <AlertDescription>
-              Existing quantity: {batch?.quantity ?? 0}. New codes can be
-              exported after the batch is expanded.
+              {t(
+                "auto.features.video_code_batches.components.expandvideocodebatchdialog.existingQuantity",
+              )}{" "}
+              {batch?.quantity ?? 0}
+              {t(
+                "auto.features.video_code_batches.components.expandvideocodebatchdialog.newCodesNote",
+              )}
             </AlertDescription>
           </Alert>
         </div>

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "@/features/localization";
 import { buildVideoCodeBatchExportFilename } from "@/features/video-code-batches/lib/export-filename";
 import { useSendVideoCodeBatchWhatsappCsv } from "@/features/video-code-batches/hooks/use-video-code-batches";
 import type {
@@ -64,6 +65,7 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
   onSent,
   onCompleted,
 }: SendVideoCodeBatchWhatsappCsvDialogProps) {
+  const { t } = useTranslation();
   const sendMutation = useSendVideoCodeBatchWhatsappCsv();
   const batchQuantity = Number(batch?.quantity ?? 0);
   const [countryCode, setCountryCode] = useState("+20");
@@ -172,23 +174,37 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Send CSV to WhatsApp</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.title",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Send a CSV export for this batch directly to a WhatsApp number.
+            {t(
+              "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.description",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {errorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to send CSV</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.errorTitle",
+                )}
+              </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
 
           <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
             <div className="space-y-2">
-              <Label htmlFor="send-whatsapp-country-code">Country Code</Label>
+              <Label htmlFor="send-whatsapp-country-code">
+                {t(
+                  "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.countryCode",
+                )}
+              </Label>
               <Input
                 id="send-whatsapp-country-code"
                 value={countryCode}
@@ -199,7 +215,11 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="send-whatsapp-phone-number">Phone Number</Label>
+              <Label htmlFor="send-whatsapp-phone-number">
+                {t(
+                  "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.phoneNumber",
+                )}
+              </Label>
               <Input
                 id="send-whatsapp-phone-number"
                 value={phoneNumber}
@@ -213,7 +233,9 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="send-whatsapp-start-sequence">
-                Start Sequence
+                {t(
+                  "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.startSequence",
+                )}
               </Label>
               <Input
                 id="send-whatsapp-start-sequence"
@@ -226,7 +248,11 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="send-whatsapp-end-sequence">End Sequence</Label>
+              <Label htmlFor="send-whatsapp-end-sequence">
+                {t(
+                  "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.endSequence",
+                )}
+              </Label>
               <Input
                 id="send-whatsapp-end-sequence"
                 type="number"
@@ -240,11 +266,28 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
           </div>
 
           <Alert>
-            <AlertTitle>Delivery preview</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.deliveryPreview",
+              )}
+            </AlertTitle>
             <AlertDescription>
-              Destination: {formattedPhoneNumber || "—"}. Range:{" "}
-              {startSequence || "—"}-{endSequence || "—"}. Count:{" "}
-              {sequenceCount > 0 ? sequenceCount : "—"}. File: {filename}
+              {t(
+                "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.destination",
+              )}{" "}
+              {formattedPhoneNumber || "—"}
+              {t(
+                "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.range",
+              )}{" "}
+              {startSequence || "—"}-{endSequence || "—"}
+              {t(
+                "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.count",
+              )}{" "}
+              {sequenceCount > 0 ? sequenceCount : "—"}
+              {t(
+                "auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.file",
+              )}{" "}
+              {filename}
             </AlertDescription>
           </Alert>
         </div>

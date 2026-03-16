@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/searchable-select";
 import { useCenterCourses } from "@/features/courses/hooks/use-courses";
 import { useVideos } from "@/features/videos/hooks/use-videos";
+import { useTranslation } from "@/features/localization";
 import { useCreateVideoCodeBatch } from "@/features/video-code-batches/hooks/use-video-code-batches";
 import type { VideoCodeBatch } from "@/features/video-code-batches/types/video-code-batch";
 
@@ -46,6 +47,7 @@ export function CreateVideoCodeBatchDialog({
   onCreated,
   onCompleted,
 }: CreateVideoCodeBatchDialogProps) {
+  const { t } = useTranslation();
   const createMutation = useCreateVideoCodeBatch();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
@@ -204,17 +206,26 @@ export function CreateVideoCodeBatchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Create Video Code Batch</DialogTitle>
+          <DialogTitle>
+            {t(
+              "auto.features.video_code_batches.components.createvideocodebatchdialog.title",
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Generate a new batch of anonymous video access codes for a video
-            code course.
+            {t(
+              "auto.features.video_code_batches.components.createvideocodebatchdialog.description",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {errorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to create batch</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.video_code_batches.components.createvideocodebatchdialog.errorTitle",
+                )}
+              </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
@@ -226,9 +237,13 @@ export function CreateVideoCodeBatchDialog({
               onValueChange={(value) => setSelectedCourseId(value)}
               options={courseOptions}
               disabled={Boolean(coursePreset) || isSubmitting}
-              placeholder="Select course"
+              placeholder={t(
+                "auto.features.video_code_batches.components.createvideocodebatchdialog.selectCourse",
+              )}
               searchPlaceholder="Search courses..."
-              emptyMessage="No video code courses found"
+              emptyMessage={t(
+                "auto.features.video_code_batches.components.createvideocodebatchdialog.noCoursesFound",
+              )}
             />
           </div>
 
@@ -241,7 +256,9 @@ export function CreateVideoCodeBatchDialog({
               disabled={
                 Boolean(videoPreset) || !resolvedCourseId || isSubmitting
               }
-              placeholder="Select video"
+              placeholder={t(
+                "auto.features.video_code_batches.components.createvideocodebatchdialog.selectVideo",
+              )}
               searchPlaceholder="Search videos..."
               emptyMessage={
                 resolvedCourseId
@@ -265,7 +282,9 @@ export function CreateVideoCodeBatchDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="video-code-batch-view-limit">
-                View Limit Per Code
+                {t(
+                  "auto.features.video_code_batches.components.createvideocodebatchdialog.viewLimitPerCode",
+                )}
               </Label>
               <Input
                 id="video-code-batch-view-limit"
@@ -279,10 +298,15 @@ export function CreateVideoCodeBatchDialog({
           </div>
 
           <Alert>
-            <AlertTitle>Batch lifecycle</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_code_batches.components.createvideocodebatchdialog.batchLifecycle",
+              )}
+            </AlertTitle>
             <AlertDescription>
-              Export the generated codes, sell them offline, then close the
-              batch with the confirmed sold count for invoicing.
+              {t(
+                "auto.features.video_code_batches.components.createvideocodebatchdialog.batchLifecycleDescription",
+              )}
             </AlertDescription>
           </Alert>
         </div>

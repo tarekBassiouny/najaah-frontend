@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "@/features/localization";
 import { useCloseVideoCodeBatch } from "@/features/video-code-batches/hooks/use-video-code-batches";
 import type { VideoCodeBatch } from "@/features/video-code-batches/types/video-code-batch";
 
@@ -31,6 +32,7 @@ export function CloseVideoCodeBatchDialog({
   batch,
   onCompleted,
 }: CloseVideoCodeBatchDialogProps) {
+  const { t } = useTranslation();
   const closeMutation = useCloseVideoCodeBatch();
   const redeemedCount = Number(batch?.redeemed_count ?? 0);
   const quantity = Number(batch?.quantity ?? 0);
@@ -128,29 +130,52 @@ export function CloseVideoCodeBatchDialog({
             {actionLabel} {batch?.batch_code ?? ""}
           </DialogTitle>
           <DialogDescription>
-            Confirm how many codes were actually sold. Unsold codes will stop
-            being redeemable once the sold limit is enforced.
+            {t(
+              "auto.features.video_code_batches.components.closevideocodebatchdialog.description",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {errorMessage ? (
             <Alert variant="destructive">
-              <AlertTitle>Unable to save sold limit</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.video_code_batches.components.closevideocodebatchdialog.errorTitle",
+                )}
+              </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
 
           <Alert>
-            <AlertTitle>Current status</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.currentStatus",
+              )}
+            </AlertTitle>
             <AlertDescription>
-              Total codes: {quantity}. Already redeemed: {redeemedCount}.
-              Current sold limit: {batch?.sold_limit ?? "Not set"}.
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.totalCodes",
+              )}{" "}
+              {quantity}
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.alreadyRedeemed",
+              )}{" "}
+              {redeemedCount}
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.currentSoldLimit",
+              )}{" "}
+              {batch?.sold_limit ?? "Not set"}.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="close-batch-sold-limit">Sold Count</Label>
+            <Label htmlFor="close-batch-sold-limit">
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.soldCount",
+              )}
+            </Label>
             <Input
               id="close-batch-sold-limit"
               type="number"
@@ -163,11 +188,24 @@ export function CloseVideoCodeBatchDialog({
           </div>
 
           <Alert>
-            <AlertTitle>Result preview</AlertTitle>
+            <AlertTitle>
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.resultPreview",
+              )}
+            </AlertTitle>
             <AlertDescription>
-              {redeemedCount} redeemed codes remain valid,{" "}
-              {remainingRedemptions} more codes can still be redeemed, and{" "}
-              {invalidatedCodes} codes become invalid.
+              {redeemedCount}{" "}
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.redeemedCodesValid",
+              )}{" "}
+              {remainingRedemptions}{" "}
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.moreCodesRedeemable",
+              )}{" "}
+              {invalidatedCodes}{" "}
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.codesInvalid",
+              )}
             </AlertDescription>
           </Alert>
 
@@ -178,7 +216,11 @@ export function CloseVideoCodeBatchDialog({
               onChange={(event) => setIsConfirmed(event.target.checked)}
               disabled={closeMutation.isPending}
             />
-            <span>I confirm the sold count is correct.</span>
+            <span>
+              {t(
+                "auto.features.video_code_batches.components.closevideocodebatchdialog.confirmSoldCount",
+              )}
+            </span>
           </label>
         </div>
 

@@ -712,7 +712,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     <Link
                       href={`/centers/${centerId}/video-code-batches?course_id=${courseId}`}
                     >
-                      <Button variant="outline">Manage Batches</Button>
+                      <Button variant="outline">
+                        {t(
+                          "auto.features.video_code_batches.pages.videocodebatches.manageBatches",
+                        )}
+                      </Button>
                     </Link>
                   ) : null}
                   <Link href={assetsWorkspaceHref}>

@@ -5331,6 +5331,124 @@
             "s4": "تعذر حذف الدور"
           }
         }
+      },
+      "video_code_batches": {
+        "components": {
+          "videocodebatchestable": {
+            "title": "دفعات أكواد الفيديو",
+            "description": "إدارة دفعات أكواد الوصول المجهولة لدورات أكواد الفيديو.",
+            "createBatch": "إنشاء دفعة",
+            "searchPlaceholder": "البحث في الدفعات...",
+            "allCourses": "جميع الدورات",
+            "noCoursesFound": "لم يتم العثور على دورات أكواد فيديو",
+            "courseFilterLocked": "فلتر الدورة مقفل على هذه الدورة",
+            "allVideos": "جميع الفيديوهات",
+            "allStatuses": "جميع الحالات",
+            "failedToLoad": "فشل تحميل الدفعات",
+            "viewLimit": "حد المشاهدة",
+            "noBatchesTitle": "لم يتم العثور على دفعات",
+            "noBatchesDescription": "أنشئ أول دفعة لدورة أكواد الفيديو لبدء إدارة التصدير والاسترداد.",
+            "viewDetails": "عرض التفاصيل",
+            "exportCsv": "تصدير CSV",
+            "exportingCsv": "جارٍ تصدير CSV...",
+            "exportPdf": "تصدير PDF",
+            "exportingPdf": "جارٍ تصدير PDF...",
+            "sendCsvWhatsapp": "إرسال CSV عبر واتساب",
+            "expandBatch": "توسيع الدفعة",
+            "closeBatch": "إغلاق الدفعة",
+            "updateSoldLimit": "تحديث حد المبيعات",
+            "total": "الإجمالي:",
+            "redeemed": "المستردة:",
+            "available": "المتاحة:",
+            "sold": "المباعة:",
+            "notClosed": "غير مغلقة",
+            "unknownVideo": "فيديو غير معروف",
+            "unknownCourse": "دورة غير معروفة",
+            "unknownAdmin": "مشرف غير معروف",
+            "statusOpen": "مفتوحة",
+            "statusClosed": "مغلقة"
+          },
+          "videocodebatchdetailspage": {
+            "batchNotFound": "الدفعة غير موجودة",
+            "backToBatches": "العودة للدفعات",
+            "sendCsvWhatsapp": "إرسال CSV عبر واتساب",
+            "expandBatch": "توسيع الدفعة",
+            "generatedBy": "أُنشئت بواسطة",
+            "closedOn": "أُغلقت في",
+            "batchInformation": "معلومات الدفعة",
+            "batchCode": "رمز الدفعة",
+            "firstRedemption": "أول استرداد",
+            "lastRedemption": "آخر استرداد",
+            "exportHistory": "سجل التصدير",
+            "noExportsTitle": "لا توجد عمليات تصدير بعد",
+            "noExportsDescription": "ستظهر عمليات تصدير CSV و PDF هنا بعد أول تصدير.",
+            "waitingWhatsappDelivery": "في انتظار تأكيد تسليم واتساب...",
+            "recentRedemptionActivity": "نشاط الاسترداد الأخير",
+            "noRecentRedemptionsTitle": "لا توجد عمليات استرداد حديثة",
+            "noRecentRedemptionsDescription": "سيظهر نشاط الاسترداد الأخير من نقطة الإحصائيات هنا.",
+            "searchRedemptionsPlaceholder": "البحث في الاستردادات...",
+            "redeemedAt": "تاريخ الاسترداد",
+            "noRedemptionsTitle": "لم يتم العثور على استردادات",
+            "noRedemptionsDescription": "ستظهر الاستردادات هنا بمجرد بدء الطلاب في استرداد الأكواد من هذه الدفعة."
+          },
+          "createvideocodebatchdialog": {
+            "title": "إنشاء دفعة أكواد فيديو",
+            "description": "إنشاء دفعة جديدة من أكواد الوصول المجهولة للفيديو لدورة أكواد الفيديو.",
+            "errorTitle": "تعذر إنشاء الدفعة",
+            "selectCourse": "اختر الدورة",
+            "noCoursesFound": "لم يتم العثور على دورات أكواد فيديو",
+            "selectVideo": "اختر الفيديو",
+            "viewLimitPerCode": "حد المشاهدة لكل كود",
+            "batchLifecycle": "دورة حياة الدفعة",
+            "batchLifecycleDescription": "صدّر الأكواد المُنشأة، بعها دون اتصال، ثم أغلق الدفعة بعدد المبيعات المؤكد للفوترة."
+          },
+          "closevideocodebatchdialog": {
+            "description": "أكد عدد الأكواد المباعة فعلياً. ستتوقف الأكواد غير المباعة عن كونها قابلة للاسترداد بمجرد تطبيق حد المبيعات.",
+            "errorTitle": "تعذر حفظ حد المبيعات",
+            "currentStatus": "الحالة الحالية",
+            "totalCodes": "إجمالي الأكواد:",
+            "alreadyRedeemed": ". المستردة بالفعل:",
+            "currentSoldLimit": ". حد المبيعات الحالي:",
+            "soldCount": "عدد المبيعات",
+            "resultPreview": "معاينة النتيجة",
+            "redeemedCodesValid": "كود مسترد يظل صالحاً،",
+            "moreCodesRedeemable": "كود إضافي يمكن استرداده، و",
+            "codesInvalid": "كود يصبح غير صالح.",
+            "confirmSoldCount": "أؤكد أن عدد المبيعات صحيح."
+          },
+          "expandvideocodebatchdialog": {
+            "title": "توسيع الدفعة",
+            "description": "إضافة المزيد من الأكواد للدفعة المفتوحة الحالية دون بدء دفعة جديدة.",
+            "errorTitle": "تعذر توسيع الدفعة",
+            "additionalQuantity": "الكمية الإضافية",
+            "currentBatch": "الدفعة الحالية",
+            "existingQuantity": "الكمية الحالية:",
+            "newCodesNote": ". يمكن تصدير الأكواد الجديدة بعد توسيع الدفعة."
+          },
+          "sendvideocodebatchwhatsappcsvdialog": {
+            "title": "إرسال CSV عبر واتساب",
+            "description": "إرسال تصدير CSV لهذه الدفعة مباشرة إلى رقم واتساب.",
+            "errorTitle": "تعذر إرسال CSV",
+            "countryCode": "رمز الدولة",
+            "phoneNumber": "رقم الهاتف",
+            "startSequence": "تسلسل البداية",
+            "endSequence": "تسلسل النهاية",
+            "deliveryPreview": "معاينة التسليم",
+            "destination": "الوجهة:",
+            "range": ". النطاق:",
+            "count": ". العدد:",
+            "file": ". الملف:"
+          }
+        },
+        "pages": {
+          "videocodebatches": {
+            "title": "دفعات أكواد الفيديو",
+            "description": "إنشاء وتصدير وتوسيع وإغلاق دفعات أكواد الوصول المجهولة للفيديو لهذا المركز.",
+            "createBatch": "إنشاء دفعة",
+            "backToCenter": "العودة للمركز",
+            "manageBatches": "إدارة الدفعات"
+          }
+        }
       }
     }
   }

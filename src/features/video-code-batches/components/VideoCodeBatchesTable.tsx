@@ -38,6 +38,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/features/localization";
 import { formatDateTime } from "@/lib/format-date-time";
 import { triggerBrowserDownload } from "@/features/video-code-batches/lib/download-file";
 import { buildVideoCodeBatchExportFilename } from "@/features/video-code-batches/lib/export-filename";
@@ -100,6 +101,7 @@ export function VideoCodeBatchesTable({
   fixedCourseId = null,
   hideHeader = false,
 }: VideoCodeBatchesTableProps) {
+  const { t } = useTranslation();
   const { showToast } = useModal();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -257,13 +259,21 @@ export function VideoCodeBatchesTable({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Video Code Batches
+              {t(
+                "auto.features.video_code_batches.components.videocodebatchestable.title",
+              )}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Manage anonymous access code batches for video code courses.
+              {t(
+                "auto.features.video_code_batches.components.videocodebatchestable.description",
+              )}
             </p>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>Create Batch</Button>
+          <Button onClick={() => setIsCreateOpen(true)}>
+            {t(
+              "auto.features.video_code_batches.components.videocodebatchestable.createBatch",
+            )}
+          </Button>
         </div>
       ) : null}
 
@@ -290,7 +300,9 @@ export function VideoCodeBatchesTable({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search batches..."
+              placeholder={t(
+                "auto.features.video_code_batches.components.videocodebatchestable.searchPlaceholder",
+              )}
               className="pl-10"
             />
             <svg
@@ -318,14 +330,20 @@ export function VideoCodeBatchesTable({
                 setPage(1);
               }}
               options={courseOptions}
-              placeholder="All courses"
+              placeholder={t(
+                "auto.features.video_code_batches.components.videocodebatchestable.allCourses",
+              )}
               searchPlaceholder="Search courses..."
-              emptyMessage="No video code courses found"
+              emptyMessage={t(
+                "auto.features.video_code_batches.components.videocodebatchestable.noCoursesFound",
+              )}
               allowClear
             />
           ) : (
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-              Course filter locked to this course
+              {t(
+                "auto.features.video_code_batches.components.videocodebatchestable.courseFilterLocked",
+              )}
             </div>
           )}
 
@@ -338,7 +356,9 @@ export function VideoCodeBatchesTable({
               setPage(1);
             }}
             options={videoOptions}
-            placeholder="All videos"
+            placeholder={t(
+              "auto.features.video_code_batches.components.videocodebatchestable.allVideos",
+            )}
             searchPlaceholder="Search videos..."
             emptyMessage={
               effectiveCourseId
@@ -356,12 +376,28 @@ export function VideoCodeBatchesTable({
             }}
           >
             <SelectTrigger className="h-10 w-full bg-white dark:bg-gray-900">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue
+                placeholder={t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.allStatuses",
+                )}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>All statuses</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value={ALL_FILTER_VALUE}>
+                {t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.allStatuses",
+                )}
+              </SelectItem>
+              <SelectItem value="open">
+                {t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.statusOpen",
+                )}
+              </SelectItem>
+              <SelectItem value="closed">
+                {t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.statusClosed",
+                )}
+              </SelectItem>
             </SelectContent>
           </Select>
         </ListingFilters>
@@ -369,7 +405,11 @@ export function VideoCodeBatchesTable({
         {isError ? (
           <div className="p-4">
             <Alert variant="destructive">
-              <AlertTitle>Failed to load batches</AlertTitle>
+              <AlertTitle>
+                {t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.failedToLoad",
+                )}
+              </AlertTitle>
               <AlertDescription>
                 {batchesQuery.error instanceof Error
                   ? batchesQuery.error.message
@@ -386,7 +426,11 @@ export function VideoCodeBatchesTable({
                     <TableHead>Batch</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Codes</TableHead>
-                    <TableHead>View Limit</TableHead>
+                    <TableHead>
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.viewLimit",
+                      )}
+                    </TableHead>
                     <TableHead>Generated</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -406,11 +450,17 @@ export function VideoCodeBatchesTable({
                     <TableRow>
                       <TableCell colSpan={6} className="py-10">
                         <EmptyState
-                          title="No batches found"
-                          description="Create the first batch for a video code course to start managing exports and redemptions."
+                          title={t(
+                            "auto.features.video_code_batches.components.videocodebatchestable.noBatchesTitle",
+                          )}
+                          description={t(
+                            "auto.features.video_code_batches.components.videocodebatchestable.noBatchesDescription",
+                          )}
                           action={
                             <Button onClick={() => setIsCreateOpen(true)}>
-                              Create Batch
+                              {t(
+                                "auto.features.video_code_batches.components.videocodebatchestable.createBatch",
+                              )}
                             </Button>
                           }
                           className="border-0 bg-transparent"
@@ -461,10 +511,33 @@ export function VideoCodeBatchesTable({
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm text-gray-600 dark:text-gray-300">
-                            <div>Total: {quantity}</div>
-                            <div>Redeemed: {redeemedCount}</div>
-                            <div>Available: {availableCodes}</div>
-                            <div>Sold: {soldLimit ?? "Not closed"}</div>
+                            <div>
+                              {t(
+                                "auto.features.video_code_batches.components.videocodebatchestable.total",
+                              )}{" "}
+                              {quantity}
+                            </div>
+                            <div>
+                              {t(
+                                "auto.features.video_code_batches.components.videocodebatchestable.redeemed",
+                              )}{" "}
+                              {redeemedCount}
+                            </div>
+                            <div>
+                              {t(
+                                "auto.features.video_code_batches.components.videocodebatchestable.available",
+                              )}{" "}
+                              {availableCodes}
+                            </div>
+                            <div>
+                              {t(
+                                "auto.features.video_code_batches.components.videocodebatchestable.sold",
+                              )}{" "}
+                              {soldLimit ??
+                                t(
+                                  "auto.features.video_code_batches.components.videocodebatchestable.notClosed",
+                                )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {batch.view_limit_per_code ?? "—"}
@@ -499,7 +572,9 @@ export function VideoCodeBatchesTable({
                                     className="block rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                     onClick={() => setOpenMenuId(null)}
                                   >
-                                    View details
+                                    {t(
+                                      "auto.features.video_code_batches.components.videocodebatchestable.viewDetails",
+                                    )}
                                   </Link>
                                   <button
                                     type="button"
@@ -512,8 +587,12 @@ export function VideoCodeBatchesTable({
                                     }
                                   >
                                     {activeDownloadKey === `${batch.id}-csv`
-                                      ? "Exporting CSV..."
-                                      : "Export CSV"}
+                                      ? t(
+                                          "auto.features.video_code_batches.components.videocodebatchestable.exportingCsv",
+                                        )
+                                      : t(
+                                          "auto.features.video_code_batches.components.videocodebatchestable.exportCsv",
+                                        )}
                                   </button>
                                   <button
                                     type="button"
@@ -526,8 +605,12 @@ export function VideoCodeBatchesTable({
                                     }
                                   >
                                     {activeDownloadKey === `${batch.id}-pdf`
-                                      ? "Exporting PDF..."
-                                      : "Export PDF"}
+                                      ? t(
+                                          "auto.features.video_code_batches.components.videocodebatchestable.exportingPdf",
+                                        )
+                                      : t(
+                                          "auto.features.video_code_batches.components.videocodebatchestable.exportPdf",
+                                        )}
                                   </button>
                                   <button
                                     type="button"
@@ -537,7 +620,9 @@ export function VideoCodeBatchesTable({
                                       setOpenMenuId(null);
                                     }}
                                   >
-                                    Send CSV to WhatsApp
+                                    {t(
+                                      "auto.features.video_code_batches.components.videocodebatchestable.sendCsvWhatsapp",
+                                    )}
                                   </button>
                                   {canExpand ? (
                                     <button
@@ -548,7 +633,9 @@ export function VideoCodeBatchesTable({
                                         setOpenMenuId(null);
                                       }}
                                     >
-                                      Expand batch
+                                      {t(
+                                        "auto.features.video_code_batches.components.videocodebatchestable.expandBatch",
+                                      )}
                                     </button>
                                   ) : null}
                                   {canClose ? (
@@ -562,8 +649,12 @@ export function VideoCodeBatchesTable({
                                     >
                                       {normalizeStatus(batch.status) ===
                                       "closed"
-                                        ? "Update sold limit"
-                                        : "Close batch"}
+                                        ? t(
+                                            "auto.features.video_code_batches.components.videocodebatchestable.updateSoldLimit",
+                                          )
+                                        : t(
+                                            "auto.features.video_code_batches.components.videocodebatchestable.closeBatch",
+                                          )}
                                     </button>
                                   ) : null}
                                 </DropdownContent>

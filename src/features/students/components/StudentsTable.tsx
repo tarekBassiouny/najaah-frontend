@@ -751,7 +751,7 @@ export function StudentsTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((student, index) => {
+                items.map((student, _index) => {
                   const status = resolveStudentStatus(
                     student.status_key ?? student.status,
                     student.status_label,
@@ -794,8 +794,6 @@ export function StudentsTable({
                   const lastActivityLabel = analytics?.last_activity_at
                     ? formatDateTime(analytics.last_activity_at)
                     : "—";
-                  const shouldOpenUp =
-                    items.length > 4 && index >= items.length - 2;
                   const profileHref = buildProfileHref?.(student) ?? null;
                   const whatsappNumber = normalizeWhatsAppNumber(
                     student.country_code,
@@ -1008,7 +1006,6 @@ export function StudentsTable({
                                 align="end"
                                 className={cn(
                                   "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                  shouldOpenUp && "bottom-full mb-2 mt-0",
                                 )}
                               >
                                 {profileHref ? (

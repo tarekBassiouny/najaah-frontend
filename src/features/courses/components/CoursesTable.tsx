@@ -718,7 +718,7 @@ export function CoursesTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((course, index) => {
+                items.map((course, _index) => {
                   const statusSource = course.status_key ?? course.status;
                   const status =
                     statusSource != null ? getStatusConfig(statusSource) : null;
@@ -730,8 +730,6 @@ export function CoursesTable({
                   const viewHref = centerId
                     ? `/centers/${centerId}/courses/${course.id}`
                     : `/courses/${course.id}`;
-                  const shouldOpenUp =
-                    items.length > 4 && index >= items.length - 2;
                   const isPublished = isCoursePublished(course);
                   const isRowActionPending = activeActionCourseId === course.id;
                   const editHref = centerId
@@ -808,7 +806,6 @@ export function CoursesTable({
                               align="end"
                               className={cn(
                                 "w-48 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
                               <Link

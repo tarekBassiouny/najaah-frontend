@@ -1256,7 +1256,7 @@ export function SectionManager({
                         </TableCell>
                       </TableRow>
                     ) : (
-                      items.map((section, index) => {
+                      items.map((section, _index) => {
                         const publishState = resolvePublishedValue(section);
                         const status =
                           publishState == null
@@ -1278,9 +1278,6 @@ export function SectionManager({
                           "videos",
                         );
                         const pdfCount = getSectionMediaCount(section, "pdfs");
-                        const shouldOpenUp =
-                          items.length > 4 && index >= items.length - 2;
-
                         return (
                           <TableRow
                             key={section.id}
@@ -1345,7 +1342,6 @@ export function SectionManager({
                                     align="end"
                                     className={cn(
                                       "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                      shouldOpenUp && "bottom-full mb-2 mt-0",
                                     )}
                                   >
                                     <button

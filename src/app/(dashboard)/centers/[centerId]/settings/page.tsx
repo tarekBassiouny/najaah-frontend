@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
 import { useTranslation } from "@/features/localization";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
+import { CenterAIProvidersPanel } from "@/features/ai/components";
 import {
   CenterProfileForm,
   CenterBrandingForm,
@@ -174,6 +175,8 @@ export default function CenterSettingsPage({ params }: PageProps) {
           <CenterPolicyForm centerId={centerData.id} />
 
           <CenterEducationProfileForm centerId={centerData.id} />
+
+          <CenterAIProvidersPanel centerId={centerData.id} />
         </div>
 
         <div className="space-y-6">

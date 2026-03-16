@@ -610,6 +610,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         : !isVideoCodeCourse && activePanel === "batches"
           ? "students"
           : activePanel;
+  const assetsWorkspaceHref = `/centers/${centerId}/courses/${courseId}/assets`;
 
   return (
     <div className="space-y-6">
@@ -714,6 +715,13 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       <Button variant="outline">Manage Batches</Button>
                     </Link>
                   ) : null}
+                  <Link href={assetsWorkspaceHref}>
+                    <Button variant="outline">
+                      {t(
+                        "pages.centerCourseDetail.aiPanels.openAssetsWorkspace",
+                      )}
+                    </Button>
+                  </Link>
                   <CoursePublishAction course={courseData} />
                 </div>
               </div>

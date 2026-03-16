@@ -60,7 +60,7 @@ const capabilityPermissions: Record<Capability, string[]> = {
   manage_landing_pages: ["landing_page.manage"],
   manage_device_change_requests: ["device_change.manage"],
   manage_extra_view_requests: ["extra_view.manage"],
-  manage_video_access: ["video.manage"],
+  manage_video_access: ["video_access.manage"],
   manage_instructors: ["instructor.manage"],
   manage_admin_users: ["admin.manage"],
   manage_roles: ["role.manage"],

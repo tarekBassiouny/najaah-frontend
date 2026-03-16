@@ -208,6 +208,7 @@ export function BulkEnrollAndGenerateDialog({
         page: pageParam,
         per_page: FETCH_PAGE_SIZE,
         search: enrollDebouncedCourseSearch || undefined,
+        access_model: "enrollment",
       }),
     enabled: open && hasSelectedCenter,
     getNextPageParam: (lastPage) => {
@@ -232,6 +233,7 @@ export function BulkEnrollAndGenerateDialog({
         page: pageParam,
         per_page: FETCH_PAGE_SIZE,
         search: generateDebouncedCourseSearch || undefined,
+        access_model: "enrollment",
       }),
     enabled: open && hasSelectedCenter,
     getNextPageParam: (lastPage) => {

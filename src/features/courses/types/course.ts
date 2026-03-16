@@ -34,6 +34,8 @@ export type PdfSummary = {
   [key: string]: unknown;
 };
 
+export type CourseAccessModel = "enrollment" | "video_code" | string;
+
 export type CourseSetting = {
   id?: string | number;
   settings?: Record<string, unknown> | null;
@@ -71,6 +73,7 @@ export type CourseSummary = {
   status_label?: string | null;
   is_published?: boolean | null;
   published_at?: string | null;
+  access_model?: CourseAccessModel | null;
   requires_video_approval?: boolean | null;
   show_for_all_students?: boolean | null;
   grade_ids?: Array<string | number> | null;
@@ -100,6 +103,7 @@ export type Course = {
   status_label?: string | null;
   is_published?: boolean | null;
   published_at?: string | null;
+  access_model?: CourseAccessModel | null;
   requires_video_approval?: boolean | null;
   show_for_all_students?: boolean | null;
   grade_ids?: Array<string | number> | null;
@@ -123,6 +127,7 @@ export type Course = {
 export type CreateCoursePayload = {
   title_translations: TranslationsRecord;
   description_translations?: TranslationsRecord;
+  access_model?: CourseAccessModel;
   category_id?: string | number;
   difficulty?: string;
   language?: string;
@@ -143,6 +148,7 @@ export type CreateCoursePayload = {
 export type UpdateCoursePayload = {
   title_translations?: TranslationsRecord;
   description_translations?: TranslationsRecord;
+  access_model?: CourseAccessModel;
   category_id?: string | number;
   difficulty?: string;
   language?: string;

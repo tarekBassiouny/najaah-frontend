@@ -51,6 +51,7 @@ type PageProps = {
 
 const DIFFICULTY_VALUES = ["beginner", "intermediate", "advanced"] as const;
 const LANGUAGE_VALUES = ["en", "ar"] as const;
+const ACCESS_MODEL_VALUES = ["enrollment", "video_code"] as const;
 
 const MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
@@ -61,6 +62,7 @@ const ACCEPTED_IMAGE_TYPES = [
 ];
 
 type VideoApprovalOverride = "inherit" | "enabled" | "disabled";
+type CourseAccessModelValue = (typeof ACCESS_MODEL_VALUES)[number];
 
 function mapVideoApprovalOverrideToPayload(
   value: VideoApprovalOverride,
@@ -123,6 +125,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
     slug: "",
     description: "",
     descriptionAr: "",
+    accessModel: "enrollment" as CourseAccessModelValue,
     difficulty: "",
     language: "en",
     price: "",
@@ -192,6 +195,7 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
 
   const categoryError = fieldErrors.category_id?.[0] ?? null;
   const difficultyError = fieldErrors.difficulty?.[0] ?? null;
+  const isVideoCodeCourse = formData.accessModel === "video_code";
   const educationTargetingFieldError = getEducationTargetingError(fieldErrors);
   const educationTargetingError =
     educationTargetingValidationError ?? educationTargetingFieldError;
@@ -256,12 +260,13 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
               ? descriptionTranslations
               : undefined,
           slug: formData.slug || undefined,
+          access_model: formData.accessModel,
           difficulty: formData.difficulty || undefined,
           language: formData.language || undefined,
           price: formData.price ? Number(formData.price) : undefined,
-          requires_video_approval: mapVideoApprovalOverrideToPayload(
-            formData.requiresVideoApproval,
-          ),
+          requires_video_approval: isVideoCodeCourse
+            ? undefined
+            : mapVideoApprovalOverrideToPayload(formData.requiresVideoApproval),
           instructor_id: formData.instructorId
             ? Number(formData.instructorId)
             : undefined,
@@ -503,7 +508,32 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="access-model">
+                      {t("pages.courseForm.accessModel.label")}
+                    </Label>
+                    <Select
+                      value={formData.accessModel}
+                      onValueChange={handleSelectChange("accessModel")}
+                    >
+                      <SelectTrigger id="access-model">
+                        <SelectValue
+                          placeholder={t(
+                            "pages.courseForm.accessModel.placeholder",
+                          )}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACCESS_MODEL_VALUES.map((value) => (
+                          <SelectItem key={value} value={value}>
+                            {t(`pages.courseForm.accessModel.options.${value}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="difficulty">
                       {t("pages.courseForm.fields.difficulty")}
@@ -578,37 +608,62 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="requires-video-approval">
-                      {t("pages.courseForm.videoApproval.label")}
-                    </Label>
-                    <Select
-                      value={formData.requiresVideoApproval}
-                      onValueChange={handleSelectChange(
-                        "requiresVideoApproval",
-                      )}
-                    >
-                      <SelectTrigger id="requires-video-approval">
-                        <SelectValue
-                          placeholder={t(
-                            "pages.courseForm.videoApproval.options.inherit",
-                          )}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="inherit">
-                          {t("pages.courseForm.videoApproval.options.inherit")}
-                        </SelectItem>
-                        <SelectItem value="enabled">
-                          {t("pages.courseForm.videoApproval.options.enabled")}
-                        </SelectItem>
-                        <SelectItem value="disabled">
-                          {t("pages.courseForm.videoApproval.options.disabled")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {!isVideoCodeCourse ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="requires-video-approval">
+                        {t("pages.courseForm.videoApproval.label")}
+                      </Label>
+                      <Select
+                        value={formData.requiresVideoApproval}
+                        onValueChange={handleSelectChange(
+                          "requiresVideoApproval",
+                        )}
+                      >
+                        <SelectTrigger id="requires-video-approval">
+                          <SelectValue
+                            placeholder={t(
+                              "pages.courseForm.videoApproval.options.inherit",
+                            )}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="inherit">
+                            {t(
+                              "pages.courseForm.videoApproval.options.inherit",
+                            )}
+                          </SelectItem>
+                          <SelectItem value="enabled">
+                            {t(
+                              "pages.courseForm.videoApproval.options.enabled",
+                            )}
+                          </SelectItem>
+                          <SelectItem value="disabled">
+                            {t(
+                              "pages.courseForm.videoApproval.options.disabled",
+                            )}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : null}
                 </div>
+
+                <Alert>
+                  <AlertTitle>
+                    {t(
+                      isVideoCodeCourse
+                        ? "pages.courseForm.accessModel.info.videoCodeTitle"
+                        : "pages.courseForm.accessModel.info.enrollmentTitle",
+                    )}
+                  </AlertTitle>
+                  <AlertDescription>
+                    {t(
+                      isVideoCodeCourse
+                        ? "pages.courseForm.accessModel.info.videoCodeDescription"
+                        : "pages.courseForm.accessModel.info.enrollmentDescription",
+                    )}
+                  </AlertDescription>
+                </Alert>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">

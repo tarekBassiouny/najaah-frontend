@@ -44,6 +44,8 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   "/courses": (centerId) => `/centers/${centerId}/courses`,
   "/surveys": (centerId) => `/centers/${centerId}/surveys`,
   "/videos": (centerId) => `/centers/${centerId}/videos`,
+  "/video-code-batches": (centerId) =>
+    `/centers/${centerId}/video-code-batches`,
   "/instructors": (centerId) => `/centers/${centerId}/instructors`,
   "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
   "/roles": (centerId) => `/centers/${centerId}/roles`,
@@ -145,6 +147,18 @@ const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   },
   {
     pattern: "/centers/*/student-requests/video-access/*",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/video-code-batches",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/video-code-batches/*",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/code-batches/*",
     capabilities: ["manage_video_access"],
   },
   { pattern: "/devices/*", capabilities: ["manage_students"] },

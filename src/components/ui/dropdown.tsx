@@ -7,15 +7,20 @@ import { useLocale } from "@/features/localization/locale-context";
 import {
   createContext,
   type PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
+  useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 type DropdownContextType = {
   isOpen: boolean;
   handleOpen: () => void;
   handleClose: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
 };
 
 const DropdownContext = createContext<DropdownContextType | null>(null);
@@ -35,7 +40,8 @@ type DropdownProps = {
 };
 
 export function Dropdown({ children, isOpen, setIsOpen }: DropdownProps) {
-  const triggerRef = useRef<HTMLElement>(null);
+  const focusReturnRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -45,14 +51,14 @@ export function Dropdown({ children, isOpen, setIsOpen }: DropdownProps) {
 
   useEffect(() => {
     if (isOpen) {
-      triggerRef.current = document.activeElement as HTMLElement;
+      focusReturnRef.current = document.activeElement as HTMLElement;
 
       document.body.style.pointerEvents = "none";
     } else {
       document.body.style.removeProperty("pointer-events");
 
       setTimeout(() => {
-        triggerRef.current?.focus();
+        focusReturnRef.current?.focus();
       }, 0);
     }
   }, [isOpen]);
@@ -66,10 +72,10 @@ export function Dropdown({ children, isOpen, setIsOpen }: DropdownProps) {
   }
 
   return (
-    <DropdownContext.Provider value={{ isOpen, handleOpen, handleClose }}>
-      <div className="relative" onKeyDown={handleKeyDown}>
-        {children}
-      </div>
+    <DropdownContext.Provider
+      value={{ isOpen, handleOpen, handleClose, triggerRef }}
+    >
+      <div onKeyDown={handleKeyDown}>{children}</div>
     </DropdownContext.Provider>
   );
 }
@@ -88,30 +94,13 @@ export function DropdownContent({
   ignoreOutsideClickSelector,
 }: DropdownContentProps) {
   const { locale } = useLocale();
-  const { isOpen, handleClose } = useDropdownContext();
+  const { isOpen, handleClose, triggerRef } = useDropdownContext();
   const isRtl = locale === "ar";
-
-  const alignClass =
-    align === "center"
-      ? "left-1/2 -translate-x-1/2"
-      : align === "end"
-        ? isRtl
-          ? "left-0"
-          : "right-0"
-        : isRtl
-          ? "right-0"
-          : "left-0";
-
-  const originClass =
-    align === "center"
-      ? "origin-top"
-      : align === "end"
-        ? isRtl
-          ? "origin-top-left"
-          : "origin-top-right"
-        : isRtl
-          ? "origin-top-right"
-          : "origin-top-left";
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+    openUp: boolean;
+  }>({ top: 0, left: 0, openUp: false });
 
   const contentRef = useClickOutside<HTMLDivElement>(
     () => {
@@ -133,24 +122,104 @@ export function DropdownContent({
     },
   );
 
+  const calculatePosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    const content = contentRef.current;
+    if (!trigger || !content) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const contentRect = content.getBoundingClientRect();
+    const gap = 8;
+
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const openUp =
+      spaceBelow < contentRect.height + gap && triggerRect.top > spaceBelow;
+
+    let top: number;
+    if (openUp) {
+      top = triggerRect.top - contentRect.height - gap + window.scrollY;
+    } else {
+      top = triggerRect.bottom + gap + window.scrollY;
+    }
+
+    let left: number;
+    if (align === "center") {
+      left = triggerRect.left + triggerRect.width / 2 - contentRect.width / 2;
+    } else if (align === "end") {
+      left = isRtl ? triggerRect.left : triggerRect.right - contentRect.width;
+    } else {
+      left = isRtl ? triggerRect.right - contentRect.width : triggerRect.left;
+    }
+
+    // Clamp horizontally to viewport
+    left = Math.max(
+      8,
+      Math.min(left, window.innerWidth - contentRect.width - 8),
+    );
+
+    setPosition({ top, left, openUp });
+  }, [align, isRtl, triggerRef, contentRef]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    calculatePosition();
+  }, [isOpen, calculatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    window.addEventListener("scroll", calculatePosition, true);
+    window.addEventListener("resize", calculatePosition);
+    return () => {
+      window.removeEventListener("scroll", calculatePosition, true);
+      window.removeEventListener("resize", calculatePosition);
+    };
+  }, [isOpen, calculatePosition]);
+
+  const originClass =
+    align === "center"
+      ? position.openUp
+        ? "origin-bottom"
+        : "origin-top"
+      : align === "end"
+        ? isRtl
+          ? position.openUp
+            ? "origin-bottom-left"
+            : "origin-top-left"
+          : position.openUp
+            ? "origin-bottom-right"
+            : "origin-top-right"
+        : isRtl
+          ? position.openUp
+            ? "origin-bottom-right"
+            : "origin-top-right"
+          : position.openUp
+            ? "origin-bottom-left"
+            : "origin-top-left";
+
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
       ref={contentRef}
       role="menu"
       aria-orientation="vertical"
+      style={{
+        position: "absolute",
+        top: position.top,
+        left: position.left,
+      }}
       className={cn(
-        "animate-in fade-in-0 zoom-in-95 pointer-events-auto absolute z-99 mt-2 max-h-[min(24rem,calc(100vh-2rem))] min-w-[8rem] overflow-y-auto overscroll-contain rounded-lg",
+        "animate-in fade-in-0 zoom-in-95 pointer-events-auto z-99 min-w-[8rem] rounded-lg",
         isRtl &&
           "[&_[role='menuitem']]:!text-right [&_a]:!text-right [&_button]:!text-right",
-        alignClass,
         originClass,
         className,
       )}
     >
       {children}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -164,7 +233,7 @@ export function DropdownTrigger({
   onClick,
   ...props
 }: DropdownTriggerProps) {
-  const { handleOpen, isOpen } = useDropdownContext();
+  const { handleOpen, isOpen, triggerRef } = useDropdownContext();
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     onClick?.(event);
@@ -173,6 +242,7 @@ export function DropdownTrigger({
 
   return (
     <button
+      ref={triggerRef}
       className={className}
       onClick={handleClick}
       aria-expanded={isOpen}

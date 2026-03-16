@@ -384,10 +384,7 @@ export function RolesTable({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  items.map((role, index) => {
-                    const shouldOpenUp =
-                      items.length > 4 &&
-                      index >= Math.max(0, items.length - 2);
+                  items.map((role, _index) => {
                     const roleId = String(role.id);
                     const isSelected = Boolean(selectedRoles[roleId]);
                     const permissionsCount = Array.isArray(role.permissions)
@@ -478,7 +475,6 @@ export function RolesTable({
                                 align="end"
                                 className={cn(
                                   "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                  shouldOpenUp && "bottom-full mb-2 mt-0",
                                 )}
                               >
                                 <button

@@ -451,11 +451,8 @@ export function CentersTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((center, index) => {
+                items.map((center, _index) => {
                   const rowDeleted = isCenterDeleted(center);
-                  const shouldOpenUp =
-                    items.length > 4 && index >= items.length - 2;
-
                   return (
                     <TableRow
                       key={center.id}
@@ -512,7 +509,6 @@ export function CentersTable({
                               align="end"
                               className={cn(
                                 "z-[120] w-48 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
                               <Link

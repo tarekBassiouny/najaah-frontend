@@ -463,10 +463,7 @@ export function CategoriesTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((category, index) => {
-                  const shouldOpenUp =
-                    items.length > 4 && index >= items.length - 2;
-
+                items.map((category, _index) => {
                   return (
                     <TableRow
                       key={category.id}
@@ -516,7 +513,6 @@ export function CategoriesTable({
                               align="end"
                               className={cn(
                                 "w-44 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                                shouldOpenUp && "bottom-full mb-2 mt-0",
                               )}
                             >
                               <button

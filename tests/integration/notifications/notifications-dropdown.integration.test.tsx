@@ -74,7 +74,7 @@ describe("admin notifications dropdown (integration with MSW)", () => {
       }),
     );
     await user.click(
-      within(menu).getByRole("button", { name: /Delete notification 3/i }),
+      screen.getByRole("button", { name: /Delete notification 3/i }),
     );
 
     await waitFor(() => {

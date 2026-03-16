@@ -143,6 +143,7 @@
       "instructors": "المدربون",
       "studentRequests": "طلبات الطلاب",
       "videos": "الفيديوهات",
+      "videoCodeBatches": "دفعات أكواد الفيديو",
       "pdfs": "ملفات PDF",
       "landingPage": "الصفحة الرئيسية",
       "settings": "الإعدادات",
@@ -549,6 +550,7 @@
       "panels": {
         "overview": "نظرة عامة",
         "students": "الطلاب",
+        "batches": "الدفعات",
         "settings": "الإعدادات"
       },
       "settings": {
@@ -3389,6 +3391,23 @@
           "disabled": "بدون اعتماد"
         }
       },
+      "accessModel": {
+        "label": "نموذج الوصول",
+        "placeholder": "اختر نموذج الوصول",
+        "lockedTitle": "نموذج الوصول ثابت",
+        "lockedEnrollmentDescription": "هذه الدورة تستخدم نموذج التسجيل، ولا يمكن تبديل النموذج بعد إنشاء الدورة.",
+        "lockedVideoCodeDescription": "هذه الدورة تستخدم نموذج أكواد الفيديو، ولا يمكن تبديل النموذج بعد إنشاء الدورة.",
+        "options": {
+          "enrollment": "بناءً على التسجيل",
+          "video_code": "بناءً على أكواد الفيديو"
+        },
+        "info": {
+          "enrollmentTitle": "نموذج التسجيل",
+          "enrollmentDescription": "يحصل الطلاب على الوصول من خلال التسجيل واعتماد الفيديو عند الحاجة.",
+          "videoCodeTitle": "نموذج أكواد الفيديو",
+          "videoCodeDescription": "يشتري الطلاب أكواد الفيديو خارجياً ثم يقومون باستردادها داخل التطبيق. يمكن إدارة دفعات الأكواد بعد إنشاء الدورة."
+        }
+      },
       "hints": {
         "categoryRequired": "التصنيف مطلوب لإنشاء الدورة.",
         "instructorOptional": "المدرب اختياري ويمكن تعيينه لاحقاً."
@@ -4244,7 +4263,9 @@
               "s4": "Slug *",
               "s5": "e.g., north-campus",
               "s6": "Type *",
-              "s7": "Show in featured centers"
+              "s7": "Show in featured centers",
+              "s8": "تصفح الزوار",
+              "s9": "السماح بالتصفح بدون تسجيل دخول"
             },
             "centerstatuscard": {
               "s1": "Activate or deactivate this center.",

@@ -259,6 +259,7 @@ export function VideoAccessRequestsTable({
         page: pageParam,
         per_page: FILTER_LIST_PAGE_SIZE,
         search: debouncedCourseSearch || undefined,
+        access_model: "enrollment",
       }),
     enabled: hasCenterContext,
     getNextPageParam: (lastPage) => {

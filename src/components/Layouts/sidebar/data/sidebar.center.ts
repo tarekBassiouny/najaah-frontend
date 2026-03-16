@@ -96,6 +96,14 @@ export const CENTER_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
+        title: "Video Code Batches",
+        titleKey: "sidebar.items.videoCodeBatches",
+        capability: "manage_video_access",
+        icon: iconFromTitle("Videos"),
+        url: "/video-code-batches",
+        items: [],
+      },
+      {
         title: "Instructors",
         titleKey: "sidebar.items.instructors",
         capability: "manage_instructors",

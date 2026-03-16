@@ -258,6 +258,7 @@ export function GenerateVideoAccessCodeDialog({
         page: pageParam,
         per_page: FETCH_PAGE_SIZE,
         search: courseSearch.trim() || undefined,
+        access_model: "enrollment",
       }),
     enabled: hasCenterId && !coursePreset,
     getNextPageParam: (lastPage) => {

@@ -143,6 +143,7 @@
       "instructors": "Instructors",
       "studentRequests": "Student Requests",
       "videos": "Videos",
+      "videoCodeBatches": "Video Code Batches",
       "pdfs": "PDFs",
       "landingPage": "Landing Page",
       "settings": "Settings",
@@ -549,6 +550,7 @@
       "panels": {
         "overview": "Overview",
         "students": "Students",
+        "batches": "Batches",
         "settings": "Settings"
       },
       "settings": {
@@ -3389,6 +3391,23 @@
           "disabled": "No approval required"
         }
       },
+      "accessModel": {
+        "label": "Access Model",
+        "placeholder": "Select access model",
+        "lockedTitle": "Access model is locked",
+        "lockedEnrollmentDescription": "This course uses the enrollment model. Switching models after creation is not supported.",
+        "lockedVideoCodeDescription": "This course uses the video code model. Switching models after creation is not supported.",
+        "options": {
+          "enrollment": "Enrollment Based",
+          "video_code": "Video Code Based"
+        },
+        "info": {
+          "enrollmentTitle": "Enrollment model",
+          "enrollmentDescription": "Students get access through enrollment and optional per-video approval.",
+          "videoCodeTitle": "Video code model",
+          "videoCodeDescription": "Students buy and redeem offline video codes. Manage code batches after the course is created."
+        }
+      },
       "hints": {
         "categoryRequired": "Category is required to create the course.",
         "instructorOptional": "Instructor is optional and can be assigned later."
@@ -4244,7 +4263,9 @@
               "s4": "Slug *",
               "s5": "e.g., north-campus",
               "s6": "Type *",
-              "s7": "Show in featured centers"
+              "s7": "Show in featured centers",
+              "s8": "Guest Browsing",
+              "s9": "Allow unauthenticated browsing"
             },
             "centerstatuscard": {
               "s1": "Activate or deactivate this center.",

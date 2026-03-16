@@ -67,6 +67,7 @@ export function CenterProfileForm({
   const [type, setType] = useState<"branded" | "unbranded">("unbranded");
   const [tier, setTier] = useState<TierValue>("standard");
   const [isFeatured, setIsFeatured] = useState(false);
+  const [allowGuestBrowsing, setAllowGuestBrowsing] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const isCreate = mode === "create";
@@ -79,6 +80,7 @@ export function CenterProfileForm({
     setType(center.type === "branded" ? "branded" : "unbranded");
     setTier(resolveTier(center.tier));
     setIsFeatured(Boolean(center.is_featured));
+    setAllowGuestBrowsing(Boolean(center.allow_guest_browsing));
   }, [center, isCreate]);
 
   useEffect(() => {
@@ -111,6 +113,7 @@ export function CenterProfileForm({
           name: name.trim(),
           tier,
           is_featured: isFeatured,
+          allow_guest_browsing: allowGuestBrowsing,
         },
       },
       {
@@ -262,7 +265,7 @@ export function CenterProfileForm({
         ) : null}
 
         {!isCreate && isPlatformAdmin ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label>Tier</Label>
               <Select
@@ -290,6 +293,26 @@ export function CenterProfileForm({
                 />
                 {t(
                   "auto.features.centers.components.forms.centerprofileform.s7",
+                )}
+              </label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                {t(
+                  "auto.features.centers.components.forms.centerprofileform.s8",
+                )}
+              </Label>
+              <label className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                <input
+                  type="checkbox"
+                  checked={allowGuestBrowsing}
+                  onChange={(event) =>
+                    setAllowGuestBrowsing(event.target.checked)
+                  }
+                />
+                {t(
+                  "auto.features.centers.components.forms.centerprofileform.s9",
                 )}
               </label>
             </div>

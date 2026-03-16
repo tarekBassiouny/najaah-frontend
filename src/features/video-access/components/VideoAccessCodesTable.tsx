@@ -310,6 +310,7 @@ export function VideoAccessCodesTable({
         page: pageParam,
         per_page: FETCH_PAGE_SIZE,
         search: debouncedCourseSearch || undefined,
+        access_model: "enrollment",
       }),
     enabled: hasCenterContext,
     getNextPageParam: (lastPage) => {

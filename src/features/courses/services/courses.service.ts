@@ -6,6 +6,7 @@ import {
 } from "@/lib/admin-response";
 
 import type {
+  CourseAccessModel,
   Course,
   CourseSummary,
   CreateCoursePayload,
@@ -19,6 +20,7 @@ export type ListCoursesParams = {
   center_id?: string | number;
   category_id?: string | number;
   primary_instructor_id?: string | number;
+  access_model?: CourseAccessModel;
 };
 
 export type CoursesResponse = {
@@ -57,7 +59,7 @@ function appendIfPresent(
 ) {
   if (value === undefined || value === null) return;
   if (typeof value === "boolean") {
-    formData.append(key, value ? "true" : "false");
+    formData.append(key, value ? "1" : "0");
     return;
   }
   formData.append(key, String(value));
@@ -126,6 +128,7 @@ function toCreateCourseFormData(payload: CreateCoursePayload): FormData {
   );
   appendIfPresent(formData, "slug", payload.slug);
   appendIfPresent(formData, "status", payload.status);
+  appendIfPresent(formData, "access_model", payload.access_model);
   appendIfPresent(
     formData,
     "requires_video_approval",
@@ -201,6 +204,7 @@ export async function listCourses(params: ListCoursesParams) {
       center_id: params.center_id ?? undefined,
       category_id: params.category_id ?? undefined,
       primary_instructor_id: params.primary_instructor_id ?? undefined,
+      access_model: params.access_model ?? undefined,
     },
   });
 
@@ -255,6 +259,7 @@ export async function listCenterCourses(params: ListCenterCoursesParams) {
         search: params.search || undefined,
         category_id: params.category_id ?? undefined,
         primary_instructor_id: params.primary_instructor_id ?? undefined,
+        access_model: params.access_model ?? undefined,
       },
     },
   );

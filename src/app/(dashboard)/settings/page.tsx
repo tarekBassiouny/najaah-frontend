@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useTenant } from "@/app/tenant-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -70,6 +72,13 @@ export default function SettingsPage() {
       <PageHeader
         title={t("pages.settingsPage.registryTitle")}
         description={t("pages.settingsPage.registryDescription")}
+        actions={
+          <Link href="/settings/ai-providers">
+            <Button variant="outline">
+              {t("pages.aiSystemProviders.title")}
+            </Button>
+          </Link>
+        }
       />
 
       <Card className="overflow-hidden border-gray-200 bg-[linear-gradient(135deg,#f8fafc_0%,#fff7ed_45%,#ffffff_100%)] shadow-sm dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(28,25,23,0.92)_45%,rgba(15,23,42,0.96)_100%)]">

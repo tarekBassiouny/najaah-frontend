@@ -44,6 +44,8 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
   "/courses": (centerId) => `/centers/${centerId}/courses`,
   "/surveys": (centerId) => `/centers/${centerId}/surveys`,
   "/videos": (centerId) => `/centers/${centerId}/videos`,
+  "/video-code-batches": (centerId) =>
+    `/centers/${centerId}/video-code-batches`,
   "/instructors": (centerId) => `/centers/${centerId}/instructors`,
   "/pdfs": (centerId) => `/centers/${centerId}/pdfs`,
   "/roles": (centerId) => `/centers/${centerId}/roles`,
@@ -67,8 +69,66 @@ const CENTER_SCOPED_URL_OVERRIDES: Record<
 const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   { pattern: "/permissions", capabilities: ["view_permissions"] },
   { pattern: "/permissions/*", capabilities: ["view_permissions"] },
+  { pattern: "/settings/ai-providers", capabilities: ["manage_settings"] },
+  { pattern: "/settings/ai-providers/*", capabilities: ["manage_settings"] },
   { pattern: "/settings", capabilities: ["view_settings"] },
   { pattern: "/settings/*", capabilities: ["view_settings"] },
+  {
+    pattern: "/centers/*/ai-content",
+    capabilities: ["generate_ai_content"],
+  },
+  {
+    pattern: "/centers/*/ai-content/*",
+    capabilities: ["generate_ai_content"],
+  },
+  {
+    pattern: "/centers/*/courses/*/quizzes",
+    capabilities: ["manage_quizzes"],
+  },
+  {
+    pattern: "/centers/*/courses/*/quizzes/*",
+    capabilities: ["manage_quizzes"],
+  },
+  {
+    pattern: "/centers/*/quizzes",
+    capabilities: ["manage_quizzes"],
+  },
+  {
+    pattern: "/centers/*/quizzes/*",
+    capabilities: ["manage_quizzes"],
+  },
+  {
+    pattern: "/centers/*/courses/*/assignments",
+    capabilities: ["manage_assignments"],
+  },
+  {
+    pattern: "/centers/*/courses/*/assignments/*",
+    capabilities: ["manage_assignments"],
+  },
+  {
+    pattern: "/centers/*/courses/*/assets",
+    capabilities: ["manage_courses"],
+  },
+  {
+    pattern: "/centers/*/courses/*/assets/*",
+    capabilities: ["manage_courses"],
+  },
+  {
+    pattern: "/centers/*/learning-assets",
+    capabilities: ["manage_learning_assets"],
+  },
+  {
+    pattern: "/centers/*/learning-assets/*",
+    capabilities: ["manage_learning_assets"],
+  },
+  {
+    pattern: "/centers/*/courses/*/learning-assets",
+    capabilities: ["manage_learning_assets"],
+  },
+  {
+    pattern: "/centers/*/courses/*/learning-assets/*",
+    capabilities: ["manage_learning_assets"],
+  },
   { pattern: "/profile", capabilities: [] },
   { pattern: "/profile/*", capabilities: [] },
   { pattern: "/playback", capabilities: ["override_video_playback"] },
@@ -87,6 +147,18 @@ const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   },
   {
     pattern: "/centers/*/student-requests/video-access/*",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/video-code-batches",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/video-code-batches/*",
+    capabilities: ["manage_video_access"],
+  },
+  {
+    pattern: "/centers/*/code-batches/*",
     capabilities: ["manage_video_access"],
   },
   { pattern: "/devices/*", capabilities: ["manage_students"] },
@@ -149,11 +221,11 @@ function matchRoute(pathname: string, pattern: string) {
     return pathname === pattern;
   }
 
-  const [prefix, suffix] = pattern.split("*");
-  if (!pathname.startsWith(prefix)) return false;
-  if (suffix && !pathname.endsWith(suffix)) return false;
-  if (pathname.length < prefix.length + suffix.length) return false;
-  return true;
+  const escapedPattern = pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+  const wildcardPattern = escapedPattern.replace(/\*/g, ".*");
+  const matcher = new RegExp(`^${wildcardPattern}$`);
+
+  return matcher.test(pathname);
 }
 
 function collectRouteRules(sections: SidebarSection[]) {

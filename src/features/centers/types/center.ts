@@ -50,6 +50,7 @@ export type Center = {
   status_label?: string | null;
   onboarding_status?: string | null;
   is_featured?: boolean;
+  allow_guest_browsing?: boolean;
   logo_url?: string | null;
   deleted_at?: string | null;
   branding_metadata?: Record<string, unknown> | null;

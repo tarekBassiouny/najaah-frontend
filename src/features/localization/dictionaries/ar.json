@@ -143,6 +143,7 @@
       "instructors": "المدربون",
       "studentRequests": "طلبات الطلاب",
       "videos": "الفيديوهات",
+      "videoCodeBatches": "دفعات أكواد الفيديو",
       "pdfs": "ملفات PDF",
       "landingPage": "الصفحة الرئيسية",
       "settings": "الإعدادات",
@@ -404,6 +405,42 @@
       },
       "registryUpdated": "تم تحديث السجل"
     },
+    "aiSystemProviders": {
+      "title": "مزودو الذكاء الاصطناعي",
+      "description": "إدارة توفر مزودي الذكاء الاصطناعي ونماذجهم على مستوى النظام.",
+      "backToSettings": "العودة إلى الإعدادات",
+      "configured": "مهيأ",
+      "notConfigured": "غير مهيأ",
+      "enabled": "مفعّل",
+      "disabled": "معطّل",
+      "dirty": "تغييرات غير محفوظة",
+      "providerKey": "المزوّد",
+      "models": "النماذج",
+      "defaultModel": "النموذج الافتراضي",
+      "apiKey": "مفتاح API",
+      "apiKeyHint": "عيّن مفتاح API للمزوّد",
+      "apiKeyMasked": "مخفي بعد الحفظ",
+      "apiKeyDescription": "لا يعيد الخادم مفتاح API بعد الحفظ.",
+      "newModelPlaceholder": "أضف نموذجاً ثم اضغط Enter",
+      "addModel": "إضافة نموذج",
+      "noModels": "لا توجد نماذج مهيأة بعد.",
+      "saveProvider": "حفظ المزوّد",
+      "saveFailed": "فشل حفظ إعدادات مزود الذكاء الاصطناعي.",
+      "loadFailed": "فشل تحميل مزودي الذكاء الاصطناعي.",
+      "noProviders": "لم يتم إرجاع أي مزودين من الخادم.",
+      "readOnlyTitle": "وضع القراءة فقط",
+      "readOnlyDescription": "يمكنك عرض حالة المزوّد، لكن الحفظ يتطلب settings.manage.",
+      "states": {
+        "saving": "جارٍ الحفظ...",
+        "saved": "تم الحفظ",
+        "error": "خطأ",
+        "ready": "جاهز"
+      },
+      "validation": {
+        "modelsRequired": "أضف نموذجاً واحداً على الأقل قبل الحفظ.",
+        "defaultModelInvalid": "يجب أن يكون النموذج الافتراضي ضمن النماذج المهيأة."
+      }
+    },
     "settingsPlaceholders": {
       "center": {
         "title": "إعدادات المركز",
@@ -549,7 +586,34 @@
       "panels": {
         "overview": "نظرة عامة",
         "students": "الطلاب",
-        "settings": "الإعدادات"
+        "batches": "الدفعات",
+        "settings": "الإعدادات",
+        "assets": "الأصول",
+        "summary": "الملخص",
+        "quiz": "الاختبار",
+        "assignment": "الواجب",
+        "flashcards": "البطاقات التعليمية",
+        "interactiveActivity": "نشاط تفاعلي"
+      },
+      "aiPanels": {
+        "summaryDescription": "توليد ومراجعة ملخصات الذكاء الاصطناعي لهذه الدورة.",
+        "quizDescription": "توليد ومراجعة اختبارات الذكاء الاصطناعي لهذه الدورة.",
+        "assignmentDescription": "توليد ومراجعة واجبات الذكاء الاصطناعي لهذه الدورة.",
+        "flashcardsDescription": "توليد ومراجعة بطاقات تعليمية بالذكاء الاصطناعي لهذه الدورة.",
+        "interactiveDescription": "توليد ومراجعة الأنشطة التفاعلية بالذكاء الاصطناعي لهذه الدورة.",
+        "manualPath": "المسار اليدوي",
+        "manualTitle": "إنشاء وتعديل يدوي",
+        "manualDescription": "استخدم شاشات الوحدة الأساسية للتحكم الكامل في الإنشاء والتعديل.",
+        "manualUnavailable": "شاشات CRUD اليدوية لهذا النوع غير متاحة بعد.",
+        "openManual": "فتح الشاشة اليدوية",
+        "manualNotSupported": "الشاشة اليدوية قيد التجهيز",
+        "aiPath": "مسار الذكاء الاصطناعي",
+        "aiTitle": "توليد بالذكاء الاصطناعي",
+        "aiDescription": "أنشئ وظيفة، راجع المحتوى، اعتمد، ثم انشر مع تتبع كامل.",
+        "openAssetsWorkspace": "فتح مساحة الأصول",
+        "openStudio": "فتح استوديو الذكاء الاصطناعي",
+        "openAllJobs": "فتح كل وظائف الذكاء الاصطناعي",
+        "parityHint": "استخدم مساحة الأصول لكلٍ من التوليد بالذكاء الاصطناعي والإنشاء اليدوي للاختبارات والواجبات."
       },
       "settings": {
         "title": "إعدادات الدورة",
@@ -1017,6 +1081,533 @@
       "centerContextRequired": "سياق المركز مطلوب لإدارة الإعدادات.",
       "workspaceDescription": "إدارة العلامة التجارية للمركز وتفضيلات التشغيل",
       "idLabel": "المعرف"
+    },
+    "centerAISettings": {
+      "title": "تخصيصات مزودي الذكاء الاصطناعي",
+      "description": "إدارة التفعيل على مستوى المركز، وقائمة النماذج المسموح بها، والحدود.",
+      "configured": "مهيأ",
+      "notConfigured": "غير مهيأ",
+      "systemEnabled": "تفعيل النظام",
+      "centerEnabled": "تفعيل المركز",
+      "effectiveEnabled": "التفعيل الفعلي",
+      "effectiveDisabled": "التعطيل الفعلي",
+      "allowedModels": "النماذج المسموح بها",
+      "defaultModel": "النموذج الافتراضي",
+      "limits": "الحدود",
+      "dirty": "تغييرات غير محفوظة",
+      "synced": "متزامن",
+      "saving": "جارٍ الحفظ...",
+      "saved": "تم الحفظ",
+      "error": "خطأ",
+      "saveProvider": "حفظ التخصيص",
+      "saveFailed": "فشل حفظ إعدادات مزود الذكاء الاصطناعي للمركز.",
+      "loadFailed": "فشل تحميل إعدادات مزودي الذكاء الاصطناعي للمركز.",
+      "modelsRequired": "اختر نموذجاً واحداً مسموحاً به على الأقل.",
+      "defaultModelInvalid": "يجب أن يكون النموذج الافتراضي ضمن النماذج المسموح بها.",
+      "limitValidationFailed": "يجب أن تكون الحدود أرقاماً صحيحة غير سالبة.",
+      "providerUnavailable": "هذا المزود غير مهيأ على مستوى النظام.",
+      "systemDisabled": "تم تعطيل هذا المزود على مستوى النظام، لذا إعدادات المركز للقراءة فقط.",
+      "readOnlyProviderTitle": "المزوّد مقفل",
+      "readOnlyTitle": "وضع القراءة فقط",
+      "readOnlyDescription": "يمكنك عرض حالة المزود، لكن التحديث يتطلب settings.manage.",
+      "noProviders": "لم يتم إرجاع مزودي مركز من الخادم.",
+      "fields": {
+        "dailyJobLimit": "الحد اليومي للوظائف",
+        "monthlyJobLimit": "الحد الشهري للوظائف",
+        "dailyTokenLimit": "الحد اليومي للرموز",
+        "monthlyTokenLimit": "الحد الشهري للرموز",
+        "maxInputChars": "الحد الأقصى لأحرف الإدخال",
+        "maxOutputChars": "الحد الأقصى لأحرف الإخراج",
+        "maxConcurrentJobs": "الحد الأقصى للوظائف المتزامنة",
+        "defaultOutputTokenEstimate": "تقدير رموز الإخراج الافتراضي"
+      }
+    },
+    "centerAIContent": {
+      "title": "استوديو الذكاء الاصطناعي · {target}",
+      "description": "إنشاء ومراجعة ونشر أصول {target} لهذه الدورة.",
+      "allTypes": "كل أنواع الأهداف",
+      "backToCourse": "العودة إلى الدورة",
+      "targetSwitcher": "تبديل نوع الهدف",
+      "courseId": "الدورة #{id}",
+      "footerNote": "هذا المسار مخصص لوظائف الذكاء الاصطناعي (إنشاء/قائمة/مراجعة) في المراحل القادمة.",
+      "entry": {
+        "manualLabel": "إنشاء يدوي",
+        "manualDescription": "افتح الوحدة الأساسية وتابع عبر نماذج الإنشاء/التعديل المعتادة.",
+        "manualUnavailable": "شاشات الوحدة اليدوية غير متاحة لهذا النوع حالياً.",
+        "manualNotSupported": "الشاشة اليدوية قيد التجهيز",
+        "createManually": "إنشاء يدوي",
+        "aiLabel": "إنشاء مدعوم بالذكاء الاصطناعي",
+        "aiDescription": "استخدم وظائف التوليد ثم راجع واعتمد وانشر داخل الوحدات الأساسية.",
+        "generateWithAI": "توليد بالذكاء الاصطناعي"
+      },
+      "items": {
+        "generate": {
+          "title": "التوليد",
+          "description": "إنشاء وظائف باستخدام ربط المصدر والهدف مع اختيار المزوّد والنموذج."
+        },
+        "review": {
+          "title": "المراجعة",
+          "description": "تعديل المخرجات المولدة ثم اعتمادها قبل النشر."
+        },
+        "publish": {
+          "title": "النشر",
+          "description": "نشر المحتوى المعتمد والانتقال مباشرة إلى الأصل الذي تم إنشاؤه."
+        }
+      },
+      "workspace": {
+        "subtitle": "نفّذ وظائف توليد الذكاء الاصطناعي، وتابع الحالة، وراجع المخرجات، ثم انشرها داخل الوحدات الأساسية.",
+        "focus": {
+          "title": "مساحة الوظائف والمراجعة",
+          "description": "استخدم أصول الدورة للتوليد المرتبط بالمصدر. استخدم هذه الصفحة للإنشاء المتقدم لوظيفة واحدة، والمراقبة، والمراجعة، والنشر.",
+          "openAssets": "فتح أصول الدورة"
+        },
+        "sourceTypes": {
+          "video": "فيديو",
+          "pdf": "PDF",
+          "section": "قسم",
+          "course": "دورة"
+        },
+        "difficulty": {
+          "easy": "سهل",
+          "medium": "متوسط",
+          "hard": "صعب"
+        },
+        "length": {
+          "short": "قصير",
+          "medium": "متوسط",
+          "long": "طويل"
+        },
+        "tone": {
+          "simple": "مبسط",
+          "academic": "أكاديمي"
+        },
+        "activityStyle": {
+          "steps": "خطوات",
+          "scenario": "سيناريو",
+          "practice": "تدريب"
+        },
+        "statusLabels": {
+          "pending": "قيد الانتظار",
+          "processing": "قيد المعالجة",
+          "completed": "مكتمل",
+          "failed": "فشل",
+          "approved": "معتمد",
+          "published": "منشور",
+          "discarded": "مرفوض",
+          "unknown": "غير معروف"
+        },
+        "validation": {
+          "title": "يرجى معالجة التالي قبل الإرسال:",
+          "courseRequired": "معرف الدورة مطلوب.",
+          "sourceRequired": "معرف المصدر مطلوب.",
+          "providerRequired": "مزود الذكاء الاصطناعي مطلوب.",
+          "modelRequired": "نموذج الذكاء الاصطناعي مطلوب.",
+          "quizRange": "عدد الأسئلة يجب أن يكون بين 1 و50.",
+          "flashcardsRange": "عدد البطاقات يجب أن يكون بين 1 و100.",
+          "stepsRange": "عدد الخطوات يجب أن يكون بين 1 و20.",
+          "assignmentScore": "درجة النجاح لا يمكن أن تتجاوز الدرجة الكلية.",
+          "targetIdInvalid": "معرف الهدف يجب أن يكون رقماً موجباً عند إدخاله."
+        },
+        "create": {
+          "title": "إنشاء وظيفة توليد",
+          "description": "الوضع المتقدم: أنشئ وظيفة توليد واحدة بتحديد المصدر والهدف والمزوّد والنموذج وإعدادات الهدف.",
+          "showAdvanced": "إظهار الإنشاء المتقدم",
+          "hideAdvanced": "إخفاء الإنشاء المتقدم",
+          "advancedHint": "استخدم أصول الدورة للتوليد اليومي. افتح الإنشاء المتقدم فقط للتشخيص أو الوظائف الفردية.",
+          "loadOptionsFailed": "تعذر تحميل خيارات الذكاء الاصطناعي للمركز.",
+          "noProvidersTitle": "لا يوجد مزودون متاحون",
+          "noProvidersDescription": "لم يتم إرجاع مزودين مفعّلين ومهيئين من ai/options.",
+          "targetIdPlaceholder": "معرف أصل موجود (اختياري)",
+          "providerPlaceholder": "اختر مزوداً",
+          "modelPlaceholder": "اختر نموذجاً",
+          "configTitle": "إعدادات توليد {target}",
+          "fields": {
+            "courseId": "معرف الدورة",
+            "targetType": "نوع الهدف",
+            "sourceType": "نوع المصدر",
+            "sourceId": "معرف المصدر",
+            "targetId": "معرف الهدف (اختياري)",
+            "provider": "مزود الذكاء الاصطناعي",
+            "model": "نموذج الذكاء الاصطناعي"
+          },
+          "actions": {
+            "submit": "إنشاء الوظيفة",
+            "submitting": "جارٍ إنشاء الوظيفة...",
+            "reset": "إعادة تعيين النموذج"
+          },
+          "config": {
+            "quiz": {
+              "questionCount": "عدد الأسئلة",
+              "difficulty": "الصعوبة",
+              "explanations": "تضمين الشروحات"
+            },
+            "assignment": {
+              "type": "نوع الواجب",
+              "maxPoints": "الدرجة الكلية",
+              "passingScore": "درجة النجاح",
+              "submissionTypes": "أنواع التسليم (معرفات enum)",
+              "types": {
+                "homework": "واجب منزلي",
+                "project": "مشروع",
+                "examPrep": "تحضير اختبار"
+              }
+            },
+            "summary": {
+              "length": "الطول",
+              "tone": "الأسلوب",
+              "bullets": "نقاط تعداد",
+              "keyTerms": "تضمين المصطلحات الأساسية"
+            },
+            "flashcards": {
+              "cardsCount": "عدد البطاقات",
+              "difficulty": "الصعوبة",
+              "definitions": "تضمين التعريفات"
+            },
+            "interactive": {
+              "style": "نمط النشاط",
+              "stepsCount": "عدد الخطوات",
+              "minutes": "الوقت المقدر بالدقائق",
+              "reflection": "تضمين أسئلة انعكاس"
+            }
+          }
+        },
+        "provider": {
+          "title": "سياق المزوّد",
+          "description": "اعرض الحدود الفعّالة والنماذج المتاحة للمزوّد المحدد.",
+          "enabled": "مفعّل",
+          "defaultModel": "النموذج الافتراضي: {model}",
+          "models": "النماذج المتاحة",
+          "selectPrompt": "اختر مزوداً مفعلاً لعرض الحدود والنماذج.",
+          "limits": {
+            "dailyJobs": "الوظائف اليومية",
+            "monthlyJobs": "الوظائف الشهرية",
+            "dailyTokens": "الرموز اليومية",
+            "monthlyTokens": "الرموز الشهرية",
+            "maxConcurrent": "أقصى وظائف متزامنة",
+            "maxInput": "أقصى أحرف إدخال",
+            "maxOutput": "أقصى أحرف إخراج"
+          }
+        },
+        "jobs": {
+          "title": "الوظائف",
+          "description": "قم بتصفية وظائف الذكاء الاصطناعي ومتابعتها. يتم التحديث التلقائي للوظائف النشطة كل بضع ثوانٍ.",
+          "empty": "لا توجد وظائف مطابقة للفلاتر الحالية.",
+          "loadFailed": "فشل تحميل قائمة الوظائف.",
+          "discardConfirm": "هل تريد تجاهل هذه الوظيفة؟ لا يمكن التراجع عن ذلك ضمن تدفق المراجعة.",
+          "filters": {
+            "courseId": "معرف الدورة",
+            "batchKey": "مفتاح الدفعة",
+            "targetType": "نوع الهدف",
+            "status": "الحالة"
+          },
+          "columns": {
+            "job": "الوظيفة",
+            "target": "الهدف",
+            "source": "المصدر",
+            "model": "المزوّد / النموذج",
+            "status": "الحالة",
+            "createdAt": "تاريخ الإنشاء"
+          },
+          "actions": {
+            "discard": "تجاهل"
+          }
+        },
+        "details": {
+          "title": "تفاصيل الوظيفة #{id}",
+          "emptyTitle": "تفاصيل الوظيفة",
+          "description": "راجع المخرجات المولدة والمراجعة، ثم عدّل ووافق وانشر.",
+          "noSelection": "اختر وظيفة لعرض التفاصيل ومراجعة المخرجات.",
+          "loadFailed": "فشل تحميل تفاصيل الوظيفة المحددة.",
+          "generatedPayload": "المخرجات المولدة",
+          "reviewedPayload": "المخرجات بعد المراجعة",
+          "reviewEditor": "محرر المراجعة",
+          "reviewJson": "JSON المخرجات بعد المراجعة",
+          "invalidPayload": "المخرجات بعد المراجعة يجب أن تكون كائن JSON.",
+          "invalidJson": "تنسيق JSON غير صالح في محرر المراجعة.",
+          "reviewHint": "استخدم الحقول السريعة للتعديلات الأساسية ثم أكمل عبر محرر JSON قبل الحفظ.",
+          "reviewLocked": "تحرير المراجعة متاح فقط عندما تكون الحالة مكتمل أو معتمد.",
+          "failureTitle": "فشلت الوظيفة",
+          "dirty": "تعديلات مراجعة غير محفوظة",
+          "synced": "المراجعة متزامنة",
+          "savedAt": "آخر حفظ",
+          "polling": "التحديث التلقائي نشط أثناء حالة الانتظار أو المعالجة.",
+          "meta": {
+            "target": "الهدف",
+            "source": "المصدر",
+            "model": "المزوّد / النموذج",
+            "createdAt": "الإنشاء",
+            "startedAt": "البدء",
+            "completedAt": "الاكتمال"
+          },
+          "actions": {
+            "saveReview": "حفظ مسودة المراجعة",
+            "approve": "اعتماد",
+            "publish": "نشر"
+          },
+          "reviewPermissionRequired": "المراجعة/الاعتماد/النشر تتطلب صلاحية ai_content.review_publish."
+        },
+        "review": {
+          "summary": {
+            "title": "عنوان الملخص",
+            "content": "محتوى الملخص"
+          },
+          "quiz": {
+            "title": "عنوان الاختبار",
+            "description": "وصف الاختبار",
+            "questions": "عدد الأسئلة"
+          },
+          "assignment": {
+            "title": "عنوان الواجب",
+            "description": "وصف الواجب",
+            "maxPoints": "الدرجة الكلية",
+            "passingScore": "درجة النجاح",
+            "submissionTypes": "أنواع التسليم (معرفات enum)"
+          },
+          "flashcards": {
+            "title": "عنوان البطاقات",
+            "cards": "عدد البطاقات"
+          },
+          "interactive": {
+            "title": "عنوان النشاط",
+            "instructions": "التعليمات",
+            "steps": "عدد الخطوات"
+          }
+        },
+        "published": {
+          "successTitle": "تم النشر بنجاح",
+          "successDescription": "تم نشر أصل {target} بالمعرف #{id}.",
+          "dismiss": "إخفاء"
+        },
+        "toasts": {
+          "jobCreated": "تم إنشاء وظيفة الذكاء الاصطناعي بنجاح.",
+          "reviewSaved": "تم حفظ المخرجات بعد المراجعة.",
+          "jobApproved": "تم اعتماد وظيفة الذكاء الاصطناعي.",
+          "jobPublished": "تم نشر وظيفة الذكاء الاصطناعي.",
+          "jobDiscarded": "تم تجاهل وظيفة الذكاء الاصطناعي."
+        },
+        "errors": {
+          "createFailed": "فشل إنشاء وظيفة الذكاء الاصطناعي.",
+          "reviewFailed": "فشل حفظ المخرجات بعد المراجعة.",
+          "approveFailed": "فشل اعتماد وظيفة الذكاء الاصطناعي.",
+          "publishFailed": "فشل نشر وظيفة الذكاء الاصطناعي.",
+          "discardFailed": "فشل تجاهل وظيفة الذكاء الاصطناعي."
+        }
+      }
+    },
+    "courseAssessments": {
+      "backToCourse": "العودة إلى الدورة",
+      "generateWithAI": "توليد بالذكاء الاصطناعي",
+      "openAIWorkspace": "فتح مساحة عمل الذكاء الاصطناعي",
+      "footer": "المساران اليدوي والمدعوم بالذكاء الاصطناعي متاحان. اختر المسار الأنسب لسير عملك.",
+      "quiz": {
+        "title": "اختبارات الدورة",
+        "description": "إدارة إنشاء الاختبارات يدوياً أو باستخدام التوليد بالذكاء الاصطناعي لهذه الدورة.",
+        "items": {
+          "manual": {
+            "title": "إنشاء يدوي",
+            "description": "أنشئ وعدّل ونظّم محتوى الاختبارات عبر تدفق الوحدة الأساسي."
+          },
+          "ai": {
+            "title": "مسودة بالذكاء الاصطناعي",
+            "description": "ولّد مسودات اختبارات من المحتوى، ثم راجعها وانشرها."
+          }
+        }
+      },
+      "assignment": {
+        "title": "واجبات الدورة",
+        "description": "إدارة إنشاء الواجبات يدوياً أو باستخدام التوليد بالذكاء الاصطناعي لهذه الدورة.",
+        "items": {
+          "manual": {
+            "title": "إنشاء يدوي",
+            "description": "أنشئ وعدّل الواجبات مع تحكم كامل في إعدادات التسليم والتقييم."
+          },
+          "ai": {
+            "title": "مسودة بالذكاء الاصطناعي",
+            "description": "ولّد مسودات واجبات من المحتوى، ثم راجعها وانشرها."
+          }
+        }
+      }
+    },
+    "courseAssets": {
+      "title": "أصول الدورة",
+      "description": "إدارة مسارات الأصول اليدوية والمدعومة بالذكاء الاصطناعي لكل فيديو أو ملف PDF.",
+      "emptyTitle": "لا توجد أصول مصدر بعد",
+      "empty": "لا توجد عناصر مصدر لهذه الدورة حتى الآن.",
+      "summary": {
+        "sources": "المصادر",
+        "generating": "قيد التوليد",
+        "reviewRequired": "بحاجة لمراجعة",
+        "published": "منشور",
+        "failed": "فشل"
+      },
+      "permission": {
+        "title": "الوصول مقيّد",
+        "description": "ليس لديك صلاحية لإدارة أصول الدورة."
+      },
+      "labels": {
+        "video": "فيديو",
+        "pdf": "PDF",
+        "unsectioned": "غير مُصنّف ضمن قسم"
+      },
+      "slotTypes": {
+        "summary": "ملخص",
+        "quiz": "اختبار",
+        "flashcards": "بطاقات تعليمية",
+        "assignment": "واجب"
+      },
+      "slotStates": {
+        "missing": "غير موجود",
+        "draft": "مسودة",
+        "generating": "قيد التوليد",
+        "review_required": "بحاجة إلى مراجعة",
+        "approved": "معتمد",
+        "published": "منشور",
+        "failed": "فشل"
+      },
+      "actions": {
+        "backToCourse": "العودة إلى الدورة",
+        "generateAssets": "توليد الأصول",
+        "generate": "توليد",
+        "regenerate": "إعادة التوليد",
+        "generateSelected": "توليد المحدد",
+        "generating": "جارٍ التوليد...",
+        "createQuiz": "إنشاء اختبار",
+        "createAssignment": "إنشاء واجب",
+        "edit": "تعديل",
+        "review": "مراجعة",
+        "viewProgress": "عرض التقدم",
+        "refreshCatalog": "تحديث الكتالوج",
+        "openWorkspace": "فتح مساحة العمل",
+        "generateWithAI": "توليد بالذكاء الاصطناعي",
+        "createManually": "إنشاء يدويًا"
+      },
+      "generateModal": {
+        "title": "توليد الأصول",
+        "description": "اختر الأصول التي تريد توليدها.",
+        "descriptionWithSource": "توليد الأصول لـ {type}: {title}.",
+        "source": "المصدر",
+        "section": "القسم",
+        "assets": "الأصول",
+        "assetsHint": "اختر أصلًا واحدًا أو أكثر لتوليدها بالذكاء الاصطناعي لهذا المصدر.",
+        "mixedModeHint": "سيتم جدولة وظائف الذكاء الاصطناعي الآن. الأصول اليدوية تُنشأ من إجراءات صف المصدر بعد بدء الدفعة.",
+        "modes": {
+          "ai": "توليد بالذكاء الاصطناعي",
+          "manual": "إنشاء يدوي"
+        },
+        "summary": {
+          "length": "طول الملخص",
+          "lengthOptions": {
+            "short": "قصير",
+            "medium": "متوسط",
+            "long": "طويل"
+          },
+          "includeKeyPoints": "تضمين النقاط الرئيسية"
+        },
+        "quiz": {
+          "mode": "وضع الاختبار",
+          "questionCount": "عدد الأسئلة",
+          "difficulty": "الصعوبة",
+          "questionStyles": "أنماط الأسئلة",
+          "styleOptions": {
+            "singleChoice": "اختيار واحد",
+            "multipleChoice": "اختيارات متعددة",
+            "trueFalse": "صح/خطأ"
+          },
+          "difficultyOptions": {
+            "easy": "سهل",
+            "medium": "متوسط",
+            "hard": "صعب"
+          }
+        },
+        "flashcards": {
+          "cardCount": "عدد البطاقات",
+          "focus": "مجالات التركيز",
+          "focusOptions": {
+            "definitions": "تعريفات",
+            "concepts": "مفاهيم",
+            "formulas": "صيغ"
+          }
+        },
+        "assignment": {
+          "mode": "وضع الواجب",
+          "style": "نمط الواجب",
+          "styleOptions": {
+            "practice": "تطبيقي",
+            "essay": "مقالي",
+            "project": "مشروع"
+          },
+          "maxPoints": "الدرجة القصوى",
+          "submissionTypes": "أنواع التسليم",
+          "submissionTypeOptions": {
+            "file": "ملف",
+            "text": "نص",
+            "link": "رابط"
+          },
+          "manualHint": "الوضع اليدوي للواجب يفتح نموذج الواجب الحالي من صف المصدر."
+        }
+      },
+      "batch": {
+        "title": "تقدم الدفعة",
+        "description": "تابع تقدم التوليد لهذه الدفعة.",
+        "descriptionWithKey": "الدفعة: {key}",
+        "empty": "لا توجد وظائف في هذه الدفعة حتى الآن.",
+        "autoRefresh": {
+          "running": "التحديث التلقائي مفعل أثناء وجود وظائف قيد الانتظار أو المعالجة.",
+          "stopped": "تم إيقاف التحديث التلقائي. حدّث يدويًا للتحقق من التحديثات."
+        },
+        "summary": {
+          "processing": "قيد المعالجة: {count}",
+          "completed": "مكتمل: {count}",
+          "failed": "فشل: {count}"
+        }
+      },
+      "errors": {
+        "loadFailed": "فشل تحميل أصول الدورة.",
+        "selectAsset": "اختر نوع أصل واحداً على الأقل.",
+        "chooseSinglePath": "اختر مساراً واحداً: توليد بالذكاء الاصطناعي أو إنشاء يدوي. لا يدعم إرسال المسارين معاً في خطوة واحدة.",
+        "manualOneAtATime": "لا يمكن بدء إنشاء الاختبار والواجب اليدويين معاً من هذه النافذة.",
+        "batchCreateFailed": "فشل إنشاء دفعة توليد الذكاء الاصطناعي."
+      },
+      "toasts": {
+        "batchCreated": "تمت جدولة دفعة التوليد بالذكاء الاصطناعي بنجاح.",
+        "manualFromRow": "استخدم إجراءات صف المصدر لبدء الإنشاء اليدوي.",
+        "refreshed": "تم تحديث كتالوج أصول الدورة."
+      },
+      "manualModal": {
+        "title": "إنشاء يدويًا",
+        "description": "اختر مسار الإنشاء اليدوي الذي تريد فتحه لهذا المصدر.",
+        "descriptionWithSource": "اختر مسارًا يدويًا لـ {type}: {title}.",
+        "quizDescription": "افتح إنشاء الاختبار ومحرر الأسئلة مع تعبئة المصدر تلقائيًا.",
+        "assignmentDescription": "افتح إنشاء الواجب مع تعبئة المصدر تلقائيًا."
+      }
+    },
+    "learningAssets": {
+      "title": "أصل تعليمي",
+      "actions": {
+        "backToAssets": "العودة إلى الأصول"
+      },
+      "permission": {
+        "readOnlyTitle": "وصول للقراءة فقط",
+        "readOnlyDescription": "يمكنك عرض هذا الأصل ولكن لا يمكنك تعديله."
+      },
+      "fields": {
+        "titleEn": "العنوان (EN)",
+        "titleAr": "العنوان (AR)",
+        "contentEn": "المحتوى (EN)",
+        "contentAr": "المحتوى (AR)",
+        "payload": "الحمولة (JSON)",
+        "status": "الحالة"
+      },
+      "errors": {
+        "invalidPayload": "يجب أن تكون الحمولة كائن JSON صالحاً.",
+        "loadFailed": "فشل تحميل الأصل التعليمي.",
+        "saveFailed": "فشل حفظ تغييرات الأصل التعليمي.",
+        "statusFailed": "فشل تحديث حالة الأصل التعليمي."
+      },
+      "toasts": {
+        "saveSuccess": "تم حفظ الأصل التعليمي بنجاح.",
+        "statusUpdated": "تم تحديث حالة الأصل التعليمي."
+      }
     },
     "centerSurveys": {
       "title": "استبيانات المركز",
@@ -3389,6 +3980,23 @@
           "disabled": "بدون اعتماد"
         }
       },
+      "accessModel": {
+        "label": "نموذج الوصول",
+        "placeholder": "اختر نموذج الوصول",
+        "lockedTitle": "نموذج الوصول ثابت",
+        "lockedEnrollmentDescription": "هذه الدورة تستخدم نموذج التسجيل، ولا يمكن تبديل النموذج بعد إنشاء الدورة.",
+        "lockedVideoCodeDescription": "هذه الدورة تستخدم نموذج أكواد الفيديو، ولا يمكن تبديل النموذج بعد إنشاء الدورة.",
+        "options": {
+          "enrollment": "بناءً على التسجيل",
+          "video_code": "بناءً على أكواد الفيديو"
+        },
+        "info": {
+          "enrollmentTitle": "نموذج التسجيل",
+          "enrollmentDescription": "يحصل الطلاب على الوصول من خلال التسجيل واعتماد الفيديو عند الحاجة.",
+          "videoCodeTitle": "نموذج أكواد الفيديو",
+          "videoCodeDescription": "يشتري الطلاب أكواد الفيديو خارجياً ثم يقومون باستردادها داخل التطبيق. يمكن إدارة دفعات الأكواد بعد إنشاء الدورة."
+        }
+      },
       "hints": {
         "categoryRequired": "التصنيف مطلوب لإنشاء الدورة.",
         "instructorOptional": "المدرب اختياري ويمكن تعيينه لاحقاً."
@@ -3454,6 +4062,212 @@
       "description": "الصفحة المطلوبة غير موجودة أو لم تعد متاحة.",
       "goToDashboard": "الانتقال إلى لوحة التحكم",
       "goToLogin": "الانتقال إلى تسجيل الدخول"
+    },
+    "courseQuizzes": {
+      "permission": {
+        "readOnlyTitle": "وضع القراءة فقط",
+        "readOnlyDescription": "يمكنك عرض الاختبارات، لكن الإنشاء/الحذف يتطلب صلاحية quiz.manage."
+      },
+      "create": {
+        "title": "إنشاء اختبار",
+        "dialogTitle": "إنشاء اختبار",
+        "dialogDescription": "اضبط إعدادات الاختبار ثم أضف الأسئلة من صفحة إدارة الأسئلة.",
+        "sourceContext": "سياق المصدر: {source}. سيتم ربط هذا الاختبار بعنصر المصدر هذا."
+      },
+      "fields": {
+        "titleEn": "العنوان (EN)",
+        "titleAr": "العنوان (AR)",
+        "descriptionEn": "الوصف (EN)",
+        "descriptionAr": "الوصف (AR)",
+        "passingScore": "درجة النجاح",
+        "maxAttempts": "عدد المحاولات",
+        "timeLimitMinutes": "المدة (بالدقائق)",
+        "scorePolicy": "سياسة احتساب المحاولات",
+        "attachableType": "نوع الربط",
+        "attachableId": "معرف الربط",
+        "isActive": "مفعل",
+        "isRequired": "إلزامي"
+      },
+      "scorePolicy": {
+        "best": "أفضل درجة",
+        "latest": "آخر درجة",
+        "average": "متوسط الدرجات"
+      },
+      "attachable": {
+        "course": "دورة",
+        "section": "قسم",
+        "video": "فيديو",
+        "pdf": "PDF"
+      },
+      "errors": {
+        "titleRequired": "عنوان الإنجليزية مطلوب.",
+        "createFailed": "فشل إنشاء الاختبار.",
+        "deleteFailed": "فشل حذف الاختبار.",
+        "loadFailed": "فشل تحميل الاختبارات."
+      },
+      "dialogs": {
+        "deleteConfirm": "هل تريد حذف الاختبار \"{title}\"؟"
+      },
+      "toasts": {
+        "createSuccess": "تم إنشاء الاختبار بنجاح.",
+        "deleteSuccess": "تم حذف الاختبار بنجاح."
+      },
+      "actions": {
+        "creating": "جارٍ الإنشاء...",
+        "create": "إنشاء اختبار",
+        "manageQuestions": "إدارة الأسئلة",
+        "openAssetsWorkspace": "فتح مساحة الأصول"
+      },
+      "list": {
+        "title": "الاختبارات",
+        "activeFilter": "فلتر التفعيل",
+        "builderHintTitle": "التدفق الموصى به",
+        "builderHint": "أنشئ الاختبار أولاً ثم افتح إدارة الأسئلة لاختيار نوع السؤال وإضافة الإجابات.",
+        "empty": "لا توجد اختبارات لهذه الدورة.",
+        "total": "إجمالي الاختبارات: {count}"
+      },
+      "table": {
+        "id": "المعرف",
+        "title": "العنوان",
+        "active": "مفعل",
+        "required": "إلزامي",
+        "questions": "الأسئلة",
+        "score": "النجاح / المحاولات",
+        "createdAt": "تاريخ الإنشاء"
+      }
+    },
+    "quizBuilder": {
+      "title": "منشئ الاختبار #{id}",
+      "description": "أنشئ أسئلة الاختبار ونظّمها مع الإجابات الصحيحة والدرجات.",
+      "backToQuizzes": "العودة إلى الاختبارات",
+      "confirm": {
+        "deleteQuestion": "هل تريد حذف هذا السؤال؟"
+      },
+      "toasts": {
+        "created": "تم إنشاء السؤال بنجاح.",
+        "updated": "تم تحديث السؤال بنجاح.",
+        "deleted": "تم حذف السؤال بنجاح.",
+        "reordered": "تم حفظ ترتيب الأسئلة."
+      },
+      "errors": {
+        "loadFailed": "فشل تحميل أسئلة الاختبار.",
+        "saveFailed": "فشل حفظ السؤال.",
+        "deleteFailed": "فشل حذف السؤال.",
+        "reorderFailed": "فشل إعادة ترتيب الأسئلة."
+      },
+      "validation": {
+        "questionRequired": "نص السؤال بالإنجليزية مطلوب.",
+        "answersMin": "يجب إدخال إجابتين على الأقل.",
+        "answersMax": "الحد الأقصى 10 إجابات.",
+        "answerRequired": "يجب أن تحتوي جميع الإجابات على نص إنجليزي.",
+        "singleCorrect": "أسئلة الاختيار الواحد يجب أن تحتوي على إجابة صحيحة واحدة فقط.",
+        "multipleCorrect": "أسئلة الاختيار المتعدد يجب أن تحتوي على إجابة صحيحة واحدة على الأقل."
+      },
+      "form": {
+        "createTitle": "إضافة سؤال",
+        "editTitle": "تعديل سؤال",
+        "answersTitle": "الإجابات",
+        "questionTypes": {
+          "single": "اختيار واحد",
+          "multiple": "اختيار متعدد"
+        },
+        "fields": {
+          "questionEn": "السؤال (EN)",
+          "questionAr": "السؤال (AR)",
+          "questionType": "نوع السؤال",
+          "points": "الدرجات",
+          "isActive": "مفعل",
+          "explanationEn": "الشرح (EN)",
+          "explanationAr": "الشرح (AR)",
+          "answerEn": "الإجابة (EN)",
+          "answerAr": "الإجابة (AR)",
+          "correct": "صحيحة"
+        },
+        "actions": {
+          "create": "إنشاء سؤال",
+          "update": "تحديث السؤال",
+          "reset": "إعادة تعيين",
+          "addAnswer": "إضافة إجابة"
+        }
+      },
+      "list": {
+        "title": "الأسئلة",
+        "empty": "لم يتم إضافة أسئلة بعد.",
+        "questionNumber": "السؤال {number}",
+        "points": "{points} درجات",
+        "correct": "صحيحة",
+        "actions": {
+          "moveUp": "تحريك لأعلى",
+          "moveDown": "تحريك لأسفل"
+        }
+      }
+    },
+    "courseAssignments": {
+      "permission": {
+        "readOnlyTitle": "وضع القراءة فقط",
+        "readOnlyDescription": "يمكنك عرض الواجبات، لكن الإنشاء/الحذف يتطلب صلاحية assignment.manage."
+      },
+      "create": {
+        "title": "إنشاء واجب",
+        "sourceContext": "سياق المصدر: {source}. سيتم ربط هذا الواجب بعنصر المصدر هذا."
+      },
+      "fields": {
+        "titleEn": "العنوان (EN)",
+        "titleAr": "العنوان (AR)",
+        "descriptionEn": "الوصف (EN)",
+        "descriptionAr": "الوصف (AR)",
+        "submissionTypes": "أنواع التسليم (معرفات enum)",
+        "maxPoints": "الدرجة الكلية",
+        "passingScore": "درجة النجاح",
+        "dueDate": "تاريخ الاستحقاق",
+        "groupAssignment": "واجب جماعي",
+        "maxGroupSize": "الحد الأقصى لحجم المجموعة",
+        "isActive": "مفعل",
+        "isRequired": "إلزامي",
+        "attachableType": "نوع الربط",
+        "attachableId": "معرف الربط"
+      },
+      "attachable": {
+        "course": "دورة",
+        "section": "قسم",
+        "video": "فيديو",
+        "pdf": "PDF"
+      },
+      "errors": {
+        "titleRequired": "عنوان الإنجليزية مطلوب.",
+        "groupSizeRequired": "الواجب الجماعي يتطلب حجم مجموعة >= 2.",
+        "createFailed": "فشل إنشاء الواجب.",
+        "deleteFailed": "فشل حذف الواجب.",
+        "loadFailed": "فشل تحميل الواجبات."
+      },
+      "dialogs": {
+        "deleteConfirm": "هل تريد حذف الواجب \"{title}\"؟"
+      },
+      "toasts": {
+        "createSuccess": "تم إنشاء الواجب بنجاح.",
+        "deleteSuccess": "تم حذف الواجب بنجاح."
+      },
+      "actions": {
+        "creating": "جارٍ الإنشاء...",
+        "create": "إنشاء واجب",
+        "openAssetsWorkspace": "فتح مساحة الأصول"
+      },
+      "list": {
+        "title": "الواجبات",
+        "empty": "لا توجد واجبات لهذه الدورة.",
+        "total": "إجمالي الواجبات: {count}"
+      },
+      "table": {
+        "id": "المعرف",
+        "title": "العنوان",
+        "active": "مفعل",
+        "required": "إلزامي",
+        "submissionTypes": "أنواع التسليم",
+        "group": "الجماعي",
+        "dueDate": "تاريخ الاستحقاق",
+        "groupEnabled": "مفعل (الحد {size})",
+        "groupDisabled": "غير مفعل"
+      }
     }
   },
   "tables": {
@@ -4244,7 +5058,9 @@
               "s4": "Slug *",
               "s5": "e.g., north-campus",
               "s6": "Type *",
-              "s7": "Show in featured centers"
+              "s7": "Show in featured centers",
+              "s8": "تصفح الزوار",
+              "s9": "السماح بالتصفح بدون تسجيل دخول"
             },
             "centerstatuscard": {
               "s1": "Activate or deactivate this center.",
@@ -4513,6 +5329,124 @@
             "s2": "هذا الدور",
             "s3": "جارٍ الحذف...",
             "s4": "تعذر حذف الدور"
+          }
+        }
+      },
+      "video_code_batches": {
+        "components": {
+          "videocodebatchestable": {
+            "title": "دفعات أكواد الفيديو",
+            "description": "إدارة دفعات أكواد الوصول المجهولة لدورات أكواد الفيديو.",
+            "createBatch": "إنشاء دفعة",
+            "searchPlaceholder": "البحث في الدفعات...",
+            "allCourses": "جميع الدورات",
+            "noCoursesFound": "لم يتم العثور على دورات أكواد فيديو",
+            "courseFilterLocked": "فلتر الدورة مقفل على هذه الدورة",
+            "allVideos": "جميع الفيديوهات",
+            "allStatuses": "جميع الحالات",
+            "failedToLoad": "فشل تحميل الدفعات",
+            "viewLimit": "حد المشاهدة",
+            "noBatchesTitle": "لم يتم العثور على دفعات",
+            "noBatchesDescription": "أنشئ أول دفعة لدورة أكواد الفيديو لبدء إدارة التصدير والاسترداد.",
+            "viewDetails": "عرض التفاصيل",
+            "exportCsv": "تصدير CSV",
+            "exportingCsv": "جارٍ تصدير CSV...",
+            "exportPdf": "تصدير PDF",
+            "exportingPdf": "جارٍ تصدير PDF...",
+            "sendCsvWhatsapp": "إرسال CSV عبر واتساب",
+            "expandBatch": "توسيع الدفعة",
+            "closeBatch": "إغلاق الدفعة",
+            "updateSoldLimit": "تحديث حد المبيعات",
+            "total": "الإجمالي:",
+            "redeemed": "المستردة:",
+            "available": "المتاحة:",
+            "sold": "المباعة:",
+            "notClosed": "غير مغلقة",
+            "unknownVideo": "فيديو غير معروف",
+            "unknownCourse": "دورة غير معروفة",
+            "unknownAdmin": "مشرف غير معروف",
+            "statusOpen": "مفتوحة",
+            "statusClosed": "مغلقة"
+          },
+          "videocodebatchdetailspage": {
+            "batchNotFound": "الدفعة غير موجودة",
+            "backToBatches": "العودة للدفعات",
+            "sendCsvWhatsapp": "إرسال CSV عبر واتساب",
+            "expandBatch": "توسيع الدفعة",
+            "generatedBy": "أُنشئت بواسطة",
+            "closedOn": "أُغلقت في",
+            "batchInformation": "معلومات الدفعة",
+            "batchCode": "رمز الدفعة",
+            "firstRedemption": "أول استرداد",
+            "lastRedemption": "آخر استرداد",
+            "exportHistory": "سجل التصدير",
+            "noExportsTitle": "لا توجد عمليات تصدير بعد",
+            "noExportsDescription": "ستظهر عمليات تصدير CSV و PDF هنا بعد أول تصدير.",
+            "waitingWhatsappDelivery": "في انتظار تأكيد تسليم واتساب...",
+            "recentRedemptionActivity": "نشاط الاسترداد الأخير",
+            "noRecentRedemptionsTitle": "لا توجد عمليات استرداد حديثة",
+            "noRecentRedemptionsDescription": "سيظهر نشاط الاسترداد الأخير من نقطة الإحصائيات هنا.",
+            "searchRedemptionsPlaceholder": "البحث في الاستردادات...",
+            "redeemedAt": "تاريخ الاسترداد",
+            "noRedemptionsTitle": "لم يتم العثور على استردادات",
+            "noRedemptionsDescription": "ستظهر الاستردادات هنا بمجرد بدء الطلاب في استرداد الأكواد من هذه الدفعة."
+          },
+          "createvideocodebatchdialog": {
+            "title": "إنشاء دفعة أكواد فيديو",
+            "description": "إنشاء دفعة جديدة من أكواد الوصول المجهولة للفيديو لدورة أكواد الفيديو.",
+            "errorTitle": "تعذر إنشاء الدفعة",
+            "selectCourse": "اختر الدورة",
+            "noCoursesFound": "لم يتم العثور على دورات أكواد فيديو",
+            "selectVideo": "اختر الفيديو",
+            "viewLimitPerCode": "حد المشاهدة لكل كود",
+            "batchLifecycle": "دورة حياة الدفعة",
+            "batchLifecycleDescription": "صدّر الأكواد المُنشأة، بعها دون اتصال، ثم أغلق الدفعة بعدد المبيعات المؤكد للفوترة."
+          },
+          "closevideocodebatchdialog": {
+            "description": "أكد عدد الأكواد المباعة فعلياً. ستتوقف الأكواد غير المباعة عن كونها قابلة للاسترداد بمجرد تطبيق حد المبيعات.",
+            "errorTitle": "تعذر حفظ حد المبيعات",
+            "currentStatus": "الحالة الحالية",
+            "totalCodes": "إجمالي الأكواد:",
+            "alreadyRedeemed": ". المستردة بالفعل:",
+            "currentSoldLimit": ". حد المبيعات الحالي:",
+            "soldCount": "عدد المبيعات",
+            "resultPreview": "معاينة النتيجة",
+            "redeemedCodesValid": "كود مسترد يظل صالحاً،",
+            "moreCodesRedeemable": "كود إضافي يمكن استرداده، و",
+            "codesInvalid": "كود يصبح غير صالح.",
+            "confirmSoldCount": "أؤكد أن عدد المبيعات صحيح."
+          },
+          "expandvideocodebatchdialog": {
+            "title": "توسيع الدفعة",
+            "description": "إضافة المزيد من الأكواد للدفعة المفتوحة الحالية دون بدء دفعة جديدة.",
+            "errorTitle": "تعذر توسيع الدفعة",
+            "additionalQuantity": "الكمية الإضافية",
+            "currentBatch": "الدفعة الحالية",
+            "existingQuantity": "الكمية الحالية:",
+            "newCodesNote": ". يمكن تصدير الأكواد الجديدة بعد توسيع الدفعة."
+          },
+          "sendvideocodebatchwhatsappcsvdialog": {
+            "title": "إرسال CSV عبر واتساب",
+            "description": "إرسال تصدير CSV لهذه الدفعة مباشرة إلى رقم واتساب.",
+            "errorTitle": "تعذر إرسال CSV",
+            "countryCode": "رمز الدولة",
+            "phoneNumber": "رقم الهاتف",
+            "startSequence": "تسلسل البداية",
+            "endSequence": "تسلسل النهاية",
+            "deliveryPreview": "معاينة التسليم",
+            "destination": "الوجهة:",
+            "range": ". النطاق:",
+            "count": ". العدد:",
+            "file": ". الملف:"
+          }
+        },
+        "pages": {
+          "videocodebatches": {
+            "title": "دفعات أكواد الفيديو",
+            "description": "إنشاء وتصدير وتوسيع وإغلاق دفعات أكواد الوصول المجهولة للفيديو لهذا المركز.",
+            "createBatch": "إنشاء دفعة",
+            "backToCenter": "العودة للمركز",
+            "manageBatches": "إدارة الدفعات"
           }
         }
       }

@@ -75,6 +75,7 @@ export type UpdateCenterPayload = {
   name?: string;
   tier?: string | number;
   is_featured?: boolean;
+  allow_guest_browsing?: boolean;
   branding_metadata?: CenterBrandingPayload;
   [key: string]: unknown;
 };

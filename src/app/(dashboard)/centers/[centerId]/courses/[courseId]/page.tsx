@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { can } from "@/lib/capabilities";
 import {
   useAssignCourseInstructor,
   useCenterCourse,
@@ -32,6 +33,7 @@ import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsT
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { CourseSectionsOverview } from "@/features/sections/components/CourseSectionsOverview";
+import { VideoCodeBatchesTable } from "@/features/video-code-batches/components/VideoCodeBatchesTable";
 import { formatDateTime } from "@/lib/format-date-time";
 import {
   getAdminApiFieldErrors,
@@ -52,7 +54,11 @@ type PageProps = {
   params: Promise<{ centerId: string; courseId: string }>;
 };
 
-type ActivePanel = "overview" | "students" | "settings";
+type ActivePanel = "overview" | "students" | "batches" | "settings";
+type NavItem = {
+  id: ActivePanel;
+  label: string;
+};
 type TranslateFn = (
   _key: string,
   _params?: Record<string, string | number>,
@@ -132,6 +138,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useModal();
+  const canManageVideoAccess = can("manage_video_access");
 
   const [activePanel, setActivePanel] = useState<ActivePanel>("overview");
   const [selectedInstructorId, setSelectedInstructorId] = useState<
@@ -228,7 +235,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
 
   useEffect(() => {
     const panel = searchParams.get("panel");
-    if (panel === "students" || panel === "settings") {
+    if (panel === "students" || panel === "settings" || panel === "batches") {
       setActivePanel(panel);
       return;
     }
@@ -242,7 +249,7 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     setInstructorSearch("");
   }, [courseId, setInstructorSearch]);
 
-  const navItems = useMemo(
+  const navItems = useMemo<NavItem[]>(
     () => [
       {
         id: "overview" as const,
@@ -251,6 +258,10 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       {
         id: "students" as const,
         label: t("pages.centerCourseDetail.panels.students"),
+      },
+      {
+        id: "batches" as const,
+        label: t("pages.centerCourseDetail.panels.batches"),
       },
       {
         id: "settings" as const,
@@ -544,6 +555,8 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   }
 
   const courseData = course!;
+  const isVideoCodeCourse = courseData.access_model === "video_code";
+  const showBatchManagement = isVideoCodeCourse && canManageVideoAccess;
   const statusSource = courseData.status_key ?? courseData.status;
   const status = String(statusSource ?? "").toLowerCase();
   const statusLabel = String(
@@ -586,6 +599,18 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
         id: courseData.id,
       }),
   );
+  const accessModelLabel = isVideoCodeCourse ? "Video Code" : "Enrollment";
+  const normalizedActivePanel =
+    showBatchManagement && activePanel === "students"
+      ? "batches"
+      : isVideoCodeCourse && !showBatchManagement
+        ? activePanel === "batches" || activePanel === "students"
+          ? "overview"
+          : activePanel
+        : !isVideoCodeCourse && activePanel === "batches"
+          ? "students"
+          : activePanel;
+  const assetsWorkspaceHref = `/centers/${centerId}/courses/${courseId}/assets`;
 
   return (
     <div className="space-y-6">
@@ -599,27 +624,39 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               {courseTitle}
             </h2>
             <nav className="mt-4 grid gap-1.5">
-              {navItems.map((item) => {
-                const isActive = activePanel === item.id;
+              {navItems
+                .filter((item) => {
+                  if (isVideoCodeCourse) {
+                    if (item.id === "students") return false;
+                    if (item.id === "batches" && !showBatchManagement) {
+                      return false;
+                    }
+                    return true;
+                  }
 
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setPanel(item.id)}
-                    className={cn(
-                      "flex h-10 w-full min-w-0 items-center rounded-lg px-3 text-left text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white",
-                    )}
-                  >
-                    <span className="truncate whitespace-nowrap">
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
+                  return item.id !== "batches";
+                })
+                .map((item) => {
+                  const isActive = normalizedActivePanel === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setPanel(item.id)}
+                      className={cn(
+                        "flex h-10 w-full min-w-0 items-center rounded-lg px-3 text-left text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white",
+                      )}
+                    >
+                      <span className="truncate whitespace-nowrap">
+                        {item.label}
+                      </span>
+                    </button>
+                  );
+                })}
             </nav>
           </div>
         </aside>
@@ -655,6 +692,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                         {categoryLabel}
                       </Badge>
                     ) : null}
+                    <Badge variant="secondary" className="text-[11px]">
+                      {accessModelLabel}
+                    </Badge>
                   </div>
                   {courseData.description ? (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -668,6 +708,24 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                     isRtl ? "justify-end" : "justify-start",
                   )}
                 >
+                  {showBatchManagement ? (
+                    <Link
+                      href={`/centers/${centerId}/video-code-batches?course_id=${courseId}`}
+                    >
+                      <Button variant="outline">
+                        {t(
+                          "auto.features.video_code_batches.pages.videocodebatches.manageBatches",
+                        )}
+                      </Button>
+                    </Link>
+                  ) : null}
+                  <Link href={assetsWorkspaceHref}>
+                    <Button variant="outline">
+                      {t(
+                        "pages.centerCourseDetail.aiPanels.openAssetsWorkspace",
+                      )}
+                    </Button>
+                  </Link>
                   <CoursePublishAction course={courseData} />
                 </div>
               </div>
@@ -709,14 +767,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          {activePanel === "overview" ? (
+          {normalizedActivePanel === "overview" ? (
             <CourseSectionsOverview
               centerId={centerId}
               courseId={courseId}
               managerHref={`/centers/${centerId}/courses/${courseId}/sections`}
               initialSections={courseData.sections}
             />
-          ) : activePanel === "students" ? (
+          ) : !isVideoCodeCourse && normalizedActivePanel === "students" ? (
             <EnrollmentsTable
               centerId={centerId}
               showCenterFilter={false}
@@ -736,6 +794,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
               buildStudentHref={(studentId) =>
                 `/centers/${centerId}/students/${studentId}?from=course&courseId=${courseId}`
               }
+            />
+          ) : showBatchManagement && normalizedActivePanel === "batches" ? (
+            <VideoCodeBatchesTable
+              centerId={centerId}
+              fixedCourseId={courseId}
+              hideHeader
             />
           ) : (
             <div className="space-y-4">

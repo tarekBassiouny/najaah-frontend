@@ -1579,6 +1579,31 @@
         "descriptionWithSource": "Choose a manual flow for {type}: {title}.",
         "quizDescription": "Open quiz create and question builder with this source prefilled.",
         "assignmentDescription": "Open assignment create flow with this source prefilled."
+      },
+      "wizard": {
+        "step1": "1. Select Assets",
+        "step2": "2. Configure",
+        "step3": "3. Preview",
+        "next": "Next",
+        "back": "Back",
+        "noAssetsSelected": "Go back and select at least one asset to configure.",
+        "previewTitle": "Selected assets & configuration",
+        "enabled": "Enabled",
+        "slotHints": {
+          "summary": "AI-generated summary of the source content",
+          "quiz": "Auto-generated quiz with configurable questions",
+          "flashcards": "Study flashcards for key concepts",
+          "assignment": "Practice assignment with submission options"
+        }
+      },
+      "review": {
+        "noContent": "No content available.",
+        "questions": "questions",
+        "cards": "cards",
+        "front": "Front",
+        "back": "Back",
+        "showJson": "Developer mode",
+        "hideJson": "Hide developer mode"
       }
     },
     "learningAssets": {

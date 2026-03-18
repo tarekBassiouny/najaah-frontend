@@ -94,6 +94,8 @@
       "of": "من",
       "results": "نتيجة",
       "page": "صفحة",
+      "pageOf": "الصفحة {page} من {lastPage}",
+      "rows": "الصفوف",
       "perPage": "لكل صفحة",
       "first": "الأولى",
       "last": "الأخيرة",
@@ -562,6 +564,48 @@
     },
     "centerDetails": {
       "descriptionFallback": "نظرة عامة على المركز وإدارته"
+    },
+    "centerDashboard": {
+      "fallbackCenterName": "المركز {id}",
+      "descriptionFallback": "نظرة عامة على المركز وإدارته",
+      "loadFailed": "فشل تحميل هذا المركز. يرجى المحاولة مرة أخرى.",
+      "statusLabel": "الحالة",
+      "slugLabel": "المعرّف",
+      "sectionTitle": "إدارة",
+      "manageAction": "إدارة",
+      "statusActive": "نشط",
+      "statusInactive": "غير نشط",
+      "cards": {
+        "courses": {
+          "title": "الدورات",
+          "description": "إنشاء الدورات المتاحة في هذا المركز وتعديلها وإدارتها."
+        },
+        "videos": {
+          "title": "الفيديوهات",
+          "description": "رفع مكتبة الفيديو الخاصة بالمركز وتنظيمها."
+        },
+        "pdfs": {
+          "title": "ملفات PDF",
+          "description": "إدارة ملفات PDF والمواد القابلة للتنزيل."
+        },
+        "students": {
+          "title": "الطلاب",
+          "description": "عرض التسجيلات وإدارة قائمة الطلاب."
+        },
+        "education": {
+          "title": "التعليم",
+          "description": "إدارة الصفوف والمدارس والكليات لملفات الطلاب."
+        },
+        "landingPage": {
+          "title": "الصفحة الرئيسية",
+          "description": "تعديل الصفحة العامة ذات العلامة التجارية لهذا المركز.",
+          "badge": "تجريبي"
+        },
+        "categories": {
+          "title": "التصنيفات",
+          "description": "تنظيم الدورات ضمن تصنيفات لتسهيل اكتشافها."
+        }
+      }
     },
     "centerLandingPage": {
       "title": "الصفحة الرئيسية للمركز",
@@ -3569,6 +3613,26 @@
       "descriptionByCenter": "إدارة الصفوف والمدارس والكليات حسب المركز.",
       "descriptionForProfiles": "إدارة الصفوف والمدارس والكليات لملفات الطلاب.",
       "selectCenterPrompt": "اختر مركزاً من المحدد لإدارة القوائم التعليمية.",
+      "panel": {
+        "successTitle": "نجاح",
+        "tabs": {
+          "grades": {
+            "label": "الصفوف",
+            "description": "إدارة المستويات الأكاديمية وترتيب المراحل.",
+            "createLabel": "إنشاء صف"
+          },
+          "schools": {
+            "label": "المدارس",
+            "description": "إدارة المدارس لإثراء ملفات الطلاب.",
+            "createLabel": "إنشاء مدرسة"
+          },
+          "colleges": {
+            "label": "الكليات",
+            "description": "إدارة الكليات والجامعات للتعليم العالي.",
+            "createLabel": "إنشاء كلية"
+          }
+        }
+      },
       "tables": {
         "grades": {
           "entityName": "الصف",

@@ -84,13 +84,14 @@ export function CollegesTable({
   onEdit,
   onDelete,
 }: CollegesTableProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const isRtl = locale === "ar";
 
   const params = useMemo(
     () => ({
@@ -275,7 +276,12 @@ export function CollegesTable({
                 <TableHead className="font-medium">
                   {t("pages.education.tables.colleges.headers.status")}
                 </TableHead>
-                <TableHead className="w-10 text-right font-medium">
+                <TableHead
+                  className={cn(
+                    "w-10 font-medium",
+                    isRtl ? "text-left" : "text-right",
+                  )}
+                >
                   {t("pages.education.tables.colleges.headers.actions")}
                 </TableHead>
               </TableRow>
@@ -298,7 +304,12 @@ export function CollegesTable({
                         <Skeleton className="h-5 w-16 rounded-full" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="ml-auto h-4 w-6" />
+                        <Skeleton
+                          className={cn(
+                            "h-4 w-6",
+                            isRtl ? "mr-auto" : "ml-auto",
+                          )}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -359,14 +370,14 @@ export function CollegesTable({
                               )}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={isRtl ? "text-left" : "text-right"}>
                         <Dropdown
                           isOpen={openMenuId === college.id}
                           setIsOpen={(value) =>
                             setOpenMenuId(value ? college.id : null)
                           }
                         >
-                          <DropdownTrigger className="text-gray-400 hover:text-gray-600">
+                          <DropdownTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                             ⋮
                           </DropdownTrigger>
                           <DropdownContent
@@ -377,7 +388,10 @@ export function CollegesTable({
                           >
                             {onEdit ? (
                               <button
-                                className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                className={cn(
+                                  "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                  isRtl ? "text-right" : "text-left",
+                                )}
                                 onClick={() => {
                                   setOpenMenuId(null);
                                   onEdit(college);
@@ -390,7 +404,10 @@ export function CollegesTable({
                             ) : null}
                             {onDelete ? (
                               <button
-                                className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                className={cn(
+                                  "w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
+                                  isRtl ? "text-right" : "text-left",
+                                )}
                                 onClick={() => {
                                   setOpenMenuId(null);
                                   onDelete(college);

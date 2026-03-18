@@ -94,6 +94,8 @@
       "of": "of",
       "results": "results",
       "page": "Page",
+      "pageOf": "Page {page} of {lastPage}",
+      "rows": "Rows",
       "perPage": "per page",
       "first": "First",
       "last": "Last",
@@ -562,6 +564,48 @@
     },
     "centerDetails": {
       "descriptionFallback": "Center overview and management"
+    },
+    "centerDashboard": {
+      "fallbackCenterName": "Center {id}",
+      "descriptionFallback": "Center overview and management",
+      "loadFailed": "Failed to load this center. Please try again.",
+      "statusLabel": "Status",
+      "slugLabel": "Slug",
+      "sectionTitle": "Manage",
+      "manageAction": "Manage",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "cards": {
+        "courses": {
+          "title": "Courses",
+          "description": "Create, edit, and manage courses available at this center."
+        },
+        "videos": {
+          "title": "Videos",
+          "description": "Upload and organize the center's video content library."
+        },
+        "pdfs": {
+          "title": "PDFs",
+          "description": "Manage PDF documents and downloadable materials."
+        },
+        "students": {
+          "title": "Students",
+          "description": "View enrollments and manage the student roster."
+        },
+        "education": {
+          "title": "Education",
+          "description": "Manage grades, schools, and colleges for student profiles."
+        },
+        "landingPage": {
+          "title": "Landing Page",
+          "description": "Edit the branded public landing page for this center.",
+          "badge": "Beta"
+        },
+        "categories": {
+          "title": "Categories",
+          "description": "Organize courses into categories for easy discovery."
+        }
+      }
     },
     "centerLandingPage": {
       "title": "Center landing page",
@@ -3569,6 +3613,26 @@
       "descriptionByCenter": "Manage grades, schools, and colleges by center.",
       "descriptionForProfiles": "Manage grades, schools, and colleges for student profiles.",
       "selectCenterPrompt": "Select a center from the picker to manage educational lookups.",
+      "panel": {
+        "successTitle": "Success",
+        "tabs": {
+          "grades": {
+            "label": "Grades",
+            "description": "Manage academic levels and stage ordering.",
+            "createLabel": "Create Grade"
+          },
+          "schools": {
+            "label": "Schools",
+            "description": "Manage schools for student profile enrichment.",
+            "createLabel": "Create School"
+          },
+          "colleges": {
+            "label": "Colleges",
+            "description": "Manage colleges and universities for higher education.",
+            "createLabel": "Create College"
+          }
+        }
+      },
       "tables": {
         "grades": {
           "entityName": "Grade",

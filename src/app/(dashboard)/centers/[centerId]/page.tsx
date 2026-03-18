@@ -188,21 +188,28 @@ function isUnbrandedCenterType(type: unknown) {
 /*  Navigation card config                                             */
 /* ------------------------------------------------------------------ */
 
+type CenterSectionKey =
+  | "courses"
+  | "videos"
+  | "pdfs"
+  | "students"
+  | "education"
+  | "landingPage"
+  | "categories";
+
 type CenterSection = {
-  title: string;
-  description: string;
+  key: CenterSectionKey;
   href: (_centerId: string) => string;
   icon: ComponentType<{ className?: string }>;
   color: string;
   bg: string;
   border: string;
-  badge?: string;
+  badgeKey?: string;
 };
 
 const SECTIONS = [
   {
-    title: "Courses",
-    description: "Create, edit, and manage courses available at this center.",
+    key: "courses",
     href: (id: string) => `/centers/${id}/courses`,
     icon: BookIcon,
     color: "text-blue-600 dark:text-blue-400",
@@ -210,8 +217,7 @@ const SECTIONS = [
     border: "border-blue-100 dark:border-blue-900/50",
   },
   {
-    title: "Videos",
-    description: "Upload and organize the center's video content library.",
+    key: "videos",
     href: (id: string) => `/centers/${id}/videos`,
     icon: PlayIcon,
     color: "text-violet-600 dark:text-violet-400",
@@ -219,8 +225,7 @@ const SECTIONS = [
     border: "border-violet-100 dark:border-violet-900/50",
   },
   {
-    title: "PDFs",
-    description: "Manage PDF documents and downloadable materials.",
+    key: "pdfs",
     href: (id: string) => `/centers/${id}/pdfs`,
     icon: DocumentIcon,
     color: "text-rose-600 dark:text-rose-400",
@@ -228,8 +233,7 @@ const SECTIONS = [
     border: "border-rose-100 dark:border-rose-900/50",
   },
   {
-    title: "Students",
-    description: "View enrollments and manage the student roster.",
+    key: "students",
     href: (id: string) => `/centers/${id}/students`,
     icon: UsersIcon,
     color: "text-amber-600 dark:text-amber-400",
@@ -237,8 +241,7 @@ const SECTIONS = [
     border: "border-amber-100 dark:border-amber-900/50",
   },
   {
-    title: "Education",
-    description: "Manage grades, schools, and colleges for student profiles.",
+    key: "education",
     href: (id: string) => `/centers/${id}/education`,
     icon: BookIcon,
     color: "text-cyan-700 dark:text-cyan-300",
@@ -246,18 +249,16 @@ const SECTIONS = [
     border: "border-cyan-100 dark:border-cyan-900/50",
   },
   {
-    title: "Landing Page",
-    description: "Edit the branded public landing page for this center.",
+    key: "landingPage",
     href: (id: string) => `/centers/${id}/landing-page`,
     icon: DocumentIcon,
-    badge: "Beta",
+    badgeKey: "pages.centerDashboard.cards.landingPage.badge",
     color: "text-sky-700 dark:text-sky-300",
     bg: "bg-sky-50 dark:bg-sky-950/40",
     border: "border-sky-100 dark:border-sky-900/50",
   },
   {
-    title: "Categories",
-    description: "Organise courses into categories for easy discovery.",
+    key: "categories",
     href: (id: string) => `/centers/${id}/categories`,
     icon: TagIcon,
     color: "text-emerald-600 dark:text-emerald-400",
@@ -271,11 +272,12 @@ const SECTIONS = [
 /* ------------------------------------------------------------------ */
 
 export default function CenterDetailPage({ params }: PageProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { centerId } = use(params);
   const { data: center, isLoading, isError, error } = useCenter(centerId);
   const { data: currentAdmin } = useAdminMe();
   const userScope = getAdminScope(currentAdmin);
+  const isRtl = locale === "ar";
 
   if (isLoading) {
     return (
@@ -328,7 +330,7 @@ export default function CenterDetailPage({ params }: PageProps) {
       <Card>
         <CardContent className="space-y-4 py-10 text-center">
           <p className="text-sm text-red-600 dark:text-red-400">
-            {t("pages.centerLandingPage.loadFailed")}
+            {t("pages.centerDashboard.loadFailed")}
           </p>
           <Link href="/centers">
             <Button variant="outline">
@@ -343,12 +345,15 @@ export default function CenterDetailPage({ params }: PageProps) {
   const centerStatusNumber = Number(center?.status);
   const statusVariant = centerStatusNumber === 1 ? "success" : "error";
   const statusLabel =
-    center?.status_label ?? (centerStatusNumber === 1 ? "Active" : "Inactive");
+    center?.status_label ??
+    (centerStatusNumber === 1
+      ? t("pages.centerDashboard.statusActive")
+      : t("pages.centerDashboard.statusInactive"));
   const isUnbrandedCenter = isUnbrandedCenterType(center?.type);
   const sections: readonly CenterSection[] = isUnbrandedCenter
     ? SECTIONS.filter(
         (section) =>
-          section.title !== "Education" && section.title !== "Landing Page",
+          section.key !== "education" && section.key !== "landingPage",
       )
     : SECTIONS;
 
@@ -356,11 +361,14 @@ export default function CenterDetailPage({ params }: PageProps) {
     <div className="space-y-8">
       {/* ---- Page header ---- */}
       <PageHeader
-        title={center?.name ?? `Center ${centerId}`}
+        title={
+          center?.name ??
+          t("pages.centerDashboard.fallbackCenterName", { id: centerId })
+        }
         description={
           center?.slug
             ? `/${center.slug}`
-            : t("pages.centerDetails.descriptionFallback")
+            : t("pages.centerDashboard.descriptionFallback")
         }
         actions={
           <div className="flex items-center gap-2">
@@ -390,7 +398,10 @@ export default function CenterDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {center?.name ?? `Center ${centerId}`}
+                {center?.name ??
+                  t("pages.centerDashboard.fallbackCenterName", {
+                    id: centerId,
+                  })}
               </p>
               {center?.type && (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -405,7 +416,7 @@ export default function CenterDetailPage({ params }: PageProps) {
           {center?.status != null && (
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                Status
+                {t("pages.centerDashboard.statusLabel")}
               </span>
               <Badge variant={statusVariant}>{statusLabel}</Badge>
             </div>
@@ -416,7 +427,7 @@ export default function CenterDetailPage({ params }: PageProps) {
               <div className="hidden h-8 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
               <div>
                 <span className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                  Slug
+                  {t("pages.centerDashboard.slugLabel")}
                 </span>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   {center.slug}
@@ -430,7 +441,7 @@ export default function CenterDetailPage({ params }: PageProps) {
       {/* ---- Section navigation grid ---- */}
       <div>
         <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-          Manage
+          {t("pages.centerDashboard.sectionTitle")}
         </h2>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -438,12 +449,16 @@ export default function CenterDetailPage({ params }: PageProps) {
             const Icon = section.icon;
             const href =
               isUnbrandedCenter &&
-              (section.title === "Education" ||
-                section.title === "Landing Page")
+              (section.key === "education" || section.key === "landingPage")
                 ? "/education"
                 : section.href(centerId);
+            const title = t(`pages.centerDashboard.cards.${section.key}.title`);
+            const description = t(
+              `pages.centerDashboard.cards.${section.key}.description`,
+            );
+            const badge = section.badgeKey ? t(section.badgeKey) : null;
             return (
-              <Link key={section.title} href={href} className="group">
+              <Link key={section.key} href={href} className="group">
                 <Card
                   className={`h-full border transition-all duration-200 hover:shadow-md ${section.border} hover:border-gray-300 dark:hover:border-gray-600`}
                 >
@@ -456,19 +471,19 @@ export default function CenterDetailPage({ params }: PageProps) {
                     <div className="min-w-0">
                       <CardTitle className="text-base">
                         <span className="flex items-center gap-2">
-                          <span>{section.title}</span>
-                          {section.badge ? (
+                          <span>{title}</span>
+                          {badge ? (
                             <Badge
                               variant="outline"
                               className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
                             >
-                              {section.badge}
+                              {badge}
                             </Badge>
                           ) : null}
                         </span>
                       </CardTitle>
                       <CardDescription className="mt-1 line-clamp-2 text-xs">
-                        {section.description}
+                        {description}
                       </CardDescription>
                     </div>
                   </CardHeader>
@@ -476,8 +491,14 @@ export default function CenterDetailPage({ params }: PageProps) {
                     <span
                       className={`inline-flex items-center gap-1 text-sm font-medium ${section.color} transition-transform duration-200`}
                     >
-                      Manage
-                      <ArrowRightIcon className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                      {t("pages.centerDashboard.manageAction")}
+                      <ArrowRightIcon
+                        className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                          isRtl
+                            ? "rotate-180 group-hover:-translate-x-1"
+                            : "group-hover:translate-x-1"
+                        }`}
+                      />
                     </span>
                   </CardContent>
                 </Card>

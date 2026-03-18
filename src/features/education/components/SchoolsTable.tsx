@@ -72,7 +72,7 @@ export function SchoolsTable({
   onEdit,
   onDelete,
 }: SchoolsTableProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -80,6 +80,7 @@ export function SchoolsTable({
   const [typeFilter, setTypeFilter] = useState<string>(ALL_TYPE_VALUE);
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const isRtl = locale === "ar";
 
   const params = useMemo(
     () => ({
@@ -290,7 +291,12 @@ export function SchoolsTable({
                 <TableHead className="font-medium">
                   {t("pages.education.tables.schools.headers.status")}
                 </TableHead>
-                <TableHead className="w-10 text-right font-medium">
+                <TableHead
+                  className={cn(
+                    "w-10 font-medium",
+                    isRtl ? "text-left" : "text-right",
+                  )}
+                >
                   {t("pages.education.tables.schools.headers.actions")}
                 </TableHead>
               </TableRow>
@@ -313,7 +319,12 @@ export function SchoolsTable({
                         <Skeleton className="h-5 w-16 rounded-full" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="ml-auto h-4 w-6" />
+                        <Skeleton
+                          className={cn(
+                            "h-4 w-6",
+                            isRtl ? "mr-auto" : "ml-auto",
+                          )}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -374,14 +385,14 @@ export function SchoolsTable({
                               )}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className={isRtl ? "text-left" : "text-right"}>
                         <Dropdown
                           isOpen={openMenuId === school.id}
                           setIsOpen={(value) =>
                             setOpenMenuId(value ? school.id : null)
                           }
                         >
-                          <DropdownTrigger className="text-gray-400 hover:text-gray-600">
+                          <DropdownTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                             ⋮
                           </DropdownTrigger>
                           <DropdownContent
@@ -392,7 +403,10 @@ export function SchoolsTable({
                           >
                             {onEdit ? (
                               <button
-                                className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                className={cn(
+                                  "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                  isRtl ? "text-right" : "text-left",
+                                )}
                                 onClick={() => {
                                   setOpenMenuId(null);
                                   onEdit(school);
@@ -405,7 +419,10 @@ export function SchoolsTable({
                             ) : null}
                             {onDelete ? (
                               <button
-                                className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                className={cn(
+                                  "w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
+                                  isRtl ? "text-right" : "text-left",
+                                )}
                                 onClick={() => {
                                   setOpenMenuId(null);
                                   onDelete(school);

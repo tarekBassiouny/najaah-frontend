@@ -1,4 +1,4 @@
-# Analytics Backend Enrichment Spec
+  # Analytics Backend Enrichment Spec
 
 The frontend analytics dashboard has chart components already built and waiting for these backend API fields. All fields are optional — the frontend gracefully hides charts when data is absent and automatically renders them when data appears.
 

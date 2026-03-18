@@ -3075,7 +3075,10 @@
     "analytics": {
       "title": "Analytics",
       "description": "View platform analytics and reports",
-      "dashboardDescription": "Track performance across courses, learners, devices, and media."
+      "dashboardDescription": "Track performance across courses, learners, devices, and media.",
+      "sectionCoursesMedia": "Courses & Media",
+      "sectionLearnersEnrollments": "Learners & Enrollments",
+      "sectionDevicesRequests": "Devices & Requests"
     },
     "agents": {
       "title": "Agents",
@@ -4814,7 +4817,10 @@
             "s5": "Total Courses",
             "s6": "Daily Active Learners",
             "s7": "Centers by Type",
-            "s8": "Courses & Enrollments"
+            "s8": "Courses & Enrollments",
+            "enrollmentTrend": "Enrollment Trend",
+            "activeLearnersTrend": "Active Learners Trend",
+            "coursesCreated": "Courses Created"
           },
           "analyticsfiltersbar": {
             "s1": "Live updates",
@@ -4828,14 +4834,19 @@
             "s3": "Courses by Status",
             "s4": "Media Upload Status",
             "s5": "Top Courses by Enrollments",
-            "s6": "No top courses data in this range."
+            "s6": "No top courses data in this range.",
+            "readyToPublish": "Ready to Publish",
+            "blockedByMedia": "Blocked by Media",
+            "totalVideos": "Total Videos",
+            "totalPdfs": "Total PDFs"
           },
           "charts": {
             "analyticsdonutchart": {
               "s1": "No chart data"
             },
             "analyticsbarchart": {
-              "s1": "No chart data"
+              "s1": "No chart data",
+              "noDataForPeriod": "No data for this period"
             }
           },
           "analyticslearnersenrollmentspanel": {
@@ -4846,7 +4857,10 @@
             "s5": "New Students",
             "s6": "Enrollments by Status",
             "s7": "New Students by Center",
-            "s8": "Center breakdown is only available for platform-level analytics."
+            "s8": "Center breakdown is only available for platform-level analytics.",
+            "newRegistrations": "New Registrations",
+            "enrollmentStatusOverTime": "Enrollment Status Over Time",
+            "learnersByCenter": "Learners by Center"
           },
           "analyticsdevicesrequestspanel": {
             "s1": "Devices & requests analytics unavailable",
@@ -4860,7 +4874,11 @@
             "s9": "Extra View Requests",
             "s10": "Approval Rate",
             "s11": "Avg Decision Hours",
-            "s12": "Enrollment Requests"
+            "s12": "Enrollment Requests",
+            "approvalRate": "Approval Rate",
+            "avgDecision": "Avg. Decision Time",
+            "deviceRegistrations": "Device Registrations",
+            "extraViewsOverTime": "Extra Views Over Time"
           }
         }
       },

@@ -3075,7 +3075,10 @@
     "analytics": {
       "title": "التحليلات",
       "description": "عرض تحليلات وتقارير المنصة",
-      "dashboardDescription": "تتبع الأداء عبر الدورات والمتعلمين والأجهزة والوسائط."
+      "dashboardDescription": "تتبع الأداء عبر الدورات والمتعلمين والأجهزة والوسائط.",
+      "sectionCoursesMedia": "الدورات والوسائط",
+      "sectionLearnersEnrollments": "المتعلمون والتسجيلات",
+      "sectionDevicesRequests": "الأجهزة والطلبات"
     },
     "agents": {
       "title": "الوكلاء",
@@ -4814,7 +4817,10 @@
             "s5": "Total Courses",
             "s6": "Daily Active Learners",
             "s7": "Centers by Type",
-            "s8": "Courses & Enrollments"
+            "s8": "Courses & Enrollments",
+            "enrollmentTrend": "اتجاه التسجيلات",
+            "activeLearnersTrend": "اتجاه المتعلمين النشطين",
+            "coursesCreated": "الدورات المنشأة"
           },
           "analyticsfiltersbar": {
             "s1": "Live updates",
@@ -4828,14 +4834,19 @@
             "s3": "Courses by Status",
             "s4": "Media Upload Status",
             "s5": "Top Courses by Enrollments",
-            "s6": "No top courses data in this range."
+            "s6": "No top courses data in this range.",
+            "readyToPublish": "جاهز للنشر",
+            "blockedByMedia": "محظور بسبب الوسائط",
+            "totalVideos": "إجمالي الفيديوهات",
+            "totalPdfs": "إجمالي ملفات PDF"
           },
           "charts": {
             "analyticsdonutchart": {
               "s1": "No chart data"
             },
             "analyticsbarchart": {
-              "s1": "No chart data"
+              "s1": "No chart data",
+              "noDataForPeriod": "لا توجد بيانات لهذه الفترة"
             }
           },
           "analyticslearnersenrollmentspanel": {
@@ -4846,7 +4857,10 @@
             "s5": "New Students",
             "s6": "Enrollments by Status",
             "s7": "New Students by Center",
-            "s8": "Center breakdown is only available for platform-level analytics."
+            "s8": "Center breakdown is only available for platform-level analytics.",
+            "newRegistrations": "التسجيلات الجديدة",
+            "enrollmentStatusOverTime": "حالة التسجيل عبر الوقت",
+            "learnersByCenter": "المتعلمون حسب المركز"
           },
           "analyticsdevicesrequestspanel": {
             "s1": "Devices & requests analytics unavailable",
@@ -4860,7 +4874,11 @@
             "s9": "Extra View Requests",
             "s10": "Approval Rate",
             "s11": "Avg Decision Hours",
-            "s12": "Enrollment Requests"
+            "s12": "Enrollment Requests",
+            "approvalRate": "معدل الموافقة",
+            "avgDecision": "متوسط وقت القرار",
+            "deviceRegistrations": "تسجيلات الأجهزة",
+            "extraViewsOverTime": "المشاهدات الإضافية عبر الوقت"
           }
         }
       },

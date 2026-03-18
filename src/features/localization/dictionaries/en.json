@@ -152,7 +152,11 @@
     },
     "backToCenters": "Back to Centers",
     "najaahAdmin": "Najaah Admin",
+    "collapseSidebar": "Collapse menu",
+    "expandSidebar": "Expand menu",
     "closeSidebarAriaLabel": "Close sidebar",
+    "collapseSidebarAriaLabel": "Collapse sidebar",
+    "expandSidebarAriaLabel": "Expand sidebar",
     "centerLogoAriaLabel": "{name} logo",
     "centerWithId": "Center {id}"
   },

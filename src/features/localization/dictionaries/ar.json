@@ -152,7 +152,11 @@
     },
     "backToCenters": "العودة إلى المراكز",
     "najaahAdmin": "نجاح للإدارة",
+    "collapseSidebar": "طي القائمة",
+    "expandSidebar": "توسيع القائمة",
     "closeSidebarAriaLabel": "إغلاق الشريط الجانبي",
+    "collapseSidebarAriaLabel": "طي الشريط الجانبي",
+    "expandSidebarAriaLabel": "توسيع الشريط الجانبي",
     "centerLogoAriaLabel": "شعار {name}",
     "centerWithId": "المركز {id}"
   },

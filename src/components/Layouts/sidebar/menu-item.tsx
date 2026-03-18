@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
+import { useLocale } from "@/features/localization";
 import { useSidebarContext } from "./sidebar-context";
 
 const menuItemBaseStyles = cva(
@@ -27,6 +28,8 @@ export function MenuItem(
   } & ({ as?: "button"; onClick: () => void } | { as: "link"; href: string }),
 ) {
   const { closeSidebar, isMobile } = useSidebarContext();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
 
   if (props.as === "link") {
     return (
@@ -36,7 +39,7 @@ export function MenuItem(
         className={cn(
           menuItemBaseStyles({
             isActive: props.isActive,
-            className: "relative block",
+            className: cn("relative block", isRtl ? "text-right" : "text-left"),
           }),
           props.className,
         )}
@@ -52,7 +55,10 @@ export function MenuItem(
       aria-expanded={props.isActive}
       className={menuItemBaseStyles({
         isActive: props.isActive,
-        className: "flex w-full items-center gap-3",
+        className: cn(
+          "flex w-full items-center justify-between gap-3",
+          isRtl ? "text-right" : "text-left",
+        ),
       })}
     >
       {props.children}

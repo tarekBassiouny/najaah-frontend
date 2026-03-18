@@ -3,11 +3,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import { hasCapability, type Capability } from "@/lib/capabilities";
 import { getAuthPermissions } from "@/lib/auth-state";
 import { cn } from "@/lib/utils";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { ChevronUp, ArrowLeftIcon, type PropsType } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
@@ -86,6 +97,7 @@ type SidebarItemLabelProps = {
   badge?: string;
   badgeKey?: string;
   t: (_key: string) => string;
+  isRtl: boolean;
 };
 
 function SidebarItemLabel({
@@ -94,12 +106,18 @@ function SidebarItemLabel({
   badge,
   badgeKey,
   t,
+  isRtl,
 }: SidebarItemLabelProps) {
   const displayTitle = t(titleKey) || title;
   const displayBadge = badgeKey ? t(badgeKey) || badge : badge;
 
   return (
-    <span className="flex items-center gap-2">
+    <span
+      className={cn(
+        "flex items-center gap-2",
+        isRtl ? "text-right" : "text-left",
+      )}
+    >
       <span>{displayTitle}</span>
       {displayBadge ? (
         <Badge
@@ -113,11 +131,310 @@ function SidebarItemLabel({
   );
 }
 
+function getCompactItemClassName(isActive: boolean) {
+  return cn(
+    "relative flex h-11 w-11 items-center justify-center rounded-2xl border transition-all duration-150",
+    isActive
+      ? "border-primary/20 bg-primary/10 text-primary shadow-sm dark:border-primary/30 dark:bg-primary/15"
+      : "border-transparent text-gray-500 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:bg-gray-800 dark:hover:text-white",
+  );
+}
+
+type SidebarTooltipProps = {
+  label: string;
+  side: "left" | "right" | "bottom";
+  children: ReactNode;
+};
+
+function SidebarTooltip({ label, side, children }: SidebarTooltipProps) {
+  const tooltipId = useId();
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const updatePosition = useMemo(
+    () => () => {
+      const trigger = triggerRef.current;
+      const tooltip = tooltipRef.current;
+
+      if (!trigger || !tooltip) return;
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const gap = 12;
+
+      let top =
+        triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
+      let left =
+        side === "right"
+          ? triggerRect.right + gap
+          : triggerRect.left - tooltipRect.width - gap;
+
+      if (side === "bottom") {
+        top = triggerRect.bottom + gap;
+        left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+      }
+
+      top = Math.max(
+        8,
+        Math.min(top, window.innerHeight - tooltipRect.height - 8),
+      );
+      left = Math.max(
+        8,
+        Math.min(left, window.innerWidth - tooltipRect.width - 8),
+      );
+
+      setPosition({ top, left });
+    },
+    [side],
+  );
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [isOpen, updatePosition]);
+
+  return (
+    <span
+      ref={triggerRef}
+      className="inline-flex"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+      onFocus={() => setIsOpen(true)}
+      onBlur={() => setIsOpen(false)}
+    >
+      {children}
+
+      {isOpen
+        ? createPortal(
+            <div
+              id={tooltipId}
+              ref={tooltipRef}
+              role="tooltip"
+              className="pointer-events-none fixed z-[120] rounded-xl bg-gray-950 px-3 py-2 text-xs font-medium text-white shadow-lg shadow-gray-950/20 dark:bg-white dark:text-gray-900 dark:shadow-black/20"
+              style={{ top: position.top, left: position.left }}
+            >
+              {label}
+            </div>,
+            document.body,
+          )
+        : null}
+    </span>
+  );
+}
+
+type SidebarCollapsedLinkProps = {
+  href: string;
+  title: string;
+  icon?: ComponentType<PropsType>;
+  isActive: boolean;
+  isRtl: boolean;
+  tooltipSide: "left" | "right";
+};
+
+function SidebarCollapsedLink({
+  href,
+  title,
+  icon: Icon,
+  isActive,
+  isRtl,
+  tooltipSide,
+}: SidebarCollapsedLinkProps) {
+  return (
+    <SidebarTooltip label={title} side={tooltipSide}>
+      <Link
+        href={href}
+        aria-label={title}
+        className={getCompactItemClassName(isActive)}
+      >
+        {Icon ? <Icon className="h-5 w-5" /> : <span>{title.charAt(0)}</span>}
+        {isActive ? (
+          <span
+            className={cn(
+              "absolute top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-primary",
+              isRtl ? "-left-1" : "-right-1",
+            )}
+          />
+        ) : null}
+      </Link>
+    </SidebarTooltip>
+  );
+}
+
+type SidebarCollapsedGroupProps = {
+  item: SidebarItem;
+  pathname: string;
+  t: (_key: string) => string;
+  isRtl: boolean;
+  tooltipSide: "left" | "right";
+};
+
+function SidebarCollapsedGroup({
+  item,
+  pathname,
+  t,
+  isRtl,
+  tooltipSide,
+}: SidebarCollapsedGroupProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const Icon = item.icon;
+  const title = t(item.titleKey) || item.title;
+  const isActive = item.items.some((subItem) =>
+    isPathActive(pathname, subItem.url),
+  );
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const flyoutRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false), {
+    ignore: (event) =>
+      Boolean(
+        triggerRef.current?.contains(event.target as Node | null) ?? false,
+      ),
+  });
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const updatePosition = useMemo(
+    () => () => {
+      const trigger = triggerRef.current;
+      const flyout = flyoutRef.current;
+
+      if (!trigger || !flyout) return;
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const flyoutRect = flyout.getBoundingClientRect();
+      const gap = 14;
+      const top = Math.max(
+        8,
+        Math.min(
+          triggerRect.top + triggerRect.height / 2 - flyoutRect.height / 2,
+          window.innerHeight - flyoutRect.height - 8,
+        ),
+      );
+      const left = Math.max(
+        8,
+        Math.min(
+          isRtl
+            ? triggerRect.left - flyoutRect.width - gap
+            : triggerRect.right + gap,
+          window.innerWidth - flyoutRect.width - 8,
+        ),
+      );
+
+      setPosition({ top, left });
+    },
+    [flyoutRef, isRtl],
+  );
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, updatePosition]);
+
+  return (
+    <>
+      <SidebarTooltip label={title} side={tooltipSide}>
+        <button
+          ref={triggerRef}
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className={getCompactItemClassName(isActive)}
+          aria-label={title}
+          aria-expanded={isOpen}
+          aria-haspopup="menu"
+        >
+          {Icon ? <Icon className="h-5 w-5" /> : <span>{title.charAt(0)}</span>}
+          <span
+            className={cn(
+              "absolute bottom-1 h-1.5 w-1.5 rounded-full bg-current opacity-50",
+              isRtl ? "left-1" : "right-1",
+            )}
+          />
+        </button>
+      </SidebarTooltip>
+
+      {isOpen
+        ? createPortal(
+            <div
+              ref={flyoutRef}
+              role="menu"
+              aria-label={title}
+              className="fixed z-[115] w-64 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl shadow-gray-200/60 dark:border-gray-800 dark:bg-gray-dark dark:shadow-black/25"
+              style={{ top: position.top, left: position.left }}
+            >
+              <div
+                className={cn(
+                  "px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500",
+                  isRtl ? "text-right" : "text-left",
+                )}
+              >
+                {title}
+              </div>
+
+              <ul className="space-y-1">
+                {item.items.map((subItem) => (
+                  <li key={subItem.title}>
+                    <Link
+                      href={subItem.url}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "block rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                        isPathActive(pathname, subItem.url)
+                          ? "bg-primary/10 text-primary dark:bg-primary/20"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white",
+                        isRtl ? "text-right" : "text-left",
+                      )}
+                    >
+                      {t(subItem.titleKey) || subItem.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
+  );
+}
+
 export function Sidebar({ sections }: SidebarProps) {
   const pathname = usePathname();
-  const { isOpen, isMobile, closeSidebar } = useSidebarContext();
+  const { isOpen, isMobile, isCollapsed, closeSidebar, toggleCollapse } =
+    useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const isRtl = locale === "ar";
   const {
     centerSlug: tenantCenterSlug,
     centerName: tenantCenterName,
@@ -231,6 +548,12 @@ export function Sidebar({ sections }: SidebarProps) {
     });
   }, [activeGroupTitles]);
 
+  const collapseToggleLabel = isCollapsed
+    ? t("sidebar.expandSidebar")
+    : t("sidebar.collapseSidebar");
+  const collapseTogglePointsRight = isCollapsed ? !isRtl : isRtl;
+  const railTooltipSide = isRtl ? "left" : "right";
+
   return (
     <>
       {isMobile && isOpen ? (
@@ -243,181 +566,454 @@ export function Sidebar({ sections }: SidebarProps) {
 
       <aside
         className={cn(
-          "max-w-[290px] shrink-0 overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark",
+          "max-w-[290px] shrink-0 overflow-hidden border-gray-200 bg-white transition-[width] duration-200 ease-linear dark:border-gray-800 dark:bg-gray-dark",
+          isRtl ? "border-l" : "border-r",
           isMobile ? "fixed bottom-0 top-0 z-50" : "sticky top-0 h-screen",
-          isMobile ? (isOpen ? "w-full" : "w-0") : "w-[290px]",
+          isMobile
+            ? isOpen
+              ? "w-full"
+              : "w-0"
+            : isCollapsed
+              ? "w-[88px]"
+              : "w-[290px]",
         )}
       >
-        <div className="flex h-full flex-col py-10 pl-[25px] pr-[7px]">
-          <div className="relative pr-4.5">
-            {centerId ? (
-              <div className="space-y-4">
-                {/* Only show "Back to Centers" for system admins */}
-                {userScope.isSystemAdmin && (
-                  <div className="flex items-center justify-between">
+        <div
+          className={cn(
+            "flex h-full flex-col py-10",
+            isCollapsed && !isMobile ? "px-4" : "pl-[25px] pr-[7px]",
+          )}
+        >
+          {!isMobile ? (
+            <div
+              className={cn(
+                "mb-4 flex",
+                isCollapsed ? "justify-center" : "justify-end",
+              )}
+            >
+              <SidebarTooltip
+                label={collapseToggleLabel}
+                side={isCollapsed ? railTooltipSide : "bottom"}
+              >
+                <button
+                  type="button"
+                  onClick={toggleCollapse}
+                  aria-label={collapseToggleLabel}
+                  className={cn(
+                    "group border-gray-200 text-gray-600 transition-all hover:border-primary/20 hover:bg-primary/5 hover:text-primary dark:border-gray-700 dark:text-gray-300 dark:hover:border-primary/30 dark:hover:bg-primary/10 dark:hover:text-primary",
+                    isCollapsed
+                      ? "flex h-11 w-11 items-center justify-center rounded-2xl border bg-white shadow-sm dark:bg-gray-dark"
+                      : cn(
+                          "inline-flex h-11 items-center gap-2 rounded-2xl border bg-gray-50/80 px-3 text-sm font-semibold shadow-sm dark:bg-gray-800/70",
+                          isRtl && "flex-row-reverse",
+                        ),
+                  )}
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-gray-500 transition-colors group-hover:text-primary dark:bg-gray-dark dark:text-gray-300">
+                    <ArrowLeftIcon
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        collapseTogglePointsRight && "rotate-180",
+                      )}
+                    />
+                  </span>
+                  {!isCollapsed ? (
+                    <span className="whitespace-nowrap">
+                      {collapseToggleLabel}
+                    </span>
+                  ) : null}
+                </button>
+              </SidebarTooltip>
+            </div>
+          ) : null}
+
+          {isCollapsed && !isMobile ? (
+            <>
+              <div className="flex flex-col items-center gap-3">
+                {centerId && userScope.isSystemAdmin ? (
+                  <SidebarTooltip
+                    label={t("sidebar.backToCenters")}
+                    side={railTooltipSide}
+                  >
                     <Link
                       href="/centers"
-                      className="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      aria-label={t("sidebar.backToCenters")}
+                      className={getCompactItemClassName(false)}
                     >
-                      <ArrowLeftIcon className="h-4 w-4" />
-                      {t("sidebar.backToCenters")}
+                      <ArrowLeftIcon
+                        className={cn("h-4 w-4", isRtl && "rotate-180")}
+                      />
+                    </Link>
+                  </SidebarTooltip>
+                ) : null}
+
+                {centerId ? (
+                  <SidebarTooltip
+                    label={centerName ?? t("common.labels.center")}
+                    side={railTooltipSide}
+                  >
+                    <Link
+                      href={`/centers/${centerId}`}
+                      aria-label={centerName ?? t("common.labels.center")}
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-200 bg-white text-sm font-semibold text-primary transition-colors hover:border-gray-300 dark:border-gray-700 dark:bg-gray-dark dark:hover:border-gray-600"
+                    >
+                      {(centerName ?? "C").charAt(0).toUpperCase()}
+                    </Link>
+                  </SidebarTooltip>
+                ) : isTenantSubdomainCenter ? (
+                  <SidebarTooltip
+                    label={subdomainCenterName}
+                    side={railTooltipSide}
+                  >
+                    <Link
+                      href="/dashboard"
+                      aria-label={subdomainCenterName}
+                      className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white text-sm font-semibold text-primary transition-colors hover:border-gray-300 dark:border-gray-700 dark:bg-gray-dark dark:hover:border-gray-600"
+                    >
+                      {subdomainCenterLogo ? (
+                        <div
+                          className="h-full w-full bg-cover bg-center bg-no-repeat"
+                          style={{
+                            backgroundImage: `url(${subdomainCenterLogo})`,
+                          }}
+                          role="img"
+                          aria-label={t("sidebar.centerLogoAriaLabel", {
+                            name: subdomainCenterName,
+                          })}
+                        />
+                      ) : (
+                        subdomainCenterName.charAt(0).toUpperCase()
+                      )}
+                    </Link>
+                  </SidebarTooltip>
+                ) : (
+                  <SidebarTooltip
+                    label={t("sidebar.najaahAdmin")}
+                    side={railTooltipSide}
+                  >
+                    <Link
+                      href="/dashboard"
+                      aria-label={t("sidebar.najaahAdmin")}
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary"
+                    >
+                      <Image
+                        src="/images/logo/logo-icon.svg"
+                        width={20}
+                        height={20}
+                        alt={t("header.logoAlt")}
+                        className="brightness-0 invert"
+                      />
+                    </Link>
+                  </SidebarTooltip>
+                )}
+              </div>
+
+              <nav className="custom-scrollbar mt-6 flex-1 overflow-y-auto">
+                {filteredSections.map((section, sectionIndex) => (
+                  <div
+                    key={section.label}
+                    className="flex flex-col items-center gap-2 pb-4"
+                  >
+                    {sectionIndex > 0 ? (
+                      <div className="my-2 h-px w-8 bg-gray-200 dark:bg-gray-800" />
+                    ) : null}
+
+                    {section.items.map((item) => {
+                      const hasChildren = item.items.length > 0;
+                      const isActive = hasChildren
+                        ? item.items.some((subItem) =>
+                            isPathActive(pathname, subItem.url),
+                          )
+                        : isPathActive(pathname, item.url);
+
+                      return hasChildren ? (
+                        <SidebarCollapsedGroup
+                          key={item.title}
+                          item={item}
+                          pathname={pathname}
+                          t={t}
+                          isRtl={isRtl}
+                          tooltipSide={railTooltipSide}
+                        />
+                      ) : (
+                        <SidebarCollapsedLink
+                          key={item.title}
+                          href={item.url || "/dashboard"}
+                          title={t(item.titleKey) || item.title}
+                          icon={item.icon}
+                          isActive={isActive}
+                          isRtl={isRtl}
+                          tooltipSide={railTooltipSide}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </nav>
+            </>
+          ) : (
+            <>
+              <div className={cn("relative", isMobile && "pr-4.5")}>
+                {centerId ? (
+                  <div className="space-y-4">
+                    {userScope.isSystemAdmin && (
+                      <div className="flex items-center justify-between">
+                        <Link
+                          href="/centers"
+                          className={cn(
+                            "flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white",
+                            isRtl && "text-right",
+                          )}
+                        >
+                          <ArrowLeftIcon
+                            className={cn("h-4 w-4", isRtl && "rotate-180")}
+                          />
+                          {t("sidebar.backToCenters")}
+                        </Link>
+
+                        {isMobile && (
+                          <button
+                            type="button"
+                            onClick={closeSidebar}
+                            className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                            aria-label={t("sidebar.closeSidebarAriaLabel")}
+                          >
+                            <ArrowLeftIcon className="size-6" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {userScope.isCenterAdmin && isMobile && (
+                      <div
+                        className={cn(
+                          "flex",
+                          isRtl ? "justify-start" : "justify-end",
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={closeSidebar}
+                          className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                          aria-label={t("sidebar.closeSidebarAriaLabel")}
+                        >
+                          <ArrowLeftIcon
+                            className={cn("size-6", isRtl && "rotate-180")}
+                          />
+                        </button>
+                      </div>
+                    )}
+
+                    <Link
+                      href={`/centers/${centerId}`}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+                        isRtl && "text-right",
+                      )}
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+                        {(centerName ?? "C").charAt(0).toUpperCase()}
+                      </div>
+                      <div className={cn("min-w-0", isRtl && "text-right")}>
+                        <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                          {t("common.labels.center")}
+                        </span>
+                        <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
+                          {centerName ?? t("common.labels.center")}
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
+                ) : isTenantSubdomainCenter ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+                        isRtl && "text-right",
+                      )}
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+                        {subdomainCenterLogo ? (
+                          <div
+                            className="h-full w-full bg-cover bg-center bg-no-repeat"
+                            style={{
+                              backgroundImage: `url(${subdomainCenterLogo})`,
+                            }}
+                            role="img"
+                            aria-label={t("sidebar.centerLogoAriaLabel", {
+                              name: subdomainCenterName,
+                            })}
+                          />
+                        ) : (
+                          subdomainCenterName.charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className={cn("min-w-0", isRtl && "text-right")}>
+                        <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                          {t("common.labels.center")}
+                        </span>
+                        <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
+                          {subdomainCenterName}
+                        </span>
+                      </div>
                     </Link>
 
                     {isMobile && (
                       <button
                         type="button"
                         onClick={closeSidebar}
-                        className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                        className="absolute right-4.5 top-1/2 -translate-y-1/2 text-right"
                         aria-label={t("sidebar.closeSidebarAriaLabel")}
                       >
-                        <ArrowLeftIcon className="size-6" />
+                        <ArrowLeftIcon className="ml-auto size-7" />
                       </button>
                     )}
-                  </div>
-                )}
-
-                {/* Mobile close button for center admins */}
-                {userScope.isCenterAdmin && isMobile && (
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={closeSidebar}
-                      className="text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                      aria-label={t("sidebar.closeSidebarAriaLabel")}
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className={cn(
+                        "flex items-center gap-2 px-0 py-2.5 min-[850px]:py-0",
+                        isRtl && "text-right",
+                      )}
                     >
-                      <ArrowLeftIcon className="size-6" />
-                    </button>
-                  </div>
-                )}
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                        <Image
+                          src="/images/logo/logo-icon.svg"
+                          width={20}
+                          height={20}
+                          alt={t("header.logoAlt")}
+                          className="brightness-0 invert"
+                        />
+                      </div>
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">
+                        {t("sidebar.najaahAdmin")}
+                      </span>
+                    </Link>
 
-                <Link
-                  href={`/centers/${centerId}`}
-                  className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">
-                    {(centerName ?? "C").charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                      {t("common.labels.center")}
-                    </span>
-                    <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
-                      {centerName ?? t("common.labels.center")}
-                    </span>
-                  </div>
-                </Link>
-              </div>
-            ) : isTenantSubdomainCenter ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-sm font-semibold text-primary">
-                    {subdomainCenterLogo ? (
-                      <div
-                        className="h-full w-full bg-cover bg-center bg-no-repeat"
-                        style={{
-                          backgroundImage: `url(${subdomainCenterLogo})`,
-                        }}
-                        role="img"
-                        aria-label={t("sidebar.centerLogoAriaLabel", {
-                          name: subdomainCenterName,
-                        })}
-                      />
-                    ) : (
-                      subdomainCenterName.charAt(0).toUpperCase()
+                    {isMobile && (
+                      <button
+                        type="button"
+                        onClick={closeSidebar}
+                        className="absolute right-4.5 top-1/2 -translate-y-1/2 text-right"
+                        aria-label={t("sidebar.closeSidebarAriaLabel")}
+                      >
+                        <ArrowLeftIcon className="ml-auto size-7" />
+                      </button>
                     )}
-                  </div>
-                  <div className="min-w-0">
-                    <span className="block text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                      {t("common.labels.center")}
-                    </span>
-                    <span className="block truncate text-base font-semibold text-gray-900 dark:text-white">
-                      {subdomainCenterName}
-                    </span>
-                  </div>
-                </Link>
-
-                {isMobile && (
-                  <button
-                    type="button"
-                    onClick={closeSidebar}
-                    className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
-                    aria-label={t("sidebar.closeSidebarAriaLabel")}
-                  >
-                    <ArrowLeftIcon className="ml-auto size-7" />
-                  </button>
+                  </>
                 )}
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 px-0 py-2.5 min-[850px]:py-0"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                    <Image
-                      src="/images/logo/logo-icon.svg"
-                      width={20}
-                      height={20}
-                      alt={t("header.logoAlt")}
-                      className="brightness-0 invert"
-                    />
-                  </div>
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">
-                    {t("sidebar.najaahAdmin")}
-                  </span>
-                </Link>
+              </div>
 
-                {isMobile && (
-                  <button
-                    type="button"
-                    onClick={closeSidebar}
-                    className="absolute left-3/4 right-4.5 top-1/2 -translate-y-1/2 text-right"
-                    aria-label={t("sidebar.closeSidebarAriaLabel")}
-                  >
-                    <ArrowLeftIcon className="ml-auto size-7" />
-                  </button>
+              <nav
+                className={cn(
+                  "custom-scrollbar mt-6 flex-1 overflow-y-auto min-[850px]:mt-10",
+                  isRtl ? "pl-3" : "pr-3",
                 )}
-              </>
-            )}
-          </div>
+              >
+                {filteredSections.map((section) => (
+                  <div key={section.label} className="mb-6">
+                    <h3
+                      className={cn(
+                        "mb-5 text-sm font-medium text-dark-4 dark:text-dark-6",
+                        isRtl ? "text-right" : "text-left",
+                      )}
+                    >
+                      {t(section.labelKey) || section.label}
+                    </h3>
 
-          <nav className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
-            {filteredSections.map((section) => (
-              <div key={section.label} className="mb-6">
-                <h3 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
-                  {t(section.labelKey) || section.label}
-                </h3>
+                    <ul className="space-y-2">
+                      {section.items.map((item) => {
+                        const Icon = item.icon;
+                        const hasChildren = item.items.length > 0;
+                        const isActive = hasChildren
+                          ? item.items.some((subItem) =>
+                              isPathActive(pathname, subItem.url),
+                            )
+                          : isPathActive(pathname, item.url);
+                        const isExpanded =
+                          expandedItems.includes(item.title) || isActive;
 
-                <ul className="space-y-2">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const hasChildren = item.items.length > 0;
-                    const isActive = hasChildren
-                      ? item.items.some((subItem) =>
-                          isPathActive(pathname, subItem.url),
-                        )
-                      : isPathActive(pathname, item.url);
-                    const isExpanded =
-                      expandedItems.includes(item.title) || isActive;
+                        if (hasChildren) {
+                          return (
+                            <li key={item.title}>
+                              <MenuItem
+                                as="button"
+                                isActive={isExpanded}
+                                onClick={() =>
+                                  setExpandedItems((prev) =>
+                                    prev.includes(item.title)
+                                      ? prev.filter((key) => key !== item.title)
+                                      : [...prev, item.title],
+                                  )
+                                }
+                              >
+                                <span
+                                  className={cn(
+                                    "flex items-center gap-3",
+                                    isRtl && "text-right",
+                                  )}
+                                >
+                                  {Icon ? <Icon className="h-5 w-5" /> : null}
+                                  <SidebarItemLabel
+                                    title={item.title}
+                                    titleKey={item.titleKey}
+                                    badge={item.badge}
+                                    badgeKey={item.badgeKey}
+                                    t={t}
+                                    isRtl={isRtl}
+                                  />
+                                </span>
+                                <ChevronUp
+                                  className={cn(
+                                    "h-4 w-4 shrink-0 transition-transform duration-200",
+                                    isExpanded ? "rotate-180" : "rotate-0",
+                                  )}
+                                />
+                              </MenuItem>
 
-                    if (hasChildren) {
-                      return (
-                        <li key={item.title}>
-                          <MenuItem
-                            as="button"
-                            isActive={isExpanded}
-                            onClick={() =>
-                              setExpandedItems((prev) =>
-                                prev.includes(item.title)
-                                  ? prev.filter((key) => key !== item.title)
-                                  : [...prev, item.title],
-                              )
-                            }
-                          >
-                            <span className="flex items-center gap-3">
+                              {isExpanded ? (
+                                <ul
+                                  className={cn(
+                                    "space-y-1.5 pb-[15px] pt-2",
+                                    isRtl
+                                      ? "mr-9 text-right"
+                                      : "ml-9 text-left",
+                                  )}
+                                >
+                                  {item.items.map((subItem) => (
+                                    <li key={subItem.title}>
+                                      <MenuItem
+                                        as="link"
+                                        href={subItem.url}
+                                        isActive={isPathActive(
+                                          pathname,
+                                          subItem.url,
+                                        )}
+                                      >
+                                        {t(subItem.titleKey) || subItem.title}
+                                      </MenuItem>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </li>
+                          );
+                        }
+
+                        return (
+                          <li key={item.title}>
+                            <MenuItem
+                              as="link"
+                              href={item.url || "/dashboard"}
+                              isActive={isActive}
+                              className={cn(
+                                "flex items-center gap-3",
+                                isRtl && "text-right",
+                              )}
+                            >
                               {Icon ? <Icon className="h-5 w-5" /> : null}
                               <SidebarItemLabel
                                 title={item.title}
@@ -425,62 +1021,18 @@ export function Sidebar({ sections }: SidebarProps) {
                                 badge={item.badge}
                                 badgeKey={item.badgeKey}
                                 t={t}
+                                isRtl={isRtl}
                               />
-                            </span>
-                            <ChevronUp
-                              className={cn(
-                                "ml-auto h-4 w-4 transition-transform duration-200",
-                                isExpanded ? "rotate-180" : "rotate-0",
-                              )}
-                            />
-                          </MenuItem>
-
-                          {isExpanded ? (
-                            <ul className="ml-9 mr-0 space-y-1.5 pb-[15px] pr-0 pt-2">
-                              {item.items.map((subItem) => (
-                                <li key={subItem.title}>
-                                  <MenuItem
-                                    as="link"
-                                    href={subItem.url}
-                                    isActive={isPathActive(
-                                      pathname,
-                                      subItem.url,
-                                    )}
-                                  >
-                                    {t(subItem.titleKey) || subItem.title}
-                                  </MenuItem>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : null}
-                        </li>
-                      );
-                    }
-
-                    return (
-                      <li key={item.title}>
-                        <MenuItem
-                          as="link"
-                          href={item.url || "/dashboard"}
-                          isActive={isActive}
-                          className="flex items-center gap-3"
-                        >
-                          {Icon ? <Icon className="h-5 w-5" /> : null}
-                          <SidebarItemLabel
-                            title={item.title}
-                            titleKey={item.titleKey}
-                            badge={item.badge}
-                            badgeKey={item.badgeKey}
-                            t={t}
-                          />
-                        </MenuItem>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </nav>
+                            </MenuItem>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </nav>
+            </>
+          )}
         </div>
       </aside>
     </>

@@ -63,7 +63,9 @@ export function AnalyticsCoursesMediaPanel({
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title={t("auto.features.analytics.components.analyticscoursesmediapanel.readyToPublish")}
+          title={t(
+            "auto.features.analytics.components.analyticscoursesmediapanel.readyToPublish",
+          )}
           value={data.courses.ready_to_publish}
           variant="success"
           animationDelay={0}
@@ -84,7 +86,9 @@ export function AnalyticsCoursesMediaPanel({
           }
         />
         <StatsCard
-          title={t("auto.features.analytics.components.analyticscoursesmediapanel.blockedByMedia")}
+          title={t(
+            "auto.features.analytics.components.analyticscoursesmediapanel.blockedByMedia",
+          )}
           value={data.courses.blocked_by_media}
           variant="warning"
           animationDelay={80}
@@ -105,7 +109,9 @@ export function AnalyticsCoursesMediaPanel({
           }
         />
         <StatsCard
-          title={t("auto.features.analytics.components.analyticscoursesmediapanel.totalVideos")}
+          title={t(
+            "auto.features.analytics.components.analyticscoursesmediapanel.totalVideos",
+          )}
           value={data.media.videos.total}
           variant="info"
           animationDelay={160}
@@ -126,7 +132,9 @@ export function AnalyticsCoursesMediaPanel({
           }
         />
         <StatsCard
-          title={t("auto.features.analytics.components.analyticscoursesmediapanel.totalPdfs")}
+          title={t(
+            "auto.features.analytics.components.analyticscoursesmediapanel.totalPdfs",
+          )}
           value={data.media.pdfs.total}
           variant="info"
           animationDelay={240}

@@ -103,21 +103,27 @@ export default function AnalyticsPage() {
         isError={overviewQuery.isError}
       />
 
-      <AnalyticsSectionHeader title="Courses & Media" />
+      <AnalyticsSectionHeader
+        title={t("pages.analytics.sectionCoursesMedia")}
+      />
       <AnalyticsCoursesMediaPanel
         data={coursesMediaQuery.data}
         isLoading={coursesMediaQuery.isLoading}
         isError={coursesMediaQuery.isError}
       />
 
-      <AnalyticsSectionHeader title="Learners & Enrollments" />
+      <AnalyticsSectionHeader
+        title={t("pages.analytics.sectionLearnersEnrollments")}
+      />
       <AnalyticsLearnersEnrollmentsPanel
         data={learnersQuery.data}
         isLoading={learnersQuery.isLoading}
         isError={learnersQuery.isError}
       />
 
-      <AnalyticsSectionHeader title="Devices & Requests" />
+      <AnalyticsSectionHeader
+        title={t("pages.analytics.sectionDevicesRequests")}
+      />
       <AnalyticsDevicesRequestsPanel
         data={devicesQuery.data}
         isLoading={devicesQuery.isLoading}

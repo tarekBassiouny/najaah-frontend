@@ -126,7 +126,7 @@ export function AnalyticsBarChart({
           />
         </svg>
         <span className="text-sm text-gray-400 dark:text-gray-500">
-          No data for this period
+          {t("auto.features.analytics.components.charts.analyticsbarchart.noDataForPeriod")}
         </span>
       </div>
     );

@@ -212,7 +212,7 @@ export function AnalyticsLearnersEnrollmentsPanel({
           {registrationTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>New Registrations</CardTitle>
+                <CardTitle>{t("auto.features.analytics.components.analyticslearnersenrollmentspanel.newRegistrations")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsAreaChart
@@ -226,7 +226,7 @@ export function AnalyticsLearnersEnrollmentsPanel({
           {enrollmentTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Enrollment Status Over Time</CardTitle>
+                <CardTitle>{t("auto.features.analytics.components.analyticslearnersenrollmentspanel.enrollmentStatusOverTime")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsStackedAreaChart
@@ -243,7 +243,7 @@ export function AnalyticsLearnersEnrollmentsPanel({
       {learners.by_center.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Learners by Center</CardTitle>
+            <CardTitle>{t("auto.features.analytics.components.analyticslearnersenrollmentspanel.learnersByCenter")}</CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsHorizontalBarChart

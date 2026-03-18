@@ -241,14 +241,14 @@ export function AnalyticsDevicesRequestsPanel({
             <div className="grid grid-cols-2 gap-4">
               <AnalyticsProgressGauge
                 value={Math.round(requests.extra_views.approval_rate * 100)}
-                label="Approval Rate"
+                label={t("auto.features.analytics.components.analyticsdevicesrequestspanel.approvalRate")}
                 color="#13c296"
                 height={160}
               />
               <div className="flex flex-col justify-center gap-3">
                 <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-800/50">
                   <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
-                    Avg Decision
+                    {t("auto.features.analytics.components.analyticsdevicesrequestspanel.avgDecision")}
                   </p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {requests.extra_views.avg_decision_hours.toFixed(1)}h
@@ -298,7 +298,7 @@ export function AnalyticsDevicesRequestsPanel({
           {deviceTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Device Registrations</CardTitle>
+                <CardTitle>{t("auto.features.analytics.components.analyticsdevicesrequestspanel.deviceRegistrations")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsAreaChart data={deviceTrendData} color="#3c50e0" />
@@ -309,7 +309,7 @@ export function AnalyticsDevicesRequestsPanel({
           {extraViewsTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Extra View Requests Over Time</CardTitle>
+                <CardTitle>{t("auto.features.analytics.components.analyticsdevicesrequestspanel.extraViewsOverTime")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsStackedAreaChart

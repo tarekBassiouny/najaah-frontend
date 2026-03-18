@@ -6,6 +6,7 @@ import { useTenant } from "@/app/tenant-provider";
 import { setTenantState } from "@/lib/tenant-store";
 import { useTranslation } from "@/features/localization";
 import { AnalyticsFiltersBar } from "@/features/analytics/components/AnalyticsFiltersBar";
+import { AnalyticsSectionHeader } from "@/features/analytics/components/AnalyticsSectionHeader";
 import { AnalyticsOverviewPanel } from "@/features/analytics/components/AnalyticsOverviewPanel";
 import { AnalyticsCoursesMediaPanel } from "@/features/analytics/components/AnalyticsCoursesMediaPanel";
 import { AnalyticsLearnersEnrollmentsPanel } from "@/features/analytics/components/AnalyticsLearnersEnrollmentsPanel";
@@ -77,7 +78,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title={t("pages.analytics.title")}
         description={t("pages.analytics.dashboardDescription")}
@@ -95,24 +96,28 @@ export default function AnalyticsPage() {
         isLoading={isLoadingAny}
       />
 
+      <AnalyticsSectionHeader title="Overview" />
       <AnalyticsOverviewPanel
         data={overviewQuery.data}
         isLoading={overviewQuery.isLoading}
         isError={overviewQuery.isError}
       />
 
+      <AnalyticsSectionHeader title="Courses & Media" />
       <AnalyticsCoursesMediaPanel
         data={coursesMediaQuery.data}
         isLoading={coursesMediaQuery.isLoading}
         isError={coursesMediaQuery.isError}
       />
 
+      <AnalyticsSectionHeader title="Learners & Enrollments" />
       <AnalyticsLearnersEnrollmentsPanel
         data={learnersQuery.data}
         isLoading={learnersQuery.isLoading}
         isError={learnersQuery.isError}
       />
 
+      <AnalyticsSectionHeader title="Devices & Requests" />
       <AnalyticsDevicesRequestsPanel
         data={devicesQuery.data}
         isLoading={devicesQuery.isLoading}

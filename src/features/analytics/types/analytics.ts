@@ -25,6 +25,30 @@ export type CenterLearnersMetric = {
   students: number;
 };
 
+/* ── Trend data points (Phase 1 & 3 & 4) ─────────────────────────── */
+
+export type TimeSeriesPoint = {
+  date: string;
+  count: number;
+};
+
+export type StatusTimeSeriesPoint = {
+  date: string;
+  active: number;
+  pending: number;
+  cancelled?: number;
+  deactivated?: number;
+};
+
+export type RequestTimeSeriesPoint = {
+  date: string;
+  pending: number;
+  approved: number;
+  rejected: number;
+};
+
+/* ── Overview ─────────────────────────────────────────────────────── */
+
 export type AnalyticsOverviewMetrics = {
   total_centers: number;
   active_centers: number;
@@ -39,10 +63,32 @@ export type AnalyticsOverviewMetrics = {
   daily_active_learners: number;
 };
 
+/** Phase 2 — period comparison for trend arrows on stats cards */
+export type AnalyticsOverviewPreviousPeriod = {
+  total_centers?: number;
+  active_centers?: number;
+  total_courses?: number;
+  published_courses?: number;
+  total_enrollments?: number;
+  active_enrollments?: number;
+  daily_active_learners?: number;
+};
+
+/** Phase 1 — daily trend lines */
+export type AnalyticsOverviewTrends = {
+  enrollments_over_time?: TimeSeriesPoint[];
+  active_learners_over_time?: TimeSeriesPoint[];
+  courses_created_over_time?: TimeSeriesPoint[];
+};
+
 export type AnalyticsOverview = {
   meta: AnalyticsMeta;
   overview: AnalyticsOverviewMetrics;
+  trends?: AnalyticsOverviewTrends;
+  previous_period?: AnalyticsOverviewPreviousPeriod;
 };
+
+/* ── Courses & Media ──────────────────────────────────────────────── */
 
 export type AnalyticsCoursesMedia = {
   meta: AnalyticsMeta;
@@ -85,6 +131,18 @@ export type AnalyticsCoursesMedia = {
   };
 };
 
+/* ── Learners & Enrollments ───────────────────────────────────────── */
+
+/** Phase 3 — enrollment trend data */
+export type EnrollmentTrends = {
+  over_time?: StatusTimeSeriesPoint[];
+};
+
+/** Phase 3 — learner registration trend */
+export type LearnerTrends = {
+  registrations_over_time?: TimeSeriesPoint[];
+};
+
 export type AnalyticsLearnersEnrollments = {
   meta: AnalyticsMeta;
   learners: {
@@ -92,6 +150,7 @@ export type AnalyticsLearnersEnrollments = {
     active_students: number;
     new_students: number;
     by_center: CenterLearnersMetric[];
+    trends?: LearnerTrends;
   };
   enrollments: {
     by_status: {
@@ -101,7 +160,19 @@ export type AnalyticsLearnersEnrollments = {
       cancelled: number;
     };
     top_courses: TopCourseMetric[];
+    trends?: EnrollmentTrends;
   };
+};
+
+/* ── Devices & Requests ───────────────────────────────────────────── */
+
+/** Phase 4 — device & request trend data */
+export type DeviceTrends = {
+  registrations_over_time?: TimeSeriesPoint[];
+};
+
+export type ExtraViewsTrends = {
+  over_time?: RequestTimeSeriesPoint[];
 };
 
 export type AnalyticsDevicesRequests = {
@@ -122,6 +193,7 @@ export type AnalyticsDevicesRequests = {
         admin: number;
       };
     };
+    trends?: DeviceTrends;
   };
   requests: {
     extra_views: {
@@ -130,6 +202,7 @@ export type AnalyticsDevicesRequests = {
       rejected: number;
       approval_rate: number;
       avg_decision_hours: number;
+      trends?: ExtraViewsTrends;
     };
     enrollment: {
       pending: number;

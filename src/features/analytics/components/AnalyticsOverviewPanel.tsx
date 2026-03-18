@@ -290,7 +290,11 @@ export function AnalyticsOverviewPanel({
           {enrollmentTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>{t("auto.features.analytics.components.analyticsoverviewpanel.enrollmentTrend")}</CardTitle>
+                <CardTitle>
+                  {t(
+                    "auto.features.analytics.components.analyticsoverviewpanel.enrollmentTrend",
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsAreaChart
@@ -304,7 +308,11 @@ export function AnalyticsOverviewPanel({
           {learnerTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>{t("auto.features.analytics.components.analyticsoverviewpanel.activeLearnersTrend")}</CardTitle>
+                <CardTitle>
+                  {t(
+                    "auto.features.analytics.components.analyticsoverviewpanel.activeLearnersTrend",
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsAreaChart data={learnerTrendData} color="#13c296" />
@@ -315,7 +323,11 @@ export function AnalyticsOverviewPanel({
           {coursesTrendData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>{t("auto.features.analytics.components.analyticsoverviewpanel.coursesCreated")}</CardTitle>
+                <CardTitle>
+                  {t(
+                    "auto.features.analytics.components.analyticsoverviewpanel.coursesCreated",
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <AnalyticsAreaChart data={coursesTrendData} color="#0ea5e9" />

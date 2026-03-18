@@ -3076,6 +3076,7 @@
       "title": "Analytics",
       "description": "View platform analytics and reports",
       "dashboardDescription": "Track performance across courses, learners, devices, and media.",
+      "sectionOverview": "Overview",
       "sectionCoursesMedia": "Courses & Media",
       "sectionLearnersEnrollments": "Learners & Enrollments",
       "sectionDevicesRequests": "Devices & Requests"
@@ -4818,15 +4819,28 @@
             "s6": "Daily Active Learners",
             "s7": "Centers by Type",
             "s8": "Courses & Enrollments",
+            "branded": "Branded",
+            "unbranded": "Unbranded",
+            "noCenters": "No centers",
+            "published": "Published",
+            "unpublished": "Unpublished",
             "enrollmentTrend": "Enrollment Trend",
             "activeLearnersTrend": "Active Learners Trend",
             "coursesCreated": "Courses Created"
           },
           "analyticsfiltersbar": {
+            "title": "Filters",
+            "updating": "Updating",
+            "reset": "Reset",
             "s1": "Live updates",
             "s2": "From date",
             "s3": "To date",
-            "s4": "End date must be the same as or later than the start date."
+            "s4": "End date must be the same as or later than the start date.",
+            "presets": {
+              "today": "Today",
+              "last7": "Last 7 days",
+              "last30": "Last 30 days"
+            }
           },
           "analyticscoursesmediapanel": {
             "s1": "Courses & media analytics unavailable",
@@ -4838,7 +4852,17 @@
             "readyToPublish": "Ready to Publish",
             "blockedByMedia": "Blocked by Media",
             "totalVideos": "Total Videos",
-            "totalPdfs": "Total PDFs"
+            "totalPdfs": "Total PDFs",
+            "draft": "Draft",
+            "uploading": "Uploading",
+            "ready": "Ready",
+            "published": "Published",
+            "archived": "Archived",
+            "videos": "Videos",
+            "pdfs": "PDFs",
+            "pending": "Pending",
+            "processing": "Processing",
+            "courseWithId": "Course #{id}"
           },
           "charts": {
             "analyticsdonutchart": {
@@ -4856,8 +4880,14 @@
             "s4": "Active Students",
             "s5": "New Students",
             "s6": "Enrollments by Status",
-            "s7": "New Students by Center",
-            "s8": "Center breakdown is only available for platform-level analytics.",
+            "s7": "Top Courses by Enrollments",
+            "s8": "No top course data in this range.",
+            "active": "Active",
+            "pending": "Pending",
+            "deactivated": "Deactivated",
+            "cancelled": "Cancelled",
+            "courseWithId": "Course #{id}",
+            "defaultAppName": "Najaah App",
             "newRegistrations": "New Registrations",
             "enrollmentStatusOverTime": "Enrollment Status Over Time",
             "learnersByCenter": "Learners by Center"
@@ -4875,6 +4905,13 @@
             "s10": "Approval Rate",
             "s11": "Avg Decision Hours",
             "s12": "Enrollment Requests",
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "preApproved": "Pre-approved",
+            "mobile": "Mobile",
+            "otp": "OTP",
+            "admin": "Admin",
             "approvalRate": "Approval Rate",
             "avgDecision": "Avg. Decision Time",
             "deviceRegistrations": "Device Registrations",
@@ -4972,7 +5009,9 @@
             "s14": "Cancel"
           },
           "centerpicker": {
-            "s1": "No centers found"
+            "s1": "No centers found",
+            "allCenters": "All Centers",
+            "searchPlaceholder": "Search centers..."
           },
           "deletecenterdialog": {
             "s1": "Delete Center"

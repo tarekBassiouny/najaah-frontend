@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 import { AnalyticsDonutChart } from "./charts/AnalyticsDonutChart";
-import { AnalyticsHorizontalBarChart } from "./charts/AnalyticsHorizontalBarChart";
+import { AnalyticsRankedList } from "./AnalyticsRankedList";
 import { AnalyticsAreaChart } from "./charts/AnalyticsAreaChart";
 import { AnalyticsStackedAreaChart } from "./charts/AnalyticsStackedAreaChart";
 import type { AnalyticsLearnersEnrollments } from "@/features/analytics/types/analytics";
@@ -18,18 +18,45 @@ type AnalyticsLearnersEnrollmentsPanelProps = {
   isError?: boolean;
 };
 
-const ENROLLMENT_STATUS_SERIES = [
-  { key: "active", label: "Active", color: "#13c296" },
-  { key: "pending", label: "Pending", color: "#f59e0b" },
-  { key: "cancelled", label: "Cancelled", color: "#ef4444" },
-];
-
 export function AnalyticsLearnersEnrollmentsPanel({
   data,
   isLoading,
   isError,
 }: AnalyticsLearnersEnrollmentsPanelProps) {
   const { t } = useTranslation();
+
+  const enrollmentStatusSeries = useMemo(
+    () => [
+      {
+        key: "active",
+        label:
+          data?.labels?.enrollment_status?.active ??
+          t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.active",
+          ),
+        color: "#13c296",
+      },
+      {
+        key: "pending",
+        label:
+          data?.labels?.enrollment_status?.pending ??
+          t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.pending",
+          ),
+        color: "#f59e0b",
+      },
+      {
+        key: "cancelled",
+        label:
+          data?.labels?.enrollment_status?.cancelled ??
+          t(
+            "auto.features.analytics.components.analyticslearnersenrollmentspanel.cancelled",
+          ),
+        color: "#ef4444",
+      },
+    ],
+    [data?.labels?.enrollment_status, t],
+  );
 
   /* Phase 3 — trend data */
   const registrationTrendData = useMemo(
@@ -71,7 +98,12 @@ export function AnalyticsLearnersEnrollmentsPanel({
       <div className="grid gap-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <StatsCard key={i} title="Loading" value="-" loading />
+            <StatsCard
+              key={i}
+              title={t("common.actions.loading")}
+              value="-"
+              loading
+            />
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
@@ -83,14 +115,18 @@ export function AnalyticsLearnersEnrollmentsPanel({
   }
 
   const { learners, enrollments } = data;
+  const labels = data.labels ?? {};
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s3",
-          )}
+          title={
+            labels.total_students ??
+            t(
+              "auto.features.analytics.components.analyticslearnersenrollmentspanel.s3",
+            )
+          }
           value={learners.total_students}
           variant="info"
           animationDelay={0}
@@ -111,9 +147,12 @@ export function AnalyticsLearnersEnrollmentsPanel({
           }
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s4",
-          )}
+          title={
+            labels.active_students ??
+            t(
+              "auto.features.analytics.components.analyticslearnersenrollmentspanel.s4",
+            )
+          }
           value={learners.active_students}
           variant="success"
           animationDelay={80}
@@ -134,9 +173,12 @@ export function AnalyticsLearnersEnrollmentsPanel({
           }
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticslearnersenrollmentspanel.s5",
-          )}
+          title={
+            labels.new_students ??
+            t(
+              "auto.features.analytics.components.analyticslearnersenrollmentspanel.s5",
+            )
+          }
           value={learners.new_students}
           variant="warning"
           animationDelay={160}
@@ -170,7 +212,24 @@ export function AnalyticsLearnersEnrollmentsPanel({
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
-              labels={["Active", "Pending", "Deactivated", "Cancelled"]}
+              labels={[
+                labels.enrollment_status?.active ??
+                  t(
+                    "auto.features.analytics.components.analyticslearnersenrollmentspanel.active",
+                  ),
+                labels.enrollment_status?.pending ??
+                  t(
+                    "auto.features.analytics.components.analyticslearnersenrollmentspanel.pending",
+                  ),
+                labels.enrollment_status?.deactivated ??
+                  t(
+                    "auto.features.analytics.components.analyticslearnersenrollmentspanel.deactivated",
+                  ),
+                labels.enrollment_status?.cancelled ??
+                  t(
+                    "auto.features.analytics.components.analyticslearnersenrollmentspanel.cancelled",
+                  ),
+              ]}
               values={[
                 enrollments.by_status.active,
                 enrollments.by_status.pending,
@@ -192,9 +251,14 @@ export function AnalyticsLearnersEnrollmentsPanel({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <AnalyticsHorizontalBarChart
+            <AnalyticsRankedList
               items={enrollments.top_courses.slice(0, 8).map((row) => ({
-                label: row.title ?? `Course #${row.course_id}`,
+                label:
+                  row.title ??
+                  t(
+                    "auto.features.analytics.components.analyticslearnersenrollmentspanel.courseWithId",
+                    { id: row.course_id },
+                  ),
                 value: row.enrollments,
               }))}
               color="#3c50e0"
@@ -239,7 +303,7 @@ export function AnalyticsLearnersEnrollmentsPanel({
               <CardContent>
                 <AnalyticsStackedAreaChart
                   data={enrollmentTrendData}
-                  series={ENROLLMENT_STATUS_SERIES}
+                  series={enrollmentStatusSeries}
                 />
               </CardContent>
             </Card>
@@ -258,12 +322,15 @@ export function AnalyticsLearnersEnrollmentsPanel({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <AnalyticsHorizontalBarChart
+            <AnalyticsRankedList
               items={learners.by_center.slice(0, 8).map((row) => ({
                 label:
                   row.center_id != null
-                    ? `Center ${row.center_id}`
-                    : "Najaah App",
+                    ? t("common.centerWithId", { id: row.center_id })
+                    : (labels.default_app_name ??
+                      t(
+                        "auto.features.analytics.components.analyticslearnersenrollmentspanel.defaultAppName",
+                      )),
                 value: row.students,
               }))}
               color="#f59e0b"

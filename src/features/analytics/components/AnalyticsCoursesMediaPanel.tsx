@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsCard } from "@/components/ui/stats-card";
 import { AnalyticsDonutChart } from "./charts/AnalyticsDonutChart";
-import { AnalyticsHorizontalBarChart } from "./charts/AnalyticsHorizontalBarChart";
+import { AnalyticsRankedList } from "./AnalyticsRankedList";
 import type { AnalyticsCoursesMedia } from "@/features/analytics/types/analytics";
 import { useTranslation } from "@/features/localization";
 
@@ -44,7 +44,12 @@ export function AnalyticsCoursesMediaPanel({
       <div className="grid gap-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <StatsCard key={i} title="Loading" value="-" loading />
+            <StatsCard
+              key={i}
+              title={t("common.actions.loading")}
+              value="-"
+              loading
+            />
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
@@ -55,6 +60,7 @@ export function AnalyticsCoursesMediaPanel({
     );
   }
 
+  const labels = data.labels ?? {};
   const courseStatus = data.courses.by_status;
   const videoStatus = data.media.videos.by_upload_status;
   const pdfStatus = data.media.pdfs.by_upload_status;
@@ -63,9 +69,12 @@ export function AnalyticsCoursesMediaPanel({
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticscoursesmediapanel.readyToPublish",
-          )}
+          title={
+            labels.ready_to_publish ??
+            t(
+              "auto.features.analytics.components.analyticscoursesmediapanel.readyToPublish",
+            )
+          }
           value={data.courses.ready_to_publish}
           variant="success"
           animationDelay={0}
@@ -86,9 +95,12 @@ export function AnalyticsCoursesMediaPanel({
           }
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticscoursesmediapanel.blockedByMedia",
-          )}
+          title={
+            labels.blocked_by_media ??
+            t(
+              "auto.features.analytics.components.analyticscoursesmediapanel.blockedByMedia",
+            )
+          }
           value={data.courses.blocked_by_media}
           variant="warning"
           animationDelay={80}
@@ -168,7 +180,28 @@ export function AnalyticsCoursesMediaPanel({
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
-              labels={["Draft", "Uploading", "Ready", "Published", "Archived"]}
+              labels={[
+                labels.course_status?.draft ??
+                  t(
+                    "auto.features.analytics.components.analyticscoursesmediapanel.draft",
+                  ),
+                labels.course_status?.uploading ??
+                  t(
+                    "auto.features.analytics.components.analyticscoursesmediapanel.uploading",
+                  ),
+                labels.course_status?.ready ??
+                  t(
+                    "auto.features.analytics.components.analyticscoursesmediapanel.ready",
+                  ),
+                labels.course_status?.published ??
+                  t(
+                    "auto.features.analytics.components.analyticscoursesmediapanel.published",
+                  ),
+                labels.course_status?.archived ??
+                  t(
+                    "auto.features.analytics.components.analyticscoursesmediapanel.archived",
+                  ),
+              ]}
               values={[
                 courseStatus.draft,
                 courseStatus.uploading,
@@ -193,10 +226,26 @@ export function AnalyticsCoursesMediaPanel({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="mb-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
-                  Videos
+                  {labels.media_types?.videos ??
+                    t(
+                      "auto.features.analytics.components.analyticscoursesmediapanel.videos",
+                    )}
                 </p>
                 <AnalyticsDonutChart
-                  labels={["Pending", "Processing", "Ready"]}
+                  labels={[
+                    labels.media_status?.pending ??
+                      t(
+                        "auto.features.analytics.components.analyticscoursesmediapanel.pending",
+                      ),
+                    labels.media_status?.processing ??
+                      t(
+                        "auto.features.analytics.components.analyticscoursesmediapanel.processing",
+                      ),
+                    labels.media_status?.ready ??
+                      t(
+                        "auto.features.analytics.components.analyticscoursesmediapanel.ready",
+                      ),
+                  ]}
                   values={[
                     videoStatus.pending + videoStatus.uploading,
                     videoStatus.processing,
@@ -208,10 +257,26 @@ export function AnalyticsCoursesMediaPanel({
               </div>
               <div>
                 <p className="mb-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
-                  PDFs
+                  {labels.media_types?.pdfs ??
+                    t(
+                      "auto.features.analytics.components.analyticscoursesmediapanel.pdfs",
+                    )}
                 </p>
                 <AnalyticsDonutChart
-                  labels={["Pending", "Processing", "Ready"]}
+                  labels={[
+                    labels.media_status?.pending ??
+                      t(
+                        "auto.features.analytics.components.analyticscoursesmediapanel.pending",
+                      ),
+                    labels.media_status?.processing ??
+                      t(
+                        "auto.features.analytics.components.analyticscoursesmediapanel.processing",
+                      ),
+                    labels.media_status?.ready ??
+                      t(
+                        "auto.features.analytics.components.analyticscoursesmediapanel.ready",
+                      ),
+                  ]}
                   values={[
                     pdfStatus.pending,
                     pdfStatus.processing,
@@ -230,15 +295,21 @@ export function AnalyticsCoursesMediaPanel({
       <Card>
         <CardHeader>
           <CardTitle>
-            {t(
-              "auto.features.analytics.components.analyticscoursesmediapanel.s5",
-            )}
+            {labels.top_by_enrollments ??
+              t(
+                "auto.features.analytics.components.analyticscoursesmediapanel.s5",
+              )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <AnalyticsHorizontalBarChart
+          <AnalyticsRankedList
             items={data.courses.top_by_enrollments.slice(0, 8).map((row) => ({
-              label: row.title ?? `Course #${row.course_id}`,
+              label:
+                row.title ??
+                t(
+                  "auto.features.analytics.components.analyticscoursesmediapanel.courseWithId",
+                  { id: row.course_id },
+                ),
               value: row.enrollments,
             }))}
             color="#3c50e0"

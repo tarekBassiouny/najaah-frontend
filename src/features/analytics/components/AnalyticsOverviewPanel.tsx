@@ -150,7 +150,12 @@ export function AnalyticsOverviewPanel({
       <div className="grid gap-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <StatsCard key={i} title="Loading" value="-" loading />
+            <StatsCard
+              key={i}
+              title={t("common.actions.loading")}
+              value="-"
+              loading
+            />
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
@@ -162,6 +167,7 @@ export function AnalyticsOverviewPanel({
   }
 
   const overview = data.overview;
+  const labels = data.labels ?? {};
   const unpublishedCourses =
     overview.total_courses - overview.published_courses;
 
@@ -169,9 +175,10 @@ export function AnalyticsOverviewPanel({
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsoverviewpanel.s3",
-          )}
+          title={
+            labels.total_centers ??
+            t("auto.features.analytics.components.analyticsoverviewpanel.s3")
+          }
           value={overview.total_centers}
           variant="info"
           icon={<BuildingIcon />}
@@ -179,9 +186,10 @@ export function AnalyticsOverviewPanel({
           trend={computeTrend(overview.total_centers, prev?.total_centers)}
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsoverviewpanel.s4",
-          )}
+          title={
+            labels.active_centers ??
+            t("auto.features.analytics.components.analyticsoverviewpanel.s4")
+          }
           value={overview.active_centers}
           variant="success"
           icon={<CheckBadgeIcon />}
@@ -189,9 +197,10 @@ export function AnalyticsOverviewPanel({
           trend={computeTrend(overview.active_centers, prev?.active_centers)}
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsoverviewpanel.s5",
-          )}
+          title={
+            labels.total_courses ??
+            t("auto.features.analytics.components.analyticsoverviewpanel.s5")
+          }
           value={overview.total_courses}
           variant="info"
           icon={<BookIcon />}
@@ -199,9 +208,10 @@ export function AnalyticsOverviewPanel({
           trend={computeTrend(overview.total_courses, prev?.total_courses)}
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsoverviewpanel.s6",
-          )}
+          title={
+            labels.daily_active_learners ??
+            t("auto.features.analytics.components.analyticsoverviewpanel.s6")
+          }
           value={overview.daily_active_learners}
           variant="success"
           icon={<UsersIcon />}
@@ -227,7 +237,10 @@ export function AnalyticsOverviewPanel({
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  Branded
+                  {labels.branded ??
+                    t(
+                      "auto.features.analytics.components.analyticsoverviewpanel.branded",
+                    )}
                 </p>
                 <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                   {overview.centers_by_type.branded}
@@ -235,7 +248,10 @@ export function AnalyticsOverviewPanel({
               </div>
               <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  Unbranded
+                  {labels.unbranded ??
+                    t(
+                      "auto.features.analytics.components.analyticsoverviewpanel.unbranded",
+                    )}
                 </p>
                 <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                   {overview.centers_by_type.unbranded}
@@ -258,8 +274,11 @@ export function AnalyticsOverviewPanel({
               </div>
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 {overview.total_centers > 0
-                  ? `${Math.round((overview.centers_by_type.branded / overview.total_centers) * 100)}% branded`
-                  : "No centers"}
+                  ? `${Math.round((overview.centers_by_type.branded / overview.total_centers) * 100)}% ${labels.branded ?? t("auto.features.analytics.components.analyticsoverviewpanel.branded")}`
+                  : (labels.no_centers ??
+                    t(
+                      "auto.features.analytics.components.analyticsoverviewpanel.noCenters",
+                    ))}
               </span>
             </div>
           </CardContent>
@@ -276,7 +295,16 @@ export function AnalyticsOverviewPanel({
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
-              labels={["Published", "Unpublished"]}
+              labels={[
+                labels.published ??
+                  t(
+                    "auto.features.analytics.components.analyticsoverviewpanel.published",
+                  ),
+                labels.unpublished ??
+                  t(
+                    "auto.features.analytics.components.analyticsoverviewpanel.unpublished",
+                  ),
+              ]}
               values={[overview.published_courses, unpublishedCourses]}
               colors={["#3c50e0", "#94a3b8"]}
             />

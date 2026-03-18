@@ -96,7 +96,7 @@ export default function AnalyticsPage() {
         isLoading={isLoadingAny}
       />
 
-      <AnalyticsSectionHeader title="Overview" />
+      <AnalyticsSectionHeader title={t("pages.analytics.sectionOverview")} />
       <AnalyticsOverviewPanel
         data={overviewQuery.data}
         isLoading={overviewQuery.isLoading}

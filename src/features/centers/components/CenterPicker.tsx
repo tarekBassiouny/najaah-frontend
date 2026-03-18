@@ -48,6 +48,8 @@ type CenterPickerProps = {
   className?: string;
   selectClassName?: string;
   allLabel?: string;
+  label?: string;
+  searchPlaceholder?: string;
   hideWhenCenterScoped?: boolean;
   disabled?: boolean;
   value?: string | number | null;
@@ -69,7 +71,9 @@ const CENTER_PICKER_SEARCH_DEBOUNCE_MS = 300;
 export function CenterPicker({
   className,
   selectClassName,
-  allLabel = "All Centers",
+  allLabel,
+  label,
+  searchPlaceholder,
   hideWhenCenterScoped = true,
   disabled = false,
   value,
@@ -77,6 +81,8 @@ export function CenterPicker({
   typeFilter,
 }: CenterPickerProps) {
   const { t } = useTranslation();
+  const resolvedAllLabel =
+    allLabel ?? t("auto.features.centers.components.centerpicker.allCenters");
 
   const { centerSlug, centerId, centerName } = useTenant();
   const isPlatformAdmin = !centerSlug;
@@ -161,14 +167,14 @@ export function CenterPicker({
   const options: SearchableSelectOption<string>[] = useMemo(() => {
     const allCentersOption: SearchableSelectOption<string> = {
       value: ALL_CENTERS_VALUE,
-      label: allLabel,
+      label: resolvedAllLabel,
       icon: <GlobeIcon />,
     };
 
     const centerOptions: SearchableSelectOption<string>[] = centers.map(
       (center) => ({
         value: String(center.id),
-        label: center.name ?? `Center ${center.id}`,
+        label: center.name ?? t("common.centerWithId", { id: center.id }),
         icon: <BuildingIcon />,
         description: center.slug ?? undefined,
       }),
@@ -188,14 +194,21 @@ export function CenterPicker({
           (String(centerId ?? "") === selectedCenterIdString
             ? centerName
             : null) ??
-          `Center ${selectedCenterIdString}`,
+          t("common.centerWithId", { id: selectedCenterIdString }),
         icon: <BuildingIcon />,
         description: selectedCenter?.slug ?? undefined,
       });
     }
 
     return [allCentersOption, ...centerOptions];
-  }, [allLabel, centerId, centerName, centers, selectedCenterIdString]);
+  }, [
+    centerId,
+    centerName,
+    centers,
+    resolvedAllLabel,
+    selectedCenterIdString,
+    t,
+  ]);
 
   // Current value for the select
   const currentValue = useMemo(() => {
@@ -240,15 +253,18 @@ export function CenterPicker({
 
   return (
     <div className={cn("min-w-[13rem]", className)}>
-      <label className="sr-only">Center</label>
+      <label className="sr-only">{label ?? t("common.labels.center")}</label>
       <SearchableSelect
         value={currentValue}
         onValueChange={handleValueChange}
         options={options}
         searchValue={search}
         onSearchValueChange={setSearch}
-        placeholder={centerName ?? allLabel}
-        searchPlaceholder="Search centers..."
+        placeholder={centerName ?? resolvedAllLabel}
+        searchPlaceholder={
+          searchPlaceholder ??
+          t("auto.features.centers.components.centerpicker.searchPlaceholder")
+        }
         emptyMessage={t("auto.features.centers.components.centerpicker.s1")}
         emptyIcon={<span className="text-2xl">🏢</span>}
         icon={<BuildingIcon />}

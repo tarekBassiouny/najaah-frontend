@@ -18,18 +18,45 @@ type AnalyticsDevicesRequestsPanelProps = {
   isError?: boolean;
 };
 
-const EXTRA_VIEWS_SERIES = [
-  { key: "approved", label: "Approved", color: "#13c296" },
-  { key: "pending", label: "Pending", color: "#f59e0b" },
-  { key: "rejected", label: "Rejected", color: "#ef4444" },
-];
-
 export function AnalyticsDevicesRequestsPanel({
   data,
   isLoading,
   isError,
 }: AnalyticsDevicesRequestsPanelProps) {
   const { t } = useTranslation();
+
+  const extraViewsSeries = useMemo(
+    () => [
+      {
+        key: "approved",
+        label:
+          data?.labels?.request_status?.approved ??
+          t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.approved",
+          ),
+        color: "#13c296",
+      },
+      {
+        key: "pending",
+        label:
+          data?.labels?.request_status?.pending ??
+          t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.pending",
+          ),
+        color: "#f59e0b",
+      },
+      {
+        key: "rejected",
+        label:
+          data?.labels?.request_status?.rejected ??
+          t(
+            "auto.features.analytics.components.analyticsdevicesrequestspanel.rejected",
+          ),
+        color: "#ef4444",
+      },
+    ],
+    [data?.labels?.request_status, t],
+  );
 
   /* Phase 4 — trend data */
   const deviceTrendData = useMemo(
@@ -71,7 +98,12 @@ export function AnalyticsDevicesRequestsPanel({
       <div className="grid gap-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <StatsCard key={i} title="Loading" value="-" loading />
+            <StatsCard
+              key={i}
+              title={t("common.actions.loading")}
+              value="-"
+              loading
+            />
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
@@ -83,14 +115,18 @@ export function AnalyticsDevicesRequestsPanel({
   }
 
   const { devices, requests } = data;
+  const labels = data.labels ?? {};
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsdevicesrequestspanel.s3",
-          )}
+          title={
+            labels.total_devices ??
+            t(
+              "auto.features.analytics.components.analyticsdevicesrequestspanel.s3",
+            )
+          }
           value={devices.total}
           variant="info"
           animationDelay={0}
@@ -111,9 +147,12 @@ export function AnalyticsDevicesRequestsPanel({
           }
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsdevicesrequestspanel.s4",
-          )}
+          title={
+            labels.active_devices ??
+            t(
+              "auto.features.analytics.components.analyticsdevicesrequestspanel.s4",
+            )
+          }
           value={devices.active}
           variant="success"
           animationDelay={80}
@@ -134,9 +173,12 @@ export function AnalyticsDevicesRequestsPanel({
           }
         />
         <StatsCard
-          title={t(
-            "auto.features.analytics.components.analyticsdevicesrequestspanel.s5",
-          )}
+          title={
+            labels.revoked ??
+            t(
+              "auto.features.analytics.components.analyticsdevicesrequestspanel.s5",
+            )
+          }
           value={devices.revoked}
           variant="danger"
           animationDelay={160}
@@ -186,14 +228,32 @@ export function AnalyticsDevicesRequestsPanel({
         <Card>
           <CardHeader>
             <CardTitle>
-              {t(
-                "auto.features.analytics.components.analyticsdevicesrequestspanel.s7",
-              )}
+              {labels.device_changes ??
+                t(
+                  "auto.features.analytics.components.analyticsdevicesrequestspanel.s7",
+                )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
-              labels={["Pending", "Approved", "Rejected", "Pre-approved"]}
+              labels={[
+                labels.device_change_status?.pending ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.pending",
+                  ),
+                labels.device_change_status?.approved ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.approved",
+                  ),
+                labels.device_change_status?.rejected ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.rejected",
+                  ),
+                labels.device_change_status?.pre_approved ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.preApproved",
+                  ),
+              ]}
               values={[
                 devices.changes.pending,
                 devices.changes.approved,
@@ -216,7 +276,20 @@ export function AnalyticsDevicesRequestsPanel({
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
-              labels={["Mobile", "OTP", "Admin"]}
+              labels={[
+                labels.device_source?.mobile ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.mobile",
+                  ),
+                labels.device_source?.otp ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.otp",
+                  ),
+                labels.device_source?.admin ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.admin",
+                  ),
+              ]}
               values={[
                 devices.changes.by_source.mobile,
                 devices.changes.by_source.otp,
@@ -232,34 +305,52 @@ export function AnalyticsDevicesRequestsPanel({
         <Card>
           <CardHeader>
             <CardTitle>
-              {t(
-                "auto.features.analytics.components.analyticsdevicesrequestspanel.s9",
-              )}
+              {labels.extra_views ??
+                t(
+                  "auto.features.analytics.components.analyticsdevicesrequestspanel.s9",
+                )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <AnalyticsProgressGauge
                 value={Math.round(requests.extra_views.approval_rate * 100)}
-                label={t(
-                  "auto.features.analytics.components.analyticsdevicesrequestspanel.approvalRate",
-                )}
+                label={
+                  labels.approval_rate ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.approvalRate",
+                  )
+                }
                 color="#13c296"
                 height={160}
               />
               <div className="flex flex-col justify-center gap-3">
                 <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-800/50">
                   <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">
-                    {t(
-                      "auto.features.analytics.components.analyticsdevicesrequestspanel.avgDecision",
-                    )}
+                    {labels.avg_decision_hours ??
+                      t(
+                        "auto.features.analytics.components.analyticsdevicesrequestspanel.avgDecision",
+                      )}
                   </p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {requests.extra_views.avg_decision_hours.toFixed(1)}h
                   </p>
                 </div>
                 <AnalyticsDonutChart
-                  labels={["Pending", "Approved", "Rejected"]}
+                  labels={[
+                    labels.request_status?.pending ??
+                      t(
+                        "auto.features.analytics.components.analyticsdevicesrequestspanel.pending",
+                      ),
+                    labels.request_status?.approved ??
+                      t(
+                        "auto.features.analytics.components.analyticsdevicesrequestspanel.approved",
+                      ),
+                    labels.request_status?.rejected ??
+                      t(
+                        "auto.features.analytics.components.analyticsdevicesrequestspanel.rejected",
+                      ),
+                  ]}
                   values={[
                     requests.extra_views.pending,
                     requests.extra_views.approved,
@@ -277,14 +368,28 @@ export function AnalyticsDevicesRequestsPanel({
         <Card>
           <CardHeader>
             <CardTitle>
-              {t(
-                "auto.features.analytics.components.analyticsdevicesrequestspanel.s12",
-              )}
+              {labels.enrollment_requests ??
+                t(
+                  "auto.features.analytics.components.analyticsdevicesrequestspanel.s12",
+                )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <AnalyticsDonutChart
-              labels={["Pending", "Approved", "Rejected"]}
+              labels={[
+                labels.request_status?.pending ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.pending",
+                  ),
+                labels.request_status?.approved ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.approved",
+                  ),
+                labels.request_status?.rejected ??
+                  t(
+                    "auto.features.analytics.components.analyticsdevicesrequestspanel.rejected",
+                  ),
+              ]}
               values={[
                 requests.enrollment.pending,
                 requests.enrollment.approved,
@@ -326,7 +431,7 @@ export function AnalyticsDevicesRequestsPanel({
               <CardContent>
                 <AnalyticsStackedAreaChart
                   data={extraViewsTrendData}
-                  series={EXTRA_VIEWS_SERIES}
+                  series={extraViewsSeries}
                 />
               </CardContent>
             </Card>

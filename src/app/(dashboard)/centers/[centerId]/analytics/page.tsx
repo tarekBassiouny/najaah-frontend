@@ -99,7 +99,7 @@ export default function CenterAnalyticsPage({ params }: PageProps) {
         isLoading={isLoadingAny}
       />
 
-      <AnalyticsSectionHeader title="Overview" />
+      <AnalyticsSectionHeader title={t("pages.analytics.sectionOverview")} />
       <AnalyticsOverviewPanel
         data={overviewQuery.data}
         isLoading={overviewQuery.isLoading}

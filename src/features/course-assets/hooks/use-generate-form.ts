@@ -176,6 +176,7 @@ export function useGenerateForm({ centerId, courseId }: UseGenerateFormParams) {
       id: Number(source.id),
       title: source.title,
       sectionTitle: source.section?.title ?? null,
+      ai_readiness: source.ai_readiness ?? null,
       has_transcript: source.has_transcript,
       transcript_format: source.transcript_format,
       transcript_source: source.transcript_source,

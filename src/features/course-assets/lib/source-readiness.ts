@@ -20,7 +20,20 @@ export type CourseAssetSourceReadiness = {
   key: CourseAssetSourceReadinessKey;
   isReady: boolean;
   isKnown: boolean;
+  backendBadge?: string;
+  backendTitle?: string;
+  backendMessage?: string;
 };
+
+const KNOWN_READINESS_KEYS = new Set<CourseAssetSourceReadinessKey>([
+  "ready",
+  "transcript_missing",
+  "extraction_pending",
+  "extraction_processing",
+  "extraction_failed",
+  "extraction_skipped",
+  "unknown",
+]);
 
 export function resolveCourseAssetSourceReadiness(
   source: SupportedSource | null | undefined,
@@ -30,6 +43,26 @@ export function resolveCourseAssetSourceReadiness(
       key: "unknown",
       isReady: false,
       isKnown: false,
+    };
+  }
+
+  if (source.ai_readiness) {
+    const r = source.ai_readiness;
+    const key: CourseAssetSourceReadinessKey = KNOWN_READINESS_KEYS.has(
+      r.code as CourseAssetSourceReadinessKey,
+    )
+      ? (r.code as CourseAssetSourceReadinessKey)
+      : r.is_ready
+        ? "ready"
+        : "unknown";
+
+    return {
+      key,
+      isReady: r.is_ready,
+      isKnown: true,
+      backendBadge: r.badge,
+      backendTitle: r.title,
+      backendMessage: r.message,
     };
   }
 

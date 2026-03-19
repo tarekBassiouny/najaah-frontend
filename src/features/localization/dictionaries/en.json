@@ -1476,12 +1476,19 @@
         "lastActivity": "Last Activity",
         "activeDevice": "Active Device",
         "totalEnrollments": "Total Enrollments",
-        "deviceChanges": "Device Changes"
+        "deviceChanges": "Device Changes",
+        "email": "Email",
+        "username": "Username",
+        "center": "Center",
+        "approvedAt": "Approved At",
+        "noEmail": "No email",
+        "noUsername": "No username"
       },
       "device": {
         "noActive": "No active device",
         "fallbackActive": "Active device",
-        "lastUsedLabel": "Last used"
+        "lastUsedLabel": "Last used",
+        "approvedAt": "Approved"
       },
       "education": {
         "title": "Education",
@@ -1520,13 +1527,20 @@
           "status": "Status",
           "progress": "Progress",
           "enrolledAt": "Enrolled At",
+          "expiresAt": "Expires At",
           "content": "Content"
         },
         "videoHeaders": {
           "videoName": "Video Name",
+          "provider": "Provider",
           "watchCountLimit": "Watch Count / Limit",
           "actions": "Actions"
-        }
+        },
+        "learningAssets": "Learning Assets",
+        "learningAssetsProgress": "{completed}/{total} completed",
+        "noExpiry": "No expiry",
+        "courseStatus": "Course: {status}",
+        "courseThumbnailAlt": "{title} thumbnail"
       },
       "actions": {
         "showVideos": "Show videos ({count})",
@@ -2388,7 +2402,8 @@
         "transcript_missing": {
           "badge": "Transcript missing",
           "title": "Transcript required",
-          "description": "This video is not AI-ready yet. Add a transcript from the Videos page before generating assets."
+          "description": "This video is not AI-ready yet. Add a transcript from the Videos page before generating assets.",
+          "action": "Manage Transcript"
         },
         "extraction_pending": {
           "badge": "Extraction pending",

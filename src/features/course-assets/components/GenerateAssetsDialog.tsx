@@ -178,12 +178,14 @@ export function GenerateAssetsDialog({
         ) : !sourceReadiness.isReady ? (
           <Alert>
             <AlertTitle>
-              {t(`pages.courseAssets.readiness.${sourceReadiness.key}.title`)}
+              {sourceReadiness.backendTitle ??
+                t(`pages.courseAssets.readiness.${sourceReadiness.key}.title`)}
             </AlertTitle>
             <AlertDescription>
-              {t(
-                `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
-              )}
+              {sourceReadiness.backendMessage ??
+                t(
+                  `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
+                )}
             </AlertDescription>
           </Alert>
         ) : null}

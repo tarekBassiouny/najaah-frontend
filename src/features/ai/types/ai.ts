@@ -18,6 +18,8 @@ export type AIContentTargetType =
   | "flashcards"
   | "interactive_activity";
 
+export type AIContentLanguage = "en" | "ar" | "both";
+
 export interface AILimits {
   daily_job_limit: number;
   monthly_job_limit: number;
@@ -69,6 +71,7 @@ export interface AIContentJob {
   target_type: AIContentTargetType;
   target_id: number | null;
   target_label?: string | null;
+  language: AIContentLanguage;
   status: AIJobStatus;
   status_label: string;
   generation_config: Record<string, unknown> | null;
@@ -79,6 +82,7 @@ export interface AIContentJob {
   estimated_input_tokens: number;
   estimated_output_tokens: number;
   error_message: string | null;
+  validation_warnings?: string[] | null;
   started_at: string | null;
   completed_at: string | null;
   published_at: string | null;
@@ -151,6 +155,7 @@ export interface BaseCreateJobForm {
   source_id: number;
   target_type: TargetType;
   target_id?: number | null;
+  language: AIContentLanguage;
   ai_provider: AIProviderKey;
   ai_model: string;
 }
@@ -205,7 +210,7 @@ export type CreateJobPayload<T extends TargetType = TargetType> =
   };
 
 export type CreateAIBatchAssetRequest = {
-  target_type: Exclude<AIContentTargetType, "interactive_activity">;
+  target_type: AIContentTargetType;
   target_id?: number | null;
   ai_provider?: AIProviderKey;
   ai_model?: string;
@@ -214,8 +219,9 @@ export type CreateAIBatchAssetRequest = {
 
 export type CreateAIBatchRequest = {
   course_id: number;
-  source_type: Extract<AIContentSourceType, "video" | "pdf">;
+  source_type: AIContentSourceType;
   source_id: number;
+  language: AIContentLanguage;
   assets: CreateAIBatchAssetRequest[];
 };
 

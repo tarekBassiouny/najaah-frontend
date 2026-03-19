@@ -45,7 +45,11 @@ function normalizeCenterId(value: string | number | null | undefined) {
   return String(value).trim().length > 0 ? value : null;
 }
 
-function resolveFailureText(value: Record<string, unknown>) {
+function resolveFailureText(
+  value: Record<string, unknown>,
+  fallbackLabel: string,
+  prefixLabel: string,
+) {
   const id =
     value.student_id ??
     value.user_id ??
@@ -56,7 +60,7 @@ function resolveFailureText(value: Record<string, unknown>) {
     (value.reason as string) ??
     (value.message as string) ??
     (value.error as string);
-  const prefix = id != null ? `#${id}` : "";
+  const prefix = id != null ? `${prefixLabel}${id}` : "";
   if (reason) {
     return [prefix, reason].filter(Boolean).join(": ");
   }
@@ -66,7 +70,7 @@ function resolveFailureText(value: Record<string, unknown>) {
     return [prefix, fallback].filter(Boolean).join(": ");
   }
 
-  return prefix || "Failed";
+  return prefix || fallbackLabel;
 }
 
 type BulkGenerateVideoAccessCodesDialogProps = {
@@ -322,22 +326,30 @@ export function BulkGenerateVideoAccessCodesDialog({
 
   const handleGenerate = async () => {
     if (!hasSelectedCenter) {
-      setErrorMessage("Select a center before generating codes.");
+      setErrorMessage(
+        t("pages.students.dialogs.bulkGenerateAccess.errors.selectCenter"),
+      );
       return;
     }
 
     if (!selectedCourse) {
-      setErrorMessage("Select a course.");
+      setErrorMessage(
+        t("pages.students.dialogs.bulkGenerateAccess.errors.selectCourse"),
+      );
       return;
     }
 
     if (!selectedVideo) {
-      setErrorMessage("Select a video.");
+      setErrorMessage(
+        t("pages.students.dialogs.bulkGenerateAccess.errors.selectVideo"),
+      );
       return;
     }
 
     if (studentIds.length === 0) {
-      setErrorMessage("No students selected.");
+      setErrorMessage(
+        t("pages.students.dialogs.bulkGenerateAccess.errors.noStudents"),
+      );
       return;
     }
 
@@ -371,7 +383,10 @@ export function BulkGenerateVideoAccessCodesDialog({
       }
     } catch (error) {
       setErrorMessage(
-        getStudentRequestApiErrorMessage(error, "Unable to generate codes."),
+        getStudentRequestApiErrorMessage(
+          error,
+          t("pages.students.dialogs.bulkGenerateAccess.errors.generateFailed"),
+        ),
       );
     } finally {
       setIsSubmitting(false);
@@ -396,19 +411,12 @@ export function BulkGenerateVideoAccessCodesDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            {t(
-              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s1",
-            )}
+            {t("pages.students.dialogs.bulkGenerateAccess.title")}
           </DialogTitle>
           <DialogDescription>
-            {t(
-              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s2",
-            )}
-            {studentIds.length}{" "}
-            {t(
-              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s3",
-            )}
-            {studentIds.length === 1 ? "" : "s"}.
+            {t("pages.students.dialogs.bulkGenerateAccess.description", {
+              count: studentIds.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -417,7 +425,7 @@ export function BulkGenerateVideoAccessCodesDialog({
             <Alert variant="destructive">
               <AlertTitle>
                 {t(
-                  "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s4",
+                  "pages.students.dialogs.bulkGenerateAccess.errors.errorTitle",
                 )}
               </AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
@@ -427,7 +435,7 @@ export function BulkGenerateVideoAccessCodesDialog({
           {showCenterPicker ? (
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Center
+                {t("pages.students.dialogs.bulkGenerateAccess.fields.center")}
               </p>
               <CenterPicker
                 className="w-full min-w-0"
@@ -453,10 +461,26 @@ export function BulkGenerateVideoAccessCodesDialog({
               options={courseOptions}
               searchValue={courseSearch}
               onSearchValueChange={setCourseSearch}
-              placeholder={hasSelectedCenter ? "Course" : "Select center first"}
-              searchPlaceholder="Search courses..."
+              placeholder={
+                hasSelectedCenter
+                  ? t(
+                      "pages.students.dialogs.bulkGenerateAccess.placeholders.course",
+                    )
+                  : t(
+                      "pages.students.dialogs.bulkGenerateAccess.placeholders.selectCenterFirst",
+                    )
+              }
+              searchPlaceholder={t(
+                "pages.students.dialogs.bulkGenerateAccess.placeholders.searchCourses",
+              )}
               emptyMessage={
-                hasSelectedCenter ? "No courses found" : "Select center first"
+                hasSelectedCenter
+                  ? t(
+                      "pages.students.dialogs.bulkGenerateAccess.empty.noCourses",
+                    )
+                  : t(
+                      "pages.students.dialogs.bulkGenerateAccess.empty.loadCenterFirst",
+                    )
               }
               filterOptions={false}
               showSearch
@@ -480,10 +504,26 @@ export function BulkGenerateVideoAccessCodesDialog({
               options={videoOptions}
               searchValue={videoSearch}
               onSearchValueChange={setVideoSearch}
-              placeholder={resolvedCourseId ? "Video" : "Select course first"}
-              searchPlaceholder="Search videos..."
+              placeholder={
+                resolvedCourseId
+                  ? t(
+                      "pages.students.dialogs.bulkGenerateAccess.placeholders.video",
+                    )
+                  : t(
+                      "pages.students.dialogs.bulkGenerateAccess.placeholders.selectCourseFirst",
+                    )
+              }
+              searchPlaceholder={t(
+                "pages.students.dialogs.bulkGenerateAccess.placeholders.searchVideos",
+              )}
               emptyMessage={
-                resolvedCourseId ? "No videos found" : "Select course first"
+                resolvedCourseId
+                  ? t(
+                      "pages.students.dialogs.bulkGenerateAccess.empty.noVideos",
+                    )
+                  : t(
+                      "pages.students.dialogs.bulkGenerateAccess.empty.loadCourseFirst",
+                    )
               }
               filterOptions={false}
               showSearch
@@ -513,7 +553,7 @@ export function BulkGenerateVideoAccessCodesDialog({
                   disabled={isSubmitting}
                 />
                 {t(
-                  "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s5",
+                  "pages.students.dialogs.bulkGenerateAccess.fields.sendWhatsapp",
                 )}
               </label>
             </div>
@@ -522,7 +562,7 @@ export function BulkGenerateVideoAccessCodesDialog({
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t(
-                    "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s6",
+                    "pages.students.dialogs.bulkGenerateAccess.fields.whatsappFormat",
                   )}
                 </p>
                 <Select
@@ -532,17 +572,21 @@ export function BulkGenerateVideoAccessCodesDialog({
                   }
                 >
                   <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-                    <SelectValue placeholder="Format" />
+                    <SelectValue
+                      placeholder={t(
+                        "pages.students.dialogs.bulkGenerateAccess.placeholders.format",
+                      )}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="text_code">
                       {t(
-                        "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s7",
+                        "pages.students.dialogs.bulkGenerateAccess.formats.textCode",
                       )}
                     </SelectItem>
                     <SelectItem value="qr_code">
                       {t(
-                        "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s8",
+                        "pages.students.dialogs.bulkGenerateAccess.formats.qrCode",
                       )}
                     </SelectItem>
                   </SelectContent>
@@ -555,19 +599,31 @@ export function BulkGenerateVideoAccessCodesDialog({
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
                 <div className="rounded-md border border-gray-200 bg-white px-3 py-2 text-center dark:border-gray-700 dark:bg-gray-900">
-                  <p className="text-gray-500 dark:text-gray-400">Total</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {t(
+                      "pages.students.dialogs.bulkGenerateAccess.summary.totalLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                     {totalCount}
                   </p>
                 </div>
                 <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20">
-                  <p>Generated</p>
+                  <p>
+                    {t(
+                      "pages.students.dialogs.bulkGenerateAccess.summary.generatedLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-emerald-800 dark:text-emerald-200">
                     {generatedCount}
                   </p>
                 </div>
                 <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20">
-                  <p>Failed</p>
+                  <p>
+                    {t(
+                      "pages.students.dialogs.bulkGenerateAccess.summary.failedLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-amber-800 dark:text-amber-200">
                     {failedCount}
                   </p>
@@ -575,7 +631,7 @@ export function BulkGenerateVideoAccessCodesDialog({
                 <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-center text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20">
                   <p>
                     {t(
-                      "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s9",
+                      "pages.students.dialogs.bulkGenerateAccess.summary.whatsappSentLabel",
                     )}
                   </p>
                   <p className="mt-1 text-base font-semibold text-blue-800 dark:text-blue-200">
@@ -585,7 +641,7 @@ export function BulkGenerateVideoAccessCodesDialog({
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-red-700 dark:border-red-900/40 dark:bg-red-900/20">
                   <p>
                     {t(
-                      "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s10",
+                      "pages.students.dialogs.bulkGenerateAccess.summary.whatsappFailedLabel",
                     )}
                   </p>
                   <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
@@ -596,7 +652,17 @@ export function BulkGenerateVideoAccessCodesDialog({
               {result.failed && result.failed.length > 0 ? (
                 <div className="mt-3 space-y-1 text-xs text-gray-700 dark:text-gray-200">
                   {result.failed.map((entry, index) => (
-                    <p key={index}>{resolveFailureText(entry)}</p>
+                    <p key={index}>
+                      {resolveFailureText(
+                        entry,
+                        t(
+                          "pages.students.dialogs.bulkGenerateAccess.summary.failedFallback",
+                        ),
+                        t(
+                          "pages.students.dialogs.bulkGenerateAccess.summary.studentPrefix",
+                        ),
+                      )}
+                    </p>
                   ))}
                 </div>
               ) : null}
@@ -610,9 +676,7 @@ export function BulkGenerateVideoAccessCodesDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting || bulkGenerateMutation.isPending}
           >
-            {t(
-              "auto.features.students.components.bulkgeneratevideoaccesscodesdialog.s11",
-            )}
+            {t("common.actions.cancel")}
           </Button>
           <Button
             onClick={handleGenerate}
@@ -626,8 +690,12 @@ export function BulkGenerateVideoAccessCodesDialog({
             }
           >
             {isSubmitting || bulkGenerateMutation.isPending
-              ? "Generating..."
-              : "Generate Codes"}
+              ? t(
+                  "pages.students.dialogs.bulkGenerateAccess.actions.generating",
+                )
+              : t(
+                  "pages.students.dialogs.bulkGenerateAccess.actions.generateCodes",
+                )}
           </Button>
         </DialogFooter>
       </DialogContent>

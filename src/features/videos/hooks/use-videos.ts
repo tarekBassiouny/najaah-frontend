@@ -9,12 +9,15 @@ import {
   createVideo,
   createVideoUpload,
   createVideoUploadSession,
+  deleteVideoTranscript,
   deleteVideo,
+  getVideoTranscript,
   getVideo,
   getVideoUploadSession,
   listVideoUploadSessions,
   listVideos,
   previewVideo,
+  saveVideoTranscript,
   uploadVideoThumbnail,
   updateVideo,
   type CreateVideoFromUrlPayload,
@@ -29,6 +32,7 @@ import type {
   Video,
   VideoCreateUploadResult,
   VideoPreviewResponse,
+  VideoTranscript,
   VideoUploadSession,
 } from "@/features/videos/types/video";
 import type { AdminActionResult } from "@/lib/admin-response";
@@ -249,5 +253,73 @@ export function usePreviewVideo() {
       centerId: string | number;
       videoId: string | number;
     }): Promise<VideoPreviewResponse> => previewVideo(centerId, videoId),
+  });
+}
+
+type UseVideoTranscriptOptions = Omit<
+  UseQueryOptions<VideoTranscript | null>,
+  "queryKey" | "queryFn"
+>;
+
+export function useVideoTranscript(
+  centerId: string | number | undefined,
+  videoId: string | number | undefined,
+  options?: UseVideoTranscriptOptions,
+) {
+  return useQuery({
+    queryKey: ["video-transcript", centerId, videoId],
+    queryFn: () => getVideoTranscript(centerId!, videoId!),
+    enabled: !!centerId && !!videoId,
+    retry: false,
+    ...options,
+  });
+}
+
+export function useSaveVideoTranscript() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      videoId,
+      payload,
+    }: {
+      centerId: string | number;
+      videoId: string | number;
+      payload:
+        | { transcript_text: string }
+        | {
+            file: File | Blob;
+            filename?: string;
+          };
+    }) => saveVideoTranscript(centerId, videoId, payload),
+    onSuccess: (_, { centerId, videoId }) => {
+      queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
+      queryClient.invalidateQueries({ queryKey: ["video", centerId, videoId] });
+      queryClient.invalidateQueries({
+        queryKey: ["video-transcript", centerId, videoId],
+      });
+    },
+  });
+}
+
+export function useDeleteVideoTranscript() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      centerId,
+      videoId,
+    }: {
+      centerId: string | number;
+      videoId: string | number;
+    }) => deleteVideoTranscript(centerId, videoId),
+    onSuccess: (_, { centerId, videoId }) => {
+      queryClient.invalidateQueries({ queryKey: ["videos", centerId] });
+      queryClient.invalidateQueries({ queryKey: ["video", centerId, videoId] });
+      queryClient.invalidateQueries({
+        queryKey: ["video-transcript", centerId, videoId],
+      });
+    },
   });
 }

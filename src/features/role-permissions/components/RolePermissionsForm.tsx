@@ -20,7 +20,10 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 type RolePermissionsFormProps = {
   roleId: string;
@@ -32,57 +35,57 @@ type RolePermissionsFormProps = {
 const PERMISSION_GROUPS = [
   {
     key: "admin",
-    label: "Admin",
+    labelKey: "pages.roles.permissions.groups.admin",
     prefixes: ["admin."],
   },
   {
     key: "roles_permissions",
-    label: "Roles & Permissions",
+    labelKey: "pages.roles.permissions.groups.rolesPermissions",
     prefixes: ["role.", "permission."],
   },
   {
     key: "centers",
-    label: "Centers",
+    labelKey: "pages.roles.permissions.groups.centers",
     prefixes: ["center."],
   },
   {
     key: "courses",
-    label: "Courses",
+    labelKey: "pages.roles.permissions.groups.courses",
     prefixes: ["course.", "section."],
   },
   {
     key: "videos",
-    label: "Videos",
+    labelKey: "pages.roles.permissions.groups.videos",
     prefixes: ["video."],
   },
   {
     key: "pdfs",
-    label: "PDFs",
+    labelKey: "pages.roles.permissions.groups.pdfs",
     prefixes: ["pdf."],
   },
   {
     key: "instructors",
-    label: "Instructors",
+    labelKey: "pages.roles.permissions.groups.instructors",
     prefixes: ["instructor."],
   },
   {
     key: "enrollments",
-    label: "Enrollments / Students",
+    labelKey: "pages.roles.permissions.groups.enrollments",
     prefixes: ["enrollment."],
   },
   {
     key: "requests_controls",
-    label: "Requests & Controls",
+    labelKey: "pages.roles.permissions.groups.requestsControls",
     prefixes: ["device_change.", "extra_view."],
   },
   {
     key: "audit_system",
-    label: "Audit & System",
+    labelKey: "pages.roles.permissions.groups.auditSystem",
     prefixes: ["audit.", "settings."],
   },
   {
     key: "other",
-    label: "Other",
+    labelKey: "pages.roles.permissions.groups.other",
     prefixes: [],
   },
 ] as const;
@@ -162,32 +165,38 @@ function getValidationMessage(value: unknown): string | null {
   return null;
 }
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  PERMISSION_DENIED: "You do not have permission to update role permissions.",
-  SYSTEM_SCOPE_REQUIRED:
-    "This action requires system scope. Please use the platform admin panel.",
-  SYSTEM_API_KEY_REQUIRED:
-    "This action requires a system API key. Please contact your administrator.",
-  API_KEY_CENTER_MISMATCH:
-    "The API key does not match this center. Please refresh and try again.",
-  CENTER_MISMATCH:
-    "This role belongs to a different center and cannot be modified here.",
-  NOT_FOUND: "The requested role was not found. It may have been deleted.",
-  VALIDATION_ERROR: "Please check your input and try again.",
-};
-
-function getErrorCodeMessage(code: string | undefined): string | null {
+function getErrorCodeMessage(
+  code: string | undefined,
+  t: TranslateFunction,
+): string | null {
   if (!code) return null;
-  return ERROR_CODE_MESSAGES[code] ?? null;
+
+  const messages: Record<string, string> = {
+    PERMISSION_DENIED: t("pages.roles.permissions.errors.permissionDenied"),
+    SYSTEM_SCOPE_REQUIRED: t(
+      "pages.roles.permissions.errors.systemScopeRequired",
+    ),
+    SYSTEM_API_KEY_REQUIRED: t(
+      "pages.roles.permissions.errors.systemApiKeyRequired",
+    ),
+    API_KEY_CENTER_MISMATCH: t(
+      "pages.roles.permissions.errors.apiKeyCenterMismatch",
+    ),
+    CENTER_MISMATCH: t("pages.roles.permissions.errors.centerMismatch"),
+    NOT_FOUND: t("pages.roles.permissions.errors.notFound"),
+    VALIDATION_ERROR: t("pages.roles.permissions.errors.validation"),
+  };
+
+  return messages[code] ?? null;
 }
 
-function extractErrorMessage(error: unknown): string {
+function extractErrorMessage(error: unknown, t: TranslateFunction): string {
   if (isAxiosError<BackendErrorData>(error)) {
     const data = error.response?.data;
 
     // Check for known error codes first
     const errorCode = data?.error?.code;
-    const codeMessage = getErrorCodeMessage(errorCode);
+    const codeMessage = getErrorCodeMessage(errorCode, t);
     if (codeMessage) {
       return codeMessage;
     }
@@ -201,10 +210,13 @@ function extractErrorMessage(error: unknown): string {
     }
   }
 
-  return "Unable to update role permissions. Please try again.";
+  return t("pages.roles.permissions.errors.updateFailed");
 }
 
-function getPermissionName(permission: PermissionItem): string {
+function getPermissionName(
+  permission: PermissionItem,
+  t: TranslateFunction,
+): string {
   if (permission.name && permission.name.trim()) {
     return permission.name.trim();
   }
@@ -213,21 +225,26 @@ function getPermissionName(permission: PermissionItem): string {
     return permission.slug.trim();
   }
 
-  return `Permission ${permission.id}`;
+  return t("pages.roles.permissions.fallbacks.permissionById", {
+    id: permission.id,
+  });
 }
 
-function getPermissionGroupLabel(permissionName?: string | null): string {
+function getPermissionGroupLabel(
+  permissionName: string | null | undefined,
+  t: TranslateFunction,
+): string {
   const value = String(permissionName ?? "")
     .trim()
     .toLowerCase();
 
-  if (!value) return "Other";
+  if (!value) return t("pages.roles.permissions.groups.other");
 
   const group = PERMISSION_GROUPS.find((item) =>
     item.prefixes.some((prefix) => value.startsWith(prefix)),
   );
 
-  return group?.label ?? "Other";
+  return group ? t(group.labelKey) : t("pages.roles.permissions.groups.other");
 }
 
 function getRoleInitials(value: string): string {
@@ -257,6 +274,7 @@ export function RolePermissionsForm({
   onApplied,
 }: RolePermissionsFormProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.roles.fallbacks.noValue");
 
   const { roleQuery, updateMutation } = useRolePermissions(roleId, {
     centerId: scopeCenterId ?? null,
@@ -265,7 +283,7 @@ export function RolePermissionsForm({
 
   const permissions = useMemo(() => data?.permissions ?? [], [data]);
   const rolePermissions = useMemo(() => data?.rolePermissions ?? [], [data]);
-  const roleName = data?.role?.name ?? "Role";
+  const roleName = data?.role?.name ?? t("pages.roles.fallbacks.role");
 
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Array<number | string>>([]);
@@ -362,21 +380,25 @@ export function RolePermissionsForm({
       .filter((id) => !initialSet.has(id))
       .map((id) => {
         const permission = permissionById.get(id);
-        return permission ? getPermissionName(permission) : `Permission ${id}`;
+        return permission
+          ? getPermissionName(permission, t)
+          : t("pages.roles.permissions.fallbacks.permissionById", { id });
       });
 
     const removed = Array.from(initialSet)
       .filter((id) => !selectedSet.has(id))
       .map((id) => {
         const permission = permissionById.get(id);
-        return permission ? getPermissionName(permission) : `Permission ${id}`;
+        return permission
+          ? getPermissionName(permission, t)
+          : t("pages.roles.permissions.fallbacks.permissionById", { id });
       });
 
     return {
       added,
       removed,
     };
-  }, [initialSet, permissions, selectedSet]);
+  }, [initialSet, permissions, selectedSet, t]);
 
   const pendingSet = useMemo(
     () => new Set(pendingPermissionIds),
@@ -392,21 +414,25 @@ export function RolePermissionsForm({
       .filter((id) => !initialSet.has(id))
       .map((id) => {
         const permission = permissionById.get(id);
-        return permission ? getPermissionName(permission) : `Permission ${id}`;
+        return permission
+          ? getPermissionName(permission, t)
+          : t("pages.roles.permissions.fallbacks.permissionById", { id });
       });
 
     const removed = Array.from(initialSet)
       .filter((id) => !pendingSet.has(id))
       .map((id) => {
         const permission = permissionById.get(id);
-        return permission ? getPermissionName(permission) : `Permission ${id}`;
+        return permission
+          ? getPermissionName(permission, t)
+          : t("pages.roles.permissions.fallbacks.permissionById", { id });
       });
 
     return {
       added,
       removed,
     };
-  }, [initialSet, pendingSet, permissions]);
+  }, [initialSet, pendingSet, permissions, t]);
 
   const isDirty = useMemo(() => {
     const current = normalizeIds(selectedIds);
@@ -420,16 +446,14 @@ export function RolePermissionsForm({
   if (isMissingRole || isAdminApiNotFoundError(error)) {
     return (
       <AppNotFoundState
-        scopeLabel="Role Permissions"
-        title={t(
-          "auto.features.role_permissions.components.rolepermissionsform.s1",
-        )}
-        description={t(
-          "auto.features.role_permissions.components.rolepermissionsform.s2",
-        )}
+        scopeLabel={t("pages.roles.permissions.notFound.scopeLabel")}
+        title={t("pages.roles.permissions.notFound.title")}
+        description={t("pages.roles.permissions.notFound.description")}
         primaryAction={{
           href: scopeCenterId ? `/centers/${scopeCenterId}/roles` : "/roles",
-          label: scopeCenterId ? "Go to Roles" : "Go to Platform Roles",
+          label: scopeCenterId
+            ? t("pages.roles.permissions.notFound.goToRoles")
+            : t("pages.roles.permissions.notFound.goToPlatformRoles"),
         }}
       />
     );
@@ -474,7 +498,7 @@ export function RolePermissionsForm({
 
     if (invalidPermissionIds.length > 0) {
       setPermissionIdsError(
-        "One or more selected permissions are no longer available. Refresh and try again.",
+        t("pages.roles.permissions.errors.invalidSelection"),
       );
       return;
     }
@@ -513,7 +537,7 @@ export function RolePermissionsForm({
           }
         }
 
-        const message = extractErrorMessage(error);
+        const message = extractErrorMessage(error, t);
         setFormError(message);
         setConfirmError(message);
       },
@@ -529,21 +553,27 @@ export function RolePermissionsForm({
           </div>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white">
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s3",
-              )}
+              {t("pages.roles.permissions.title")}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {readOnly
-                ? `Viewing permissions for ${roleName}.`
-                : `Update permissions for ${roleName} using a searchable permission list.`}
+                ? t("pages.roles.permissions.descriptionReadOnly", {
+                    name: roleName,
+                  })
+                : t("pages.roles.permissions.descriptionWrite", {
+                    name: roleName,
+                  })}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3 pb-1 text-xs text-gray-400">
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {selectedSet.size} selected
+                {t("pages.roles.permissions.summary.selected", {
+                  count: selectedSet.size,
+                })}
               </span>
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {permissions.length} total
+                {t("pages.roles.permissions.summary.total", {
+                  count: permissions.length,
+                })}
               </span>
             </div>
           </div>
@@ -552,15 +582,9 @@ export function RolePermissionsForm({
 
       {readOnly ? (
         <Alert>
-          <AlertTitle>
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s4",
-            )}
-          </AlertTitle>
+          <AlertTitle>{t("pages.roles.permissions.readOnly.title")}</AlertTitle>
           <AlertDescription>
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s5",
-            )}
+            {t("pages.roles.permissions.readOnly.description")}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -568,9 +592,7 @@ export function RolePermissionsForm({
       {permissionIdsError ? (
         <Alert variant="destructive">
           <AlertTitle>
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s6",
-            )}
+            {t("pages.roles.permissions.errors.validationTitle")}
           </AlertTitle>
           <AlertDescription>{permissionIdsError}</AlertDescription>
         </Alert>
@@ -579,9 +601,7 @@ export function RolePermissionsForm({
       {formError ? (
         <Alert variant="destructive">
           <AlertTitle>
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s7",
-            )}
+            {t("pages.roles.permissions.errors.updateFailedTitle")}
           </AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
@@ -589,7 +609,8 @@ export function RolePermissionsForm({
 
       {isError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-          {(error as Error)?.message || "Failed to load role permissions."}
+          {(error as Error)?.message ||
+            t("pages.roles.permissions.errors.loadFailed")}
         </div>
       ) : null}
 
@@ -597,9 +618,7 @@ export function RolePermissionsForm({
         <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/40">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Label htmlFor="permissions-search">
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s8",
-              )}
+              {t("pages.roles.permissions.search.label")}
             </Label>
             <div className="flex items-center gap-2">
               <Button
@@ -609,9 +628,7 @@ export function RolePermissionsForm({
                 onClick={handleSelectAll}
                 disabled={permissions.length === 0 || isLoading}
               >
-                {t(
-                  "auto.features.role_permissions.components.rolepermissionsform.s9",
-                )}
+                {t("pages.roles.permissions.actions.selectAll")}
               </Button>
               <Button
                 variant="outline"
@@ -620,7 +637,7 @@ export function RolePermissionsForm({
                 onClick={handleClear}
                 disabled={selectedSet.size === 0 || isLoading}
               >
-                Clear
+                {t("pages.roles.permissions.actions.clear")}
               </Button>
             </div>
           </div>
@@ -628,31 +645,23 @@ export function RolePermissionsForm({
             id="permissions-search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder={t(
-              "auto.features.role_permissions.components.rolepermissionsform.s10",
-            )}
+            placeholder={t("pages.roles.permissions.search.placeholder")}
             disabled={isLoading}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s11",
-            )}
+            {t("pages.roles.permissions.search.hint")}
           </p>
         </div>
       ) : (
         <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/40">
           <Label htmlFor="permissions-search-readonly">
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s8",
-            )}
+            {t("pages.roles.permissions.search.label")}
           </Label>
           <Input
             id="permissions-search-readonly"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder={t(
-              "auto.features.role_permissions.components.rolepermissionsform.s10",
-            )}
+            placeholder={t("pages.roles.permissions.search.placeholder")}
             disabled={isLoading}
           />
         </div>
@@ -662,14 +671,12 @@ export function RolePermissionsForm({
         {selectedPermissions.length > 0 ? (
           selectedPermissions.map((permission) => (
             <Badge key={`selected-${permission.id}`} variant="secondary">
-              {getPermissionName(permission)}
+              {getPermissionName(permission, t)}
             </Badge>
           ))
         ) : (
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s12",
-            )}
+            {t("pages.roles.permissions.empty.selected")}
           </p>
         )}
       </div>
@@ -680,15 +687,17 @@ export function RolePermissionsForm({
         <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s13",
-              )}
+              {t("pages.roles.permissions.changes.title")}
             </span>
             <span className="text-green-700 dark:text-green-300">
-              +{permissionChanges.added.length} added
+              {t("pages.roles.permissions.changes.added", {
+                count: permissionChanges.added.length,
+              })}
             </span>
             <span className="text-red-700 dark:text-red-300">
-              -{permissionChanges.removed.length} removed
+              {t("pages.roles.permissions.changes.removed", {
+                count: permissionChanges.removed.length,
+              })}
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -713,9 +722,7 @@ export function RolePermissionsForm({
             {permissionChanges.added.length + permissionChanges.removed.length >
             12 ? (
               <Badge variant="outline" className="text-[11px]">
-                {t(
-                  "auto.features.role_permissions.components.rolepermissionsform.s14",
-                )}
+                {t("pages.roles.permissions.changes.more")}
               </Badge>
             ) : null}
           </div>
@@ -732,16 +739,19 @@ export function RolePermissionsForm({
         ) : filteredPermissions.length === 0 ? (
           <p className="p-2 text-sm text-gray-500 dark:text-gray-400">
             {search.trim()
-              ? "No permissions match your search."
-              : "No permissions available."}
+              ? t("pages.roles.permissions.empty.noResults")
+              : t("pages.roles.permissions.empty.noPermissions")}
           </p>
         ) : (
           filteredPermissions.map((permission) => {
             const permissionId = String(permission.id);
             const isSelected = selectedSet.has(permissionId);
-            const permissionName = getPermissionName(permission);
+            const permissionName = getPermissionName(permission, t);
             const slug = String(permission.slug ?? "").trim();
-            const groupLabel = getPermissionGroupLabel(permission.name ?? slug);
+            const groupLabel = getPermissionGroupLabel(
+              permission.name ?? slug,
+              t,
+            );
             const descriptionPreview = getDescriptionPreview(
               permission.description,
             );
@@ -766,14 +776,19 @@ export function RolePermissionsForm({
                       {permissionName}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {slug || "-"} · {groupLabel}
+                      {slug || emptyValue} · {groupLabel}
                     </p>
                   </div>
                   <input
                     type="checkbox"
                     checked={isSelected}
                     readOnly
-                    aria-label={`Select ${permissionName}`}
+                    aria-label={t(
+                      "pages.roles.permissions.actions.selectPermission",
+                      {
+                        name: permissionName,
+                      },
+                    )}
                     className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                 </div>
@@ -795,7 +810,7 @@ export function RolePermissionsForm({
             onClick={handleContinue}
             disabled={!isDirty || updateMutation.isPending || isLoading}
           >
-            Continue
+            {t("pages.roles.permissions.actions.continue")}
           </Button>
         </div>
       ) : null}
@@ -826,18 +841,12 @@ export function RolePermissionsForm({
         >
           <DialogHeader className="space-y-2">
             <DialogTitle>
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s15",
-              )}
+              {t("pages.roles.permissions.confirm.title")}
             </DialogTitle>
             <DialogDescription>
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s16",
-              )}
-              {roleName}{" "}
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s17",
-              )}
+              {t("pages.roles.permissions.confirm.description", {
+                name: roleName,
+              })}
             </DialogDescription>
           </DialogHeader>
 
@@ -846,19 +855,16 @@ export function RolePermissionsForm({
               {roleName}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {pendingPermissionIds.length}{" "}
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s18",
-              )}
+              {t("pages.roles.permissions.confirm.selectedCount", {
+                count: pendingPermissionIds.length,
+              })}
             </p>
           </div>
 
           {confirmError ? (
             <Alert variant="destructive">
               <AlertTitle>
-                {t(
-                  "auto.features.role_permissions.components.rolepermissionsform.s19",
-                )}
+                {t("pages.roles.permissions.confirm.errorTitle")}
               </AlertTitle>
               <AlertDescription>{confirmError}</AlertDescription>
             </Alert>
@@ -867,9 +873,7 @@ export function RolePermissionsForm({
           <div className="space-y-4 text-sm">
             <div>
               <p className="font-semibold text-green-700 dark:text-green-300">
-                {t(
-                  "auto.features.role_permissions.components.rolepermissionsform.s20",
-                )}
+                {t("pages.roles.permissions.confirm.addTitle")}
               </p>
               <ul className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
                 {pendingPermissionChanges.added.length > 0 ? (
@@ -877,16 +881,14 @@ export function RolePermissionsForm({
                     <li key={`confirm-add-${permission}`}>+ {permission}</li>
                   ))
                 ) : (
-                  <li>None</li>
+                  <li>{t("pages.roles.permissions.confirm.none")}</li>
                 )}
               </ul>
             </div>
 
             <div>
               <p className="font-semibold text-red-700 dark:text-red-300">
-                {t(
-                  "auto.features.role_permissions.components.rolepermissionsform.s21",
-                )}
+                {t("pages.roles.permissions.confirm.removeTitle")}
               </p>
               <ul className="mt-2 space-y-1 text-gray-700 dark:text-gray-200">
                 {pendingPermissionChanges.removed.length > 0 ? (
@@ -894,7 +896,7 @@ export function RolePermissionsForm({
                     <li key={`confirm-remove-${permission}`}>- {permission}</li>
                   ))
                 ) : (
-                  <li>None</li>
+                  <li>{t("pages.roles.permissions.confirm.none")}</li>
                 )}
               </ul>
             </div>
@@ -908,9 +910,7 @@ export function RolePermissionsForm({
               onChange={(event) => setConfirmChecked(event.target.checked)}
               disabled={updateMutation.isPending}
             />
-            {t(
-              "auto.features.role_permissions.components.rolepermissionsform.s22",
-            )}
+            {t("pages.roles.permissions.confirm.acknowledgement")}
           </label>
 
           <DialogFooter>
@@ -920,9 +920,7 @@ export function RolePermissionsForm({
               onClick={() => setConfirmOpen(false)}
               disabled={updateMutation.isPending}
             >
-              {t(
-                "auto.features.role_permissions.components.rolepermissionsform.s23",
-              )}
+              {t("common.actions.cancel")}
             </Button>
             <Button
               type="button"
@@ -930,7 +928,9 @@ export function RolePermissionsForm({
               disabled={!confirmChecked || updateMutation.isPending}
               className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
             >
-              {updateMutation.isPending ? "Confirming..." : "Confirm & Apply"}
+              {updateMutation.isPending
+                ? t("pages.roles.permissions.confirm.confirming")
+                : t("pages.roles.permissions.confirm.apply")}
             </Button>
           </DialogFooter>
         </DialogContent>

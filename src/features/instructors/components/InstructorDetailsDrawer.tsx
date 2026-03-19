@@ -105,6 +105,7 @@ export function InstructorDetailsDrawer({
   scopeCenterId,
 }: InstructorDetailsDrawerProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.instructors.fallbacks.noValue");
 
   const detailsQuery = useInstructor(
     instructor?.id ?? null,
@@ -120,7 +121,7 @@ export function InstructorDetailsDrawer({
     resolveText(
       resolvedInstructor?.name,
       resolvedInstructor?.name_translations ?? null,
-    ) ?? "Instructor";
+    ) ?? t("pages.instructors.fallbacks.instructor");
   const displayTitle = resolveText(
     resolvedInstructor?.title,
     resolvedInstructor?.title_translations ?? null,
@@ -133,14 +134,16 @@ export function InstructorDetailsDrawer({
     resolvedInstructor?.center?.name ??
     resolvedInstructor?.center?.id ??
     resolvedInstructor?.center_id ??
-    "—";
+    emptyValue;
   const creatorLabel =
-    resolvedInstructor?.creator?.name ?? resolvedInstructor?.creator?.id ?? "—";
+    resolvedInstructor?.creator?.name ??
+    resolvedInstructor?.creator?.id ??
+    emptyValue;
   const statusLabel =
     resolvedInstructor?.status_label ??
     resolvedInstructor?.status_key ??
     resolvedInstructor?.status ??
-    "Unknown";
+    t("pages.instructors.dialogs.details.fields.statusUnknown");
   const statusVariant = resolveStatusVariant(
     resolvedInstructor?.status_key ?? resolvedInstructor?.status,
   );
@@ -175,9 +178,7 @@ export function InstructorDetailsDrawer({
               {displayName}
             </DialogTitle>
             <DialogDescription>
-              {t(
-                "auto.features.instructors.components.instructordetailsdrawer.s1",
-              )}
+              {t("pages.instructors.dialogs.details.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -185,7 +186,7 @@ export function InstructorDetailsDrawer({
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Profile
+                  {t("pages.instructors.dialogs.details.sections.profile")}
                 </h3>
                 <Badge variant={statusVariant}>{statusLabel}</Badge>
               </div>
@@ -195,7 +196,9 @@ export function InstructorDetailsDrawer({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={avatarUrl}
-                      alt={`${displayName} avatar`}
+                      alt={t("pages.instructors.avatarAlt", {
+                        name: displayName,
+                      })}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -207,36 +210,40 @@ export function InstructorDetailsDrawer({
                     {displayName}
                   </p>
                   <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-                    {displayTitle ?? "—"}
+                    {displayTitle ?? emptyValue}
                   </p>
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-xs text-gray-500">
+                    {t("common.labels.email")}
+                  </p>
                   <p className="break-words text-sm font-semibold text-gray-900 dark:text-white">
-                    {resolvedInstructor?.email ?? "—"}
+                    {resolvedInstructor?.email ?? emptyValue}
                   </p>
                 </div>
                 {phoneLabel ? (
                   <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                    <p className="text-xs text-gray-500">Phone</p>
+                    <p className="text-xs text-gray-500">
+                      {t("common.labels.phone")}
+                    </p>
                     <p className="break-words text-sm font-semibold text-gray-900 dark:text-white">
                       {phoneLabel}
                     </p>
                   </div>
                 ) : null}
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
-                  <p className="text-xs text-gray-500">Center</p>
+                  <p className="text-xs text-gray-500">
+                    {t("common.labels.center")}
+                  </p>
                   <p className="break-words text-sm font-semibold text-gray-900 dark:text-white">
                     {centerLabel}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                   <p className="text-xs text-gray-500">
-                    {t(
-                      "auto.features.instructors.components.instructordetailsdrawer.s2",
-                    )}
+                    {t("pages.instructors.dialogs.details.fields.createdBy")}
                   </p>
                   <p className="break-words text-sm font-semibold text-gray-900 dark:text-white">
                     {creatorLabel}
@@ -247,22 +254,23 @@ export function InstructorDetailsDrawer({
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Bio
+                {t("pages.instructors.dialogs.details.sections.bio")}
               </h3>
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
-                {displayBio ?? "No bio available."}
+                {displayBio ??
+                  t("pages.instructors.dialogs.details.fields.noBio")}
               </div>
             </section>
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Translations
+                {t("pages.instructors.dialogs.details.sections.translations")}
               </h3>
               <div className="space-y-3">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                   <p className="text-xs text-gray-500">
                     {t(
-                      "auto.features.instructors.components.instructordetailsdrawer.s3",
+                      "pages.instructors.dialogs.details.fields.nameTranslations",
                     )}
                   </p>
                   <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
@@ -270,13 +278,13 @@ export function InstructorDetailsDrawer({
                       ? nameTranslations
                           .map(([lang, value]) => `${lang}: ${value}`)
                           .join(" • ")
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                   <p className="text-xs text-gray-500">
                     {t(
-                      "auto.features.instructors.components.instructordetailsdrawer.s4",
+                      "pages.instructors.dialogs.details.fields.titleTranslations",
                     )}
                   </p>
                   <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
@@ -284,13 +292,13 @@ export function InstructorDetailsDrawer({
                       ? titleTranslations
                           .map(([lang, value]) => `${lang}: ${value}`)
                           .join(" • ")
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                   <p className="text-xs text-gray-500">
                     {t(
-                      "auto.features.instructors.components.instructordetailsdrawer.s5",
+                      "pages.instructors.dialogs.details.fields.bioTranslations",
                     )}
                   </p>
                   <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
@@ -298,7 +306,7 @@ export function InstructorDetailsDrawer({
                       ? bioTranslations
                           .map(([lang, value]) => `${lang}: ${value}`)
                           .join(" • ")
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
               </div>
@@ -306,9 +314,7 @@ export function InstructorDetailsDrawer({
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                {t(
-                  "auto.features.instructors.components.instructordetailsdrawer.s6",
-                )}
+                {t("pages.instructors.dialogs.details.sections.socialLinks")}
               </h3>
               {socialLinks.length > 0 ? (
                 <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
@@ -323,16 +329,14 @@ export function InstructorDetailsDrawer({
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                  {t(
-                    "auto.features.instructors.components.instructordetailsdrawer.s7",
-                  )}
+                  {t("pages.instructors.dialogs.details.fields.noSocialLinks")}
                 </div>
               )}
             </section>
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Metadata
+                {t("pages.instructors.dialogs.details.sections.metadata")}
               </h3>
               {metadataItems.length > 0 ? (
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -352,40 +356,34 @@ export function InstructorDetailsDrawer({
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                  {t(
-                    "auto.features.instructors.components.instructordetailsdrawer.s8",
-                  )}
+                  {t("pages.instructors.dialogs.details.fields.noMetadata")}
                 </div>
               )}
             </section>
 
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Audit
+                {t("pages.instructors.dialogs.details.sections.audit")}
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                   <p className="text-xs text-gray-500">
-                    {t(
-                      "auto.features.instructors.components.instructordetailsdrawer.s9",
-                    )}
+                    {t("pages.instructors.table.headers.createdAt")}
                   </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {resolvedInstructor?.created_at
                       ? formatDateTime(resolvedInstructor.created_at)
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
                   <p className="text-xs text-gray-500">
-                    {t(
-                      "auto.features.instructors.components.instructordetailsdrawer.s10",
-                    )}
+                    {t("pages.instructors.dialogs.details.fields.updatedAt")}
                   </p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {resolvedInstructor?.updated_at
                       ? formatDateTime(resolvedInstructor.updated_at)
-                      : "—"}
+                      : emptyValue}
                   </p>
                 </div>
               </div>
@@ -393,9 +391,7 @@ export function InstructorDetailsDrawer({
 
             {detailsQuery.isFetching ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t(
-                  "auto.features.instructors.components.instructordetailsdrawer.s11",
-                )}
+                {t("pages.instructors.dialogs.details.fields.refreshing")}
               </p>
             ) : null}
           </div>

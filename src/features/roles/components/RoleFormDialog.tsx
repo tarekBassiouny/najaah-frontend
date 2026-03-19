@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -25,7 +25,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { useCreateRole, useUpdateRole } from "@/features/roles/hooks/use-roles";
 import type { Role } from "@/features/roles/types/role";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 import {
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
@@ -37,29 +40,27 @@ import {
 
 const SLUG_REGEX = /^[a-zA-Z0-9._-]+$/;
 
-const schema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Role name is required.")
-    .max(100, "Role name must be 100 characters or less."),
-  slug: z
-    .string()
-    .trim()
-    .min(1, "Slug is required.")
-    .max(100, "Slug must be 100 characters or less.")
-    .regex(
-      SLUG_REGEX,
-      "Slug may only contain letters, numbers, dot (.), underscore (_) and hyphen (-).",
-    ),
-  description: z
-    .string()
-    .trim()
-    .max(255, "Description must be 255 characters or less.")
-    .optional(),
-});
+const buildSchema = (t: TranslateFunction) =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t("pages.roles.dialogs.form.validation.nameRequired"))
+      .max(100, t("pages.roles.dialogs.form.validation.nameMax")),
+    slug: z
+      .string()
+      .trim()
+      .min(1, t("pages.roles.dialogs.form.validation.slugRequired"))
+      .max(100, t("pages.roles.dialogs.form.validation.slugMax"))
+      .regex(SLUG_REGEX, t("pages.roles.dialogs.form.validation.slugPattern")),
+    description: z
+      .string()
+      .trim()
+      .max(255, t("pages.roles.dialogs.form.validation.descriptionMax"))
+      .optional(),
+  });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 type RoleFormDialogProps = {
   open: boolean;
@@ -130,27 +131,33 @@ function mapFieldErrors(
   return hasFieldError;
 }
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  PERMISSION_DENIED: "You do not have permission to perform this action.",
-  SYSTEM_SCOPE_REQUIRED:
-    "This action requires system scope. Please use the platform admin panel.",
-  SYSTEM_API_KEY_REQUIRED:
-    "This action requires a system API key. Please contact your administrator.",
-  API_KEY_CENTER_MISMATCH:
-    "The API key does not match this center. Please refresh and try again.",
-  CENTER_MISMATCH:
-    "This role belongs to a different center and cannot be modified here.",
-  NOT_FOUND: "The requested role was not found. It may have been deleted.",
-  VALIDATION_ERROR: "Please check your input and try again.",
-};
-
-function getErrorCodeMessage(code: string | undefined): string | null {
+function getErrorCodeMessage(
+  code: string | undefined,
+  t: TranslateFunction,
+): string | null {
   if (!code) return null;
-  return ERROR_CODE_MESSAGES[code] ?? null;
+
+  const messages: Record<string, string> = {
+    PERMISSION_DENIED: t("pages.roles.dialogs.form.errors.permissionDenied"),
+    SYSTEM_SCOPE_REQUIRED: t(
+      "pages.roles.dialogs.form.errors.systemScopeRequired",
+    ),
+    SYSTEM_API_KEY_REQUIRED: t(
+      "pages.roles.dialogs.form.errors.systemApiKeyRequired",
+    ),
+    API_KEY_CENTER_MISMATCH: t(
+      "pages.roles.dialogs.form.errors.apiKeyCenterMismatch",
+    ),
+    CENTER_MISMATCH: t("pages.roles.dialogs.form.errors.centerMismatch"),
+    NOT_FOUND: t("pages.roles.dialogs.form.errors.notFound"),
+    VALIDATION_ERROR: t("pages.roles.dialogs.form.errors.validation"),
+  };
+
+  return messages[code] ?? null;
 }
 
-function extractErrorMessage(error: unknown): string {
-  const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error));
+function extractErrorMessage(error: unknown, t: TranslateFunction): string {
+  const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error), t);
   if (codeMessage) {
     return codeMessage;
   }
@@ -162,7 +169,7 @@ function extractErrorMessage(error: unknown): string {
 
   return getAdminApiErrorMessage(
     error,
-    "Unable to save role. Please try again.",
+    t("pages.roles.dialogs.form.errors.saveFailed"),
   );
 }
 
@@ -178,6 +185,7 @@ export function RoleFormDialog({
   scopeCenterId,
 }: RoleFormDialogProps) {
   const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(role);
   const createMutation = useCreateRole({ centerId: scopeCenterId ?? null });
@@ -241,14 +249,17 @@ export function RoleFormDialog({
               setFormError(
                 getAdminResponseMessage(
                   response,
-                  "Unable to save role. Please try again.",
+                  t("pages.roles.dialogs.form.errors.saveFailed"),
                 ),
               );
               return;
             }
             onOpenChange(false);
             onSuccess?.(
-              getAdminResponseMessage(response, "Role updated successfully."),
+              getAdminResponseMessage(
+                response,
+                t("pages.roles.dialogs.form.messages.updated"),
+              ),
             );
           },
           onError: (error) => {
@@ -260,7 +271,7 @@ export function RoleFormDialog({
             );
 
             if (!hasFieldError) {
-              setFormError(extractErrorMessage(error));
+              setFormError(extractErrorMessage(error, t));
             }
           },
         },
@@ -275,14 +286,17 @@ export function RoleFormDialog({
           setFormError(
             getAdminResponseMessage(
               response,
-              "Unable to save role. Please try again.",
+              t("pages.roles.dialogs.form.errors.saveFailed"),
             ),
           );
           return;
         }
         onOpenChange(false);
         onSuccess?.(
-          getAdminResponseMessage(response, "Role created successfully."),
+          getAdminResponseMessage(
+            response,
+            t("pages.roles.dialogs.form.messages.created"),
+          ),
         );
       },
       onError: (error) => {
@@ -294,7 +308,7 @@ export function RoleFormDialog({
         );
 
         if (!hasFieldError) {
-          setFormError(extractErrorMessage(error));
+          setFormError(extractErrorMessage(error, t));
         }
       },
     });
@@ -312,20 +326,20 @@ export function RoleFormDialog({
         <DialogHeader>
           <DialogTitle>
             {isEditMode
-              ? t("auto.features.roles.components.roleformdialog.s1")
-              : t("auto.features.roles.components.roleformdialog.s2")}
+              ? t("pages.roles.dialogs.form.titleEdit")
+              : t("pages.roles.dialogs.form.titleCreate")}
           </DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? t("auto.features.roles.components.roleformdialog.s3")
-              : t("auto.features.roles.components.roleformdialog.s4")}
+              ? t("pages.roles.dialogs.form.descriptionEdit")
+              : t("pages.roles.dialogs.form.descriptionCreate")}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.roles.components.roleformdialog.s5")}
+              {t("pages.roles.dialogs.form.errors.saveFailedTitle")}
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -342,7 +356,7 @@ export function RoleFormDialog({
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.roles.components.roleformdialog.s6",
+                        "pages.roles.dialogs.form.placeholders.name",
                       )}
                       {...field}
                     />
@@ -358,12 +372,12 @@ export function RoleFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("auto.features.roles.components.roleformdialog.s7")}
+                    {t("pages.roles.dialogs.form.fields.slug")}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.roles.components.roleformdialog.s8",
+                        "pages.roles.dialogs.form.placeholders.slug",
                       )}
                       {...field}
                     />
@@ -382,7 +396,7 @@ export function RoleFormDialog({
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.roles.components.roleformdialog.s9",
+                        "pages.roles.dialogs.form.placeholders.description",
                       )}
                       {...field}
                     />
@@ -408,8 +422,8 @@ export function RoleFormDialog({
                 {isPending
                   ? t("common.actions.saving")
                   : isEditMode
-                    ? t("auto.features.roles.components.roleformdialog.s10")
-                    : t("auto.features.roles.components.roleformdialog.s11")}
+                    ? t("pages.roles.dialogs.form.actions.saveChanges")
+                    : t("pages.roles.dialogs.form.actions.createRole")}
               </Button>
             </DialogFooter>
           </form>

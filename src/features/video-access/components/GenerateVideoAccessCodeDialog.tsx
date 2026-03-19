@@ -141,8 +141,8 @@ export function GenerateVideoAccessCodeDialog({
       : undefined;
   const centerPickerAllLabel =
     isUnbrandedStudent || needsUnbrandedCenterSelection
-      ? "Select unbranded center"
-      : "Select center";
+      ? t("pages.videoAccess.dialogs.generateCode.centerPickerUnbranded")
+      : t("pages.videoAccess.dialogs.generateCode.centerPicker");
   const centerPickerDisabled =
     Boolean(studentCenterId) ||
     generateMutation.isPending ||
@@ -451,12 +451,16 @@ export function GenerateVideoAccessCodeDialog({
   const handleGenerate = () => {
     const centerIdForMutation = resolvedVideoCenterId;
     if (!centerIdForMutation) {
-      setErrorMessage("Center context is required.");
+      setErrorMessage(
+        t("pages.videoAccess.dialogs.generateCode.errors.centerRequired"),
+      );
       return;
     }
 
     if (!resolvedCourseId) {
-      setErrorMessage("Select course first.");
+      setErrorMessage(
+        t("pages.videoAccess.dialogs.generateCode.errors.selectCourse"),
+      );
       return;
     }
 
@@ -464,7 +468,11 @@ export function GenerateVideoAccessCodeDialog({
       selectedStudent.trim().length === 0 ||
       selectedVideo.trim().length === 0
     ) {
-      setErrorMessage("Select student and video first.");
+      setErrorMessage(
+        t(
+          "pages.videoAccess.dialogs.generateCode.errors.selectStudentAndVideo",
+        ),
+      );
       return;
     }
 
@@ -489,7 +497,7 @@ export function GenerateVideoAccessCodeDialog({
           setErrorMessage(
             getStudentRequestApiErrorMessage(
               error,
-              "Unable to generate access code.",
+              t("pages.videoAccess.dialogs.generateCode.errors.generateFailed"),
             ),
           );
         },
@@ -499,7 +507,9 @@ export function GenerateVideoAccessCodeDialog({
 
   const handleSendWhatsapp = () => {
     if (!generatedCode?.id) {
-      setErrorMessage("Generate code first.");
+      setErrorMessage(
+        t("pages.videoAccess.dialogs.generateCode.errors.generateFirst"),
+      );
       return;
     }
 
@@ -507,7 +517,9 @@ export function GenerateVideoAccessCodeDialog({
 
     const centerIdForMutation = resolvedVideoCenterId;
     if (!centerIdForMutation) {
-      setErrorMessage("Center context is required.");
+      setErrorMessage(
+        t("pages.videoAccess.dialogs.generateCode.errors.centerRequired"),
+      );
       return;
     }
     sendWhatsappMutation.mutate(
@@ -524,7 +536,7 @@ export function GenerateVideoAccessCodeDialog({
           setErrorMessage(
             getStudentRequestApiErrorMessage(
               error,
-              "Unable to send generated code via WhatsApp.",
+              t("pages.videoAccess.dialogs.generateCode.errors.whatsappFailed"),
             ),
           );
         },
@@ -546,23 +558,17 @@ export function GenerateVideoAccessCodeDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            {t(
-              "auto.features.video_access.components.generatevideoaccesscodedialog.s1",
-            )}
+            {t("pages.videoAccess.dialogs.generateCode.title")}
           </DialogTitle>
           <DialogDescription>
-            {t(
-              "auto.features.video_access.components.generatevideoaccesscodedialog.s2",
-            )}
+            {t("pages.videoAccess.dialogs.generateCode.description")}
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.video_access.components.generatevideoaccesscodedialog.s3",
-              )}
+              {t("pages.videoAccess.dialogs.generateCode.errors.errorTitle")}
             </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
@@ -583,7 +589,7 @@ export function GenerateVideoAccessCodeDialog({
           {studentPreset ? (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
               <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
-                Student
+                {t("pages.videoAccess.dialogs.generateCode.fields.student")}
               </p>
               <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                 {studentPreset.label}
@@ -596,10 +602,14 @@ export function GenerateVideoAccessCodeDialog({
               options={studentOptions}
               searchValue={studentSearch}
               onSearchValueChange={setStudentSearch}
-              placeholder="Student"
-              searchPlaceholder="Search students..."
+              placeholder={t(
+                "pages.videoAccess.dialogs.generateCode.fields.student",
+              )}
+              searchPlaceholder={t(
+                "pages.videoAccess.dialogs.generateCode.placeholders.searchStudents",
+              )}
               emptyMessage={t(
-                "auto.features.video_access.components.generatevideoaccesscodedialog.s4",
+                "pages.videoAccess.dialogs.generateCode.empty.noStudents",
               )}
               isLoading={studentsQuery.isLoading}
               filterOptions={false}
@@ -629,13 +639,21 @@ export function GenerateVideoAccessCodeDialog({
             searchValue={courseSearch}
             onSearchValueChange={setCourseSearch}
             placeholder={
-              hasCenterId ? "Course" : "Select a center to load courses"
+              hasCenterId
+                ? t("pages.videoAccess.dialogs.generateCode.fields.course")
+                : t(
+                    "pages.videoAccess.dialogs.generateCode.placeholders.selectCenterFirst",
+                  )
             }
-            searchPlaceholder="Search courses..."
+            searchPlaceholder={t(
+              "pages.videoAccess.dialogs.generateCode.placeholders.searchCourses",
+            )}
             emptyMessage={
               hasCenterId
-                ? "No courses found"
-                : "Select a center to load courses"
+                ? t("pages.videoAccess.dialogs.generateCode.empty.noCourses")
+                : t(
+                    "pages.videoAccess.dialogs.generateCode.empty.loadCenterFirst",
+                  )
             }
             isLoading={coursesQuery.isLoading}
             filterOptions={false}
@@ -656,10 +674,22 @@ export function GenerateVideoAccessCodeDialog({
             options={videoOptions}
             searchValue={videoSearch}
             onSearchValueChange={setVideoSearch}
-            placeholder={resolvedCourseId ? "Video" : "Select course first"}
-            searchPlaceholder="Search videos..."
+            placeholder={
+              resolvedCourseId
+                ? t("pages.videoAccess.dialogs.generateCode.fields.video")
+                : t(
+                    "pages.videoAccess.dialogs.generateCode.placeholders.selectCourseFirst",
+                  )
+            }
+            searchPlaceholder={t(
+              "pages.videoAccess.dialogs.generateCode.placeholders.searchVideos",
+            )}
             emptyMessage={
-              resolvedCourseId ? "No videos found" : "Select course first"
+              resolvedCourseId
+                ? t("pages.videoAccess.dialogs.generateCode.empty.noVideos")
+                : t(
+                    "pages.videoAccess.dialogs.generateCode.empty.loadCourseFirst",
+                  )
             }
             isLoading={videosQuery.isLoading}
             filterOptions={false}
@@ -690,24 +720,25 @@ export function GenerateVideoAccessCodeDialog({
               >
                 {asString(generatedCode.status_label) ??
                   asString(generatedCode.status) ??
-                  "Generated"}
+                  t(
+                    "pages.videoAccess.dialogs.generateCode.result.statusGenerated",
+                  )}
               </Badge>
             </div>
 
             <div>
               <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                Code
+                {t("pages.videoAccess.dialogs.generateCode.result.fields.code")}
               </p>
               <p className="mt-1 font-mono text-xl font-semibold text-gray-900 dark:text-white">
-                {selectedCodeValue ?? "—"}
+                {selectedCodeValue ??
+                  t("pages.videoAccess.dialogs.generateCode.result.emptyValue")}
               </p>
             </div>
 
             {generatedCode.expires_at ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t(
-                  "auto.features.video_access.components.generatevideoaccesscodedialog.s5",
-                )}{" "}
+                {t("pages.videoAccess.dialogs.generateCode.result.expiresAt")}{" "}
                 {new Date(generatedCode.expires_at).toLocaleString()}
               </p>
             ) : null}
@@ -717,9 +748,7 @@ export function GenerateVideoAccessCodeDialog({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={generatedCode.qr_code_url}
-                  alt={t(
-                    "auto.features.video_access.components.generatevideoaccesscodedialog.s6",
-                  )}
+                  alt={t("pages.videoAccess.dialogs.generateCode.result.qrAlt")}
                   className="mx-auto max-h-44 max-w-full rounded"
                 />
               </div>
@@ -728,35 +757,47 @@ export function GenerateVideoAccessCodeDialog({
             <div className="grid gap-3 text-sm sm:grid-cols-3 sm:text-xs">
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                  Student
+                  {t("pages.videoAccess.dialogs.generateCode.fields.student")}
                 </p>
                 <p className="mt-1 font-semibold text-gray-900 dark:text-white">
                   {generatedCode.student?.name ??
                     studentPreset?.label ??
                     cachedStudentsRef.current.get(selectedStudent) ??
-                    `Student ${selectedStudent || "?"}`}
+                    t("pages.students.fallbacks.studentById", {
+                      id: selectedStudent || "?",
+                    })}
                 </p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                  Course
+                  {t("pages.videoAccess.dialogs.generateCode.fields.course")}
                 </p>
                 <p className="mt-1 font-semibold text-gray-900 dark:text-white">
                   {generatedCode.course?.title ??
                     coursePreset?.label ??
                     cachedCoursesRef.current.get(resolvedCourseId) ??
-                    `Course ${resolvedCourseId || "?"}`}
+                    t(
+                      "pages.videoAccess.dialogs.generateCode.result.courseById",
+                      {
+                        id: resolvedCourseId || "?",
+                      },
+                    )}
                 </p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                  Video
+                  {t("pages.videoAccess.dialogs.generateCode.fields.video")}
                 </p>
                 <p className="mt-1 font-semibold text-gray-900 dark:text-white">
                   {generatedCode.video?.title ??
                     videoPreset?.label ??
                     cachedVideosRef.current.get(selectedVideo)?.title ??
-                    `Video ${selectedVideo || "?"}`}
+                    t(
+                      "pages.videoAccess.dialogs.generateCode.result.videoById",
+                      {
+                        id: selectedVideo || "?",
+                      },
+                    )}
                 </p>
               </div>
             </div>
@@ -764,23 +805,38 @@ export function GenerateVideoAccessCodeDialog({
             <div className="grid gap-3 text-sm sm:grid-cols-2">
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                  Center
+                  {t("pages.videoAccess.dialogs.generateCode.fields.center")}
                 </p>
                 <p className="mt-1 font-semibold text-gray-900 dark:text-white">
                   {generatedCode.center?.name ??
-                    (centerContextId ? `Center ${centerContextId}` : "N/A")}
+                    (centerContextId
+                      ? t(
+                          "pages.videoAccess.dialogs.generateCode.result.centerById",
+                          {
+                            id: centerContextId,
+                          },
+                        )
+                      : t(
+                          "pages.videoAccess.dialogs.generateCode.result.notAvailable",
+                        ))}
                 </p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">
-                  WhatsApp
+                  {t("pages.videoAccess.dialogs.generateCode.fields.whatsapp")}
                 </p>
                 <p className="mt-1 font-semibold text-gray-900 dark:text-white">
                   {generatedCode.whatsapp_sent == null
-                    ? "Not requested"
+                    ? t(
+                        "pages.videoAccess.dialogs.generateCode.result.whatsapp.notRequested",
+                      )
                     : generatedCode.whatsapp_sent
-                      ? "Sent"
-                      : "Failed"}
+                      ? t(
+                          "pages.videoAccess.dialogs.generateCode.result.whatsapp.sent",
+                        )
+                      : t(
+                          "pages.videoAccess.dialogs.generateCode.result.whatsapp.failed",
+                        )}
                 </p>
               </div>
             </div>
@@ -792,7 +848,7 @@ export function GenerateVideoAccessCodeDialog({
                 {generatedCode.generated_by?.name ? (
                   <p>
                     {t(
-                      "auto.features.video_access.components.generatevideoaccesscodedialog.s7",
+                      "pages.videoAccess.dialogs.generateCode.result.generatedBy",
                     )}{" "}
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {generatedCode.generated_by.name}
@@ -802,7 +858,7 @@ export function GenerateVideoAccessCodeDialog({
                 {generatedCode.generated_at ? (
                   <p>
                     {t(
-                      "auto.features.video_access.components.generatevideoaccesscodedialog.s8",
+                      "pages.videoAccess.dialogs.generateCode.result.generatedAt",
                     )}{" "}
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {new Date(generatedCode.generated_at).toLocaleString()}
@@ -812,41 +868,7 @@ export function GenerateVideoAccessCodeDialog({
                 {generatedCode.whatsapp_error ? (
                   <p className="text-red-500 dark:text-red-400">
                     {t(
-                      "auto.features.video_access.components.generatevideoaccesscodedialog.s9",
-                    )}
-                    {generatedCode.whatsapp_error}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-            {generatedCode.generated_by?.name ||
-            generatedCode.generated_at ||
-            generatedCode.whatsapp_error ? (
-              <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                {generatedCode.generated_by?.name ? (
-                  <p>
-                    {t(
-                      "auto.features.video_access.components.generatevideoaccesscodedialog.s7",
-                    )}{" "}
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {generatedCode.generated_by.name}
-                    </span>
-                  </p>
-                ) : null}
-                {generatedCode.generated_at ? (
-                  <p>
-                    {t(
-                      "auto.features.video_access.components.generatevideoaccesscodedialog.s8",
-                    )}{" "}
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {new Date(generatedCode.generated_at).toLocaleString()}
-                    </span>
-                  </p>
-                ) : null}
-                {generatedCode.whatsapp_error ? (
-                  <p className="text-red-500 dark:text-red-400">
-                    {t(
-                      "auto.features.video_access.components.generatevideoaccesscodedialog.s9",
+                      "pages.videoAccess.dialogs.generateCode.result.whatsappError",
                     )}
                     {generatedCode.whatsapp_error}
                   </p>
@@ -865,9 +887,7 @@ export function GenerateVideoAccessCodeDialog({
                 }}
                 disabled={!selectedCodeValue}
               >
-                {t(
-                  "auto.features.video_access.components.generatevideoaccesscodedialog.s10",
-                )}
+                {t("pages.videoAccess.dialogs.generateCode.actions.copyCode")}
               </Button>
 
               <div className="flex flex-1 items-center gap-2">
@@ -880,19 +900,19 @@ export function GenerateVideoAccessCodeDialog({
                   <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
                     <SelectValue
                       placeholder={t(
-                        "auto.features.video_access.components.generatevideoaccesscodedialog.s11",
+                        "pages.videoAccess.dialogs.generateCode.placeholders.format",
                       )}
                     />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="text_code">
                       {t(
-                        "auto.features.video_access.components.generatevideoaccesscodedialog.s12",
+                        "pages.videoAccess.dialogs.generateCode.formats.textCode",
                       )}
                     </SelectItem>
                     <SelectItem value="qr_code">
                       {t(
-                        "auto.features.video_access.components.generatevideoaccesscodedialog.s13",
+                        "pages.videoAccess.dialogs.generateCode.formats.qrCode",
                       )}
                     </SelectItem>
                   </SelectContent>
@@ -904,8 +924,12 @@ export function GenerateVideoAccessCodeDialog({
                   disabled={sendWhatsappMutation.isPending}
                 >
                   {sendWhatsappMutation.isPending
-                    ? "Sending..."
-                    : "Send WhatsApp"}
+                    ? t(
+                        "pages.videoAccess.dialogs.generateCode.actions.sending",
+                      )
+                    : t(
+                        "pages.videoAccess.dialogs.generateCode.actions.sendWhatsapp",
+                      )}
                 </Button>
               </div>
             </div>
@@ -920,15 +944,17 @@ export function GenerateVideoAccessCodeDialog({
               generateMutation.isPending || sendWhatsappMutation.isPending
             }
           >
-            {t(
-              "auto.features.video_access.components.generatevideoaccesscodedialog.s14",
-            )}
+            {t("common.actions.cancel")}
           </Button>
           <Button
             onClick={handleGenerate}
             disabled={!resolvedVideoCenterId || generateMutation.isPending}
           >
-            {generateMutation.isPending ? "Generating..." : "Generate Code"}
+            {generateMutation.isPending
+              ? t("pages.videoAccess.dialogs.generateCode.actions.generating")
+              : t(
+                  "pages.videoAccess.dialogs.generateCode.actions.generateCode",
+                )}
           </Button>
         </DialogFooter>
       </DialogContent>

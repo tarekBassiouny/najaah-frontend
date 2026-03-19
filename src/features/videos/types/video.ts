@@ -11,6 +11,10 @@ export type VideoEncodingStatusKey =
 
 export type VideoLifecycleStatusKey = "pending" | "processing" | "ready";
 
+export type VideoTranscriptFormat = "txt" | "vtt" | "srt" | (string & {});
+
+export type VideoTranscriptSource = "manual" | (string & {});
+
 export type VideoCenterRef = {
   id: string | number;
   name?: string | null;
@@ -48,6 +52,9 @@ export type Video = {
   lifecycle_status?: number | string | null;
   lifecycle_status_key?: VideoLifecycleStatusKey | string | null;
   lifecycle_status_label?: string | null;
+  has_transcript?: boolean | null;
+  transcript_format?: VideoTranscriptFormat | null;
+  transcript_source?: VideoTranscriptSource | null;
   center?: VideoCenterRef | null;
   creator?: VideoCreatorRef | null;
   upload_sessions?: VideoUploadSession[] | null;
@@ -57,6 +64,18 @@ export type Video = {
   updated_at?: string | null;
   course_id?: string | number | null;
   [key: string]: unknown;
+};
+
+export type VideoTranscript = {
+  video_id: string | number;
+  has_transcript: boolean;
+  transcript: string | null;
+  transcript_format: VideoTranscriptFormat | null;
+  transcript_source: VideoTranscriptSource | null;
+  _response_message?: string;
+  success?: boolean;
+  code?: string;
+  errors?: Record<string, unknown>;
 };
 
 export type VideoUploadSession = {

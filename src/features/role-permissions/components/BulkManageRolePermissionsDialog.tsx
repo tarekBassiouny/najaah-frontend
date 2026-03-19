@@ -17,7 +17,10 @@ import { cn } from "@/lib/utils";
 import { usePermissions } from "@/features/permissions/hooks/use-permissions";
 import { useBulkAssignRolePermissions } from "@/features/role-permissions/hooks/use-role-permissions";
 import type { Role } from "@/features/roles/types/role";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -56,11 +59,15 @@ function getValidationMessage(value: unknown): string | null {
   return null;
 }
 
-function getRoleLabel(role: Role): string {
-  return role.name ?? role.slug ?? `Role ${role.id}`;
+function getRoleLabel(role: Role, t: TranslateFunction): string {
+  return (
+    role.name ??
+    role.slug ??
+    t("pages.roles.fallbacks.roleById", { id: role.id })
+  );
 }
 
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, t: TranslateFunction): string {
   if (isAxiosError<BackendErrorData>(error)) {
     const data = error.response?.data;
 
@@ -73,7 +80,7 @@ function getErrorMessage(error: unknown): string {
     }
   }
 
-  return "Unable to assign permissions. Please try again.";
+  return t("pages.roles.bulkPermissions.errors.updateFailed");
 }
 
 export function BulkManageRolePermissionsDialog({
@@ -162,12 +169,12 @@ export function BulkManageRolePermissionsDialog({
       .filter((id) => id.length > 0);
 
     if (normalizedRoleIds.length === 0) {
-      setRoleIdsError("Select at least one role.");
+      setRoleIdsError(t("pages.roles.bulkPermissions.errors.selectRole"));
       return;
     }
 
     if (new Set(normalizedRoleIds).size !== normalizedRoleIds.length) {
-      setRoleIdsError("Selected roles must be unique.");
+      setRoleIdsError(t("pages.roles.bulkPermissions.errors.uniqueRoles"));
       return;
     }
 
@@ -181,7 +188,7 @@ export function BulkManageRolePermissionsDialog({
 
     if (invalidPermissionIds.length > 0) {
       setPermissionIdsError(
-        "One or more selected permissions are invalid. Refresh permissions and try again.",
+        t("pages.roles.bulkPermissions.errors.invalidPermissions"),
       );
       return;
     }
@@ -194,11 +201,14 @@ export function BulkManageRolePermissionsDialog({
 
       const appliedCount = result.permission_ids.length;
       onSuccess?.(
-        `Permissions synced for ${result.roles.length} role${result.roles.length === 1 ? "" : "s"}${
-          appliedCount === 0
-            ? " (cleared permissions)."
-            : ` with ${appliedCount} permission${appliedCount === 1 ? "" : "s"}.`
-        }`,
+        appliedCount === 0
+          ? t("pages.roles.bulkPermissions.messages.cleared", {
+              roles: result.roles.length,
+            })
+          : t("pages.roles.bulkPermissions.messages.applied", {
+              roles: result.roles.length,
+              permissions: appliedCount,
+            }),
       );
       onOpenChange(false);
     } catch (error) {
@@ -221,7 +231,7 @@ export function BulkManageRolePermissionsDialog({
         }
       }
 
-      setFormError(getErrorMessage(error));
+      setFormError(getErrorMessage(error, t));
     }
   };
 
@@ -237,29 +247,18 @@ export function BulkManageRolePermissionsDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>
-            {t(
-              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s1",
-            )}
-          </DialogTitle>
+          <DialogTitle>{t("pages.roles.bulkPermissions.title")}</DialogTitle>
           <DialogDescription>
-            {t(
-              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s2",
-            )}
-            {roles.length}{" "}
-            {t(
-              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s3",
-            )}
-            {roles.length === 1 ? "" : "s"}.
+            {t("pages.roles.bulkPermissions.description", {
+              count: roles.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         {formError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s4",
-              )}
+              {t("pages.roles.bulkPermissions.errors.title")}
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -268,10 +267,9 @@ export function BulkManageRolePermissionsDialog({
         <div className="space-y-4">
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-900/40">
             <p className="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              {t(
-                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s5",
-              )}
-              {roles.length})
+              {t("pages.roles.bulkPermissions.selectedRoles", {
+                count: roles.length,
+              })}
             </p>
             <div className="flex flex-wrap gap-2">
               {roles.map((role) => (
@@ -279,7 +277,7 @@ export function BulkManageRolePermissionsDialog({
                   key={String(role.id)}
                   className="rounded-full bg-white px-2.5 py-1 text-xs text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700"
                 >
-                  {getRoleLabel(role)}
+                  {getRoleLabel(role, t)}
                 </span>
               ))}
             </div>
@@ -307,9 +305,7 @@ export function BulkManageRolePermissionsDialog({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder={t(
-                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s6",
-              )}
+              placeholder={t("pages.roles.bulkPermissions.searchPlaceholder")}
               className="pl-10"
               disabled={isSubmitting}
             />
@@ -325,8 +321,8 @@ export function BulkManageRolePermissionsDialog({
             ) : permissions.length === 0 ? (
               <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                 {debouncedSearch
-                  ? "No permissions found"
-                  : "No permissions available"}
+                  ? t("pages.roles.bulkPermissions.empty.noResults")
+                  : t("pages.roles.bulkPermissions.empty.noPermissions")}
               </div>
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -351,10 +347,19 @@ export function BulkManageRolePermissionsDialog({
                       />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                          {permission.name ?? `Permission ${permission.id}`}
+                          {permission.name ??
+                            t(
+                              "pages.roles.permissions.fallbacks.permissionById",
+                              {
+                                id: permission.id,
+                              },
+                            )}
                         </p>
                         <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                          {permission.description ?? "No description"}
+                          {permission.description ??
+                            t(
+                              "pages.roles.bulkPermissions.empty.noDescription",
+                            )}
                         </p>
                       </div>
                     </label>
@@ -366,8 +371,9 @@ export function BulkManageRolePermissionsDialog({
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {selectedPermissionIds.size} permission
-              {selectedPermissionIds.size === 1 ? "" : "s"} selected
+              {t("pages.roles.bulkPermissions.selectedPermissions", {
+                count: selectedPermissionIds.size,
+              })}
             </p>
             <Button
               type="button"
@@ -376,9 +382,7 @@ export function BulkManageRolePermissionsDialog({
               onClick={() => setSelectedPermissionIds(new Set())}
               disabled={isSubmitting || selectedPermissionIds.size === 0}
             >
-              {t(
-                "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s7",
-              )}
+              {t("pages.roles.bulkPermissions.actions.clearSelection")}
             </Button>
           </div>
           {permissionIdsError ? (
@@ -394,12 +398,12 @@ export function BulkManageRolePermissionsDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            {t(
-              "auto.features.role_permissions.components.bulkmanagerolepermissionsdialog.s8",
-            )}
+            {t("common.actions.cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Applying..." : "Apply Permissions"}
+            {isSubmitting
+              ? t("pages.roles.bulkPermissions.actions.applying")
+              : t("pages.roles.bulkPermissions.actions.applyPermissions")}
           </Button>
         </div>
       </DialogContent>

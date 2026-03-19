@@ -16,7 +16,10 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 type DeleteStudentDialogProps = {
   open: boolean;
@@ -26,10 +29,10 @@ type DeleteStudentDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: TranslateFunction) {
   return getAdminApiErrorMessage(
     error,
-    "Unable to delete student. Please try again.",
+    t("pages.students.dialogs.delete.errors.deleteFailed"),
   );
 }
 
@@ -41,6 +44,7 @@ export function DeleteStudentDialog({
   scopeCenterId,
 }: DeleteStudentDialogProps) {
   const { t } = useTranslation();
+  const deletedMessage = t("pages.students.dialogs.delete.messages.deleted");
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteStudent({ centerId: scopeCenterId ?? null });
@@ -55,18 +59,16 @@ export function DeleteStudentDialog({
           setErrorMessage(
             getAdminResponseMessage(
               response,
-              "Unable to delete student. Please try again.",
+              t("pages.students.dialogs.delete.errors.deleteFailed"),
             ),
           );
           return;
         }
         onOpenChange(false);
-        onSuccess?.(
-          getAdminResponseMessage(response, "Student deleted successfully."),
-        );
+        onSuccess?.(getAdminResponseMessage(response, deletedMessage));
       },
       onError: (error) => {
-        setErrorMessage(getErrorMessage(error));
+        setErrorMessage(getErrorMessage(error, t));
       },
     });
   };
@@ -85,19 +87,28 @@ export function DeleteStudentDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle className="sr-only">
-            {t("auto.features.students.components.deletestudentdialog.s1")}
+            {t("pages.students.dialogs.delete.title")}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {t("auto.features.students.components.deletestudentdialog.s2")}
+            {t("pages.students.dialogs.delete.description")}
           </DialogDescription>
         </DialogHeader>
         <HardDeletePanel
-          title={t("auto.features.students.components.deletestudentdialog.s1")}
+          title={t("pages.students.dialogs.delete.title")}
           entityName={studentName}
-          entityFallback="this student"
-          confirmButtonLabel="Delete Student"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete student"
+          entityFallback={t("pages.students.dialogs.delete.entityFallback")}
+          confirmText={t("pages.students.dialogs.delete.confirmText")}
+          confirmLabel={t("pages.students.dialogs.delete.confirmLabel", {
+            confirmText: t("pages.students.dialogs.delete.confirmText"),
+          })}
+          confirmButtonLabel={t(
+            "pages.students.dialogs.delete.confirmButtonLabel",
+          )}
+          pendingLabel={t("pages.students.dialogs.delete.pendingLabel")}
+          errorTitle={t("pages.students.dialogs.delete.errors.errorTitle")}
+          irreversibleText={t("pages.students.dialogs.delete.irreversible")}
+          warningPrefix={t("pages.students.dialogs.delete.warningPrefix")}
+          cancelButtonLabel={t("common.actions.cancel")}
           errorMessage={errorMessage}
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}

@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/features/localization";
+import { resolveCourseAssetSourceReadiness } from "../lib/source-readiness";
 import type { AssetSlotType, CourseAssetSource } from "../types/asset-catalog";
 import { SLOT_ORDER } from "../types/generate-form";
 import { AssetSlotRow } from "./AssetSlotRow";
@@ -41,6 +43,7 @@ export function AssetSourceRow({
   onOpenBatchDrawer,
 }: AssetSourceRowProps) {
   const { t } = useTranslation();
+  const sourceReadiness = resolveCourseAssetSourceReadiness(source);
 
   const slotsByType = new Map(
     source.assets.map((slot) => [slot.asset_type, slot] as const),
@@ -53,16 +56,37 @@ export function AssetSourceRow({
           <p className="text-sm font-semibold text-gray-900 dark:text-white">
             {source.title || `#${source.id}`}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {source.type === "video"
-              ? t("pages.courseAssets.labels.video")
-              : t("pages.courseAssets.labels.pdf")}{" "}
-            • #{source.id}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>
+              {source.type === "video"
+                ? t("pages.courseAssets.labels.video")
+                : t("pages.courseAssets.labels.pdf")}{" "}
+              • #{source.id}
+            </span>
+            {sourceReadiness.isKnown ? (
+              <Badge
+                variant={sourceReadiness.isReady ? "success" : "warning"}
+                className="text-[10px]"
+              >
+                {t(`pages.courseAssets.readiness.${sourceReadiness.key}.badge`)}
+              </Badge>
+            ) : null}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {canGenerateAI ? (
-            <Button size="sm" onClick={() => onOpenGenerateModal(source)}>
+            <Button
+              size="sm"
+              onClick={() => onOpenGenerateModal(source)}
+              disabled={!sourceReadiness.isReady}
+              title={
+                sourceReadiness.isReady
+                  ? undefined
+                  : t(
+                      `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
+                    )
+              }
+            >
               {t("pages.courseAssets.actions.generateWithAI")}
             </Button>
           ) : null}
@@ -106,6 +130,12 @@ export function AssetSourceRow({
             canGenerateAI,
             canReviewPublishAI,
             canManageLearningAssets,
+            isSourceReady: sourceReadiness.isReady,
+            generateDisabledTitle: !sourceReadiness.isReady
+              ? t(
+                  `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
+                )
+              : undefined,
             onOpenGenerateModal: (src, preset, targetId) =>
               onOpenGenerateModal(src, preset, targetId),
             onOpenReviewDialog,

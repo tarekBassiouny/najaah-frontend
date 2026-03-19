@@ -1,4 +1,9 @@
-export type AssetSlotType = "summary" | "quiz" | "flashcards" | "assignment";
+export type AssetSlotType =
+  | "summary"
+  | "quiz"
+  | "flashcards"
+  | "assignment"
+  | "interactive_activity";
 
 export type AssetSlotState =
   | "missing"
@@ -48,6 +53,12 @@ export type CourseAssetSource = {
   id: number;
   title: string | null;
   order_index: number;
+  has_transcript?: boolean | null;
+  transcript_format?: string | null;
+  transcript_source?: string | null;
+  has_extracted_text?: boolean | null;
+  text_extraction_status?: number | string | null;
+  text_extraction_status_label?: string | null;
   section: {
     id: number;
     title: string | null;

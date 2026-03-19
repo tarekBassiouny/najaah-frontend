@@ -8,18 +8,25 @@ import {
   useReviewAIJob,
 } from "@/features/ai/hooks/use-ai";
 import { mapAIErrorCodeToMessage } from "@/features/ai/lib/error-mapper";
-import { AI_JOB_STATUS, aiJobStatusBadge } from "@/features/ai/lib/job-status";
+import {
+  AI_JOB_STATUS,
+  aiJobStatusBadge,
+  isRetryingAIJob,
+} from "@/features/ai/lib/job-status";
 import {
   type EditablePayload,
   getEditablePayload,
   getFirstExistingPath,
   readArrayFromPaths,
+  readLocalizedStringFromPaths,
   readNumberFromPaths,
-  readStringFromPaths,
+  type ReviewLocale,
   toPrettyJson,
   writePath,
+  writeLocalizedStringPath,
 } from "@/features/ai/lib/review-payload";
 import type {
+  AIContentLanguage,
   AIContentSourceType,
   AIContentTargetType,
 } from "@/features/ai/types/ai";
@@ -60,6 +67,7 @@ export function useReviewState({
   const [lastReviewSavedAt, setLastReviewSavedAt] = useState<string | null>(
     null,
   );
+  const [activeLocale, setActiveLocale] = useState<ReviewLocale>("ar");
 
   const {
     data: reviewJobResponse,
@@ -83,8 +91,11 @@ export function useReviewState({
 
   const reviewJob = reviewJobResponse?.data ?? null;
   const reviewStatus = Number(reviewJob?.status ?? -1);
-  const reviewStatusBadge = aiJobStatusBadge(reviewStatus);
-  const reviewStatusLabel = reviewJob?.status_label || reviewStatusBadge.label;
+  const reviewIsRetrying = isRetryingAIJob(reviewJob);
+  const reviewStatusBadge = aiJobStatusBadge(reviewStatus, reviewIsRetrying);
+  const reviewStatusLabel = reviewIsRetrying
+    ? t("pages.centerAIContent.workspace.statusLabels.retrying")
+    : reviewJob?.status_label || reviewStatusBadge.label;
   const canSaveReview =
     canReviewPublishAI &&
     (reviewStatus === AI_JOB_STATUS.completed ||
@@ -144,6 +155,7 @@ export function useReviewState({
     setJobActionError(null);
     setLastReviewSavedAt(null);
     setReviewPayloadJobId(reviewJob.id);
+    setActiveLocale(reviewJob.language === "en" ? "en" : "ar");
   }, [isOpen, isReviewDirty, reviewJob, reviewPayloadJobId]);
 
   const applyPayloadUpdate = (nextPayload: EditablePayload) => {
@@ -157,11 +169,16 @@ export function useReviewState({
 
   const updatePayloadStringField = useCallback(
     (paths: string[][], value: string) => {
-      const path = getFirstExistingPath(reviewPayload, paths);
-      if (path.length === 0) return;
-      applyPayloadUpdate(writePath(reviewPayload, path, value));
+      const nextPayload = writeLocalizedStringPath(
+        reviewPayload,
+        paths,
+        (reviewJob?.language ?? "ar") as AIContentLanguage,
+        activeLocale,
+        value,
+      );
+      applyPayloadUpdate(nextPayload);
     },
-    [reviewPayload],
+    [activeLocale, reviewJob?.language, reviewPayload],
   );
 
   const updatePayloadNumberField = useCallback(
@@ -347,33 +364,41 @@ export function useReviewState({
     reviewJob?.reviewed_payload ?? {},
   );
 
-  const summaryTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const summaryContent = readStringFromPaths(reviewPayload, [
-    ["content"],
-    ["content_translations", "en"],
-  ]);
-  const quizTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const quizDescription = readStringFromPaths(reviewPayload, [
-    ["description"],
-    ["description_translations", "en"],
-  ]);
+  const reviewLanguage = (reviewJob?.language ?? "ar") as AIContentLanguage;
+
+  const summaryTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const summaryContent = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["content"], ["content_translations"]],
+    activeLocale,
+  );
+  const quizTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const quizDescription = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["description"], ["description_translations"]],
+    activeLocale,
+  );
   const quizQuestionsCount = readArrayFromPaths(reviewPayload, [
     ["questions"],
   ]).length;
-  const assignmentTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const assignmentDescription = readStringFromPaths(reviewPayload, [
-    ["description"],
-    ["description_translations", "en"],
-  ]);
+  const assignmentTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const assignmentDescription = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["description"], ["description_translations"]],
+    activeLocale,
+  );
   const assignmentMaxPoints = readNumberFromPaths(reviewPayload, [
     ["max_points"],
   ]);
@@ -386,18 +411,22 @@ export function useReviewState({
     .map((value) => Number(value))
     .filter((value) => Number.isFinite(value))
     .join(", ");
-  const flashcardsTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
+  const flashcardsTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
   const flashcardsCount = readArrayFromPaths(reviewPayload, [["cards"]]).length;
-  const interactiveTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const interactiveInstructions = readStringFromPaths(reviewPayload, [
-    ["instructions"],
-  ]);
+  const interactiveTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const interactiveInstructions = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["instructions"]],
+    activeLocale,
+  );
   const interactiveStepsCount = readArrayFromPaths(reviewPayload, [
     ["steps"],
   ]).length;
@@ -444,6 +473,8 @@ export function useReviewState({
     lastReviewSavedAt,
     reviewGeneratedPayloadPreview,
     reviewReviewedPayloadPreview,
+    reviewLanguage,
+    activeLocale,
     summaryTitle,
     summaryContent,
     quizTitle,
@@ -459,6 +490,7 @@ export function useReviewState({
     interactiveTitle,
     interactiveInstructions,
     interactiveStepsCount,
+    setActiveLocale,
     updatePayloadStringField,
     updatePayloadNumberField,
     updatePayloadNumberArrayField,

@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type {
+  AIContentLanguage,
   AIContentSourceType,
   AIContentTargetType,
 } from "@/features/ai/types/ai";
@@ -32,6 +33,9 @@ type AICreateJobCardProps = {
   onRetryOptions: () => void;
   isOptionsLoading: boolean;
   providersCount: number;
+  sourceReadinessTitle?: string | null;
+  sourceReadinessDescription?: string | null;
+  isSourceReadinessLoading: boolean;
   onSubmitCreateJob: (_event: React.FormEvent<HTMLFormElement>) => void;
   createValidationErrors: string[];
   createError: string | null;
@@ -39,6 +43,8 @@ type AICreateJobCardProps = {
   canGenerateAI: boolean;
   courseIdInput: string;
   onCourseIdChange: (_value: string) => void;
+  language: AIContentLanguage;
+  onLanguageChange: (_value: AIContentLanguage) => void;
   targetType: AIContentTargetType;
   onTargetTypeChange: (_value: AIContentTargetType) => void;
   targetTypes: readonly AIContentTargetType[];
@@ -76,6 +82,9 @@ export function AICreateJobCard({
   onRetryOptions,
   isOptionsLoading,
   providersCount,
+  sourceReadinessTitle,
+  sourceReadinessDescription,
+  isSourceReadinessLoading,
   onSubmitCreateJob,
   createValidationErrors,
   createError,
@@ -83,6 +92,8 @@ export function AICreateJobCard({
   canGenerateAI,
   courseIdInput,
   onCourseIdChange,
+  language,
+  onLanguageChange,
   targetType,
   onTargetTypeChange,
   targetTypes,
@@ -158,6 +169,29 @@ export function AICreateJobCard({
           </Alert>
         ) : null}
 
+        {showAdvancedCreate && isSourceReadinessLoading ? (
+          <Alert>
+            <AlertTitle>
+              {t("pages.centerAIContent.workspace.readiness.loadingTitle")}
+            </AlertTitle>
+            <AlertDescription>
+              {t(
+                "pages.centerAIContent.workspace.readiness.loadingDescription",
+              )}
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {showAdvancedCreate &&
+        !isSourceReadinessLoading &&
+        sourceReadinessTitle &&
+        sourceReadinessDescription ? (
+          <Alert>
+            <AlertTitle>{sourceReadinessTitle}</AlertTitle>
+            <AlertDescription>{sourceReadinessDescription}</AlertDescription>
+          </Alert>
+        ) : null}
+
         <form
           onSubmit={onSubmitCreateJob}
           className={cn("space-y-4", !showAdvancedCreate && "hidden")}
@@ -176,6 +210,33 @@ export function AICreateJobCard({
                 placeholder="4"
                 disabled={isCreatingJob}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ai-language">
+                {t("pages.centerAIContent.workspace.create.fields.language")}
+              </Label>
+              <Select
+                value={language}
+                onValueChange={(value) =>
+                  onLanguageChange(value as AIContentLanguage)
+                }
+                disabled={isCreatingJob}
+              >
+                <SelectTrigger id="ai-language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ar">
+                    {t("pages.centerAIContent.workspace.languages.ar")}
+                  </SelectItem>
+                  <SelectItem value="en">
+                    {t("pages.centerAIContent.workspace.languages.en")}
+                  </SelectItem>
+                  <SelectItem value="both">
+                    {t("pages.centerAIContent.workspace.languages.both")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="ai-target-type">
@@ -918,6 +979,8 @@ export function AICreateJobCard({
                 isCreatingJob ||
                 !canGenerateAI ||
                 isOptionsLoading ||
+                isSourceReadinessLoading ||
+                Boolean(sourceReadinessDescription) ||
                 providersCount === 0 ||
                 !providerKey ||
                 !modelKey

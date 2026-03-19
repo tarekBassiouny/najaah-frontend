@@ -69,7 +69,9 @@ export default function InstructorsPage() {
 
       {feedback && (
         <Alert variant="success">
-          <AlertTitle>Success</AlertTitle>
+          <AlertTitle>
+            {t("pages.instructors.feedback.successTitle")}
+          </AlertTitle>
           <AlertDescription>{feedback}</AlertDescription>
         </Alert>
       )}

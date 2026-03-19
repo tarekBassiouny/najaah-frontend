@@ -13,6 +13,7 @@ import {
 import { useCategoryOptions } from "@/features/categories/hooks/use-category-options";
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { useTranslation } from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
 import { useTenant } from "@/app/tenant-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -156,6 +157,8 @@ export function CoursesTable({
   onBulkDelete,
 }: CoursesTableProps) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -681,7 +684,12 @@ export function CoursesTable({
                 <TableHead className="font-medium">
                   {t("pages.courses.table.headers.publishedAt")}
                 </TableHead>
-                <TableHead className="w-10 text-right font-medium">
+                <TableHead
+                  className={cn(
+                    "w-24 min-w-[96px] font-medium",
+                    isRtl ? "text-left" : "text-right",
+                  )}
+                >
                   {t("pages.courses.table.headers.actions")}
                 </TableHead>
               </TableRow>
@@ -788,7 +796,13 @@ export function CoursesTable({
                           ? formatDateTime(String(course.published_at))
                           : "—"}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell
+                        className={
+                          isRtl
+                            ? "w-24 min-w-[96px] text-left align-middle"
+                            : "w-24 min-w-[96px] text-right align-middle"
+                        }
+                      >
                         <div className="flex items-center justify-end">
                           <Dropdown
                             isOpen={openMenuId === course.id}

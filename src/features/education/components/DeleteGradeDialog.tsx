@@ -28,18 +28,19 @@ type DeleteGradeDialogProps = {
   onSuccess?: (_value: string) => void;
 };
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  GRADE_HAS_STUDENTS:
-    "This grade is currently assigned to students and cannot be deleted.",
-};
-
-function getErrorMessage(error: unknown) {
+function getErrorMessage(
+  error: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const code = getAdminApiErrorCode(error);
-  if (code && ERROR_CODE_MESSAGES[code]) {
-    return ERROR_CODE_MESSAGES[code];
+  if (code === "GRADE_HAS_STUDENTS") {
+    return t("pages.education.dialogs.deleteGrade.errors.hasStudents");
   }
 
-  return getAdminApiErrorMessage(error, "Unable to delete grade.");
+  return getAdminApiErrorMessage(
+    error,
+    t("pages.education.dialogs.deleteGrade.errors.fallback"),
+  );
 }
 
 export function DeleteGradeDialog({
@@ -66,17 +67,17 @@ export function DeleteGradeDialog({
       {
         onSuccess: () => {
           onOpenChange(false);
-          onSuccess?.("Grade deleted successfully.");
+          onSuccess?.(t("pages.education.dialogs.deleteGrade.success"));
         },
         onError: (error) => {
-          setErrorMessage(getErrorMessage(error));
+          setErrorMessage(getErrorMessage(error, t));
         },
       },
     );
   };
 
   const gradeLabel = grade
-    ? `${getEducationName(grade, "Grade")} (${getStageLabel(
+    ? `${getEducationName(grade, t("pages.education.tables.grades.entityName"))} (${getStageLabel(
         grade.stage,
         grade.stage_label,
       )})`
@@ -94,16 +95,30 @@ export function DeleteGradeDialog({
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">
-            {t("auto.features.education.components.deletegradedialog.s1")}
+            {t("pages.education.dialogs.deleteGrade.title")}
           </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title={t("auto.features.education.components.deletegradedialog.s1")}
+          title={t("pages.education.dialogs.deleteGrade.title")}
           entityName={gradeLabel}
-          entityFallback="this grade"
-          confirmButtonLabel="Delete Grade"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete grade"
+          entityFallback={t(
+            "pages.education.dialogs.deleteGrade.entityFallback",
+          )}
+          irreversibleText={t(
+            "pages.education.dialogs.deleteGrade.description",
+          )}
+          warningPrefix={t("pages.education.dialogs.deleteGrade.warningPrefix")}
+          confirmLabel={t("pages.education.dialogs.deleteGrade.confirmLabel")}
+          cancelButtonLabel={t(
+            "pages.education.dialogs.deleteGrade.actions.cancel",
+          )}
+          confirmButtonLabel={t(
+            "pages.education.dialogs.deleteGrade.actions.confirm",
+          )}
+          pendingLabel={t(
+            "pages.education.dialogs.deleteGrade.actions.pending",
+          )}
+          errorTitle={t("pages.education.dialogs.deleteGrade.errorTitle")}
           errorMessage={errorMessage}
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}

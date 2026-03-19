@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/features/localization";
+import type { AIContentLanguage } from "@/features/ai/types/ai";
+import type { CourseAssetSourceReadiness } from "../lib/source-readiness";
 import type { GenerateFormState, SelectedSource } from "../types/generate-form";
 import { SLOT_ORDER } from "../types/generate-form";
 
@@ -31,10 +33,14 @@ type GenerateAssetsDialogProps = {
   onOpenChange: (_open: boolean) => void;
   selectedSource: SelectedSource | null;
   generateForm: GenerateFormState;
+  language: AIContentLanguage;
+  onLanguageChange: (_value: AIContentLanguage) => void;
   onFormChange: (
     _updater: (_prev: GenerateFormState) => GenerateFormState,
   ) => void;
   generateError: string | null;
+  sourceReadiness: CourseAssetSourceReadiness;
+  isSourceReadinessLoading: boolean;
   isCreatingBatch: boolean;
   selectedAssetsCount: number;
   onSubmit: () => void;
@@ -47,6 +53,8 @@ const SLOT_ICONS: Record<string, string> = {
     "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
   assignment:
     "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  interactive_activity:
+    "M9 9h6m-6 3h6m-9 8h12a2 2 0 002-2V8a2 2 0 00-2-2h-1l-1-1h-6L8 6H7a2 2 0 00-2 2v10a2 2 0 002 2z",
 };
 
 export function GenerateAssetsDialog({
@@ -54,8 +62,12 @@ export function GenerateAssetsDialog({
   onOpenChange,
   selectedSource,
   generateForm,
+  language,
+  onLanguageChange,
   onFormChange,
   generateError,
+  sourceReadiness,
+  isSourceReadinessLoading,
   isCreatingBatch,
   selectedAssetsCount,
   onSubmit,
@@ -127,6 +139,8 @@ export function GenerateAssetsDialog({
           <GenerateWizardStepSelect
             selectedSource={selectedSource}
             generateForm={generateForm}
+            language={language}
+            onLanguageChange={onLanguageChange}
             onFormChange={onFormChange}
           />
         ) : step === 2 ? (
@@ -140,12 +154,37 @@ export function GenerateAssetsDialog({
             selectedSource={selectedSource}
             generateForm={generateForm}
             enabledAssets={enabledAssets}
+            language={language}
           />
         )}
 
         {generateError ? (
           <Alert variant="destructive">
             <AlertDescription>{generateError}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {isSourceReadinessLoading ? (
+          <Alert>
+            <AlertTitle>
+              {t("pages.centerAIContent.workspace.readiness.loadingTitle")}
+            </AlertTitle>
+            <AlertDescription>
+              {t(
+                "pages.centerAIContent.workspace.readiness.loadingDescription",
+              )}
+            </AlertDescription>
+          </Alert>
+        ) : !sourceReadiness.isReady ? (
+          <Alert>
+            <AlertTitle>
+              {t(`pages.courseAssets.readiness.${sourceReadiness.key}.title`)}
+            </AlertTitle>
+            <AlertDescription>
+              {t(
+                `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
+              )}
+            </AlertDescription>
           </Alert>
         ) : null}
 
@@ -171,14 +210,23 @@ export function GenerateAssetsDialog({
           {step < 3 ? (
             <Button
               onClick={() => setStep((step + 1) as 2 | 3)}
-              disabled={step === 1 && selectedAssetsCount === 0}
+              disabled={
+                (step === 1 && selectedAssetsCount === 0) ||
+                isSourceReadinessLoading ||
+                !sourceReadiness.isReady
+              }
             >
               {t("pages.courseAssets.wizard.next")}
             </Button>
           ) : (
             <Button
               onClick={onSubmit}
-              disabled={isCreatingBatch || selectedAssetsCount === 0}
+              disabled={
+                isCreatingBatch ||
+                selectedAssetsCount === 0 ||
+                isSourceReadinessLoading ||
+                !sourceReadiness.isReady
+              }
             >
               {isCreatingBatch
                 ? t("pages.courseAssets.actions.generating")
@@ -196,6 +244,8 @@ export function GenerateAssetsDialog({
 type StepSelectProps = {
   selectedSource: SelectedSource | null;
   generateForm: GenerateFormState;
+  language: AIContentLanguage;
+  onLanguageChange: (_value: AIContentLanguage) => void;
   onFormChange: (
     _updater: (_prev: GenerateFormState) => GenerateFormState,
   ) => void;
@@ -204,6 +254,8 @@ type StepSelectProps = {
 function GenerateWizardStepSelect({
   selectedSource,
   generateForm,
+  language,
+  onLanguageChange,
   onFormChange,
 }: StepSelectProps) {
   const { t } = useTranslation();
@@ -229,6 +281,31 @@ function GenerateWizardStepSelect({
           ) : null}
         </div>
       ) : null}
+
+      <div className="space-y-2">
+        <Label>{t("pages.courseAssets.generateModal.language")}</Label>
+        <Select
+          value={language}
+          onValueChange={(value) =>
+            onLanguageChange(value as AIContentLanguage)
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ar">
+              {t("pages.courseAssets.generateModal.languageOptions.ar")}
+            </SelectItem>
+            <SelectItem value="en">
+              {t("pages.courseAssets.generateModal.languageOptions.en")}
+            </SelectItem>
+            <SelectItem value="both">
+              {t("pages.courseAssets.generateModal.languageOptions.both")}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="space-y-2">
         <Label>{t("pages.courseAssets.generateModal.assets")}</Label>
@@ -369,6 +446,12 @@ function GenerateWizardStepConfigure({
           onFormChange={onFormChange}
         />
       ) : null}
+      {enabledAssets.includes("interactive_activity") ? (
+        <InteractiveActivityConfigSection
+          generateForm={generateForm}
+          onFormChange={onFormChange}
+        />
+      ) : null}
     </div>
   );
 }
@@ -379,12 +462,14 @@ type StepPreviewProps = {
   selectedSource: SelectedSource | null;
   generateForm: GenerateFormState;
   enabledAssets: string[];
+  language: AIContentLanguage;
 };
 
 function GenerateWizardStepPreview({
   selectedSource,
   generateForm,
   enabledAssets,
+  language,
 }: StepPreviewProps) {
   const { t } = useTranslation();
 
@@ -408,6 +493,10 @@ function GenerateWizardStepPreview({
         <p className="text-sm font-semibold text-gray-900 dark:text-white">
           {t("pages.courseAssets.wizard.previewTitle")}
         </p>
+        <Badge variant="secondary" className="w-fit">
+          {t("pages.courseAssets.generateModal.language")}:{" "}
+          {t(`pages.courseAssets.generateModal.languageOptions.${language}`)}
+        </Badge>
 
         {enabledAssets.map((assetType) => (
           <div
@@ -472,6 +561,32 @@ function GenerateWizardStepPreview({
                     {t("pages.courseAssets.generateModal.assignment.maxPoints")}
                     : {generateForm.assignmentMaxPoints}
                   </Badge>
+                </>
+              ) : null}
+              {assetType === "interactive_activity" ? (
+                <>
+                  <Badge variant="outline">
+                    {t(
+                      "pages.courseAssets.generateModal.interactiveActivity.style",
+                    )}
+                    :{" "}
+                    {t(
+                      `pages.courseAssets.generateModal.interactiveActivity.styleOptions.${generateForm.interactiveActivityStyle}`,
+                    )}
+                  </Badge>
+                  <Badge variant="outline">
+                    {t(
+                      "pages.courseAssets.generateModal.interactiveActivity.stepsCount",
+                    )}
+                    : {generateForm.interactiveActivityStepsCount}
+                  </Badge>
+                  {generateForm.interactiveActivityIncludeReflection ? (
+                    <Badge variant="outline">
+                      {t(
+                        "pages.courseAssets.generateModal.interactiveActivity.includeReflection",
+                      )}
+                    </Badge>
+                  ) : null}
                 </>
               ) : null}
             </div>
@@ -893,6 +1008,97 @@ function AssignmentConfigSection({
           </label>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InteractiveActivityConfigSection({
+  generateForm,
+  onFormChange,
+}: ConfigSectionProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+      <p className="text-sm font-medium text-gray-900 dark:text-white">
+        {t("pages.courseAssets.slotTypes.interactive_activity")}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label>
+            {t("pages.courseAssets.generateModal.interactiveActivity.style")}
+          </Label>
+          <Select
+            value={generateForm.interactiveActivityStyle}
+            onValueChange={(value) =>
+              onFormChange((prev) => ({
+                ...prev,
+                interactiveActivityStyle: value as
+                  | "steps"
+                  | "scenario"
+                  | "practice",
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="steps">
+                {t(
+                  "pages.courseAssets.generateModal.interactiveActivity.styleOptions.steps",
+                )}
+              </SelectItem>
+              <SelectItem value="scenario">
+                {t(
+                  "pages.courseAssets.generateModal.interactiveActivity.styleOptions.scenario",
+                )}
+              </SelectItem>
+              <SelectItem value="practice">
+                {t(
+                  "pages.courseAssets.generateModal.interactiveActivity.styleOptions.practice",
+                )}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>
+            {t(
+              "pages.courseAssets.generateModal.interactiveActivity.stepsCount",
+            )}
+          </Label>
+          <Input
+            type="number"
+            min={1}
+            max={20}
+            value={generateForm.interactiveActivityStepsCount}
+            onChange={(event) =>
+              onFormChange((prev) => ({
+                ...prev,
+                interactiveActivityStepsCount: event.target.value,
+              }))
+            }
+          />
+        </div>
+      </div>
+      <label className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
+        <input
+          type="checkbox"
+          checked={generateForm.interactiveActivityIncludeReflection}
+          onChange={(event) =>
+            onFormChange((prev) => ({
+              ...prev,
+              interactiveActivityIncludeReflection: event.target.checked,
+            }))
+          }
+        />
+        <span>
+          {t(
+            "pages.courseAssets.generateModal.interactiveActivity.includeReflection",
+          )}
+        </span>
+      </label>
     </div>
   );
 }

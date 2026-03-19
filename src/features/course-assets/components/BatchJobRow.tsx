@@ -1,6 +1,11 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { aiJobStatusBadge, AI_JOB_STATUS } from "@/features/ai/lib/job-status";
+import {
+  aiJobStatusBadge,
+  AI_JOB_STATUS,
+  isRetryingAIJob,
+} from "@/features/ai/lib/job-status";
 import type { AIContentJob } from "@/features/ai/types/ai";
 import { useTranslation } from "@/features/localization";
 import {
@@ -22,7 +27,8 @@ export function BatchJobRow({
   onReview,
 }: BatchJobRowProps) {
   const { t } = useTranslation();
-  const statusMeta = aiJobStatusBadge(Number(job.status));
+  const isRetrying = isRetryingAIJob(job);
+  const statusMeta = aiJobStatusBadge(Number(job.status), isRetrying);
   const targetLabel = isCourseAssetSlotType(job.target_type)
     ? t(`pages.courseAssets.slotTypes.${job.target_type}`)
     : job.target_type;
@@ -35,13 +41,22 @@ export function BatchJobRow({
         </p>
         <div className="flex items-center gap-2">
           <Badge variant={STATUS_BADGE_VARIANTS[statusMeta.tone]}>
-            {job.status_label || statusMeta.label}
+            {isRetrying
+              ? t("pages.centerAIContent.workspace.statusLabels.retrying")
+              : job.status_label || statusMeta.label}
           </Badge>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             #{job.id}
           </span>
         </div>
-        {job.error_message ? (
+        {isRetrying ? (
+          <Alert className="mt-2 py-2">
+            <AlertTitle>
+              {t("pages.centerAIContent.workspace.details.retryingTitle")}
+            </AlertTitle>
+            <AlertDescription>{job.error_message}</AlertDescription>
+          </Alert>
+        ) : job.error_message ? (
           <p className="text-xs text-red-600 dark:text-red-400">
             {job.error_message}
           </p>

@@ -22,6 +22,9 @@ export type Pdf = {
   status?: string | number | null;
   upload_status?: number | null;
   upload_status_label?: string | null;
+  has_extracted_text?: boolean | null;
+  text_extraction_status?: number | string | null;
+  text_extraction_status_label?: string | null;
   error_message?: string | null;
   created_at?: string | null;
   updated_at?: string | null;

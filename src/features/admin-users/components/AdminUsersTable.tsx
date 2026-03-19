@@ -37,7 +37,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -47,7 +50,7 @@ type StatusVariant = "success" | "warning" | "secondary" | "error" | "default";
 type AdminUserStatus = string | number | null | undefined;
 
 function getStatusConfig(
-  t: (_key: string) => string,
+  t: TranslateFunction,
 ): Record<string, { variant: StatusVariant; label: string; key: string }> {
   return {
     active: {
@@ -80,7 +83,7 @@ const statusValueMap: Record<string, string> = {
 function resolveStatus(
   status: AdminUserStatus,
   statusLabel: string | null | undefined,
-  t: (_key: string) => string,
+  t: TranslateFunction,
 ) {
   const raw = String(status ?? "")
     .trim()
@@ -102,28 +105,31 @@ function resolveStatus(
   return config;
 }
 
-function resolveRoles(user: AdminUser): string[] {
+function resolveRoles(user: AdminUser, t: TranslateFunction): string[] {
   if (!Array.isArray(user.roles) || user.roles.length === 0) {
     if (
       Array.isArray(user.roles_with_permissions) &&
       user.roles_with_permissions.length > 0
     ) {
       return user.roles_with_permissions.map((role) =>
-        toRoleDisplayName(role.slug),
+        toRoleDisplayName(role.slug, t),
       );
     }
     return [];
   }
 
   return user.roles.map((role) => {
-    if (typeof role === "string") return toRoleDisplayName(role);
-    return role.name ?? toRoleDisplayName(role.slug) ?? "Role";
+    if (typeof role === "string") return toRoleDisplayName(role, t);
+    return role.name ?? toRoleDisplayName(role.slug, t);
   });
 }
 
-function toRoleDisplayName(value: string | null | undefined): string {
+function toRoleDisplayName(
+  value: string | null | undefined,
+  t: TranslateFunction,
+): string {
   const raw = String(value ?? "").trim();
-  if (!raw) return "Role";
+  if (!raw) return t("pages.admins.fallbacks.role");
 
   return raw
     .replace(/[_-]+/g, " ")
@@ -201,6 +207,7 @@ export function AdminUsersTable({
   onBulkChangeStatus,
 }: AdminUsersTableProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.admins.fallbacks.noValue");
   const { centerId, centerSlug } = useTenant();
   const effectiveScopeCenterId = scopeCenterId ?? null;
   const selectedCenterFilter =
@@ -601,15 +608,15 @@ export function AdminUsersTable({
                     user.status_label,
                     t,
                   );
-                  const roles = resolveRoles(user);
+                  const roles = resolveRoles(user, t);
                   const roleCount = roles.length;
                   const primaryRole = roles[0];
                   const moreRoles = roleCount > 1 ? roleCount - 1 : 0;
                   const lastActiveValue = user.last_active ?? null;
                   const lastActiveLabel = (() => {
-                    if (!lastActiveValue) return "—";
+                    if (!lastActiveValue) return emptyValue;
                     const formatted = formatDateTime(lastActiveValue);
-                    return formatted !== "—"
+                    return formatted !== emptyValue
                       ? formatted
                       : String(lastActiveValue);
                   })();
@@ -625,7 +632,11 @@ export function AdminUsersTable({
                           checked={Boolean(selectedUsers[String(user.id)])}
                           onChange={() => toggleUserSelection(user)}
                           aria-label={t("pages.admins.table.selectUser", {
-                            name: user.name ?? `user ${user.id}`,
+                            name:
+                              user.name ??
+                              t("pages.admins.fallbacks.userById", {
+                                id: user.id,
+                              }),
                           })}
                         />
                       </TableCell>
@@ -635,15 +646,17 @@ export function AdminUsersTable({
                             {getInitials(
                               user.name ??
                                 user.email ??
-                                `Admin ${user.id ?? ""}`,
+                                t("pages.admins.fallbacks.adminById", {
+                                  id: user.id,
+                                }),
                             )}
                           </div>
                           <div className="flex flex-col">
                             <span className="font-medium text-gray-900 dark:text-white">
-                              {user.name ?? "—"}
+                              {user.name ?? emptyValue}
                             </span>
                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                              {user.email ?? "—"}
+                              {user.email ?? emptyValue}
                             </span>
                           </div>
                         </div>
@@ -658,7 +671,7 @@ export function AdminUsersTable({
                       </TableCell>
                       <TableCell>
                         {roleCount === 0 ? (
-                          "—"
+                          emptyValue
                         ) : (
                           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
                             <span>{primaryRole}</span>
@@ -681,7 +694,7 @@ export function AdminUsersTable({
                         {user.status != null || user.status_label ? (
                           <Badge variant={status.variant}>{status.label}</Badge>
                         ) : (
-                          "—"
+                          emptyValue
                         )}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">

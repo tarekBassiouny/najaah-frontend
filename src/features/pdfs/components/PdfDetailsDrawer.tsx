@@ -14,6 +14,7 @@ import { formatDateTime } from "@/lib/format-date-time";
 import { getPdfSignedUrl } from "@/features/pdfs/services/pdfs.service";
 import { useModal } from "@/components/ui/modal-store";
 import { useTranslation } from "@/features/localization";
+import { resolvePdfExtractionReadiness } from "@/lib/ai-source-readiness";
 
 type PdfDetailsDrawerProps = {
   open: boolean;
@@ -152,6 +153,23 @@ export function PdfDetailsDrawer({
     najaahApp: t("pages.pdfs.table.filters.najaahApp"),
     custom: t("pages.pdfs.table.filters.custom"),
   });
+  const extractionReadiness = resolvePdfExtractionReadiness(pdf);
+  const extractionBadge = extractionReadiness.isKnown
+    ? {
+        variant:
+          extractionReadiness.key === "ready"
+            ? ("success" as const)
+            : extractionReadiness.key === "failed" ||
+                extractionReadiness.key === "skipped"
+              ? ("error" as const)
+              : ("warning" as const),
+        label:
+          typeof pdf?.text_extraction_status_label === "string" &&
+          pdf.text_extraction_status_label.trim()
+            ? pdf.text_extraction_status_label.trim()
+            : t(`pages.pdfs.table.extraction.${extractionReadiness.key}`),
+      }
+    : null;
   const canUseSignedUrl = Boolean(centerId && pdf?.source_id);
 
   const handlePreview = async () => {
@@ -293,6 +311,27 @@ export function PdfDetailsDrawer({
                 </div>
               </div>
             </section>
+
+            {extractionBadge ? (
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {t("pages.pdfs.dialogs.details.sections.extraction")}
+                  </h3>
+                  <Badge variant={extractionBadge.variant}>
+                    {extractionBadge.label}
+                  </Badge>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-900/40">
+                  <p className="text-xs text-gray-500">
+                    {t("pages.pdfs.dialogs.details.fields.extraction")}
+                  </p>
+                  <p className="mt-1 break-words text-base font-semibold text-gray-900 dark:text-white">
+                    {extractionBadge.label}
+                  </p>
+                </div>
+              </section>
+            ) : null}
 
             {typeof pdf?.courses_count === "number" ||
             typeof pdf?.sections_count === "number" ? (

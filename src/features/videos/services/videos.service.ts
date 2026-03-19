@@ -3,10 +3,13 @@ import type {
   Video,
   VideoCreateUploadResult,
   VideoPreviewResponse,
+  VideoTranscript,
   VideoUploadSession,
 } from "@/features/videos/types/video";
 import type { PaginatedResponse } from "@/types/pagination";
 import {
+  getAdminApiErrorCode,
+  isAdminApiNotFoundError,
   normalizeAdminActionResult,
   withResponseMessage,
   type AdminActionResult,
@@ -120,6 +123,10 @@ type RawVideoUploadSessionsResponse = {
 
 type RawVideoPreviewResponse = {
   data?: VideoPreviewResponse;
+};
+
+type RawVideoTranscriptResponse = {
+  data?: VideoTranscript;
 };
 
 function resolveEnvelopeMessage(payload: unknown, fallback: string) {
@@ -344,6 +351,68 @@ export async function clearVideoThumbnail(
   );
   assertEnvelopeSuccess(data, "Failed to reset video thumbnail.");
   return withResponseMessage((data?.data ?? data) as Video, data);
+}
+
+export async function getVideoTranscript(
+  centerId: string | number,
+  videoId: string | number,
+): Promise<VideoTranscript | null> {
+  try {
+    const { data } = await http.get<RawVideoTranscriptResponse>(
+      `${basePath(centerId)}/${videoId}/transcript`,
+    );
+    assertEnvelopeSuccess(data, "Failed to retrieve transcript.");
+    return withResponseMessage((data?.data ?? data) as VideoTranscript, data);
+  } catch (error) {
+    const code = getAdminApiErrorCode(error);
+    if (code === "TRANSCRIPT_NOT_FOUND" || isAdminApiNotFoundError(error)) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function saveVideoTranscript(
+  centerId: string | number,
+  videoId: string | number,
+  payload:
+    | { transcript_text: string }
+    | {
+        file: File | Blob;
+        filename?: string;
+      },
+): Promise<VideoTranscript> {
+  const url = `${basePath(centerId)}/${videoId}/transcript`;
+
+  if ("file" in payload) {
+    const formData = new FormData();
+    formData.append("file", payload.file, payload.filename);
+
+    const { data } = await http.post<RawVideoTranscriptResponse>(
+      url,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    assertEnvelopeSuccess(data, "Failed to save transcript.");
+    return withResponseMessage((data?.data ?? data) as VideoTranscript, data);
+  }
+
+  const { data } = await http.post<RawVideoTranscriptResponse>(url, payload);
+  assertEnvelopeSuccess(data, "Failed to save transcript.");
+  return withResponseMessage((data?.data ?? data) as VideoTranscript, data);
+}
+
+export async function deleteVideoTranscript(
+  centerId: string | number,
+  videoId: string | number,
+): Promise<VideoTranscript> {
+  const { data } = await http.delete<RawVideoTranscriptResponse>(
+    `${basePath(centerId)}/${videoId}/transcript`,
+  );
+  assertEnvelopeSuccess(data, "Failed to delete transcript.");
+  return withResponseMessage((data?.data ?? data) as VideoTranscript, data);
 }
 
 export async function deleteVideo(

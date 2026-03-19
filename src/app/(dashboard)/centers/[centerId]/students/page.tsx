@@ -162,7 +162,9 @@ export default function CenterStudentsPage({ params }: PageProps) {
                 label:
                   generateStudent.name ??
                   generateStudent.email ??
-                  `Student ${generateStudent.id}`,
+                  t("pages.students.fallbacks.studentById", {
+                    id: generateStudent.id,
+                  }),
               }
             : null
         }

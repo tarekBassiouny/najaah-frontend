@@ -1,6 +1,7 @@
-import type { AIContentJob } from "@/features/ai/types/ai";
+import type { AIContentJob, AIContentLanguage } from "@/features/ai/types/ai";
 
 export type EditablePayload = Record<string, unknown>;
+export type ReviewLocale = "ar" | "en";
 
 function toRecord(value: unknown): EditablePayload {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -123,6 +124,58 @@ export function readStringFromPaths(
   return "";
 }
 
+function readStringFromUnknown(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return "";
+}
+
+export function readLocalizedTextValue(
+  value: unknown,
+  locale: ReviewLocale,
+): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return "";
+  }
+
+  const record = value as EditablePayload;
+  const primary = readStringFromUnknown(record[locale]);
+  if (primary) return primary;
+
+  const fallbackLocale = locale === "ar" ? "en" : "ar";
+  const fallback = readStringFromUnknown(record[fallbackLocale]);
+  if (fallback) return fallback;
+
+  for (const entry of Object.values(record)) {
+    const next = readStringFromUnknown(entry);
+    if (next) return next;
+  }
+
+  return "";
+}
+
+export function readLocalizedStringFromPaths(
+  payload: EditablePayload,
+  paths: string[][],
+  locale: ReviewLocale,
+): string {
+  for (const path of paths) {
+    const value = readPath(payload, path);
+    const resolved = readLocalizedTextValue(value, locale);
+    if (resolved) {
+      return resolved;
+    }
+  }
+
+  return "";
+}
+
 export function readNumberFromPaths(
   payload: EditablePayload,
   paths: string[][],
@@ -170,4 +223,32 @@ export function getFirstExistingPath(
   }
 
   return paths[0] ?? [];
+}
+
+export function writeLocalizedStringPath(
+  payload: EditablePayload,
+  paths: string[][],
+  language: AIContentLanguage,
+  locale: ReviewLocale,
+  value: string,
+): EditablePayload {
+  const path = getFirstExistingPath(payload, paths);
+  if (path.length === 0) {
+    return payload;
+  }
+
+  if (language !== "both") {
+    return writePath(payload, path, value);
+  }
+
+  const currentValue = readPath(payload, path);
+  const nextRecord =
+    currentValue &&
+    typeof currentValue === "object" &&
+    !Array.isArray(currentValue)
+      ? ({ ...(currentValue as EditablePayload) } as EditablePayload)
+      : {};
+
+  nextRecord[locale] = value;
+  return writePath(payload, path, nextRecord);
 }

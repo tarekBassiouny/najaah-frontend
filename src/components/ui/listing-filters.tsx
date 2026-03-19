@@ -11,6 +11,8 @@ type ListingFiltersProps = {
   hasActiveFilters?: boolean;
   onClear?: () => void;
   clearLabel?: string;
+  titleLabel?: string;
+  updatingLabel?: string;
   clearDisabled?: boolean;
   className?: string;
   gridClassName?: string;
@@ -47,6 +49,8 @@ export function ListingFilters({
   hasActiveFilters = false,
   onClear,
   clearLabel = "Clear filters",
+  titleLabel = "Filters",
+  updatingLabel = "Updating",
   clearDisabled = false,
   className,
   gridClassName,
@@ -60,7 +64,7 @@ export function ListingFilters({
     >
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
         <div className="flex items-center gap-2">
-          <span>Filters</span>
+          <span>{titleLabel}</span>
           {activeCount > 0 ? (
             <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:ring-gray-700">
               {activeCount}
@@ -70,7 +74,7 @@ export function ListingFilters({
         {isFetching && !isLoading ? (
           <span className="flex items-center gap-2 text-[11px] text-gray-400">
             <InlineSpinner className="text-primary/70" />
-            Updating
+            {updatingLabel}
           </span>
         ) : null}
       </div>

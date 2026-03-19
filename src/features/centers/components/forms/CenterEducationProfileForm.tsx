@@ -174,7 +174,7 @@ export function CenterEducationProfileForm({
       setFormError(
         getAdminApiErrorMessage(
           error,
-          "Failed to save education profile settings.",
+          t("pages.centerSettings.forms.educationProfile.errors.saveFallback"),
         ),
       );
     }
@@ -248,14 +248,10 @@ export function CenterEducationProfileForm({
     <Card className="overflow-hidden border-gray-200/80 shadow-sm dark:border-gray-800">
       <CardHeader className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#ecfeff_100%)] dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(17,24,39,0.96)_48%,rgba(8,47,73,0.92)_100%)]">
         <CardTitle>
-          {t(
-            "auto.features.centers.components.forms.centereducationprofileform.s1",
-          )}
+          {t("pages.centerSettings.forms.educationProfile.title")}
         </CardTitle>
         <CardDescription>
-          {t(
-            "auto.features.centers.components.forms.centereducationprofileform.s2",
-          )}
+          {t("pages.centerSettings.forms.educationProfile.description")}
         </CardDescription>
       </CardHeader>
 
@@ -263,9 +259,7 @@ export function CenterEducationProfileForm({
         {formError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.centers.components.forms.centereducationprofileform.s3",
-              )}
+              {t("pages.centerSettings.forms.educationProfile.errorTitle")}
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -273,10 +267,12 @@ export function CenterEducationProfileForm({
 
         {saveSuccess ? (
           <Alert>
-            <AlertTitle>Saved</AlertTitle>
+            <AlertTitle>
+              {t("pages.centerSettings.forms.educationProfile.successTitle")}
+            </AlertTitle>
             <AlertDescription>
               {t(
-                "auto.features.centers.components.forms.centereducationprofileform.s4",
+                "pages.centerSettings.forms.educationProfile.successDescription",
               )}
             </AlertDescription>
           </Alert>
@@ -285,34 +281,28 @@ export function CenterEducationProfileForm({
         {isError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.centers.components.forms.centereducationprofileform.s5",
-              )}
+              {t("pages.centerSettings.forms.educationProfile.loadErrorTitle")}
             </AlertTitle>
             <AlertDescription>
               {t(
-                "auto.features.centers.components.forms.centereducationprofileform.s6",
+                "pages.centerSettings.forms.educationProfile.loadErrorDescription",
               )}
             </AlertDescription>
           </Alert>
         ) : null}
 
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          {t(
-            "auto.features.centers.components.forms.centereducationprofileform.s7",
-          )}
+          {t("pages.centerSettings.forms.educationProfile.helperText")}
         </p>
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Grades
+              {t("pages.centerSettings.forms.educationProfile.modules.grades")}
             </h3>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
               <span>
-                {t(
-                  "auto.features.centers.components.forms.centereducationprofileform.s8",
-                )}
+                {t("pages.centerSettings.forms.educationProfile.fields.enable")}
               </span>
               <input
                 type="checkbox"
@@ -326,7 +316,7 @@ export function CenterEducationProfileForm({
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
               <span>
                 {t(
-                  "auto.features.centers.components.forms.centereducationprofileform.s9",
+                  "pages.centerSettings.forms.educationProfile.fields.required",
                 )}
               </span>
               <input
@@ -342,13 +332,11 @@ export function CenterEducationProfileForm({
 
           <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Schools
+              {t("pages.centerSettings.forms.educationProfile.modules.schools")}
             </h3>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
               <span>
-                {t(
-                  "auto.features.centers.components.forms.centereducationprofileform.s8",
-                )}
+                {t("pages.centerSettings.forms.educationProfile.fields.enable")}
               </span>
               <input
                 type="checkbox"
@@ -362,7 +350,7 @@ export function CenterEducationProfileForm({
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
               <span>
                 {t(
-                  "auto.features.centers.components.forms.centereducationprofileform.s9",
+                  "pages.centerSettings.forms.educationProfile.fields.required",
                 )}
               </span>
               <input
@@ -378,13 +366,13 @@ export function CenterEducationProfileForm({
 
           <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Colleges
+              {t(
+                "pages.centerSettings.forms.educationProfile.modules.colleges",
+              )}
             </h3>
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
               <span>
-                {t(
-                  "auto.features.centers.components.forms.centereducationprofileform.s8",
-                )}
+                {t("pages.centerSettings.forms.educationProfile.fields.enable")}
               </span>
               <input
                 type="checkbox"
@@ -398,7 +386,7 @@ export function CenterEducationProfileForm({
             <label className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
               <span>
                 {t(
-                  "auto.features.centers.components.forms.centereducationprofileform.s9",
+                  "pages.centerSettings.forms.educationProfile.fields.required",
                 )}
               </span>
               <input
@@ -418,7 +406,9 @@ export function CenterEducationProfileForm({
             onClick={() => void handleSave()}
             disabled={isLoading || isSaving}
           >
-            {isSaving ? "Saving..." : "Save Education Settings"}
+            {isSaving
+              ? t("pages.centerSettings.forms.educationProfile.actions.saving")
+              : t("pages.centerSettings.forms.educationProfile.actions.save")}
           </Button>
         </div>
       </CardContent>

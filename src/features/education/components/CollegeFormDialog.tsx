@@ -35,32 +35,13 @@ import {
 } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
 
-const schema = z
-  .object({
-    nameEn: z.string().trim().optional(),
-    nameAr: z.string().trim().optional(),
-    type: z.string().trim().optional(),
-    address: z.string().trim().optional(),
-    isActive: z.boolean(),
-  })
-  .refine((values) => Boolean(values.nameEn || values.nameAr), {
-    message: "Enter at least one name (English or Arabic).",
-    path: ["nameEn"],
-  })
-  .refine(
-    (values) => {
-      const rawType = values.type?.trim() ?? "";
-      if (!rawType) return true;
-      const parsed = Number(rawType);
-      return Number.isInteger(parsed) && parsed >= 0;
-    },
-    {
-      message: "Type must be a whole number (0 or greater).",
-      path: ["type"],
-    },
-  );
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  nameEn?: string;
+  nameAr?: string;
+  type?: string;
+  address?: string;
+  isActive: boolean;
+};
 
 type CollegeFormDialogProps = {
   centerId: string | number;
@@ -71,15 +52,16 @@ type CollegeFormDialogProps = {
   onSaved?: (_college: College) => void;
 };
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  DUPLICATE_SLUG: "A college with this slug already exists in this center.",
-  VALIDATION_ERROR: "Please check the college fields and try again.",
-};
-
-function getErrorMessage(error: unknown) {
+function getErrorMessage(
+  error: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const code = getAdminApiErrorCode(error);
-  if (code && ERROR_CODE_MESSAGES[code]) {
-    return ERROR_CODE_MESSAGES[code];
+  if (code === "DUPLICATE_SLUG") {
+    return t("pages.education.dialogs.collegeForm.errors.duplicateSlug");
+  }
+  if (code === "VALIDATION_ERROR") {
+    return t("pages.education.dialogs.collegeForm.errors.validation");
   }
 
   const fieldMessage = getAdminApiFirstFieldError(error);
@@ -87,7 +69,10 @@ function getErrorMessage(error: unknown) {
     return fieldMessage;
   }
 
-  return getAdminApiErrorMessage(error, "Unable to save college.");
+  return getAdminApiErrorMessage(
+    error,
+    t("pages.education.dialogs.collegeForm.errors.fallback"),
+  );
 }
 
 export function CollegeFormDialog({
@@ -99,6 +84,32 @@ export function CollegeFormDialog({
   onSaved,
 }: CollegeFormDialogProps) {
   const { t } = useTranslation();
+  const schema = z
+    .object({
+      nameEn: z.string().trim().optional(),
+      nameAr: z.string().trim().optional(),
+      type: z.string().trim().optional(),
+      address: z.string().trim().optional(),
+      isActive: z.boolean(),
+    })
+    .refine((values) => Boolean(values.nameEn || values.nameAr), {
+      message: t("pages.education.dialogs.collegeForm.validation.nameRequired"),
+      path: ["nameEn"],
+    })
+    .refine(
+      (values) => {
+        const rawType = values.type?.trim() ?? "";
+        if (!rawType) return true;
+        const parsed = Number(rawType);
+        return Number.isInteger(parsed) && parsed >= 0;
+      },
+      {
+        message: t(
+          "pages.education.dialogs.collegeForm.validation.typeInteger",
+        ),
+        path: ["type"],
+      },
+    );
 
   const isEditMode = Boolean(college);
   const createMutation = useCreateCollege();
@@ -154,10 +165,12 @@ export function CollegeFormDialog({
           onSuccess: (savedCollege) => {
             onOpenChange(false);
             onSaved?.(savedCollege);
-            onSuccess?.("College updated successfully.");
+            onSuccess?.(
+              t("pages.education.dialogs.collegeForm.success.updated"),
+            );
           },
           onError: (error) => {
-            form.setError("root", { message: getErrorMessage(error) });
+            form.setError("root", { message: getErrorMessage(error, t) });
           },
         },
       );
@@ -173,10 +186,10 @@ export function CollegeFormDialog({
         onSuccess: (savedCollege) => {
           onOpenChange(false);
           onSaved?.(savedCollege);
-          onSuccess?.("College created successfully.");
+          onSuccess?.(t("pages.education.dialogs.collegeForm.success.created"));
         },
         onError: (error) => {
-          form.setError("root", { message: getErrorMessage(error) });
+          form.setError("root", { message: getErrorMessage(error, t) });
         },
       },
     );
@@ -187,19 +200,25 @@ export function CollegeFormDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Edit College" : "Create College"}
+            {t(
+              isEditMode
+                ? "pages.education.dialogs.collegeForm.titleEdit"
+                : "pages.education.dialogs.collegeForm.titleCreate",
+            )}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode
-              ? "Update college details and status."
-              : "Add a new college for this center."}
+            {t(
+              isEditMode
+                ? "pages.education.dialogs.collegeForm.descriptionEdit"
+                : "pages.education.dialogs.collegeForm.descriptionCreate",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         {form.formState.errors.root?.message ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.education.components.collegeformdialog.s1")}
+              {t("pages.education.dialogs.collegeForm.errorTitle")}
             </AlertTitle>
             <AlertDescription>
               {form.formState.errors.root.message}
@@ -219,13 +238,13 @@ export function CollegeFormDialog({
                 <FormItem>
                   <FormLabel>
                     {t(
-                      "auto.features.education.components.collegeformdialog.s2",
+                      "pages.education.dialogs.collegeForm.fields.nameEn.label",
                     )}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.collegeformdialog.s3",
+                        "pages.education.dialogs.collegeForm.fields.nameEn.placeholder",
                       )}
                       {...field}
                     />
@@ -242,13 +261,13 @@ export function CollegeFormDialog({
                 <FormItem>
                   <FormLabel>
                     {t(
-                      "auto.features.education.components.collegeformdialog.s4",
+                      "pages.education.dialogs.collegeForm.fields.nameAr.label",
                     )}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.collegeformdialog.s5",
+                        "pages.education.dialogs.collegeForm.fields.nameAr.placeholder",
                       )}
                       {...field}
                     />
@@ -264,16 +283,14 @@ export function CollegeFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t(
-                      "auto.features.education.components.collegeformdialog.s6",
-                    )}
+                    {t("pages.education.dialogs.collegeForm.fields.type.label")}
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min={0}
                       placeholder={t(
-                        "auto.features.education.components.collegeformdialog.s7",
+                        "pages.education.dialogs.collegeForm.fields.type.placeholder",
                       )}
                       {...field}
                     />
@@ -288,11 +305,15 @@ export function CollegeFormDialog({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "pages.education.dialogs.collegeForm.fields.address.label",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.collegeformdialog.s8",
+                        "pages.education.dialogs.collegeForm.fields.address.placeholder",
                       )}
                       {...field}
                     />
@@ -315,7 +336,7 @@ export function CollegeFormDialog({
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
                     {t(
-                      "auto.features.education.components.collegeformdialog.s9",
+                      "pages.education.dialogs.collegeForm.fields.isActive.label",
                     )}
                   </label>
                   <FormMessage />
@@ -330,14 +351,16 @@ export function CollegeFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                {t("auto.features.education.components.collegeformdialog.s10")}
+                {t("pages.education.dialogs.collegeForm.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
-                  ? "Saving..."
-                  : isEditMode
-                    ? "Save Changes"
-                    : "Create College"}
+                  ? t("pages.education.dialogs.collegeForm.actions.saving")
+                  : t(
+                      isEditMode
+                        ? "pages.education.dialogs.collegeForm.actions.save"
+                        : "pages.education.dialogs.collegeForm.actions.create",
+                    )}
               </Button>
             </DialogFooter>
           </form>

@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import type { TranslateFunction } from "@/features/localization";
 
 export function extractFirstMessage(node: unknown): string | null {
   if (typeof node === "string" && node.trim()) {
@@ -23,7 +24,10 @@ export function extractFirstMessage(node: unknown): string | null {
   return null;
 }
 
-export function getEnrollErrorMessage(error: unknown): string {
+export function getEnrollErrorMessage(
+  error: unknown,
+  t?: TranslateFunction,
+): string {
   if (isAxiosError(error)) {
     const status = error.response?.status ?? 0;
     const data = error.response?.data as
@@ -53,20 +57,30 @@ export function getEnrollErrorMessage(error: unknown): string {
     }
 
     if (status === 401) {
-      return "Your session is invalid. Please sign in again.";
+      return t
+        ? t("pages.students.dialogs.enroll.errors.sessionInvalid")
+        : "Your session is invalid. Please sign in again.";
     }
     if (status === 403) {
-      return "You do not have permission to enroll this student for the selected center.";
+      return t
+        ? t("pages.students.dialogs.enroll.errors.permissionDenied")
+        : "You do not have permission to enroll this student for the selected center.";
     }
     if (status === 404) {
-      return "Selected course was not found for this center.";
+      return t
+        ? t("pages.students.dialogs.enroll.errors.courseNotFound")
+        : "Selected course was not found for this center.";
     }
     if (status === 422) {
-      return "Unable to create enrollment with the selected student/course.";
+      return t
+        ? t("pages.students.dialogs.enroll.errors.validation")
+        : "Unable to create enrollment with the selected student/course.";
     }
   }
 
-  return "Unable to enroll students. Please try again.";
+  return t
+    ? t("pages.students.dialogs.enroll.errors.enrollFailed")
+    : "Unable to enroll students. Please try again.";
 }
 
 export function isAlreadyEnrolledMessage(message: string) {

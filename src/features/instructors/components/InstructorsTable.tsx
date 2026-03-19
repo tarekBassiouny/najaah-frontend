@@ -37,7 +37,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useModal } from "@/components/ui/modal-store";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
 
 const DEFAULT_PER_PAGE = 10;
 const COURSES_PAGE_SIZE = 20;
@@ -84,7 +88,10 @@ function getTranslationValue(record: unknown): string | null {
     : null;
 }
 
-function resolveInstructorName(instructor: Instructor): string {
+function resolveInstructorName(
+  instructor: Instructor,
+  t: TranslateFunction,
+): string {
   if (typeof instructor.name === "string" && instructor.name.trim()) {
     return instructor.name.trim();
   }
@@ -92,7 +99,11 @@ function resolveInstructorName(instructor: Instructor): string {
     getTranslationValue(instructor.name_translations) ??
     (typeof instructor.email === "string" && instructor.email.trim()
       ? instructor.email.trim()
-      : `Instructor ${instructor.id ?? ""}`)
+      : instructor.id != null
+        ? t("pages.instructors.fallbacks.instructorById", {
+            id: String(instructor.id),
+          })
+        : t("pages.instructors.fallbacks.instructor"))
   );
 }
 
@@ -119,6 +130,8 @@ export function InstructorsTable({
   onDelete,
 }: InstructorsTableProps) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const queryClient = useQueryClient();
   const { showToast } = useModal();
   const tenant = useTenant();
@@ -252,7 +265,7 @@ export function InstructorsTable({
         value: String(course.id),
         label:
           asString((course as { title?: unknown }).title) ??
-          `Course ${course.id}`,
+          t("pages.instructors.table.filters.courseById", { id: course.id }),
       }));
 
     if (
@@ -261,7 +274,9 @@ export function InstructorsTable({
     ) {
       courses.unshift({
         value: selectedCourse,
-        label: `${t("pages.instructors.table.filters.course")} ${selectedCourse}`,
+        label: t("pages.instructors.table.filters.courseById", {
+          id: selectedCourse,
+        }),
       });
     }
 
@@ -548,7 +563,12 @@ export function InstructorsTable({
                   {t("pages.instructors.table.headers.createdAt")}
                 </TableHead>
                 {hasActions ? (
-                  <TableHead className="w-10 text-right font-medium">
+                  <TableHead
+                    className={cn(
+                      "w-24 min-w-[96px] font-medium",
+                      isRtl ? "text-left" : "text-right",
+                    )}
+                  >
                     {t("pages.instructors.table.headers.actions")}
                   </TableHead>
                 ) : null}
@@ -623,7 +643,7 @@ export function InstructorsTable({
                     instructor.avatar_url.trim().length > 0
                       ? instructor.avatar_url
                       : null;
-                  const displayName = resolveInstructorName(instructor);
+                  const displayName = resolveInstructorName(instructor, t);
                   const displayTitle = resolveInstructorTitle(instructor);
                   const displayPhone =
                     typeof instructor.phone === "string" &&
@@ -683,7 +703,9 @@ export function InstructorsTable({
                               /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={avatarUrl}
-                                alt={`${displayName} avatar`}
+                                alt={t("pages.instructors.avatarAlt", {
+                                  name: displayName,
+                                })}
                                 className="h-full w-full object-cover"
                               />
                             ) : (
@@ -721,7 +743,13 @@ export function InstructorsTable({
                         {createdAtLabel}
                       </TableCell>
                       {hasActions ? (
-                        <TableCell className="text-right">
+                        <TableCell
+                          className={
+                            isRtl
+                              ? "w-24 min-w-[96px] text-left align-middle"
+                              : "w-24 min-w-[96px] text-right align-middle"
+                          }
+                        >
                           <div className="flex items-center justify-end">
                             <Dropdown
                               isOpen={openMenuId === instructor.id}

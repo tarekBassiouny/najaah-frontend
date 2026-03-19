@@ -66,6 +66,11 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
   onCompleted,
 }: SendVideoCodeBatchWhatsappCsvDialogProps) {
   const { t } = useTranslation();
+  const dialogT = (key: string, params?: Record<string, string | number>) =>
+    t(
+      `auto.features.video_code_batches.components.sendvideocodebatchwhatsappcsvdialog.${key}`,
+      params,
+    );
   const sendMutation = useSendVideoCodeBatchWhatsappCsv();
   const batchQuantity = Number(batch?.quantity ?? 0);
   const [countryCode, setCountryCode] = useState("+20");
@@ -100,43 +105,39 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
       : 0;
   const filename = batch
     ? buildVideoCodeBatchExportFilename(batch, "csv")
-    : "video-batch.csv";
+    : dialogT("fallbackFile");
 
   const handleSubmit = () => {
     if (!batch?.id) return;
 
     if (!COUNTRY_CODE_REGEX.test(normalizedCountryCode)) {
-      setErrorMessage("Enter a valid country code such as +20.");
+      setErrorMessage(dialogT("errors.invalidCountryCode"));
       return;
     }
 
     if (normalizedCountryCode === "+20") {
       if (!EGYPT_MOBILE_REGEX.test(normalizedPhoneNumber)) {
-        setErrorMessage(
-          "Enter an Egyptian mobile number in 11-digit local format, for example 01001234567.",
-        );
+        setErrorMessage(dialogT("errors.invalidEgyptPhone"));
         return;
       }
     } else if (!GENERIC_MOBILE_REGEX.test(normalizedPhoneNumber)) {
-      setErrorMessage("Enter a valid mobile number.");
+      setErrorMessage(dialogT("errors.invalidPhone"));
       return;
     }
 
     if (!Number.isFinite(start) || start < 1) {
-      setErrorMessage("Start sequence must be at least 1.");
+      setErrorMessage(dialogT("errors.invalidStartSequence"));
       return;
     }
 
     if (!Number.isFinite(end) || end < start) {
-      setErrorMessage(
-        "End sequence must be greater than or equal to start sequence.",
-      );
+      setErrorMessage(dialogT("errors.invalidEndSequence"));
       return;
     }
 
     if (batchQuantity > 0 && end > batchQuantity) {
       setErrorMessage(
-        `End sequence cannot exceed the batch quantity (${batchQuantity}).`,
+        dialogT("errors.endExceedsQuantity", { count: batchQuantity }),
       );
       return;
     }
@@ -163,7 +164,7 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "Failed to send WhatsApp CSV.",
+              : dialogT("errors.sendFailed"),
           );
         },
       },
@@ -299,14 +300,14 @@ export function SendVideoCodeBatchWhatsappCsvDialog({
             onClick={() => onOpenChange(false)}
             disabled={sendMutation.isPending}
           >
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={sendMutation.isPending || !batch}
           >
-            {sendMutation.isPending ? "Sending..." : "Send CSV to WhatsApp"}
+            {sendMutation.isPending ? dialogT("sending") : dialogT("send")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -37,6 +37,8 @@ import {
 import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
+import { resolvePdfExtractionReadiness } from "@/lib/ai-source-readiness";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -172,6 +174,27 @@ function resolvePdfTags(pdf: Pdf) {
     .filter(Boolean);
 }
 
+function getExtractionBadge(pdf: Pdf, t: TranslateFunction) {
+  const readiness = resolvePdfExtractionReadiness(pdf);
+  if (!readiness.isKnown) {
+    return null;
+  }
+
+  return {
+    variant:
+      readiness.key === "ready"
+        ? ("success" as const)
+        : readiness.key === "failed" || readiness.key === "skipped"
+          ? ("error" as const)
+          : ("warning" as const),
+    label:
+      typeof pdf.text_extraction_status_label === "string" &&
+      pdf.text_extraction_status_label.trim()
+        ? pdf.text_extraction_status_label.trim()
+        : t(`pages.pdfs.table.extraction.${readiness.key}`),
+  };
+}
+
 type PdfsTableProps = {
   centerId?: string | number;
   onView?: (_pdf: Pdf) => void;
@@ -186,6 +209,8 @@ export function PdfsTable({
   onDelete,
 }: PdfsTableProps) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const { showToast } = useModal();
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
@@ -237,7 +262,18 @@ export function PdfsTable({
     ],
   );
 
-  const { data, isLoading, isError, isFetching } = usePdfs(params);
+  const { data, isLoading, isError, isFetching } = usePdfs(params, {
+    refetchInterval: (query) => {
+      const rows = query.state.data?.items ?? [];
+      const hasProcessingExtraction = rows.some((pdf) => {
+        const readiness = resolvePdfExtractionReadiness(pdf);
+        return readiness.key === "pending" || readiness.key === "processing";
+      });
+
+      return hasProcessingExtraction ? 15_000 : false;
+    },
+    refetchIntervalInBackground: true,
+  });
 
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const meta = data?.meta;
@@ -594,7 +630,12 @@ export function PdfsTable({
                 <TableHead className="font-medium">
                   {t("pages.pdfs.table.headers.usedIn")}
                 </TableHead>
-                <TableHead className="w-10 text-right font-medium">
+                <TableHead
+                  className={cn(
+                    "w-24 min-w-[96px] font-medium",
+                    isRtl ? "text-left" : "text-right",
+                  )}
+                >
                   {t("pages.pdfs.table.headers.actions")}
                 </TableHead>
               </TableRow>
@@ -662,6 +703,7 @@ export function PdfsTable({
                   const sourceTypeLabel = resolvePdfSourceTypeLabel(pdf, t);
                   const providerLabel = resolvePdfProviderLabel(pdf, t);
                   const tags = resolvePdfTags(pdf);
+                  const extractionBadge = getExtractionBadge(pdf, t);
 
                   return (
                     <TableRow
@@ -687,6 +729,14 @@ export function PdfsTable({
                           <p className="font-medium text-gray-700 dark:text-gray-300">
                             {pdf.title ?? "—"}
                           </p>
+                          {extractionBadge ? (
+                            <Badge
+                              variant={extractionBadge.variant}
+                              className="w-fit text-[10px]"
+                            >
+                              {extractionBadge.label}
+                            </Badge>
+                          ) : null}
                           <p
                             className="line-clamp-2 max-w-sm text-xs text-gray-500 dark:text-gray-400"
                             title={
@@ -787,7 +837,13 @@ export function PdfsTable({
                           "—"
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell
+                        className={
+                          isRtl
+                            ? "w-24 min-w-[96px] text-left align-middle"
+                            : "w-24 min-w-[96px] text-right align-middle"
+                        }
+                      >
                         <div className="flex items-center justify-end">
                           <Dropdown
                             isOpen={openMenuId === pdf.id}
@@ -808,7 +864,10 @@ export function PdfsTable({
                                 <>
                                   <button
                                     type="button"
-                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={async () => {
                                       try {
                                         const { url } = await getPdfSignedUrl(
@@ -832,7 +891,10 @@ export function PdfsTable({
                                   </button>
                                   <button
                                     type="button"
-                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={async () => {
                                       try {
                                         const { url } = await getPdfSignedUrl(
@@ -864,7 +926,10 @@ export function PdfsTable({
                               {onView ? (
                                 <button
                                   type="button"
-                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  className={cn(
+                                    "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
                                   onClick={() => {
                                     onView(pdf);
                                     setOpenMenuId(null);
@@ -876,7 +941,10 @@ export function PdfsTable({
                               {onEdit ? (
                                 <button
                                   type="button"
-                                  className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  className={cn(
+                                    "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
                                   onClick={() => {
                                     onEdit(pdf);
                                     setOpenMenuId(null);
@@ -888,7 +956,10 @@ export function PdfsTable({
                               {onDelete ? (
                                 <button
                                   type="button"
-                                  className="block w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                                  className={cn(
+                                    "block w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
                                   onClick={() => {
                                     onDelete(pdf);
                                     setOpenMenuId(null);

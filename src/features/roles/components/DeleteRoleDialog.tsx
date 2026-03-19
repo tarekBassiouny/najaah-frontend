@@ -11,7 +11,10 @@ import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteRole } from "@/features/roles/hooks/use-roles";
 import type { Role } from "@/features/roles/types/role";
 import { useModal } from "@/components/ui/modal-store";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 import {
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
@@ -27,35 +30,40 @@ type DeleteRoleDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  PERMISSION_DENIED: "You do not have permission to delete this role.",
-  SYSTEM_SCOPE_REQUIRED:
-    "This action requires system scope. Please use the platform admin panel.",
-  SYSTEM_API_KEY_REQUIRED:
-    "This action requires a system API key. Please contact your administrator.",
-  API_KEY_CENTER_MISMATCH:
-    "The API key does not match this center. Please refresh and try again.",
-  CENTER_MISMATCH:
-    "This role belongs to a different center and cannot be deleted here.",
-  NOT_FOUND:
-    "The requested role was not found. It may have already been deleted.",
-  VALIDATION_ERROR: "Unable to delete role due to validation constraints.",
-};
-
-function getErrorCodeMessage(code: string | undefined): string | null {
+function getErrorCodeMessage(
+  code: string | undefined,
+  t: TranslateFunction,
+): string | null {
   if (!code) return null;
-  return ERROR_CODE_MESSAGES[code] ?? null;
+
+  const messages: Record<string, string> = {
+    PERMISSION_DENIED: t("pages.roles.dialogs.delete.errors.permissionDenied"),
+    SYSTEM_SCOPE_REQUIRED: t(
+      "pages.roles.dialogs.delete.errors.systemScopeRequired",
+    ),
+    SYSTEM_API_KEY_REQUIRED: t(
+      "pages.roles.dialogs.delete.errors.systemApiKeyRequired",
+    ),
+    API_KEY_CENTER_MISMATCH: t(
+      "pages.roles.dialogs.delete.errors.apiKeyCenterMismatch",
+    ),
+    CENTER_MISMATCH: t("pages.roles.dialogs.delete.errors.centerMismatch"),
+    NOT_FOUND: t("pages.roles.dialogs.delete.errors.notFound"),
+    VALIDATION_ERROR: t("pages.roles.dialogs.delete.errors.validation"),
+  };
+
+  return messages[code] ?? null;
 }
 
-function getErrorMessage(error: unknown) {
-  const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error));
+function getErrorMessage(error: unknown, t: TranslateFunction) {
+  const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error), t);
   if (codeMessage) {
     return codeMessage;
   }
 
   return getAdminApiErrorMessage(
     error,
-    "Unable to delete role. Please try again.",
+    t("pages.roles.dialogs.delete.errors.deleteFailed"),
   );
 }
 
@@ -67,6 +75,7 @@ export function DeleteRoleDialog({
   scopeCenterId,
 }: DeleteRoleDialogProps) {
   const { t } = useTranslation();
+  const deletedMessage = t("pages.roles.dialogs.delete.messages.deleted");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { mutate: deleteRole, isPending } = useDeleteRole({
     centerId: scopeCenterId ?? null,
@@ -83,21 +92,18 @@ export function DeleteRoleDialog({
           setErrorMessage(
             getAdminResponseMessage(
               response,
-              "Unable to delete role. Please try again.",
+              t("pages.roles.dialogs.delete.errors.deleteFailed"),
             ),
           );
           return;
         }
-        const message = getAdminResponseMessage(
-          response,
-          "Role deleted successfully.",
-        );
+        const message = getAdminResponseMessage(response, deletedMessage);
         onOpenChange(false);
         onSuccess?.(message);
         showToast(message, "success");
       },
       onError: (error) => {
-        setErrorMessage(getErrorMessage(error));
+        setErrorMessage(getErrorMessage(error, t));
       },
     });
   };
@@ -116,20 +122,25 @@ export function DeleteRoleDialog({
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">
-            {t("auto.features.roles.components.deleteroledialog.s1")}
+            {t("pages.roles.dialogs.delete.title")}
           </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title={t("auto.features.roles.components.deleteroledialog.s1")}
+          title={t("pages.roles.dialogs.delete.title")}
           entityName={roleName}
-          entityFallback={t(
-            "auto.features.roles.components.deleteroledialog.s2",
-          )}
+          entityFallback={t("pages.roles.dialogs.delete.entityFallback")}
+          confirmText={t("pages.roles.dialogs.delete.confirmText")}
+          confirmLabel={t("pages.roles.dialogs.delete.confirmLabel", {
+            confirmText: t("pages.roles.dialogs.delete.confirmText"),
+          })}
           confirmButtonLabel={t(
-            "auto.features.roles.components.deleteroledialog.s1",
+            "pages.roles.dialogs.delete.confirmButtonLabel",
           )}
-          pendingLabel={t("auto.features.roles.components.deleteroledialog.s3")}
-          errorTitle={t("auto.features.roles.components.deleteroledialog.s4")}
+          pendingLabel={t("pages.roles.dialogs.delete.pendingLabel")}
+          errorTitle={t("pages.roles.dialogs.delete.errors.errorTitle")}
+          irreversibleText={t("pages.roles.dialogs.delete.irreversible")}
+          warningPrefix={t("pages.roles.dialogs.delete.warningPrefix")}
+          cancelButtonLabel={t("common.actions.cancel")}
           errorMessage={errorMessage}
           isPending={isPending}
           onCancel={() => onOpenChange(false)}

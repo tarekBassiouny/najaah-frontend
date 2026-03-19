@@ -4,16 +4,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { shouldPollAIJob } from "@/features/ai/lib/job-status";
+import { isRetryingAIJob, shouldPollAIJob } from "@/features/ai/lib/job-status";
+import type {
+  EditablePayload,
+  ReviewLocale,
+} from "@/features/ai/lib/review-payload";
 import type {
   AIContentJob,
+  AIContentLanguage,
   AIContentSourceType,
   AIContentTargetType,
 } from "@/features/ai/types/ai";
+import { ReviewAssetPreview } from "@/features/course-assets/components/ReviewAssetPreview";
+import { ReviewEditPanel } from "@/features/course-assets/components/ReviewEditPanel";
 import { formatDateTime } from "@/lib/format-date-time";
 
 const STATUS_BADGE_VARIANTS = {
@@ -39,6 +43,10 @@ type AIJobDetailsCardProps = {
   isSelectedJobError: boolean;
   generatedPayloadPreview: string;
   reviewedPayloadPreview: string;
+  generatedPayload: EditablePayload;
+  reviewPayload: EditablePayload;
+  reviewLanguage: AIContentLanguage;
+  activeReviewLocale: ReviewLocale;
   targetLabelMap: Record<AIContentTargetType, string>;
   sourceLabelMap: Record<AIContentSourceType, string>;
   canReviewPublishAI: boolean;
@@ -73,6 +81,7 @@ type AIJobDetailsCardProps = {
   isReviewDirty: boolean;
   lastReviewSavedAt: string | null;
   currentStatus: number;
+  onActiveReviewLocaleChange: (_value: ReviewLocale) => void;
   onUpdatePayloadStringField: (_paths: string[][], _value: string) => void;
   onUpdatePayloadNumberField: (_paths: string[][], _value: string) => void;
   onUpdatePayloadNumberArrayField: (_paths: string[][], _value: string) => void;
@@ -94,6 +103,10 @@ export function AIJobDetailsCard({
   isSelectedJobError,
   generatedPayloadPreview,
   reviewedPayloadPreview,
+  generatedPayload,
+  reviewPayload,
+  reviewLanguage,
+  activeReviewLocale,
   targetLabelMap,
   sourceLabelMap,
   canReviewPublishAI,
@@ -128,6 +141,7 @@ export function AIJobDetailsCard({
   isReviewDirty,
   lastReviewSavedAt,
   currentStatus,
+  onActiveReviewLocaleChange,
   onUpdatePayloadStringField,
   onUpdatePayloadNumberField,
   onUpdatePayloadNumberArrayField,
@@ -138,6 +152,9 @@ export function AIJobDetailsCard({
   onDiscard,
   onRefresh,
 }: AIJobDetailsCardProps) {
+  const isRetrying = isRetryingAIJob(selectedJob);
+  const validationWarnings = selectedJob?.validation_warnings ?? [];
+
   return (
     <Card>
       <CardHeader>
@@ -229,9 +246,46 @@ export function AIJobDetailsCard({
                   ? formatDateTime(String(selectedJob.completed_at))
                   : "-"}
               </p>
+              <p>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {t("pages.centerAIContent.workspace.details.meta.language")}:
+                </span>
+                {t(
+                  `pages.centerAIContent.workspace.languages.${reviewLanguage}`,
+                )}
+              </p>
             </div>
 
-            {selectedJob.error_message ? (
+            {validationWarnings.length > 0 ? (
+              <Alert>
+                <AlertTitle>
+                  {t(
+                    "pages.centerAIContent.workspace.details.validationWarningsTitle",
+                  )}
+                </AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <p>
+                    {t(
+                      "pages.centerAIContent.workspace.details.validationWarningsDescription",
+                    )}
+                  </p>
+                  <ul className="list-disc space-y-1 ps-5">
+                    {validationWarnings.map((warning, index) => (
+                      <li key={`${warning}-${index}`}>{warning}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            {isRetrying ? (
+              <Alert>
+                <AlertTitle>
+                  {t("pages.centerAIContent.workspace.details.retryingTitle")}
+                </AlertTitle>
+                <AlertDescription>{selectedJob.error_message}</AlertDescription>
+              </Alert>
+            ) : selectedJob.error_message ? (
               <Alert variant="destructive">
                 <AlertTitle>
                   {t("pages.centerAIContent.workspace.details.failureTitle")}
@@ -247,7 +301,14 @@ export function AIJobDetailsCard({
                     "pages.centerAIContent.workspace.details.generatedPayload",
                   )}
                 </p>
-                <pre className="max-h-72 overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                  <ReviewAssetPreview
+                    targetType={selectedJob.target_type}
+                    payload={generatedPayload}
+                    activeLocale={activeReviewLocale}
+                  />
+                </div>
+                <pre className="max-h-48 overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                   {generatedPayloadPreview}
                 </pre>
               </div>
@@ -255,7 +316,14 @@ export function AIJobDetailsCard({
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {t("pages.centerAIContent.workspace.details.reviewedPayload")}
                 </p>
-                <pre className="max-h-72 overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+                <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                  <ReviewAssetPreview
+                    targetType={selectedJob.target_type}
+                    payload={reviewPayload}
+                    activeLocale={activeReviewLocale}
+                  />
+                </div>
+                <pre className="max-h-48 overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                   {reviewedPayloadPreview}
                 </pre>
               </div>
@@ -267,328 +335,39 @@ export function AIJobDetailsCard({
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     {t("pages.centerAIContent.workspace.details.reviewEditor")}
                   </p>
-
-                  {selectedJob.target_type === "summary" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="review-summary-title">
-                          {t(
-                            "pages.centerAIContent.workspace.review.summary.title",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-summary-title"
-                          value={summaryTitle}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["title"], ["title_translations", "en"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="review-summary-content">
-                          {t(
-                            "pages.centerAIContent.workspace.review.summary.content",
-                          )}
-                        </Label>
-                        <Textarea
-                          id="review-summary-content"
-                          rows={6}
-                          value={summaryContent}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["content"], ["content_translations", "en"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {selectedJob.target_type === "quiz" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="review-quiz-title">
-                          {t(
-                            "pages.centerAIContent.workspace.review.quiz.title",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-quiz-title"
-                          value={quizTitle}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["title"], ["title_translations", "en"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="review-quiz-questions-count">
-                          {t(
-                            "pages.centerAIContent.workspace.review.quiz.questions",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-quiz-questions-count"
-                          value={String(quizQuestionsCount)}
-                          disabled
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="review-quiz-description">
-                          {t(
-                            "pages.centerAIContent.workspace.review.quiz.description",
-                          )}
-                        </Label>
-                        <Textarea
-                          id="review-quiz-description"
-                          rows={5}
-                          value={quizDescription}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [
-                                ["description"],
-                                ["description_translations", "en"],
-                              ],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {selectedJob.target_type === "assignment" ? (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="space-y-2 lg:col-span-2">
-                        <Label htmlFor="review-assignment-title">
-                          {t(
-                            "pages.centerAIContent.workspace.review.assignment.title",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-assignment-title"
-                          value={assignmentTitle}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["title"], ["title_translations", "en"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="review-assignment-max-points">
-                          {t(
-                            "pages.centerAIContent.workspace.review.assignment.maxPoints",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-assignment-max-points"
-                          type="number"
-                          value={
-                            assignmentMaxPoints == null
-                              ? ""
-                              : String(assignmentMaxPoints)
-                          }
-                          onChange={(event) =>
-                            onUpdatePayloadNumberField(
-                              [["max_points"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="review-assignment-passing-score">
-                          {t(
-                            "pages.centerAIContent.workspace.review.assignment.passingScore",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-assignment-passing-score"
-                          type="number"
-                          value={
-                            assignmentPassingScore == null
-                              ? ""
-                              : String(assignmentPassingScore)
-                          }
-                          onChange={(event) =>
-                            onUpdatePayloadNumberField(
-                              [["passing_score"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2 lg:col-span-4">
-                        <Label htmlFor="review-assignment-description">
-                          {t(
-                            "pages.centerAIContent.workspace.review.assignment.description",
-                          )}
-                        </Label>
-                        <Textarea
-                          id="review-assignment-description"
-                          rows={5}
-                          value={assignmentDescription}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [
-                                ["description"],
-                                ["description_translations", "en"],
-                              ],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2 lg:col-span-2">
-                        <Label htmlFor="review-assignment-submission-types">
-                          {t(
-                            "pages.centerAIContent.workspace.review.assignment.submissionTypes",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-assignment-submission-types"
-                          value={assignmentSubmissionTypes}
-                          onChange={(event) =>
-                            onUpdatePayloadNumberArrayField(
-                              [["submission_types"]],
-                              event.target.value,
-                            )
-                          }
-                          placeholder="0,1,2"
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {selectedJob.target_type === "flashcards" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="review-flashcards-title">
-                          {t(
-                            "pages.centerAIContent.workspace.review.flashcards.title",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-flashcards-title"
-                          value={flashcardsTitle}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["title"], ["title_translations", "en"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="review-flashcards-count">
-                          {t(
-                            "pages.centerAIContent.workspace.review.flashcards.cards",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-flashcards-count"
-                          value={String(flashcardsCount)}
-                          disabled
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {selectedJob.target_type === "interactive_activity" ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="review-interactive-title">
-                          {t(
-                            "pages.centerAIContent.workspace.review.interactive.title",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-interactive-title"
-                          value={interactiveTitle}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["title"], ["title_translations", "en"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="review-interactive-steps-count">
-                          {t(
-                            "pages.centerAIContent.workspace.review.interactive.steps",
-                          )}
-                        </Label>
-                        <Input
-                          id="review-interactive-steps-count"
-                          value={String(interactiveStepsCount)}
-                          disabled
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="review-interactive-instructions">
-                          {t(
-                            "pages.centerAIContent.workspace.review.interactive.instructions",
-                          )}
-                        </Label>
-                        <Textarea
-                          id="review-interactive-instructions"
-                          rows={4}
-                          value={interactiveInstructions}
-                          onChange={(event) =>
-                            onUpdatePayloadStringField(
-                              [["instructions"]],
-                              event.target.value,
-                            )
-                          }
-                          disabled={isAnyJobActionPending}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="review-json-editor">
-                      {t("pages.centerAIContent.workspace.details.reviewJson")}
-                    </Label>
-                    <Textarea
-                      id="review-json-editor"
-                      rows={10}
-                      value={reviewJson}
-                      onChange={(event) =>
-                        onReviewJsonChange(event.target.value)
-                      }
-                      className="font-mono text-xs"
-                      disabled={isAnyJobActionPending}
-                    />
-                    {reviewJsonError ? (
-                      <p className="text-sm text-red-600 dark:text-red-400">
-                        {reviewJsonError}
-                      </p>
-                    ) : null}
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {t("pages.centerAIContent.workspace.details.reviewHint")}
-                    </p>
-                  </div>
+                  <ReviewEditPanel
+                    targetType={selectedJob.target_type}
+                    jobLanguage={reviewLanguage}
+                    activeLocale={activeReviewLocale}
+                    onActiveLocaleChange={onActiveReviewLocaleChange}
+                    isAnyJobActionPending={isAnyJobActionPending}
+                    summaryTitle={summaryTitle}
+                    summaryContent={summaryContent}
+                    quizTitle={quizTitle}
+                    quizDescription={quizDescription}
+                    quizQuestionsCount={quizQuestionsCount}
+                    assignmentTitle={assignmentTitle}
+                    assignmentDescription={assignmentDescription}
+                    assignmentMaxPoints={assignmentMaxPoints}
+                    assignmentPassingScore={assignmentPassingScore}
+                    assignmentSubmissionTypes={assignmentSubmissionTypes}
+                    flashcardsTitle={flashcardsTitle}
+                    flashcardsCount={flashcardsCount}
+                    interactiveTitle={interactiveTitle}
+                    interactiveInstructions={interactiveInstructions}
+                    interactiveStepsCount={interactiveStepsCount}
+                    reviewJson={reviewJson}
+                    reviewJsonError={reviewJsonError}
+                    onUpdatePayloadStringField={onUpdatePayloadStringField}
+                    onUpdatePayloadNumberField={onUpdatePayloadNumberField}
+                    onUpdatePayloadNumberArrayField={
+                      onUpdatePayloadNumberArrayField
+                    }
+                    onReviewJsonChange={onReviewJsonChange}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t("pages.centerAIContent.workspace.details.reviewHint")}
+                  </p>
                 </CardContent>
               </Card>
             ) : (

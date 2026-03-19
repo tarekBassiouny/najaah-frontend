@@ -424,17 +424,25 @@ export function BulkEnrollAndGenerateDialog({
 
   const handleEnrollment = async (targetStudents: Student[]) => {
     if (!hasSelectedCenter) {
-      setEnrollError("Select a center before enrolling students.");
+      setEnrollError(
+        t("pages.students.dialogs.bulkEnrollAndGenerate.errors.selectCenter"),
+      );
       return;
     }
 
     if (!selectedEnrollCourse) {
-      setEnrollError("Select a course to enroll students.");
+      setEnrollError(
+        t(
+          "pages.students.dialogs.bulkEnrollAndGenerate.errors.selectEnrollCourse",
+        ),
+      );
       return;
     }
 
     if (targetStudents.length === 0) {
-      setEnrollError("No students selected.");
+      setEnrollError(
+        t("pages.students.dialogs.bulkEnrollAndGenerate.errors.noStudents"),
+      );
       return;
     }
 
@@ -452,7 +460,7 @@ export function BulkEnrollAndGenerateDialog({
             });
             return { user_id: student.id, status: "approved" as const };
           } catch (error) {
-            const message = getEnrollErrorMessage(error);
+            const message = getEnrollErrorMessage(error, t);
             if (isAlreadyEnrolledMessage(message)) {
               return {
                 user_id: student.id,
@@ -506,22 +514,34 @@ export function BulkEnrollAndGenerateDialog({
 
   const handleGenerate = async () => {
     if (!hasSelectedCenter) {
-      setGenerateError("Select a center before generating codes.");
+      setGenerateError(
+        t("pages.students.dialogs.bulkEnrollAndGenerate.errors.selectCenter"),
+      );
       return;
     }
 
     if (!resolvedGenerateCourseId) {
-      setGenerateError("Select a course.");
+      setGenerateError(
+        t(
+          "pages.students.dialogs.bulkEnrollAndGenerate.errors.selectGenerateCourse",
+        ),
+      );
       return;
     }
 
     if (!selectedGenerateVideo) {
-      setGenerateError("Select a video.");
+      setGenerateError(
+        t("pages.students.dialogs.bulkEnrollAndGenerate.errors.selectVideo"),
+      );
       return;
     }
 
     if (!hasEligibleStudents) {
-      setGenerateError("No eligible students to generate codes for.");
+      setGenerateError(
+        t(
+          "pages.students.dialogs.bulkEnrollAndGenerate.errors.noEligibleStudents",
+        ),
+      );
       return;
     }
 
@@ -547,7 +567,12 @@ export function BulkEnrollAndGenerateDialog({
       setGenerateResult(response ?? null);
     } catch (error) {
       setGenerateError(
-        getStudentRequestApiErrorMessage(error, "Unable to generate codes."),
+        getStudentRequestApiErrorMessage(
+          error,
+          t(
+            "pages.students.dialogs.bulkEnrollAndGenerate.errors.generateFailed",
+          ),
+        ),
       );
     } finally {
       setIsGenerating(false);
@@ -558,6 +583,27 @@ export function BulkEnrollAndGenerateDialog({
     step === index
       ? "bg-primary text-white"
       : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300";
+
+  const formatFailure = (value: Record<string, unknown>) => {
+    const reference =
+      value.student_id ??
+      value.user_id ??
+      value.id ??
+      value.studentId ??
+      value.userId;
+    const reason =
+      (value.reason as string) ??
+      (value.message as string) ??
+      t("pages.students.dialogs.bulkEnrollAndGenerate.summary.failedFallback");
+    const prefix =
+      reference != null
+        ? `${t("pages.students.dialogs.bulkEnrollAndGenerate.summary.studentPrefix")}${reference}`
+        : "";
+    return (
+      [prefix, reason].filter(Boolean).join(": ") ||
+      t("pages.students.dialogs.bulkEnrollAndGenerate.summary.failedFallback")
+    );
+  };
 
   return (
     <Dialog
@@ -575,14 +621,10 @@ export function BulkEnrollAndGenerateDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-3xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            {t(
-              "auto.features.students.components.bulkenrollandgeneratedialog.s1",
-            )}
+            {t("pages.students.dialogs.bulkEnrollAndGenerate.title")}
           </DialogTitle>
           <DialogDescription>
-            {t(
-              "auto.features.students.components.bulkenrollandgeneratedialog.s2",
-            )}
+            {t("pages.students.dialogs.bulkEnrollAndGenerate.description")}
           </DialogDescription>
           <div className="mt-3 flex items-center gap-2">
             <span
@@ -591,9 +633,7 @@ export function BulkEnrollAndGenerateDialog({
                 stepLabel(1),
               )}
             >
-              {t(
-                "auto.features.students.components.bulkenrollandgeneratedialog.s3",
-              )}
+              {t("pages.students.dialogs.bulkEnrollAndGenerate.steps.enroll")}
             </span>
             <span
               className={cn(
@@ -601,9 +641,7 @@ export function BulkEnrollAndGenerateDialog({
                 stepLabel(2),
               )}
             >
-              {t(
-                "auto.features.students.components.bulkenrollandgeneratedialog.s4",
-              )}
+              {t("pages.students.dialogs.bulkEnrollAndGenerate.steps.generate")}
             </span>
             {hasEligibleStudents ? (
               <Button
@@ -613,7 +651,7 @@ export function BulkEnrollAndGenerateDialog({
                 disabled={step === 2}
               >
                 {t(
-                  "auto.features.students.components.bulkenrollandgeneratedialog.s5",
+                  "pages.students.dialogs.bulkEnrollAndGenerate.actions.goToGenerate",
                 )}
               </Button>
             ) : null}
@@ -626,7 +664,7 @@ export function BulkEnrollAndGenerateDialog({
               <Alert variant="destructive">
                 <AlertTitle>
                   {t(
-                    "auto.features.students.components.bulkenrollandgeneratedialog.s6",
+                    "pages.students.dialogs.bulkEnrollAndGenerate.errors.enrollTitle",
                   )}
                 </AlertTitle>
                 <AlertDescription>{enrollError}</AlertDescription>
@@ -636,7 +674,9 @@ export function BulkEnrollAndGenerateDialog({
             {showCenterPicker ? (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Center
+                  {t(
+                    "pages.students.dialogs.bulkEnrollAndGenerate.fields.center",
+                  )}
                 </p>
                 <CenterPicker
                   className="w-full min-w-0"
@@ -651,7 +691,9 @@ export function BulkEnrollAndGenerateDialog({
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Course
+                {t(
+                  "pages.students.dialogs.bulkEnrollAndGenerate.fields.enrollCourse",
+                )}
               </p>
               <SearchableSelect
                 value={selectedEnrollCourse ?? undefined}
@@ -663,11 +705,25 @@ export function BulkEnrollAndGenerateDialog({
                 className="bg-white"
                 onSearchValueChange={setEnrollCourseSearch}
                 placeholder={
-                  hasSelectedCenter ? "Select a course" : "Select center first"
+                  hasSelectedCenter
+                    ? t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.selectCourse",
+                      )
+                    : t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.selectCenterFirst",
+                      )
                 }
-                searchPlaceholder="Search courses..."
+                searchPlaceholder={t(
+                  "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.searchCourses",
+                )}
                 emptyMessage={
-                  hasSelectedCenter ? "No courses found" : "Select center first"
+                  hasSelectedCenter
+                    ? t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.empty.noCourses",
+                      )
+                    : t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.empty.loadCenterFirst",
+                      )
                 }
                 isLoading={enrollCoursesQuery.isLoading}
                 filterOptions={false}
@@ -688,25 +744,41 @@ export function BulkEnrollAndGenerateDialog({
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
                 <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                   <div className="rounded-md border border-gray-200 bg-white px-3 py-2 text-center dark:border-gray-700 dark:bg-gray-900">
-                    <p className="text-gray-500 dark:text-gray-400">Total</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.totalLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                       {enrollResult.counts.total}
                     </p>
                   </div>
                   <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20">
-                    <p>Approved</p>
+                    <p>
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.approvedLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-emerald-800 dark:text-emerald-200">
                       {enrollResult.counts.approved}
                     </p>
                   </div>
                   <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20">
-                    <p>Skipped</p>
+                    <p>
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.skippedLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-amber-800 dark:text-amber-200">
                       {enrollResult.counts.skipped}
                     </p>
                   </div>
                   <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-red-700 dark:border-red-900/40 dark:bg-red-900/20">
-                    <p>Failed</p>
+                    <p>
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.failedLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
                       {enrollResult.counts.failed}
                     </p>
@@ -716,7 +788,18 @@ export function BulkEnrollAndGenerateDialog({
                   <div className="mt-3 space-y-1 text-xs">
                     {enrollResult.failed.map((entry) => (
                       <p key={String(entry.user_id)}>
-                        #{entry.user_id ?? "?"}: {entry.reason ?? "Failed"}
+                        {t(
+                          "pages.students.dialogs.bulkEnrollAndGenerate.summary.studentPrefix",
+                        )}
+                        {entry.user_id ??
+                          t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.summary.unknownId",
+                          )}
+                        :{" "}
+                        {entry.reason ??
+                          t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.summary.failedFallback",
+                          )}
                       </p>
                     ))}
                   </div>
@@ -724,7 +807,7 @@ export function BulkEnrollAndGenerateDialog({
                 {enrollResult.skipped && enrollResult.skipped.length > 0 ? (
                   <div className="mt-3 text-xs">
                     {t(
-                      "auto.features.students.components.bulkenrollandgeneratedialog.s7",
+                      "pages.students.dialogs.bulkEnrollAndGenerate.summary.skippedIds",
                     )}
                     {enrollResult.skipped.join(", ")}
                   </div>
@@ -732,7 +815,7 @@ export function BulkEnrollAndGenerateDialog({
                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
                   <p>
                     {t(
-                      "auto.features.students.components.bulkenrollandgeneratedialog.s8",
+                      "pages.students.dialogs.bulkEnrollAndGenerate.summary.eligibleStudents",
                     )}
                     {eligibleStudentIds.length}
                   </p>
@@ -744,7 +827,7 @@ export function BulkEnrollAndGenerateDialog({
                       disabled={isEnrollSubmitting}
                     >
                       {t(
-                        "auto.features.students.components.bulkenrollandgeneratedialog.s9",
+                        "pages.students.dialogs.bulkEnrollAndGenerate.actions.retryFailed",
                       )}
                     </Button>
                   ) : null}
@@ -758,7 +841,7 @@ export function BulkEnrollAndGenerateDialog({
               <Alert variant="destructive">
                 <AlertTitle>
                   {t(
-                    "auto.features.students.components.bulkenrollandgeneratedialog.s10",
+                    "pages.students.dialogs.bulkEnrollAndGenerate.errors.generateTitle",
                   )}
                 </AlertTitle>
                 <AlertDescription>{generateError}</AlertDescription>
@@ -767,7 +850,7 @@ export function BulkEnrollAndGenerateDialog({
 
             <div className="text-sm text-gray-600 dark:text-gray-300">
               {t(
-                "auto.features.students.components.bulkenrollandgeneratedialog.s11",
+                "pages.students.dialogs.bulkEnrollAndGenerate.summary.eligibleStudents",
               )}
               {eligibleStudentIds.length}
             </div>
@@ -775,7 +858,7 @@ export function BulkEnrollAndGenerateDialog({
             {!hasEligibleStudents ? (
               <p className="text-xs text-gray-500">
                 {t(
-                  "auto.features.students.components.bulkenrollandgeneratedialog.s12",
+                  "pages.students.dialogs.bulkEnrollAndGenerate.empty.noEligibleStudents",
                 )}
               </p>
             ) : (
@@ -783,7 +866,9 @@ export function BulkEnrollAndGenerateDialog({
                 {showCenterPicker ? (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Center
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.fields.center",
+                      )}
                     </p>
                     <CenterPicker
                       className="w-full min-w-0"
@@ -798,7 +883,9 @@ export function BulkEnrollAndGenerateDialog({
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Course
+                    {t(
+                      "pages.students.dialogs.bulkEnrollAndGenerate.fields.generateCourse",
+                    )}
                   </p>
                   <SearchableSelect
                     value={selectedGenerateCourse ?? undefined}
@@ -810,14 +897,24 @@ export function BulkEnrollAndGenerateDialog({
                     onSearchValueChange={setGenerateCourseSearch}
                     placeholder={
                       hasSelectedCenter
-                        ? "Select a course"
-                        : "Select center first"
+                        ? t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.selectCourse",
+                          )
+                        : t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.selectCenterFirst",
+                          )
                     }
-                    searchPlaceholder="Search courses..."
+                    searchPlaceholder={t(
+                      "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.searchCourses",
+                    )}
                     emptyMessage={
                       hasSelectedCenter
-                        ? "No courses found"
-                        : "Select center first"
+                        ? t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.empty.noCourses",
+                          )
+                        : t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.empty.loadCenterFirst",
+                          )
                     }
                     isLoading={generateCoursesQuery.isLoading}
                     filterOptions={false}
@@ -836,7 +933,9 @@ export function BulkEnrollAndGenerateDialog({
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Video
+                    {t(
+                      "pages.students.dialogs.bulkEnrollAndGenerate.fields.video",
+                    )}
                   </p>
                   <SearchableSelect
                     value={selectedGenerateVideo ?? undefined}
@@ -848,14 +947,24 @@ export function BulkEnrollAndGenerateDialog({
                     onSearchValueChange={setGenerateVideoSearch}
                     placeholder={
                       resolvedGenerateCourseId
-                        ? "Select a video"
-                        : "Select course first"
+                        ? t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.selectVideo",
+                          )
+                        : t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.selectCourseFirst",
+                          )
                     }
-                    searchPlaceholder="Search videos..."
+                    searchPlaceholder={t(
+                      "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.searchVideos",
+                    )}
                     emptyMessage={
                       resolvedGenerateCourseId
-                        ? "No videos found"
-                        : "Select course first"
+                        ? t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.empty.noVideos",
+                          )
+                        : t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.empty.loadCourseFirst",
+                          )
                     }
                     filterOptions={false}
                     showSearch
@@ -888,7 +997,7 @@ export function BulkEnrollAndGenerateDialog({
                       disabled={isGenerating}
                     />
                     {t(
-                      "auto.features.students.components.bulkenrollandgeneratedialog.s13",
+                      "pages.students.dialogs.bulkEnrollAndGenerate.fields.sendWhatsapp",
                     )}
                   </label>
                 </div>
@@ -897,7 +1006,7 @@ export function BulkEnrollAndGenerateDialog({
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {t(
-                        "auto.features.students.components.bulkenrollandgeneratedialog.s14",
+                        "pages.students.dialogs.bulkEnrollAndGenerate.fields.whatsappFormat",
                       )}
                     </p>
                     <Select
@@ -908,17 +1017,21 @@ export function BulkEnrollAndGenerateDialog({
                       disabled={isGenerating}
                     >
                       <SelectTrigger className="h-10 w-full bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900">
-                        <SelectValue placeholder="Format" />
+                        <SelectValue
+                          placeholder={t(
+                            "pages.students.dialogs.bulkEnrollAndGenerate.placeholders.format",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="text_code">
                           {t(
-                            "auto.features.students.components.bulkenrollandgeneratedialog.s15",
+                            "pages.students.dialogs.bulkEnrollAndGenerate.formats.textCode",
                           )}
                         </SelectItem>
                         <SelectItem value="qr_code">
                           {t(
-                            "auto.features.students.components.bulkenrollandgeneratedialog.s16",
+                            "pages.students.dialogs.bulkEnrollAndGenerate.formats.qrCode",
                           )}
                         </SelectItem>
                       </SelectContent>
@@ -932,20 +1045,32 @@ export function BulkEnrollAndGenerateDialog({
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
                 <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
                   <div className="rounded-md border border-gray-200 bg-white px-3 py-2 text-center dark:border-gray-700 dark:bg-gray-900">
-                    <p className="text-gray-500 dark:text-gray-400">Total</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.totalLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                       {generateResult.counts?.total ??
                         eligibleStudentIds.length}
                     </p>
                   </div>
                   <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20">
-                    <p>Generated</p>
+                    <p>
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.generatedLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-emerald-800 dark:text-emerald-200">
                       {generateResult.counts?.generated ?? 0}
                     </p>
                   </div>
                   <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20">
-                    <p>Failed</p>
+                    <p>
+                      {t(
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.failedLabel",
+                      )}
+                    </p>
                     <p className="mt-1 text-base font-semibold text-amber-800 dark:text-amber-200">
                       {generateResult.counts?.failed ?? 0}
                     </p>
@@ -953,7 +1078,7 @@ export function BulkEnrollAndGenerateDialog({
                   <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-center text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20">
                     <p>
                       {t(
-                        "auto.features.students.components.bulkenrollandgeneratedialog.s17",
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.whatsappSentLabel",
                       )}
                     </p>
                     <p className="mt-1 text-base font-semibold text-blue-800 dark:text-blue-200">
@@ -963,7 +1088,7 @@ export function BulkEnrollAndGenerateDialog({
                   <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center text-red-700 dark:border-red-900/40 dark:bg-red-900/20">
                     <p>
                       {t(
-                        "auto.features.students.components.bulkenrollandgeneratedialog.s18",
+                        "pages.students.dialogs.bulkEnrollAndGenerate.summary.whatsappFailedLabel",
                       )}
                     </p>
                     <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
@@ -993,9 +1118,7 @@ export function BulkEnrollAndGenerateDialog({
               bulkGenerateMutation.isPending
             }
           >
-            {t(
-              "auto.features.students.components.bulkenrollandgeneratedialog.s19",
-            )}
+            {t("common.actions.cancel")}
           </Button>
           {step === 1 ? (
             <Button
@@ -1006,7 +1129,13 @@ export function BulkEnrollAndGenerateDialog({
                 !selectedEnrollCourse
               }
             >
-              {isEnrollSubmitting ? "Enrolling..." : "Enroll Students"}
+              {isEnrollSubmitting
+                ? t(
+                    "pages.students.dialogs.bulkEnrollAndGenerate.actions.enrolling",
+                  )
+                : t(
+                    "pages.students.dialogs.bulkEnrollAndGenerate.actions.enrollStudents",
+                  )}
             </Button>
           ) : (
             <>
@@ -1015,9 +1144,7 @@ export function BulkEnrollAndGenerateDialog({
                 onClick={() => setStep(1)}
                 disabled={isGenerating}
               >
-                {t(
-                  "auto.features.students.components.bulkenrollandgeneratedialog.s20",
-                )}
+                {t("pages.students.dialogs.bulkEnrollAndGenerate.actions.back")}
               </Button>
               <Button
                 onClick={handleGenerate}
@@ -1029,8 +1156,12 @@ export function BulkEnrollAndGenerateDialog({
                 }
               >
                 {isGenerating || bulkGenerateMutation.isPending
-                  ? "Generating..."
-                  : "Generate Codes"}
+                  ? t(
+                      "pages.students.dialogs.bulkEnrollAndGenerate.actions.generating",
+                    )
+                  : t(
+                      "pages.students.dialogs.bulkEnrollAndGenerate.actions.generateCodes",
+                    )}
               </Button>
             </>
           )}
@@ -1038,17 +1169,4 @@ export function BulkEnrollAndGenerateDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-function formatFailure(value: Record<string, unknown>) {
-  const reference =
-    value.student_id ??
-    value.user_id ??
-    value.id ??
-    value.studentId ??
-    value.userId;
-  const reason =
-    (value.reason as string) ?? (value.message as string) ?? "Failed";
-  const prefix = reference != null ? `#${reference}` : "";
-  return [prefix, reason].filter(Boolean).join(": ") || "Failed";
 }

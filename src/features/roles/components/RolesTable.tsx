@@ -84,6 +84,7 @@ export function RolesTable({
   canManageWrite = false,
 }: RolesTableProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.roles.fallbacks.noValue");
   const [deletingRole, setDeletingRole] = useState<{
     id: string | number;
     name?: string | null;
@@ -424,10 +425,10 @@ export function RolesTable({
                           </TableCell>
                         ) : null}
                         <TableCell className="text-gray-700 dark:text-gray-200">
-                          {role.name ?? "—"}
+                          {role.name ?? emptyValue}
                         </TableCell>
                         <TableCell className="font-mono text-xs text-gray-500 dark:text-gray-400">
-                          {role.slug ?? "—"}
+                          {role.slug ?? emptyValue}
                         </TableCell>
                         <TableCell className="text-gray-500 dark:text-gray-400">
                           {permissionsCount}
@@ -457,7 +458,7 @@ export function RolesTable({
                               ) : null}
                             </div>
                           ) : (
-                            "—"
+                            emptyValue
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -600,7 +601,10 @@ export function RolesTable({
                   setOpenMenuId(null);
                   clearSelection();
                   showToast(
-                    `Permissions updated (${added} added, ${removed} removed).`,
+                    t("pages.roles.table.dialogs.permissionsUpdated", {
+                      added,
+                      removed,
+                    }),
                     "success",
                   );
                 }}

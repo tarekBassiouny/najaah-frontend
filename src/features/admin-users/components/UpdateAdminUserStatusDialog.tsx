@@ -24,7 +24,10 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 type UpdateAdminUserStatusDialogProps = {
   open: boolean;
@@ -34,10 +37,10 @@ type UpdateAdminUserStatusDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, t: TranslateFunction): string {
   return getAdminApiErrorMessage(
     error,
-    "Unable to update admin user status. Please try again.",
+    t("pages.admins.dialogs.status.errors.updateFailed"),
   );
 }
 
@@ -86,7 +89,7 @@ export function UpdateAdminUserStatusDialog({
 
   const handleUpdate = () => {
     if (!user) {
-      setErrorMessage("Admin user not found.");
+      setErrorMessage(t("pages.admins.dialogs.status.errors.notFound"));
       return;
     }
 
@@ -102,7 +105,7 @@ export function UpdateAdminUserStatusDialog({
             setErrorMessage(
               getAdminResponseMessage(
                 response,
-                "Unable to update admin user status. Please try again.",
+                t("pages.admins.dialogs.status.errors.updateFailed"),
               ),
             );
             return;
@@ -110,19 +113,22 @@ export function UpdateAdminUserStatusDialog({
           onSuccess?.(
             getAdminResponseMessage(
               response,
-              "Admin user status updated successfully.",
+              t("pages.admins.dialogs.status.messages.updated"),
             ),
           );
           onOpenChange(false);
         },
         onError: (error) => {
-          setErrorMessage(getErrorMessage(error));
+          setErrorMessage(getErrorMessage(error, t));
         },
       },
     );
   };
 
-  const userName = user?.name ?? user?.email ?? `User #${user?.id ?? ""}`;
+  const userName =
+    user?.name ??
+    user?.email ??
+    t("pages.admins.fallbacks.userById", { id: user?.id ?? "" });
 
   return (
     <Dialog
@@ -135,25 +141,18 @@ export function UpdateAdminUserStatusDialog({
     >
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader className="space-y-2">
-          <DialogTitle>
-            {t(
-              "auto.features.admin_users.components.updateadminuserstatusdialog.s1",
-            )}
-          </DialogTitle>
+          <DialogTitle>{t("pages.admins.dialogs.status.title")}</DialogTitle>
           <DialogDescription>
-            {t(
-              "auto.features.admin_users.components.updateadminuserstatusdialog.s2",
-            )}{" "}
-            <span className="font-medium">{userName}</span>.
+            {t("pages.admins.dialogs.status.description", {
+              name: userName,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         {errorMessage ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.admin_users.components.updateadminuserstatusdialog.s3",
-              )}
+              {t("pages.admins.dialogs.status.errors.errorTitle")}
             </AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
@@ -161,9 +160,7 @@ export function UpdateAdminUserStatusDialog({
 
         <div className="space-y-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t(
-              "auto.features.admin_users.components.updateadminuserstatusdialog.s4",
-            )}
+            {t("pages.admins.dialogs.status.help")}
           </p>
           <Select
             value={status}
@@ -173,21 +170,27 @@ export function UpdateAdminUserStatusDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">Active</SelectItem>
-              <SelectItem value="0">Inactive</SelectItem>
-              <SelectItem value="2">Banned</SelectItem>
+              <SelectItem value="1">
+                {t("pages.admins.table.status.active")}
+              </SelectItem>
+              <SelectItem value="0">
+                {t("pages.admins.table.status.inactive")}
+              </SelectItem>
+              <SelectItem value="2">
+                {t("pages.admins.table.status.banned")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t(
-              "auto.features.admin_users.components.updateadminuserstatusdialog.s5",
-            )}
+            {t("common.actions.cancel")}
           </Button>
           <Button onClick={handleUpdate} disabled={mutation.isPending}>
-            {mutation.isPending ? "Updating..." : "Update Status"}
+            {mutation.isPending
+              ? t("pages.admins.dialogs.status.actions.updating")
+              : t("pages.admins.dialogs.status.actions.update")}
           </Button>
         </div>
       </DialogContent>

@@ -22,9 +22,9 @@ type AnalyticsFiltersBarProps = {
 };
 
 const DATE_PRESETS = [
-  { key: "today", label: "Today", daysBack: 0 },
-  { key: "last7", label: "Last 7 days", daysBack: 6 },
-  { key: "last30", label: "Last 30 days", daysBack: 29 },
+  { key: "today", daysBack: 0 },
+  { key: "last7", daysBack: 6 },
+  { key: "last30", daysBack: 29 },
 ] as const;
 
 function toDateInput(date: Date) {
@@ -54,6 +54,12 @@ export function AnalyticsFiltersBar({
   isLoading,
 }: AnalyticsFiltersBarProps) {
   const { t } = useTranslation();
+  const datePresets = DATE_PRESETS.map((preset) => ({
+    ...preset,
+    label: t(
+      `auto.features.analytics.components.analyticsfiltersbar.presets.${preset.key}`,
+    ),
+  }));
 
   const { centerId } = useTenant();
   const [datePreset, setDatePreset] = useState<string>("");
@@ -82,7 +88,15 @@ export function AnalyticsFiltersBar({
         isFetching={isLoading}
         isLoading={isLoading}
         hasActiveFilters={hasActiveFilters}
-        clearLabel="Reset"
+        titleLabel={t(
+          "auto.features.analytics.components.analyticsfiltersbar.title",
+        )}
+        updatingLabel={t(
+          "auto.features.analytics.components.analyticsfiltersbar.updating",
+        )}
+        clearLabel={t(
+          "auto.features.analytics.components.analyticsfiltersbar.reset",
+        )}
         clearDisabled={isLoading}
         onClear={() => {
           onReset();
@@ -90,7 +104,7 @@ export function AnalyticsFiltersBar({
         }}
         summary={
           <div className="flex flex-wrap items-center gap-2">
-            {DATE_PRESETS.map((preset) => (
+            {datePresets.map((preset) => (
               <Button
                 key={preset.key}
                 variant={datePreset === preset.key ? "default" : "outline"}
@@ -113,6 +127,13 @@ export function AnalyticsFiltersBar({
             <CenterPicker
               className="w-full min-w-0"
               selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
+              label={t("common.labels.center")}
+              allLabel={t(
+                "auto.features.centers.components.centerpicker.allCenters",
+              )}
+              searchPlaceholder={t(
+                "auto.features.centers.components.centerpicker.searchPlaceholder",
+              )}
             />
           </div>
         ) : null}

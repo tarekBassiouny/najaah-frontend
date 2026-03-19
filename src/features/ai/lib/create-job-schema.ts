@@ -50,6 +50,7 @@ export function validateCreateJob(payload: CreateJobPayload<TargetType>) {
   if (!payload.source_id) errors.push("Source is required.");
   if (!payload.ai_provider) errors.push("AI provider is required.");
   if (!payload.ai_model) errors.push("AI model is required.");
+  if (!payload.language) errors.push("Language is required.");
 
   if (payload.target_type === "quiz") {
     const config = payload.generation_config as

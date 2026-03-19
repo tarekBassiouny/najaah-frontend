@@ -45,20 +45,13 @@ import {
 } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
 
-const schema = z
-  .object({
-    nameEn: z.string().trim().optional(),
-    nameAr: z.string().trim().optional(),
-    type: z.string().trim(),
-    address: z.string().trim().optional(),
-    isActive: z.boolean(),
-  })
-  .refine((values) => Boolean(values.nameEn || values.nameAr), {
-    message: "Enter at least one name (English or Arabic).",
-    path: ["nameEn"],
-  });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  nameEn?: string;
+  nameAr?: string;
+  type: string;
+  address?: string;
+  isActive: boolean;
+};
 
 type SchoolFormDialogProps = {
   centerId: string | number;
@@ -69,15 +62,16 @@ type SchoolFormDialogProps = {
   onSaved?: (_school: School) => void;
 };
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  DUPLICATE_SLUG: "A school with this slug already exists in this center.",
-  VALIDATION_ERROR: "Please check the school fields and try again.",
-};
-
-function getErrorMessage(error: unknown) {
+function getErrorMessage(
+  error: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const code = getAdminApiErrorCode(error);
-  if (code && ERROR_CODE_MESSAGES[code]) {
-    return ERROR_CODE_MESSAGES[code];
+  if (code === "DUPLICATE_SLUG") {
+    return t("pages.education.dialogs.schoolForm.errors.duplicateSlug");
+  }
+  if (code === "VALIDATION_ERROR") {
+    return t("pages.education.dialogs.schoolForm.errors.validation");
   }
 
   const fieldMessage = getAdminApiFirstFieldError(error);
@@ -85,7 +79,10 @@ function getErrorMessage(error: unknown) {
     return fieldMessage;
   }
 
-  return getAdminApiErrorMessage(error, "Unable to save school.");
+  return getAdminApiErrorMessage(
+    error,
+    t("pages.education.dialogs.schoolForm.errors.fallback"),
+  );
 }
 
 export function SchoolFormDialog({
@@ -97,6 +94,18 @@ export function SchoolFormDialog({
   onSaved,
 }: SchoolFormDialogProps) {
   const { t } = useTranslation();
+  const schema = z
+    .object({
+      nameEn: z.string().trim().optional(),
+      nameAr: z.string().trim().optional(),
+      type: z.string().trim(),
+      address: z.string().trim().optional(),
+      isActive: z.boolean(),
+    })
+    .refine((values) => Boolean(values.nameEn || values.nameAr), {
+      message: t("pages.education.dialogs.schoolForm.validation.nameRequired"),
+      path: ["nameEn"],
+    });
 
   const isEditMode = Boolean(school);
   const createMutation = useCreateSchool();
@@ -151,10 +160,12 @@ export function SchoolFormDialog({
           onSuccess: (savedSchool) => {
             onOpenChange(false);
             onSaved?.(savedSchool);
-            onSuccess?.("School updated successfully.");
+            onSuccess?.(
+              t("pages.education.dialogs.schoolForm.success.updated"),
+            );
           },
           onError: (error) => {
-            form.setError("root", { message: getErrorMessage(error) });
+            form.setError("root", { message: getErrorMessage(error, t) });
           },
         },
       );
@@ -170,10 +181,10 @@ export function SchoolFormDialog({
         onSuccess: (savedSchool) => {
           onOpenChange(false);
           onSaved?.(savedSchool);
-          onSuccess?.("School created successfully.");
+          onSuccess?.(t("pages.education.dialogs.schoolForm.success.created"));
         },
         onError: (error) => {
-          form.setError("root", { message: getErrorMessage(error) });
+          form.setError("root", { message: getErrorMessage(error, t) });
         },
       },
     );
@@ -184,19 +195,25 @@ export function SchoolFormDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Edit School" : "Create School"}
+            {t(
+              isEditMode
+                ? "pages.education.dialogs.schoolForm.titleEdit"
+                : "pages.education.dialogs.schoolForm.titleCreate",
+            )}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode
-              ? "Update school details and status."
-              : "Add a new school for this center."}
+            {t(
+              isEditMode
+                ? "pages.education.dialogs.schoolForm.descriptionEdit"
+                : "pages.education.dialogs.schoolForm.descriptionCreate",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         {form.formState.errors.root?.message ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.education.components.schoolformdialog.s1")}
+              {t("pages.education.dialogs.schoolForm.errorTitle")}
             </AlertTitle>
             <AlertDescription>
               {form.formState.errors.root.message}
@@ -216,13 +233,13 @@ export function SchoolFormDialog({
                 <FormItem>
                   <FormLabel>
                     {t(
-                      "auto.features.education.components.schoolformdialog.s2",
+                      "pages.education.dialogs.schoolForm.fields.nameEn.label",
                     )}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.schoolformdialog.s3",
+                        "pages.education.dialogs.schoolForm.fields.nameEn.placeholder",
                       )}
                       {...field}
                     />
@@ -239,13 +256,13 @@ export function SchoolFormDialog({
                 <FormItem>
                   <FormLabel>
                     {t(
-                      "auto.features.education.components.schoolformdialog.s4",
+                      "pages.education.dialogs.schoolForm.fields.nameAr.label",
                     )}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.schoolformdialog.s5",
+                        "pages.education.dialogs.schoolForm.fields.nameAr.placeholder",
                       )}
                       {...field}
                     />
@@ -261,9 +278,7 @@ export function SchoolFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t(
-                      "auto.features.education.components.schoolformdialog.s6",
-                    )}
+                    {t("pages.education.dialogs.schoolForm.fields.type.label")}
                   </FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
@@ -289,11 +304,15 @@ export function SchoolFormDialog({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Address</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "pages.education.dialogs.schoolForm.fields.address.label",
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.schoolformdialog.s7",
+                        "pages.education.dialogs.schoolForm.fields.address.placeholder",
                       )}
                       {...field}
                     />
@@ -316,7 +335,7 @@ export function SchoolFormDialog({
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
                     {t(
-                      "auto.features.education.components.schoolformdialog.s8",
+                      "pages.education.dialogs.schoolForm.fields.isActive.label",
                     )}
                   </label>
                   <FormMessage />
@@ -331,14 +350,16 @@ export function SchoolFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                {t("auto.features.education.components.schoolformdialog.s9")}
+                {t("pages.education.dialogs.schoolForm.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
-                  ? "Saving..."
-                  : isEditMode
-                    ? "Save Changes"
-                    : "Create School"}
+                  ? t("pages.education.dialogs.schoolForm.actions.saving")
+                  : t(
+                      isEditMode
+                        ? "pages.education.dialogs.schoolForm.actions.save"
+                        : "pages.education.dialogs.schoolForm.actions.create",
+                    )}
               </Button>
             </DialogFooter>
           </form>

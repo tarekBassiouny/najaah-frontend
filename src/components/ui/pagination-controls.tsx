@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -6,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 
 type PaginationControlsProps = {
@@ -35,35 +38,47 @@ export function PaginationControls({
   size = "default",
   labelClassName,
 }: PaginationControlsProps) {
+  const { t, locale } = useTranslation();
   const normalizedLastPage = Math.max(1, lastPage);
   const previousDisabled = page <= 1 || isFetching;
   const nextDisabled = page >= normalizedLastPage || isFetching;
+  const isRtl = locale === "ar";
 
   return (
     <div
       className={cn(
         "flex flex-wrap items-center justify-between gap-3",
+        isRtl && "flex-row-reverse",
         className,
       )}
     >
       <div
         className={cn(
           "text-sm text-gray-500 dark:text-gray-400",
+          isRtl && "text-right",
           labelClassName,
         )}
       >
-        Page {page} of {normalizedLastPage}
+        {t("common.pagination.pageOf", {
+          page,
+          lastPage: normalizedLastPage,
+        })}
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
+      <div
+        className={cn("flex items-center gap-2", isRtl && "flex-row-reverse")}
+      >
+        <div
+          className={cn("flex items-center gap-2", isRtl && "flex-row-reverse")}
+        >
           <span
             className={cn(
               "text-sm text-gray-500 dark:text-gray-400",
+              isRtl && "text-right",
               labelClassName,
             )}
           >
-            Rows
+            {t("common.pagination.rows")}
           </span>
           <Select
             value={String(perPage)}
@@ -89,7 +104,7 @@ export function PaginationControls({
           onClick={() => onPageChange(Math.max(page - 1, 1))}
           disabled={previousDisabled}
         >
-          Previous
+          {t("common.pagination.previous")}
         </Button>
         <Button
           variant="outline"
@@ -97,7 +112,7 @@ export function PaginationControls({
           onClick={() => onPageChange(Math.min(page + 1, normalizedLastPage))}
           disabled={nextDisabled}
         >
-          Next
+          {t("common.pagination.next")}
         </Button>
       </div>
     </div>

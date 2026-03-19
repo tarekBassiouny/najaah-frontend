@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,60 +48,127 @@ function normalizeStatus(value: unknown) {
   return value.trim().toLowerCase();
 }
 
-function resolveStatusMeta(value: unknown) {
+function resolveStatusMeta(
+  value: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const normalized = normalizeStatus(value);
   if (normalized === "open") {
-    return { label: "Open", variant: "success" as const };
+    return {
+      label: t(
+        "auto.features.video_code_batches.components.videocodebatchestable.statusOpen",
+      ),
+      variant: "success" as const,
+    };
   }
 
   if (normalized === "closed") {
-    return { label: "Closed", variant: "default" as const };
+    return {
+      label: t(
+        "auto.features.video_code_batches.components.videocodebatchestable.statusClosed",
+      ),
+      variant: "default" as const,
+    };
   }
 
   return {
     label:
-      typeof value === "string" && value.trim().length > 0 ? value : "Unknown",
+      typeof value === "string" && value.trim().length > 0
+        ? value
+        : t(
+            "auto.features.video_code_batches.components.videocodebatchestable.unknownStatus",
+          ),
     variant: "secondary" as const,
   };
 }
 
-function resolveExportStatusMeta(status: unknown) {
+function resolveExportStatusMeta(
+  status: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const normalized = normalizeStatus(status);
 
   if (normalized === "processing") {
-    return { label: "Processing", variant: "warning" as const };
+    return {
+      label: t(
+        "auto.features.video_code_batches.components.videocodebatchdetailspage.exportStatus.processing",
+      ),
+      variant: "warning" as const,
+    };
   }
 
   if (normalized === "sent" || normalized === "completed") {
     return {
-      label: normalized === "sent" ? "Sent" : "Completed",
+      label:
+        normalized === "sent"
+          ? t(
+              "auto.features.video_code_batches.components.videocodebatchdetailspage.exportStatus.sent",
+            )
+          : t(
+              "auto.features.video_code_batches.components.videocodebatchdetailspage.exportStatus.completed",
+            ),
       variant: "success" as const,
     };
   }
 
   if (normalized === "failed") {
-    return { label: "Failed", variant: "error" as const };
+    return {
+      label: t(
+        "auto.features.video_code_batches.components.videocodebatchdetailspage.exportStatus.failed",
+      ),
+      variant: "error" as const,
+    };
   }
 
   return {
     label:
       typeof status === "string" && status.trim().length > 0
         ? status
-        : "Unknown",
+        : t(
+            "auto.features.video_code_batches.components.videocodebatchestable.unknownStatus",
+          ),
     variant: "secondary" as const,
   };
 }
 
-function resolveExportTitle(record: VideoCodeBatchExportRecord) {
-  if (record.type === "whatsapp_csv") return "WhatsApp CSV";
-  if (record.format === "pdf") return "PDF Download";
-  if (record.format === "csv") return "CSV Download";
-  return "Export";
+function resolveExportTitle(
+  record: VideoCodeBatchExportRecord,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  if (record.type === "whatsapp_csv") {
+    return t(
+      "auto.features.video_code_batches.components.videocodebatchdetailspage.exportTitles.whatsappCsv",
+    );
+  }
+  if (record.format === "pdf") {
+    return t(
+      "auto.features.video_code_batches.components.videocodebatchdetailspage.exportTitles.pdfDownload",
+    );
+  }
+  if (record.format === "csv") {
+    return t(
+      "auto.features.video_code_batches.components.videocodebatchdetailspage.exportTitles.csvDownload",
+    );
+  }
+  return t(
+    "auto.features.video_code_batches.components.videocodebatchdetailspage.exportTitles.export",
+  );
 }
 
-function resolveDeliveryChannelLabel(record: VideoCodeBatchExportRecord) {
-  if (record.delivery_channel === "whatsapp") return "WhatsApp";
-  if (record.delivery_channel === "download") return "Download";
+function resolveDeliveryChannelLabel(
+  record: VideoCodeBatchExportRecord,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  if (record.delivery_channel === "whatsapp") {
+    return t(
+      "auto.features.video_code_batches.components.videocodebatchdetailspage.deliveryChannel.whatsapp",
+    );
+  }
+  if (record.delivery_channel === "download") {
+    return t(
+      "auto.features.video_code_batches.components.videocodebatchdetailspage.deliveryChannel.download",
+    );
+  }
   return null;
 }
 
@@ -110,6 +177,14 @@ export function VideoCodeBatchDetailsPage({
   batchId,
 }: VideoCodeBatchDetailsPageProps) {
   const { t } = useTranslation();
+  const detailsT = useCallback(
+    (key: string, params?: Record<string, string | number>) =>
+      t(
+        `auto.features.video_code_batches.components.videocodebatchdetailspage.${key}`,
+        params,
+      ),
+    [t],
+  );
   const { showToast } = useModal();
   const [redemptionsPage, setRedemptionsPage] = useState(1);
   const [redemptionsPerPage, setRedemptionsPerPage] = useState(15);
@@ -143,7 +218,7 @@ export function VideoCodeBatchDetailsPage({
     1,
     Math.ceil(totalRedemptions / redemptionsPerPage),
   );
-  const status = resolveStatusMeta(batch?.status_label ?? batch?.status);
+  const status = resolveStatusMeta(batch?.status_label ?? batch?.status, t);
   const exportsHistory = stats?.exports ?? batch?.metadata?.exports ?? [];
   const canExpand =
     batch?.can_expand ?? normalizeStatus(batch?.status) === "open";
@@ -182,12 +257,23 @@ export function VideoCodeBatchDetailsPage({
         statsQuery.refetch(),
         redemptionsQuery.refetch(),
       ]);
-      showToast(`${format.toUpperCase()} exported successfully.`, "success");
+      showToast(
+        t(
+          format === "csv"
+            ? "auto.features.video_code_batches.components.videocodebatchestable.exportCsvSuccess"
+            : "auto.features.video_code_batches.components.videocodebatchestable.exportPdfSuccess",
+        ),
+        "success",
+      );
     } catch (error) {
       showToast(
         error instanceof Error
           ? error.message
-          : `Failed to export ${format.toUpperCase()}.`,
+          : t(
+              format === "csv"
+                ? "auto.features.video_code_batches.components.videocodebatchestable.exportCsvFailed"
+                : "auto.features.video_code_batches.components.videocodebatchestable.exportPdfFailed",
+            ),
         "error",
       );
     } finally {
@@ -198,15 +284,15 @@ export function VideoCodeBatchDetailsPage({
   const statsCards = useMemo(() => {
     return [
       {
-        title: "Total Codes",
+        title: detailsT("stats.totalCodes"),
         value: stats?.total_codes ?? batch?.quantity ?? 0,
       },
       {
-        title: "Redeemed",
+        title: detailsT("stats.redeemed"),
         value: stats?.redeemed_count ?? batch?.redeemed_count ?? 0,
       },
       {
-        title: "Available",
+        title: detailsT("stats.available"),
         value:
           stats?.available_count ??
           batch?.available_codes ??
@@ -216,12 +302,12 @@ export function VideoCodeBatchDetailsPage({
           ),
       },
       {
-        title: "View Limit",
+        title: detailsT("stats.viewLimit"),
         value: batch?.view_limit_per_code ?? 0,
       },
       {
-        title: "Sold Limit",
-        value: batch?.sold_limit ?? "Not set",
+        title: detailsT("stats.soldLimit"),
+        value: batch?.sold_limit ?? detailsT("notSet"),
       },
     ];
   }, [
@@ -230,6 +316,7 @@ export function VideoCodeBatchDetailsPage({
     batch?.redeemed_count,
     batch?.sold_limit,
     batch?.view_limit_per_code,
+    detailsT,
     stats?.available_count,
     stats?.redeemed_count,
     stats?.total_codes,
@@ -262,7 +349,7 @@ export function VideoCodeBatchDetailsPage({
         <AlertDescription>
           {batchQuery.error instanceof Error
             ? batchQuery.error.message
-            : "The requested batch could not be loaded."}
+            : detailsT("loadFailed")}
         </AlertDescription>
       </Alert>
     );
@@ -271,20 +358,38 @@ export function VideoCodeBatchDetailsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={batch.batch_code ?? `Batch ${batch.id}`}
-        description={`${batch.video_title ?? "Unknown video"} • ${batch.course_title ?? "Unknown course"}`}
+        title={
+          batch.batch_code ??
+          t(
+            "auto.features.video_code_batches.components.videocodebatchestable.batchWithId",
+            { id: batch.id },
+          )
+        }
+        description={`${batch.video_title ?? detailsT("unknownVideo")} • ${batch.course_title ?? detailsT("unknownCourse")}`}
         breadcrumbs={[
-          { label: "Centers", href: "/centers" },
-          { label: `Center ${centerId}`, href: `/centers/${centerId}` },
+          { label: t("common.labels.centers"), href: "/centers" },
           {
-            label: "Video Code Batches",
-            href: `/centers/${centerId}/video-code-batches`,
+            label: t("common.centerWithId", { id: centerId }),
+            href: `/centers/${centerId}`,
           },
-          { label: batch.batch_code ?? `Batch ${batch.id}` },
+          {
+            label: t(
+              "auto.features.video_code_batches.pages.videocodebatches.title",
+            ),
+            href: `/centers/${centerId}/code-batches`,
+          },
+          {
+            label:
+              batch.batch_code ??
+              t(
+                "auto.features.video_code_batches.components.videocodebatchestable.batchWithId",
+                { id: batch.id },
+              ),
+          },
         ]}
         actions={
           <>
-            <Link href={`/centers/${centerId}/video-code-batches`}>
+            <Link href={`/centers/${centerId}/code-batches`}>
               <Button variant="outline">
                 {t(
                   "auto.features.video_code_batches.components.videocodebatchdetailspage.backToBatches",
@@ -296,14 +401,26 @@ export function VideoCodeBatchDetailsPage({
               onClick={() => void handleExport("csv")}
               disabled={downloadKey === "csv"}
             >
-              {downloadKey === "csv" ? "Exporting CSV..." : "Export CSV"}
+              {downloadKey === "csv"
+                ? t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.exportingCsv",
+                  )
+                : t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.exportCsv",
+                  )}
             </Button>
             <Button
               variant="outline"
               onClick={() => void handleExport("pdf")}
               disabled={downloadKey === "pdf"}
             >
-              {downloadKey === "pdf" ? "Exporting PDF..." : "Export PDF"}
+              {downloadKey === "pdf"
+                ? t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.exportingPdf",
+                  )
+                : t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.exportPdf",
+                  )}
             </Button>
             <Button variant="outline" onClick={() => setIsWhatsappOpen(true)}>
               {t(
@@ -320,8 +437,12 @@ export function VideoCodeBatchDetailsPage({
             {canClose ? (
               <Button onClick={() => setIsCloseOpen(true)}>
                 {normalizeStatus(batch.status) === "closed"
-                  ? "Update Sold Limit"
-                  : "Close Batch"}
+                  ? t(
+                      "auto.features.video_code_batches.components.closevideocodebatchdialog.updateSoldLimit",
+                    )
+                  : t(
+                      "auto.features.video_code_batches.components.closevideocodebatchdialog.closeBatch",
+                    )}
               </Button>
             ) : null}
           </>
@@ -335,7 +456,8 @@ export function VideoCodeBatchDetailsPage({
             {t(
               "auto.features.video_code_batches.components.videocodebatchdetailspage.generatedBy",
             )}{" "}
-            {batch.generated_by?.name ?? "Unknown admin"} on{" "}
+            {batch.generated_by?.name ?? detailsT("unknownAdmin")}{" "}
+            {detailsT("generatedOn")}{" "}
             {batch.generated_at
               ? formatDateTime(String(batch.generated_at))
               : "—"}
@@ -368,13 +490,13 @@ export function VideoCodeBatchDetailsPage({
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
             <div className="flex items-center justify-between gap-4">
-              <span>Course</span>
+              <span>{detailsT("course")}</span>
               <span className="font-medium text-gray-900 dark:text-white">
                 {batch.course_title ?? "—"}
               </span>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <span>Video</span>
+              <span>{detailsT("video")}</span>
               <span className="font-medium text-gray-900 dark:text-white">
                 {batch.video_title ?? "—"}
               </span>
@@ -448,27 +570,27 @@ export function VideoCodeBatchDetailsPage({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-medium text-gray-900 dark:text-white">
-                          {resolveExportTitle(record)}
+                          {resolveExportTitle(record, t)}
                         </div>
                         {record.status ? (
                           <Badge
                             variant={
-                              resolveExportStatusMeta(record.status).variant
+                              resolveExportStatusMeta(record.status, t).variant
                             }
                           >
-                            {resolveExportStatusMeta(record.status).label}
+                            {resolveExportStatusMeta(record.status, t).label}
                           </Badge>
                         ) : null}
                       </div>
                       <div className="mt-1 text-gray-500 dark:text-gray-400">
                         {record.exported_at
                           ? formatDateTime(String(record.exported_at))
-                          : "Unknown time"}
+                          : detailsT("unknownTime")}
                       </div>
                       <div className="mt-1 text-gray-500 dark:text-gray-400">
-                        {resolveDeliveryChannelLabel(record)
-                          ? `${resolveDeliveryChannelLabel(record)}`
-                          : "Export"}
+                        {resolveDeliveryChannelLabel(record, t)
+                          ? `${resolveDeliveryChannelLabel(record, t)}`
+                          : detailsT("exportTitles.export")}
                         {record.destination_masked
                           ? ` • ${record.destination_masked}`
                           : ""}
@@ -476,9 +598,11 @@ export function VideoCodeBatchDetailsPage({
                       </div>
                       <div className="mt-1 text-gray-500 dark:text-gray-400">
                         {record.code_range
-                          ? `Codes ${record.code_range}`
-                          : "Full batch export"}
-                        {record.count != null ? ` • ${record.count} codes` : ""}
+                          ? detailsT("codesRange", { range: record.code_range })
+                          : detailsT("fullBatchExport")}
+                        {record.count != null
+                          ? ` • ${detailsT("codesCount", { count: record.count })}`
+                          : ""}
                         {record.exported_by?.name
                           ? ` • ${record.exported_by.name}`
                           : ""}
@@ -490,7 +614,7 @@ export function VideoCodeBatchDetailsPage({
                       ) : null}
                       {record.completed_at ? (
                         <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          Completed{" "}
+                          {detailsT("completed")}{" "}
                           {formatDateTime(String(record.completed_at))}
                         </div>
                       ) : null}
@@ -537,7 +661,7 @@ export function VideoCodeBatchDetailsPage({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-medium text-gray-900 dark:text-white">
-                          {redemption.user?.name ?? "Unknown student"}
+                          {redemption.user?.name ?? detailsT("unknownStudent")}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {redemption.redeemed_at
@@ -562,7 +686,7 @@ export function VideoCodeBatchDetailsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Redemptions</CardTitle>
+          <CardTitle>{detailsT("redemptionsTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="max-w-sm">
@@ -584,10 +708,10 @@ export function VideoCodeBatchDetailsPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Sequence</TableHead>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>{detailsT("columns.code")}</TableHead>
+                  <TableHead>{detailsT("columns.sequence")}</TableHead>
+                  <TableHead>{detailsT("columns.student")}</TableHead>
+                  <TableHead>{detailsT("columns.phone")}</TableHead>
                   <TableHead>
                     {t(
                       "auto.features.video_code_batches.components.videocodebatchdetailspage.redeemedAt",
@@ -628,7 +752,7 @@ export function VideoCodeBatchDetailsPage({
                       </TableCell>
                       <TableCell>{redemption.sequence_number ?? "—"}</TableCell>
                       <TableCell>
-                        {redemption.user?.name ?? "Unknown student"}
+                        {redemption.user?.name ?? detailsT("unknownStudent")}
                       </TableCell>
                       <TableCell>{redemption.user?.phone ?? "—"}</TableCell>
                       <TableCell>
@@ -695,8 +819,8 @@ export function VideoCodeBatchDetailsPage({
         onSent={(record) => {
           showToast(
             normalizeStatus(record.status) === "sent"
-              ? "WhatsApp CSV sent successfully."
-              : "WhatsApp CSV send started.",
+              ? detailsT("whatsappSentSuccess")
+              : detailsT("whatsappSendStarted"),
             "success",
           );
         }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -42,7 +42,10 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 function getInitials(value: string) {
   const parts = value.trim().split(" ").filter(Boolean);
@@ -65,35 +68,40 @@ function normalizeCountryCode(value?: string) {
   return value?.replace(/\s+/g, "").trim() ?? "";
 }
 
-const schema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
-  email: z
-    .string()
-    .trim()
-    .email("Enter a valid email address.")
-    .optional()
-    .or(z.literal("")),
-  phone: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
-      "Use base mobile number only (10 digits, no leading 0).",
-    ),
-  countryCode: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) => !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
-      "Country code must be in +NN format (for example +20).",
-    ),
-  centerId: z.string().trim().optional(),
-  status: z.enum(["1", "0", "2"]),
-});
+const buildSchema = (t: TranslateFunction) =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(2, t("pages.students.dialogs.form.validation.nameMin")),
+    email: z
+      .string()
+      .trim()
+      .email(t("pages.students.dialogs.form.validation.emailInvalid"))
+      .optional()
+      .or(z.literal("")),
+    phone: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
+        t("pages.students.dialogs.form.validation.phoneInvalid"),
+      ),
+    countryCode: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) =>
+          !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
+        t("pages.students.dialogs.form.validation.countryCodeInvalid"),
+      ),
+    centerId: z.string().trim().optional(),
+    status: z.enum(["1", "0", "2"]),
+  });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 type StudentFormDialogProps = {
   open: boolean;
@@ -105,7 +113,7 @@ type StudentFormDialogProps = {
   onCreated?: (_student: Student) => void;
 };
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: TranslateFunction) {
   const fieldMessage = getAdminApiFirstFieldError(error);
   if (fieldMessage) {
     return fieldMessage;
@@ -113,7 +121,7 @@ function getErrorMessage(error: unknown) {
 
   return getAdminApiErrorMessage(
     error,
-    "Unable to save student. Please try again.",
+    t("pages.students.dialogs.form.errors.saveFailed"),
   );
 }
 
@@ -127,6 +135,7 @@ export function StudentFormDialog({
   onCreated,
 }: StudentFormDialogProps) {
   const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
 
   const [formError, setFormError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -135,8 +144,12 @@ export function StudentFormDialog({
   const createMutation = useCreateStudent({ centerId: scopeCenterId ?? null });
   const updateMutation = useUpdateStudent({ centerId: scopeCenterId ?? null });
   const isPending = createMutation.isPending || updateMutation.isPending;
-  const displayName = student?.name ? String(student.name) : "Student";
-  const displayEmail = student?.email ? String(student.email) : "new.student";
+  const displayName = student?.name
+    ? String(student.name)
+    : t("pages.students.fallbacks.student");
+  const displayEmail = student?.email
+    ? String(student.email)
+    : t("pages.students.dialogs.form.placeholders.email");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -188,7 +201,7 @@ export function StudentFormDialog({
     if (!isEditMode && !normalizedPhone) {
       form.setError("phone", {
         type: "manual",
-        message: "Phone is required to create a student.",
+        message: t("pages.students.dialogs.form.validation.phoneRequired"),
       });
       return;
     }
@@ -196,7 +209,7 @@ export function StudentFormDialog({
     if (normalizedPhone && !BASE_MOBILE_REGEX.test(normalizedPhone)) {
       form.setError("phone", {
         type: "manual",
-        message: "Use base mobile number only (10 digits, no leading 0).",
+        message: t("pages.students.dialogs.form.validation.phoneInvalid"),
       });
       return;
     }
@@ -207,7 +220,7 @@ export function StudentFormDialog({
     ) {
       form.setError("countryCode", {
         type: "manual",
-        message: "Country code must be in +NN format (for example +20).",
+        message: t("pages.students.dialogs.form.validation.countryCodeInvalid"),
       });
       return;
     }
@@ -233,7 +246,7 @@ export function StudentFormDialog({
               setFormError(
                 getAdminResponseMessage(
                   response,
-                  "Unable to save student. Please try again.",
+                  t("pages.students.dialogs.form.errors.saveFailed"),
                 ),
               );
               return;
@@ -242,11 +255,11 @@ export function StudentFormDialog({
             onSuccess?.(
               getAdminResponseMessage(
                 response,
-                "Student updated successfully.",
+                t("pages.students.dialogs.form.messages.updated"),
               ),
             );
           },
-          onError: (error) => setFormError(getErrorMessage(error)),
+          onError: (error) => setFormError(getErrorMessage(error, t)),
         },
       );
       return;
@@ -258,7 +271,7 @@ export function StudentFormDialog({
           setFormError(
             getAdminResponseMessage(
               createdStudent,
-              "Unable to save student. Please try again.",
+              t("pages.students.dialogs.form.errors.saveFailed"),
             ),
           );
           return;
@@ -267,7 +280,7 @@ export function StudentFormDialog({
         onSuccess?.(
           getAdminResponseMessage(
             createdStudent,
-            "Student created successfully.",
+            t("pages.students.dialogs.form.messages.created"),
           ),
         );
         onCreated?.(
@@ -281,7 +294,7 @@ export function StudentFormDialog({
             } as Student),
         );
       },
-      onError: (error) => setFormError(getErrorMessage(error)),
+      onError: (error) => setFormError(getErrorMessage(error, t)),
     });
   };
 
@@ -295,12 +308,14 @@ export function StudentFormDialog({
             </div>
             <div className="space-y-1">
               <DialogTitle>
-                {isEditMode ? "Edit Student" : "Create Student"}
+                {isEditMode
+                  ? t("pages.students.dialogs.form.titleEdit")
+                  : t("pages.students.dialogs.form.titleCreate")}
               </DialogTitle>
               <DialogDescription>
                 {isEditMode
-                  ? "Update student profile and account status."
-                  : "Add a new student, then optionally enroll them in a course."}
+                  ? t("pages.students.dialogs.form.descriptionEdit")
+                  : t("pages.students.dialogs.form.descriptionCreate")}
               </DialogDescription>
               <p className="text-xs text-gray-400">
                 {displayName} · {displayEmail}
@@ -309,11 +324,11 @@ export function StudentFormDialog({
           </div>
           <div className="mt-1 flex flex-wrap gap-3 pb-3 text-xs">
             <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-              {isEditMode ? "Student Details" : "1. Student Details"}
+              {t("pages.students.dialogs.form.badges.studentDetails")}
             </span>
             {!isEditMode ? (
               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {t("auto.features.students.components.studentformdialog.s1")}
+                {t("pages.students.dialogs.form.badges.enrollLater")}
               </span>
             ) : null}
           </div>
@@ -322,10 +337,10 @@ export function StudentFormDialog({
         <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900">
           <div>
             <p className="font-medium text-gray-900 dark:text-white">
-              {t("auto.features.students.components.studentformdialog.s2")}
+              {t("pages.students.dialogs.form.advanced.title")}
             </p>
             <p className="text-xs text-gray-400">
-              {t("auto.features.students.components.studentformdialog.s3")}
+              {t("pages.students.dialogs.form.advanced.description")}
             </p>
           </div>
           <Button
@@ -334,14 +349,16 @@ export function StudentFormDialog({
             size="sm"
             onClick={() => setShowAdvanced((prev) => !prev)}
           >
-            {showAdvanced ? "Hide" : "Show"}
+            {showAdvanced
+              ? t("pages.students.dialogs.form.actions.hideAdvanced")
+              : t("pages.students.dialogs.form.actions.showAdvanced")}
           </Button>
         </div>
 
         {formError && (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.students.components.studentformdialog.s4")}
+              {t("pages.students.dialogs.form.errors.errorTitle")}
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -357,11 +374,13 @@ export function StudentFormDialog({
               name="name"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>
+                    {t("pages.students.dialogs.form.fields.name")}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.students.components.studentformdialog.s5",
+                        "pages.students.dialogs.form.placeholders.name",
                       )}
                       {...field}
                     />
@@ -377,11 +396,13 @@ export function StudentFormDialog({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>
+                      {t("pages.students.dialogs.form.fields.email")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder={t(
-                          "auto.features.students.components.studentformdialog.s6",
+                          "pages.students.dialogs.form.placeholders.email",
                         )}
                         {...field}
                       />
@@ -398,18 +419,21 @@ export function StudentFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Phone{" "}
+                    {t("pages.students.dialogs.form.fields.phone")}{" "}
                     {!isEditMode ? (
                       <span className="text-red-500">*</span>
                     ) : null}
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="1225291841" {...field} />
+                    <Input
+                      placeholder={t(
+                        "pages.students.dialogs.form.placeholders.phone",
+                      )}
+                      {...field}
+                    />
                   </FormControl>
                   <p className="text-xs text-gray-400">
-                    {t(
-                      "auto.features.students.components.studentformdialog.s7",
-                    )}
+                    {t("pages.students.dialogs.form.hints.phone")}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -423,12 +447,15 @@ export function StudentFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {t(
-                        "auto.features.students.components.studentformdialog.s8",
-                      )}
+                      {t("pages.students.dialogs.form.fields.countryCode")}
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="+20" {...field} />
+                      <Input
+                        placeholder={t(
+                          "pages.students.dialogs.form.placeholders.countryCode",
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -442,11 +469,9 @@ export function StudentFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Center{" "}
+                    {t("pages.students.dialogs.form.fields.center")}{" "}
                     <span className="text-gray-400">
-                      {t(
-                        "auto.features.students.components.studentformdialog.s9",
-                      )}
+                      {t("pages.students.dialogs.form.optionalLabel")}
                     </span>
                   </FormLabel>
                   <FormControl>
@@ -459,7 +484,7 @@ export function StudentFormDialog({
                             : "",
                         )
                       }
-                      allLabel="No center (optional)"
+                      allLabel={t("pages.students.dialogs.form.centerAllLabel")}
                       hideWhenCenterScoped={false}
                       className="w-full min-w-0"
                       selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
@@ -469,9 +494,7 @@ export function StudentFormDialog({
                   <FormMessage />
                   {!isEditMode ? (
                     <p className="text-xs text-gray-400">
-                      {t(
-                        "auto.features.students.components.studentformdialog.s10",
-                      )}
+                      {t("pages.students.dialogs.form.hints.enrollAfterCreate")}
                     </p>
                   ) : null}
                 </FormItem>
@@ -484,7 +507,9 @@ export function StudentFormDialog({
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>
+                      {t("pages.students.dialogs.form.fields.status")}
+                    </FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
@@ -494,9 +519,15 @@ export function StudentFormDialog({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Active</SelectItem>
-                          <SelectItem value="0">Inactive</SelectItem>
-                          <SelectItem value="2">Banned</SelectItem>
+                          <SelectItem value="1">
+                            {t("pages.students.table.status.active")}
+                          </SelectItem>
+                          <SelectItem value="0">
+                            {t("pages.students.table.status.inactive")}
+                          </SelectItem>
+                          <SelectItem value="2">
+                            {t("pages.students.table.status.banned")}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -513,16 +544,16 @@ export function StudentFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                {t("auto.features.students.components.studentformdialog.s11")}
+                {t("common.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
                   ? isEditMode
-                    ? "Saving..."
-                    : "Creating..."
+                    ? t("pages.students.dialogs.form.actions.saving")
+                    : t("pages.students.dialogs.form.actions.creating")
                   : isEditMode
-                    ? "Save Changes"
-                    : "Create Student"}
+                    ? t("pages.students.dialogs.form.actions.saveChanges")
+                    : t("pages.students.dialogs.form.actions.create")}
               </Button>
             </DialogFooter>
           </form>

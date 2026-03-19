@@ -25,18 +25,19 @@ type DeleteCollegeDialogProps = {
   onSuccess?: (_value: string) => void;
 };
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  COLLEGE_HAS_STUDENTS:
-    "This college is currently assigned to students and cannot be deleted.",
-};
-
-function getErrorMessage(error: unknown) {
+function getErrorMessage(
+  error: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const code = getAdminApiErrorCode(error);
-  if (code && ERROR_CODE_MESSAGES[code]) {
-    return ERROR_CODE_MESSAGES[code];
+  if (code === "COLLEGE_HAS_STUDENTS") {
+    return t("pages.education.dialogs.deleteCollege.errors.hasStudents");
   }
 
-  return getAdminApiErrorMessage(error, "Unable to delete college.");
+  return getAdminApiErrorMessage(
+    error,
+    t("pages.education.dialogs.deleteCollege.errors.fallback"),
+  );
 }
 
 export function DeleteCollegeDialog({
@@ -63,10 +64,10 @@ export function DeleteCollegeDialog({
       {
         onSuccess: () => {
           onOpenChange(false);
-          onSuccess?.("College deleted successfully.");
+          onSuccess?.(t("pages.education.dialogs.deleteCollege.success"));
         },
         onError: (error) => {
-          setErrorMessage(getErrorMessage(error));
+          setErrorMessage(getErrorMessage(error, t));
         },
       },
     );
@@ -84,16 +85,39 @@ export function DeleteCollegeDialog({
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">
-            {t("auto.features.education.components.deletecollegedialog.s1")}
+            {t("pages.education.dialogs.deleteCollege.title")}
           </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title={t("auto.features.education.components.deletecollegedialog.s1")}
-          entityName={college ? getEducationName(college, "College") : null}
-          entityFallback="this college"
-          confirmButtonLabel="Delete College"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete college"
+          title={t("pages.education.dialogs.deleteCollege.title")}
+          entityName={
+            college
+              ? getEducationName(
+                  college,
+                  t("pages.education.tables.colleges.entityName"),
+                )
+              : null
+          }
+          entityFallback={t(
+            "pages.education.dialogs.deleteCollege.entityFallback",
+          )}
+          irreversibleText={t(
+            "pages.education.dialogs.deleteCollege.description",
+          )}
+          warningPrefix={t(
+            "pages.education.dialogs.deleteCollege.warningPrefix",
+          )}
+          confirmLabel={t("pages.education.dialogs.deleteCollege.confirmLabel")}
+          cancelButtonLabel={t(
+            "pages.education.dialogs.deleteCollege.actions.cancel",
+          )}
+          confirmButtonLabel={t(
+            "pages.education.dialogs.deleteCollege.actions.confirm",
+          )}
+          pendingLabel={t(
+            "pages.education.dialogs.deleteCollege.actions.pending",
+          )}
+          errorTitle={t("pages.education.dialogs.deleteCollege.errorTitle")}
           errorMessage={errorMessage}
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}

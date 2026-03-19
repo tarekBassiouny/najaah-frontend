@@ -68,7 +68,7 @@ type GradesTableProps = {
 };
 
 export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -76,6 +76,7 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
   const [stageFilter, setStageFilter] = useState<string>(ALL_STAGE_VALUE);
   const [statusFilter, setStatusFilter] = useState<string>(ALL_STATUS_VALUE);
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const isRtl = locale === "ar";
 
   const params = useMemo(
     () => ({
@@ -286,7 +287,12 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                 <TableHead className="font-medium">
                   {t("pages.education.tables.grades.headers.status")}
                 </TableHead>
-                <TableHead className="w-10 text-right font-medium">
+                <TableHead
+                  className={cn(
+                    "w-24 min-w-[96px] font-medium",
+                    isRtl ? "text-left" : "text-right",
+                  )}
+                >
                   {t("pages.education.tables.grades.headers.actions")}
                 </TableHead>
               </TableRow>
@@ -309,7 +315,12 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                         <Skeleton className="h-5 w-16 rounded-full" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="ml-auto h-4 w-6" />
+                        <Skeleton
+                          className={cn(
+                            "h-4 w-6",
+                            isRtl ? "mr-auto" : "ml-auto",
+                          )}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -366,50 +377,64 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                             : t("pages.education.tables.grades.filters.active")}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Dropdown
-                          isOpen={openMenuId === grade.id}
-                          setIsOpen={(value) =>
-                            setOpenMenuId(value ? grade.id : null)
-                          }
-                        >
-                          <DropdownTrigger className="text-gray-400 hover:text-gray-600">
-                            ⋮
-                          </DropdownTrigger>
-                          <DropdownContent
-                            align="end"
-                            className={cn(
-                              "w-40 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                            )}
+                      <TableCell
+                        className={
+                          isRtl
+                            ? "w-24 min-w-[96px] text-left align-middle"
+                            : "w-24 min-w-[96px] text-right align-middle"
+                        }
+                      >
+                        <div className="flex items-center justify-end">
+                          <Dropdown
+                            isOpen={openMenuId === grade.id}
+                            setIsOpen={(value) =>
+                              setOpenMenuId(value ? grade.id : null)
+                            }
                           >
-                            {onEdit ? (
-                              <button
-                                className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onEdit(grade);
-                                }}
-                              >
-                                {t(
-                                  "pages.education.tables.grades.actions.edit",
-                                )}
-                              </button>
-                            ) : null}
-                            {onDelete ? (
-                              <button
-                                className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onDelete(grade);
-                                }}
-                              >
-                                {t(
-                                  "pages.education.tables.grades.actions.delete",
-                                )}
-                              </button>
-                            ) : null}
-                          </DropdownContent>
-                        </Dropdown>
+                            <DropdownTrigger className="text-gray-400 hover:text-gray-600">
+                              ⋮
+                            </DropdownTrigger>
+                            <DropdownContent
+                              align="end"
+                              className={cn(
+                                "w-40 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
+                              )}
+                            >
+                              {onEdit ? (
+                                <button
+                                  className={cn(
+                                    "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onEdit(grade);
+                                  }}
+                                >
+                                  {t(
+                                    "pages.education.tables.grades.actions.edit",
+                                  )}
+                                </button>
+                              ) : null}
+                              {onDelete ? (
+                                <button
+                                  className={cn(
+                                    "w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onDelete(grade);
+                                  }}
+                                >
+                                  {t(
+                                    "pages.education.tables.grades.actions.delete",
+                                  )}
+                                </button>
+                              ) : null}
+                            </DropdownContent>
+                          </Dropdown>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

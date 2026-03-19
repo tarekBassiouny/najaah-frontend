@@ -24,6 +24,8 @@ import {
   usePublishAIJob,
   useReviewAIJob,
 } from "@/features/ai/hooks/use-ai";
+import { usePdf } from "@/features/pdfs/hooks/use-pdfs";
+import { useVideoTranscript } from "@/features/videos/hooks/use-videos";
 import {
   generationDefaults,
   validateCreateJob,
@@ -32,22 +34,26 @@ import { mapAIErrorCodeToMessage } from "@/features/ai/lib/error-mapper";
 import {
   AI_JOB_STATUS,
   aiJobStatusBadge,
+  isRetryingAIJob,
   shouldPollAIJob,
 } from "@/features/ai/lib/job-status";
 import { startAIJobPolling } from "@/features/ai/lib/polling";
 import { resolveAIPublishRoute } from "@/features/ai/lib/publish-route";
 import {
+  type ReviewLocale,
   type EditablePayload,
   getEditablePayload,
   getFirstExistingPath,
   readArrayFromPaths,
+  readLocalizedStringFromPaths,
   readNumberFromPaths,
-  readStringFromPaths,
   toPrettyJson,
   writePath,
+  writeLocalizedStringPath,
 } from "@/features/ai/lib/review-payload";
 import type {
   AICenterProvider,
+  AIContentLanguage,
   AIContentSourceType,
   AIContentTargetType,
   AIProviderKey,
@@ -60,12 +66,17 @@ import {
   getAdminResponseMessage,
 } from "@/lib/admin-response";
 import { can } from "@/lib/capabilities";
+import {
+  resolvePdfExtractionReadiness,
+  resolveVideoTranscriptReadiness,
+} from "@/lib/ai-source-readiness";
 
 const TARGET_TYPES: AIContentTargetType[] = [
   "summary",
   "quiz",
   "assignment",
   "flashcards",
+  "interactive_activity",
 ];
 
 const SOURCE_TYPES: AIContentSourceType[] = [
@@ -145,6 +156,8 @@ function translateValidationError(
       return t("pages.centerAIContent.workspace.validation.providerRequired");
     case "AI model is required.":
       return t("pages.centerAIContent.workspace.validation.modelRequired");
+    case "Language is required.":
+      return t("pages.centerAIContent.workspace.validation.languageRequired");
     case "Question count must be between 1 and 50.":
       return t("pages.centerAIContent.workspace.validation.quizRange");
     case "Cards count must be between 1 and 100.":
@@ -192,6 +205,7 @@ export default function CenterAIContentPage() {
   const [targetType, setTargetType] = useState<AIContentTargetType>(
     queryTargetType ?? queryPublishedTargetType ?? "summary",
   );
+  const [language, setLanguage] = useState<AIContentLanguage>("ar");
   const [targetIdInput, setTargetIdInput] = useState("");
   const [providerKey, setProviderKey] = useState("");
   const [modelKey, setModelKey] = useState("");
@@ -230,6 +244,9 @@ export default function CenterAIContentPage() {
     null,
   );
   const [reviewJobId, setReviewJobId] = useState<number | null>(null);
+  const [activeReviewLocale, setActiveReviewLocale] =
+    useState<ReviewLocale>("ar");
+  const parsedSourceId = parsePositiveInt(sourceIdInput);
 
   useEffect(() => {
     if (!queryCourseId) return;
@@ -314,6 +331,32 @@ export default function CenterAIContentPage() {
   const availableModels = useMemo(() => {
     return getProviderModels(selectedProvider);
   }, [selectedProvider]);
+
+  const {
+    data: selectedVideoTranscript,
+    isFetching: isVideoTranscriptFetching,
+    isFetched: isVideoTranscriptFetched,
+  } = useVideoTranscript(
+    centerId,
+    sourceType === "video" && parsedSourceId ? parsedSourceId : undefined,
+    {
+      enabled:
+        showAdvancedCreate && sourceType === "video" && parsedSourceId != null,
+      retry: false,
+      staleTime: 30_000,
+    },
+  );
+
+  const { data: selectedPdfSource, isFetching: isPdfSourceFetching } = usePdf(
+    centerId,
+    sourceType === "pdf" && parsedSourceId ? parsedSourceId : undefined,
+    {
+      enabled:
+        showAdvancedCreate && sourceType === "pdf" && parsedSourceId != null,
+      retry: false,
+      staleTime: 30_000,
+    },
+  );
 
   useEffect(() => {
     if (!availableModels.length) {
@@ -421,6 +464,7 @@ export default function CenterAIContentPage() {
     setLastReviewSavedAt(null);
     setReviewJobId(selectedJob.id);
     setJobActionError(null);
+    setActiveReviewLocale(selectedJob.language === "en" ? "en" : "ar");
   }, [isReviewDirty, reviewJobId, selectedJob]);
 
   useEffect(() => {
@@ -501,6 +545,88 @@ export default function CenterAIContentPage() {
     course: t("pages.centerAIContent.workspace.sourceTypes.course"),
   };
 
+  const sourceReadinessNotice = useMemo(() => {
+    if (!showAdvancedCreate || parsedSourceId == null) {
+      return {
+        title: null,
+        description: null,
+        isLoading: false,
+        isBlocked: false,
+      };
+    }
+
+    if (sourceType === "video") {
+      const transcriptState = isVideoTranscriptFetched
+        ? (selectedVideoTranscript ?? { has_transcript: false })
+        : null;
+      const readiness = resolveVideoTranscriptReadiness(transcriptState);
+      const isBlocked = !readiness.isReady;
+      return {
+        title: isBlocked
+          ? readiness.key === "missing"
+            ? t("pages.centerAIContent.workspace.readiness.transcriptTitle")
+            : t("pages.centerAIContent.workspace.readiness.unknownTitle")
+          : null,
+        description: isBlocked
+          ? readiness.key === "missing"
+            ? t(
+                "pages.centerAIContent.workspace.readiness.transcriptDescription",
+              )
+            : t("pages.centerAIContent.workspace.readiness.unknownDescription")
+          : null,
+        isLoading: !isVideoTranscriptFetched && isVideoTranscriptFetching,
+        isBlocked:
+          !isVideoTranscriptFetched && isVideoTranscriptFetching
+            ? false
+            : isBlocked,
+      };
+    }
+
+    if (sourceType === "pdf") {
+      const readiness = resolvePdfExtractionReadiness(selectedPdfSource);
+      const isBlocked = !readiness.isReady;
+      const descriptionKey =
+        readiness.key === "processing"
+          ? "processingDescription"
+          : readiness.key === "failed" || readiness.key === "skipped"
+            ? "failedDescription"
+            : readiness.key === "pending"
+              ? "pendingDescription"
+              : "unknownDescription";
+
+      return {
+        title: isBlocked
+          ? readiness.key === "unknown"
+            ? t("pages.centerAIContent.workspace.readiness.unknownTitle")
+            : t("pages.centerAIContent.workspace.readiness.extractionTitle")
+          : null,
+        description: isBlocked
+          ? t(`pages.centerAIContent.workspace.readiness.${descriptionKey}`)
+          : null,
+        isLoading: !selectedPdfSource && isPdfSourceFetching,
+        isBlocked:
+          !selectedPdfSource && isPdfSourceFetching ? false : isBlocked,
+      };
+    }
+
+    return {
+      title: null,
+      description: null,
+      isLoading: false,
+      isBlocked: false,
+    };
+  }, [
+    isPdfSourceFetching,
+    isVideoTranscriptFetched,
+    isVideoTranscriptFetching,
+    parsedSourceId,
+    selectedPdfSource,
+    selectedVideoTranscript,
+    showAdvancedCreate,
+    sourceType,
+    t,
+  ]);
+
   const applyPayloadUpdate = (nextPayload: EditablePayload) => {
     setReviewPayload(nextPayload);
     setReviewJson(toPrettyJson(nextPayload));
@@ -510,10 +636,13 @@ export default function CenterAIContentPage() {
   };
 
   const updatePayloadStringField = (paths: string[][], value: string) => {
-    const path = getFirstExistingPath(reviewPayload, paths);
-    if (path.length === 0) return;
-
-    const nextPayload = writePath(reviewPayload, path, value);
+    const nextPayload = writeLocalizedStringPath(
+      reviewPayload,
+      paths,
+      (selectedJob?.language ?? "ar") as AIContentLanguage,
+      activeReviewLocale,
+      value,
+    );
     applyPayloadUpdate(nextPayload);
   };
 
@@ -578,6 +707,7 @@ export default function CenterAIContentPage() {
       source_id: payloadSourceId ?? 0,
       target_type: targetType,
       target_id: payloadTargetId,
+      language,
       ai_provider: providerKey as AIProviderKey,
       ai_model: modelKey,
       generation_config: generationConfigByTarget[targetType],
@@ -595,6 +725,11 @@ export default function CenterAIContentPage() {
 
     if (validationErrors.length > 0) {
       setCreateValidationErrors(validationErrors);
+      return;
+    }
+
+    if (sourceReadinessNotice.isBlocked && sourceReadinessNotice.description) {
+      setCreateError(sourceReadinessNotice.description);
       return;
     }
 
@@ -848,34 +983,41 @@ export default function CenterAIContentPage() {
   const reviewedPayloadPreview = toPrettyJson(
     selectedJob?.reviewed_payload ?? {},
   );
+  const reviewLanguage = (selectedJob?.language ?? "ar") as AIContentLanguage;
 
-  const summaryTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const summaryContent = readStringFromPaths(reviewPayload, [
-    ["content"],
-    ["content_translations", "en"],
-  ]);
-  const quizTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const quizDescription = readStringFromPaths(reviewPayload, [
-    ["description"],
-    ["description_translations", "en"],
-  ]);
+  const summaryTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeReviewLocale,
+  );
+  const summaryContent = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["content"], ["content_translations"]],
+    activeReviewLocale,
+  );
+  const quizTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeReviewLocale,
+  );
+  const quizDescription = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["description"], ["description_translations"]],
+    activeReviewLocale,
+  );
   const quizQuestionsCount = readArrayFromPaths(reviewPayload, [
     ["questions"],
   ]).length;
-  const assignmentTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const assignmentDescription = readStringFromPaths(reviewPayload, [
-    ["description"],
-    ["description_translations", "en"],
-  ]);
+  const assignmentTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeReviewLocale,
+  );
+  const assignmentDescription = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["description"], ["description_translations"]],
+    activeReviewLocale,
+  );
   const assignmentMaxPoints = readNumberFromPaths(reviewPayload, [
     ["max_points"],
   ]);
@@ -888,28 +1030,37 @@ export default function CenterAIContentPage() {
     .map((value) => Number(value))
     .filter((value) => Number.isFinite(value))
     .join(", ");
-  const flashcardsTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
+  const flashcardsTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeReviewLocale,
+  );
   const flashcardsCount = readArrayFromPaths(reviewPayload, [["cards"]]).length;
-  const interactiveTitle = readStringFromPaths(reviewPayload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const interactiveInstructions = readStringFromPaths(reviewPayload, [
-    ["instructions"],
-  ]);
+  const interactiveTitle = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["title"], ["title_translations"]],
+    activeReviewLocale,
+  );
+  const interactiveInstructions = readLocalizedStringFromPaths(
+    reviewPayload,
+    [["instructions"]],
+    activeReviewLocale,
+  );
   const interactiveStepsCount = readArrayFromPaths(reviewPayload, [
     ["steps"],
   ]).length;
 
-  const activeStatusBadge = aiJobStatusBadge(currentStatus);
-  const selectedStatusLabel =
-    selectedJob?.status_label ||
-    t(
-      `pages.centerAIContent.workspace.statusLabels.${String(activeStatusBadge.label).toLowerCase()}`,
-    );
+  const selectedJobIsRetrying = isRetryingAIJob(selectedJob);
+  const activeStatusBadge = aiJobStatusBadge(
+    currentStatus,
+    selectedJobIsRetrying,
+  );
+  const selectedStatusLabel = selectedJobIsRetrying
+    ? t("pages.centerAIContent.workspace.statusLabels.retrying")
+    : selectedJob?.status_label ||
+      t(
+        `pages.centerAIContent.workspace.statusLabels.${String(activeStatusBadge.label).toLowerCase()}`,
+      );
 
   const sourceDefaultId = parsePositiveInt(courseIdInput);
 
@@ -1006,6 +1157,9 @@ export default function CenterAIContentPage() {
           onRetryOptions={() => void refetchOptions()}
           isOptionsLoading={isOptionsLoading}
           providersCount={providers.length}
+          sourceReadinessTitle={sourceReadinessNotice.title}
+          sourceReadinessDescription={sourceReadinessNotice.description}
+          isSourceReadinessLoading={sourceReadinessNotice.isLoading}
           onSubmitCreateJob={onSubmitCreateJob}
           createValidationErrors={createValidationErrors}
           createError={createError}
@@ -1013,6 +1167,8 @@ export default function CenterAIContentPage() {
           canGenerateAI={canGenerateAI}
           courseIdInput={courseIdInput}
           onCourseIdChange={setCourseIdInput}
+          language={language}
+          onLanguageChange={setLanguage}
           targetType={targetType}
           onTargetTypeChange={setTargetType}
           targetTypes={TARGET_TYPES}
@@ -1038,6 +1194,7 @@ export default function CenterAIContentPage() {
           onUpdateGenerationConfig={updateGenerationConfig}
           onReset={() => {
             setSourceType("course");
+            setLanguage("ar");
             setTargetType(queryTargetType ?? "summary");
             setSourceIdInput(courseIdInput);
             setTargetIdInput("");
@@ -1095,6 +1252,12 @@ export default function CenterAIContentPage() {
         isSelectedJobError={isSelectedJobError}
         generatedPayloadPreview={generatedPayloadPreview}
         reviewedPayloadPreview={reviewedPayloadPreview}
+        generatedPayload={
+          (selectedJob?.generated_payload ?? {}) as EditablePayload
+        }
+        reviewPayload={reviewPayload}
+        reviewLanguage={reviewLanguage}
+        activeReviewLocale={activeReviewLocale}
         targetLabelMap={targetLabelMap}
         sourceLabelMap={sourceLabelMap}
         canReviewPublishAI={canReviewPublishAI}
@@ -1129,6 +1292,7 @@ export default function CenterAIContentPage() {
         isReviewDirty={isReviewDirty}
         lastReviewSavedAt={lastReviewSavedAt}
         currentStatus={currentStatus}
+        onActiveReviewLocaleChange={setActiveReviewLocale}
         onUpdatePayloadStringField={updatePayloadStringField}
         onUpdatePayloadNumberField={updatePayloadNumberField}
         onUpdatePayloadNumberArrayField={updatePayloadNumberArrayField}

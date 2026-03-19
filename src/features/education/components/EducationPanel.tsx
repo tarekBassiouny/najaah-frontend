@@ -17,43 +17,46 @@ import type {
   Grade,
   School,
 } from "@/features/education/types/education";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 
 type EducationTab = "grades" | "schools" | "colleges";
-
-const TABS: Array<{
-  key: EducationTab;
-  label: string;
-  description: string;
-  createLabel: string;
-}> = [
-  {
-    key: "grades",
-    label: "Grades",
-    description: "Manage academic levels and stage ordering.",
-    createLabel: "Create Grade",
-  },
-  {
-    key: "schools",
-    label: "Schools",
-    description: "Manage schools for student profile enrichment.",
-    createLabel: "Create School",
-  },
-  {
-    key: "colleges",
-    label: "Colleges",
-    description: "Manage colleges and universities for higher education.",
-    createLabel: "Create College",
-  },
-];
 
 type EducationPanelProps = {
   centerId: string | number;
 };
 
 export function EducationPanel({ centerId }: EducationPanelProps) {
+  const { t, locale } = useTranslation();
   const [activeTab, setActiveTab] = useState<EducationTab>("grades");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const isRtl = locale === "ar";
+
+  const tabs: Array<{
+    key: EducationTab;
+    label: string;
+    description: string;
+    createLabel: string;
+  }> = [
+    {
+      key: "grades",
+      label: t("pages.education.panel.tabs.grades.label"),
+      description: t("pages.education.panel.tabs.grades.description"),
+      createLabel: t("pages.education.panel.tabs.grades.createLabel"),
+    },
+    {
+      key: "schools",
+      label: t("pages.education.panel.tabs.schools.label"),
+      description: t("pages.education.panel.tabs.schools.description"),
+      createLabel: t("pages.education.panel.tabs.schools.createLabel"),
+    },
+    {
+      key: "colleges",
+      label: t("pages.education.panel.tabs.colleges.label"),
+      description: t("pages.education.panel.tabs.colleges.description"),
+      createLabel: t("pages.education.panel.tabs.colleges.createLabel"),
+    },
+  ];
 
   const [isGradeFormOpen, setIsGradeFormOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
@@ -67,7 +70,7 @@ export function EducationPanel({ centerId }: EducationPanelProps) {
   const [editingCollege, setEditingCollege] = useState<College | null>(null);
   const [deletingCollege, setDeletingCollege] = useState<College | null>(null);
 
-  const activeTabConfig = TABS.find((tab) => tab.key === activeTab) ?? TABS[0];
+  const activeTabConfig = tabs.find((tab) => tab.key === activeTab) ?? tabs[0];
 
   const handleCreate = () => {
     setFeedback(null);
@@ -92,14 +95,15 @@ export function EducationPanel({ centerId }: EducationPanelProps) {
     <div className="space-y-4">
       <div className="rounded-xl border border-gray-200 bg-white p-1 dark:border-gray-700 dark:bg-gray-900">
         <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
-          {TABS.map((tab) => {
+          {tabs.map((tab) => {
             const isActive = tab.key === activeTab;
             return (
               <button
                 key={tab.key}
                 type="button"
                 className={cn(
-                  "rounded-lg px-3 py-2 text-left transition-colors",
+                  "rounded-lg px-3 py-2 transition-colors",
+                  isRtl ? "text-right" : "text-left",
                   isActive
                     ? "bg-primary text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white",
@@ -132,7 +136,7 @@ export function EducationPanel({ centerId }: EducationPanelProps) {
 
       {feedback ? (
         <Alert variant="success">
-          <AlertTitle>Success</AlertTitle>
+          <AlertTitle>{t("pages.education.panel.successTitle")}</AlertTitle>
           <AlertDescription>{feedback}</AlertDescription>
         </Alert>
       ) : null}

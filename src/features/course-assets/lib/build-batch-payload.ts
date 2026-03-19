@@ -85,5 +85,20 @@ export function toAssetBatchPayload(
     });
   }
 
+  if (generateForm.interactive_activity) {
+    assets.push({
+      target_type: "interactive_activity",
+      target_id:
+        selectedSource.presetAssetType === "interactive_activity"
+          ? selectedSource.presetTargetId
+          : null,
+      generation_config: {
+        activity_style: generateForm.interactiveActivityStyle,
+        steps_count: Number(generateForm.interactiveActivityStepsCount || 5),
+        include_reflection: generateForm.interactiveActivityIncludeReflection,
+      },
+    });
+  }
+
   return assets;
 }

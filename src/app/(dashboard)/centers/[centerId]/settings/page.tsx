@@ -25,10 +25,6 @@ type PageProps = {
   params: Promise<{ centerId: string }>;
 };
 
-function toTitleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-}
-
 function getOnboardingBadgeVariant(status: string) {
   const normalized = status.trim().toUpperCase();
   if (normalized === "ACTIVE") return "success" as const;
@@ -37,10 +33,59 @@ function getOnboardingBadgeVariant(status: string) {
   return "secondary" as const;
 }
 
-function resolveStatusLabel(status: unknown, label?: string | null): string {
+function resolveStatusLabel(
+  status: unknown,
+  label: string | null | undefined,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+): string {
   if (label) return label;
-  if (Number(status) === 0) return "Inactive";
-  return "Active";
+  if (Number(status) === 0)
+    return t("pages.centerSettings.badges.status.inactive");
+  return t("pages.centerSettings.badges.status.active");
+}
+
+function getOnboardingStatusLabel(
+  status: string,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  const normalized = status.trim().toUpperCase();
+  if (normalized === "ACTIVE")
+    return t("pages.centerSettings.badges.onboarding.active");
+  if (normalized === "FAILED")
+    return t("pages.centerSettings.badges.onboarding.failed");
+  if (normalized === "IN_PROGRESS") {
+    return t("pages.centerSettings.badges.onboarding.inProgress");
+  }
+  if (normalized === "DRAFT")
+    return t("pages.centerSettings.badges.onboarding.draft");
+  return t("pages.centerSettings.badges.onboarding.unknown");
+}
+
+function getCenterTypeLabel(
+  value: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase() === "branded"
+    ? t("pages.centerSettings.forms.profile.options.type.branded")
+    : t("pages.centerSettings.forms.profile.options.type.unbranded");
+}
+
+function getCenterTierLabel(
+  value: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "premium") {
+    return t("pages.centerSettings.forms.profile.options.tier.premium");
+  }
+  if (normalized === "vip") {
+    return t("pages.centerSettings.forms.profile.options.tier.vip");
+  }
+  return t("pages.centerSettings.forms.profile.options.tier.standard");
 }
 
 function resolveStatusVariant(
@@ -69,7 +114,11 @@ export default function CenterSettingsPage({ params }: PageProps) {
     refetch: refetchCenter,
   } = useCenter(centerId);
 
-  const statusLabel = resolveStatusLabel(center?.status, center?.status_label);
+  const statusLabel = resolveStatusLabel(
+    center?.status,
+    center?.status_label,
+    t,
+  );
   const statusVariant = resolveStatusVariant(
     center?.status,
     center?.status_label,
@@ -125,7 +174,9 @@ export default function CenterSettingsPage({ params }: PageProps) {
     <div className="space-y-6">
       <PageHeader
         title={t("pages.centerSettings.title", {
-          name: centerData.name ?? `Center ${centerData.id}`,
+          name:
+            centerData.name ??
+            t("pages.centerSettings.centerNameFallback", { id: centerData.id }),
         })}
         description={t("pages.centerSettings.description")}
         actions={
@@ -139,14 +190,14 @@ export default function CenterSettingsPage({ params }: PageProps) {
         <CardContent className="flex flex-wrap items-center gap-3 py-4">
           <Badge variant={statusVariant}>{statusLabel}</Badge>
           <Badge variant={getOnboardingBadgeVariant(onboardingStatus)}>
-            {toTitleCase(onboardingStatus.replace(/_/g, " "))}
+            {getOnboardingStatusLabel(onboardingStatus, t)}
           </Badge>
           <Badge variant="outline">
-            {toTitleCase(String(centerData.type ?? "unbranded"))}
+            {getCenterTypeLabel(centerData.type, t)}
           </Badge>
           <Badge variant="outline">
             {t("pages.centerSettings.tier")}:{" "}
-            {toTitleCase(String(centerData.tier ?? "standard"))}
+            {getCenterTierLabel(centerData.tier, t)}
           </Badge>
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {t("pages.centerSettings.idLabel")}: {centerData.id}

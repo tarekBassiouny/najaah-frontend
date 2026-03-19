@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,21 +32,28 @@ import {
 } from "@/features/instructors/hooks/use-instructors";
 import type { Instructor } from "@/features/instructors/types/instructor";
 import { getInstructorApiErrorMessage } from "@/features/instructors/lib/api-error";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
-const schema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
-  email: z
-    .string()
-    .trim()
-    .email("Enter a valid email address.")
-    .optional()
-    .or(z.literal("")),
-  title: z.string().trim().optional(),
-  bio: z.string().trim().optional(),
-});
+const buildSchema = (t: TranslateFunction) =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(2, t("pages.instructors.dialogs.form.validation.nameMin")),
+    email: z
+      .string()
+      .trim()
+      .email(t("pages.instructors.dialogs.form.validation.invalidEmail"))
+      .optional()
+      .or(z.literal("")),
+    title: z.string().trim().optional(),
+    bio: z.string().trim().optional(),
+  });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_AVATAR_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -79,6 +86,7 @@ export function InstructorFormDialog({
   onSaved,
 }: InstructorFormDialogProps) {
   const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
 
   const { showToast } = useModal();
   const [formError, setFormError] = useState<string | null>(null);
@@ -100,10 +108,12 @@ export function InstructorFormDialog({
     createMutation.isPending ||
     updateMutation.isPending ||
     uploadAvatarMutation.isPending;
-  const displayName = instructor?.name ? String(instructor.name) : "Instructor";
+  const displayName = instructor?.name
+    ? String(instructor.name)
+    : t("pages.instructors.fallbacks.instructor");
   const displayEmail = instructor?.email
     ? String(instructor.email)
-    : "new.instructor";
+    : t("pages.instructors.fallbacks.newInstructorEmail");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -139,17 +149,21 @@ export function InstructorFormDialog({
   const avatarDisplayName =
     instructor?.name ??
     instructor?.email ??
-    (instructor?.id != null ? `Instructor ${instructor.id}` : displayName);
+    (instructor?.id != null
+      ? t("pages.instructors.fallbacks.instructorById", {
+          id: String(instructor.id),
+        })
+      : displayName);
 
   const avatarDisplaySrc = avatarPreview ?? avatarUrl;
 
   const validateAvatar = (file: File) => {
     if (!ALLOWED_AVATAR_MIME_TYPES.includes(file.type)) {
-      return "Please choose a valid image (JPG, PNG, or WebP).";
+      return t("pages.instructors.dialogs.form.errors.invalidAvatarType");
     }
 
     if (file.size > MAX_AVATAR_SIZE_BYTES) {
-      return "Avatar must be 5MB or smaller.";
+      return t("pages.instructors.dialogs.form.errors.avatarTooLarge");
     }
 
     return null;
@@ -188,17 +202,23 @@ export function InstructorFormDialog({
     setAvatarError(null);
 
     if (scopeCenterId == null) {
-      setAvatarError("Select a center before uploading an avatar.");
+      setAvatarError(
+        t("pages.instructors.dialogs.form.errors.selectCenterBeforeAvatar"),
+      );
       return;
     }
 
     if (!instructor) {
-      setAvatarError("Save the instructor first, then upload an avatar.");
+      setAvatarError(
+        t("pages.instructors.dialogs.form.errors.saveBeforeAvatarUpload"),
+      );
       return;
     }
 
     if (!avatarFile) {
-      setAvatarError("Choose an image file first.");
+      setAvatarError(
+        t("pages.instructors.dialogs.form.errors.chooseAvatarFirst"),
+      );
       return;
     }
 
@@ -216,14 +236,14 @@ export function InstructorFormDialog({
             typeof savedInstructor._response_message === "string" &&
             savedInstructor._response_message.trim().length > 0
               ? savedInstructor._response_message
-              : "Instructor avatar updated successfully.";
+              : t("pages.instructors.dialogs.form.messages.avatarUpdated");
           showToast(responseMessage, "success");
         },
         onError: (error) => {
           setAvatarError(
             getInstructorApiErrorMessage(
               error,
-              "Unable to upload avatar. Please try again.",
+              t("pages.instructors.dialogs.form.errors.uploadAvatarFailed"),
             ),
           );
         },
@@ -235,7 +255,9 @@ export function InstructorFormDialog({
     setFormError(null);
 
     if (scopeCenterId == null) {
-      setFormError("Select a center before creating or updating instructors.");
+      setFormError(
+        t("pages.instructors.dialogs.form.errors.selectCenterBeforeSubmit"),
+      );
       return;
     }
 
@@ -262,13 +284,13 @@ export function InstructorFormDialog({
           onSuccess: (savedInstructor) => {
             onOpenChange(false);
             onSaved?.(savedInstructor);
-            onSuccess?.("Instructor updated successfully.");
+            onSuccess?.(t("pages.instructors.dialogs.form.messages.updated"));
           },
           onError: (error) =>
             setFormError(
               getInstructorApiErrorMessage(
                 error,
-                "Unable to save instructor. Please try again.",
+                t("pages.instructors.dialogs.form.errors.saveFailed"),
               ),
             ),
         },
@@ -282,13 +304,13 @@ export function InstructorFormDialog({
         onSuccess: (savedInstructor) => {
           onOpenChange(false);
           onSaved?.(savedInstructor);
-          onSuccess?.("Instructor created successfully.");
+          onSuccess?.(t("pages.instructors.dialogs.form.messages.created"));
         },
         onError: (error) =>
           setFormError(
             getInstructorApiErrorMessage(
               error,
-              "Unable to save instructor. Please try again.",
+              t("pages.instructors.dialogs.form.errors.saveFailed"),
             ),
           ),
       },
@@ -305,12 +327,14 @@ export function InstructorFormDialog({
             </div>
             <div className="space-y-1">
               <DialogTitle>
-                {isEditMode ? "Edit Instructor" : "Create Instructor"}
+                {isEditMode
+                  ? t("pages.instructors.editInstructor")
+                  : t("pages.instructors.createInstructor")}
               </DialogTitle>
               <DialogDescription>
                 {isEditMode
-                  ? "Update instructor profile details."
-                  : "Add a new instructor profile."}
+                  ? t("pages.instructors.dialogs.form.descriptionEdit")
+                  : t("pages.instructors.dialogs.form.descriptionCreate")}
               </DialogDescription>
               <p className="text-xs text-gray-400">
                 {displayName} · {displayEmail}
@@ -319,14 +343,10 @@ export function InstructorFormDialog({
           </div>
           <div className="mt-1 flex flex-wrap gap-3 pb-3 text-xs">
             <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-              {t(
-                "auto.features.instructors.components.instructorformdialog.s1",
-              )}
+              {t("pages.instructors.dialogs.form.badges.profileDetails")}
             </span>
             <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-              {t(
-                "auto.features.instructors.components.instructorformdialog.s2",
-              )}
+              {t("pages.instructors.dialogs.form.badges.contactInfo")}
             </span>
           </div>
         </DialogHeader>
@@ -334,9 +354,7 @@ export function InstructorFormDialog({
         {formError && (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.instructors.components.instructorformdialog.s3",
-              )}
+              {t("pages.instructors.dialogs.form.errors.saveFailedTitle")}
             </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
@@ -354,7 +372,9 @@ export function InstructorFormDialog({
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={avatarDisplaySrc}
-                      alt={`${avatarDisplayName} avatar`}
+                      alt={t("pages.instructors.avatarAlt", {
+                        name: avatarDisplayName,
+                      })}
                       className="h-full w-full object-cover"
                     />
                   ) : (
@@ -363,11 +383,11 @@ export function InstructorFormDialog({
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Avatar
+                    {t("pages.instructors.dialogs.form.fields.avatar")}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {t(
-                      "auto.features.instructors.components.instructorformdialog.s4",
+                      "pages.instructors.dialogs.form.hints.avatarRequirements",
                     )}
                   </p>
                 </div>
@@ -388,14 +408,16 @@ export function InstructorFormDialog({
                     disabled={!avatarFile || isPending}
                   >
                     {uploadAvatarMutation.isPending
-                      ? "Uploading..."
-                      : "Upload Avatar"}
+                      ? t(
+                          "pages.instructors.dialogs.form.actions.uploadingAvatar",
+                        )
+                      : t(
+                          "pages.instructors.dialogs.form.actions.uploadAvatar",
+                        )}
                   </Button>
                 ) : (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t(
-                      "auto.features.instructors.components.instructorformdialog.s5",
-                    )}
+                    {t("pages.instructors.dialogs.form.hints.avatarCreate")}
                   </p>
                 )}
               </div>
@@ -412,11 +434,11 @@ export function InstructorFormDialog({
               name="name"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("common.labels.name")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.instructors.components.instructorformdialog.s6",
+                        "pages.instructors.dialogs.form.placeholders.name",
                       )}
                       {...field}
                     />
@@ -431,11 +453,11 @@ export function InstructorFormDialog({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("common.labels.email")}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.instructors.components.instructorformdialog.s7",
+                        "pages.instructors.dialogs.form.placeholders.email",
                       )}
                       {...field}
                     />
@@ -450,11 +472,13 @@ export function InstructorFormDialog({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>
+                    {t("pages.instructors.dialogs.form.fields.title")}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.instructors.components.instructorformdialog.s8",
+                        "pages.instructors.dialogs.form.placeholders.title",
                       )}
                       {...field}
                     />
@@ -469,12 +493,14 @@ export function InstructorFormDialog({
               name="bio"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Bio</FormLabel>
+                  <FormLabel>
+                    {t("pages.instructors.dialogs.form.fields.bio")}
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       rows={3}
                       placeholder={t(
-                        "auto.features.instructors.components.instructorformdialog.s9",
+                        "pages.instructors.dialogs.form.placeholders.bio",
                       )}
                       {...field}
                     />
@@ -491,18 +517,16 @@ export function InstructorFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                {t(
-                  "auto.features.instructors.components.instructorformdialog.s10",
-                )}
+                {t("common.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
                   ? isEditMode
-                    ? "Saving..."
-                    : "Creating..."
+                    ? t("pages.instructors.dialogs.form.actions.saving")
+                    : t("pages.instructors.dialogs.form.actions.creating")
                   : isEditMode
-                    ? "Save Changes"
-                    : "Create Instructor"}
+                    ? t("pages.instructors.dialogs.form.actions.saveChanges")
+                    : t("pages.instructors.createInstructor")}
               </Button>
             </DialogFooter>
           </form>

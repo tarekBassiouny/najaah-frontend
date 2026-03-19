@@ -24,7 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AI_JOB_STATUS, aiJobStatusBadge } from "@/features/ai/lib/job-status";
+import {
+  AI_JOB_STATUS,
+  aiJobStatusBadge,
+  isRetryingAIJob,
+} from "@/features/ai/lib/job-status";
 import type {
   AIContentJob,
   AIContentSourceType,
@@ -280,12 +284,17 @@ export function AIJobsCard({
                 </TableRow>
               ) : (
                 jobs.map((job) => {
-                  const badge = aiJobStatusBadge(Number(job.status));
-                  const statusLabel =
-                    job.status_label ||
-                    t(
-                      `pages.centerAIContent.workspace.statusLabels.${badge.label.toLowerCase()}`,
-                    );
+                  const isRetrying = isRetryingAIJob(job);
+                  const badge = aiJobStatusBadge(
+                    Number(job.status),
+                    isRetrying,
+                  );
+                  const statusLabel = isRetrying
+                    ? t("pages.centerAIContent.workspace.statusLabels.retrying")
+                    : job.status_label ||
+                      t(
+                        `pages.centerAIContent.workspace.statusLabels.${badge.label.toLowerCase()}`,
+                      );
 
                   return (
                     <TableRow

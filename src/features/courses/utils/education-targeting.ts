@@ -195,6 +195,30 @@ export function getCourseEducationTargetingValues(
   };
 }
 
+export function isEducationTargetingFieldKey(key: string): boolean {
+  return (
+    key === "show_for_all_students" ||
+    key === "grade_ids" ||
+    key.startsWith("grade_ids.") ||
+    key === "school_ids" ||
+    key.startsWith("school_ids.") ||
+    key === "college_ids" ||
+    key.startsWith("college_ids.")
+  );
+}
+
+export function getEducationTargetingError(
+  errors: Record<string, string[]>,
+): string | null {
+  for (const [key, messages] of Object.entries(errors)) {
+    if (!isEducationTargetingFieldKey(key)) continue;
+    const firstMessage = messages[0];
+    if (firstMessage) return firstMessage;
+  }
+
+  return null;
+}
+
 export function toCourseEducationTargetingPayload(
   values: CourseEducationTargetingValues,
 ) {

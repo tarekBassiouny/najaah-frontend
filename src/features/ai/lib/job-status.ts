@@ -17,6 +17,11 @@ export type AIJobStatusBadgeTone =
   | "warning"
   | "danger";
 
+type AIJobLike = {
+  status?: number | null;
+  error_message?: string | null;
+};
+
 export function isTerminalAIJobStatus(status: number): boolean {
   return (
     status === AI_JOB_STATUS.failed ||
@@ -32,10 +37,25 @@ export function shouldPollAIJob(status: number): boolean {
   );
 }
 
-export function aiJobStatusBadge(status: number): {
+export function isRetryingAIJob(job: AIJobLike | null | undefined): boolean {
+  return (
+    Number(job?.status ?? -1) === AI_JOB_STATUS.pending &&
+    typeof job?.error_message === "string" &&
+    job.error_message.trim().length > 0
+  );
+}
+
+export function aiJobStatusBadge(
+  status: number,
+  isRetrying = false,
+): {
   label: string;
   tone: AIJobStatusBadgeTone;
 } {
+  if (isRetrying) {
+    return { label: "Retrying", tone: "warning" };
+  }
+
   switch (status) {
     case AI_JOB_STATUS.pending:
       return { label: "Pending", tone: "neutral" };

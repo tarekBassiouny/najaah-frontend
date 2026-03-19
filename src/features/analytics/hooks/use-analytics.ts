@@ -13,6 +13,7 @@ import {
   getAnalyticsLearnersEnrollments,
   getAnalyticsOverview,
 } from "@/features/analytics/services/analytics.service";
+import { useLocale } from "@/features/localization";
 
 type UseOverviewOptions = Omit<
   UseQueryOptions<AnalyticsOverview>,
@@ -39,8 +40,16 @@ export function useAnalyticsOverview(
   context?: AnalyticsApiScopeContext,
   options?: UseOverviewOptions,
 ) {
+  const { locale } = useLocale();
+
   return useQuery({
-    queryKey: ["analytics", "overview", filters, context?.centerId ?? null],
+    queryKey: [
+      "analytics",
+      "overview",
+      filters,
+      context?.centerId ?? null,
+      locale,
+    ],
     queryFn: () => getAnalyticsOverview(filters, context),
     ...options,
   });
@@ -51,12 +60,15 @@ export function useAnalyticsCoursesMedia(
   context?: AnalyticsApiScopeContext,
   options?: UseCoursesMediaOptions,
 ) {
+  const { locale } = useLocale();
+
   return useQuery({
     queryKey: [
       "analytics",
       "courses-media",
       filters,
       context?.centerId ?? null,
+      locale,
     ],
     queryFn: () => getAnalyticsCoursesMedia(filters, context),
     ...options,
@@ -68,12 +80,15 @@ export function useAnalyticsLearnersEnrollments(
   context?: AnalyticsApiScopeContext,
   options?: UseLearnersEnrollmentsOptions,
 ) {
+  const { locale } = useLocale();
+
   return useQuery({
     queryKey: [
       "analytics",
       "learners-enrollments",
       filters,
       context?.centerId ?? null,
+      locale,
     ],
     queryFn: () => getAnalyticsLearnersEnrollments(filters, context),
     ...options,
@@ -85,12 +100,15 @@ export function useAnalyticsDevicesRequests(
   context?: AnalyticsApiScopeContext,
   options?: UseDevicesRequestsOptions,
 ) {
+  const { locale } = useLocale();
+
   return useQuery({
     queryKey: [
       "analytics",
       "devices-requests",
       filters,
       context?.centerId ?? null,
+      locale,
     ],
     queryFn: () => getAnalyticsDevicesRequests(filters, context),
     ...options,

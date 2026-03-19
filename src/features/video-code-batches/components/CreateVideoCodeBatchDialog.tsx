@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +48,14 @@ export function CreateVideoCodeBatchDialog({
   onCompleted,
 }: CreateVideoCodeBatchDialogProps) {
   const { t } = useTranslation();
+  const dialogT = useCallback(
+    (key: string, params?: Record<string, string | number>) =>
+      t(
+        `auto.features.video_code_batches.components.createvideocodebatchdialog.${key}`,
+        params,
+      ),
+    [t],
+  );
   const createMutation = useCreateVideoCodeBatch();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
@@ -106,7 +114,7 @@ export function CreateVideoCodeBatchDialog({
         course.name ??
         (coursePreset?.id === course.id
           ? coursePreset.label
-          : `Course ${course.id}`),
+          : dialogT("courseWithId", { id: course.id })),
     }));
 
     if (
@@ -120,7 +128,7 @@ export function CreateVideoCodeBatchDialog({
     }
 
     return mapped;
-  }, [coursePreset, coursesQuery.data?.items]);
+  }, [coursePreset, coursesQuery.data?.items, dialogT]);
 
   const videoOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     const mapped = (videosQuery.data?.items ?? []).map((video) => ({
@@ -131,7 +139,7 @@ export function CreateVideoCodeBatchDialog({
         video.title_translations?.ar ??
         (videoPreset?.id === video.id
           ? videoPreset.label
-          : `Video ${video.id}`),
+          : dialogT("videoWithId", { id: video.id })),
     }));
 
     if (
@@ -145,7 +153,7 @@ export function CreateVideoCodeBatchDialog({
     }
 
     return mapped;
-  }, [videoPreset, videosQuery.data?.items]);
+  }, [dialogT, videoPreset, videosQuery.data?.items]);
 
   const isSubmitting = createMutation.isPending;
 
@@ -156,22 +164,22 @@ export function CreateVideoCodeBatchDialog({
     const parsedViewLimit = Number(viewLimitPerCode);
 
     if (!resolvedCourseId) {
-      setErrorMessage("Select a video code course before creating a batch.");
+      setErrorMessage(dialogT("errors.selectCourse"));
       return;
     }
 
     if (!selectedVideoId && !videoPreset) {
-      setErrorMessage("Select a video before creating a batch.");
+      setErrorMessage(dialogT("errors.selectVideo"));
       return;
     }
 
     if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
-      setErrorMessage("Quantity must be at least 1.");
+      setErrorMessage(dialogT("errors.invalidQuantity"));
       return;
     }
 
     if (!Number.isFinite(parsedViewLimit) || parsedViewLimit < 1) {
-      setErrorMessage("View limit per code must be at least 1.");
+      setErrorMessage(dialogT("errors.invalidViewLimit"));
       return;
     }
 
@@ -195,7 +203,7 @@ export function CreateVideoCodeBatchDialog({
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "Failed to create video code batch.",
+              : dialogT("errors.createFailed"),
           );
         },
       },
@@ -231,7 +239,7 @@ export function CreateVideoCodeBatchDialog({
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="video-code-batch-course">Course</Label>
+            <Label htmlFor="video-code-batch-course">{dialogT("course")}</Label>
             <SearchableSelect
               value={resolvedCourseId || null}
               onValueChange={(value) => setSelectedCourseId(value)}
@@ -240,7 +248,7 @@ export function CreateVideoCodeBatchDialog({
               placeholder={t(
                 "auto.features.video_code_batches.components.createvideocodebatchdialog.selectCourse",
               )}
-              searchPlaceholder="Search courses..."
+              searchPlaceholder={dialogT("searchCourses")}
               emptyMessage={t(
                 "auto.features.video_code_batches.components.createvideocodebatchdialog.noCoursesFound",
               )}
@@ -248,7 +256,7 @@ export function CreateVideoCodeBatchDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="video-code-batch-video">Video</Label>
+            <Label htmlFor="video-code-batch-video">{dialogT("video")}</Label>
             <SearchableSelect
               value={videoPreset ? String(videoPreset.id) : selectedVideoId}
               onValueChange={(value) => setSelectedVideoId(value)}
@@ -259,18 +267,20 @@ export function CreateVideoCodeBatchDialog({
               placeholder={t(
                 "auto.features.video_code_batches.components.createvideocodebatchdialog.selectVideo",
               )}
-              searchPlaceholder="Search videos..."
+              searchPlaceholder={dialogT("searchVideos")}
               emptyMessage={
                 resolvedCourseId
-                  ? "No videos found for this course"
-                  : "Select a course first"
+                  ? dialogT("noVideosForCourse")
+                  : dialogT("selectCourseFirst")
               }
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="video-code-batch-quantity">Quantity</Label>
+              <Label htmlFor="video-code-batch-quantity">
+                {dialogT("quantity")}
+              </Label>
               <Input
                 id="video-code-batch-quantity"
                 type="number"
@@ -318,10 +328,10 @@ export function CreateVideoCodeBatchDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Batch"}
+            {isSubmitting ? dialogT("creating") : dialogT("createBatch")}
           </Button>
         </DialogFooter>
       </DialogContent>

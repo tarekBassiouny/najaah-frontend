@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +20,7 @@ import { CenterPicker } from "@/features/centers/components/CenterPicker";
 import { listCenterCourses } from "@/features/courses/services/courses.service";
 import { useCreateCenterEnrollment } from "@/features/enrollments/hooks/use-enrollments";
 import { useTranslation } from "@/features/localization";
+import { getEnrollErrorMessage } from "@/features/students/lib/enrollment-utils";
 
 const FILTER_LIST_PAGE_SIZE = 20;
 const FILTER_SEARCH_DEBOUNCE_MS = 300;
@@ -41,75 +41,6 @@ function normalizeCenterId(value: string | number | null | undefined) {
 
 function inferStudentCenterId(student?: Student | null) {
   return normalizeCenterId(student?.center_id ?? student?.center?.id ?? null);
-}
-
-function extractFirstMessage(node: unknown): string | null {
-  if (typeof node === "string" && node.trim()) {
-    return node.trim();
-  }
-
-  if (Array.isArray(node)) {
-    for (const item of node) {
-      const message = extractFirstMessage(item);
-      if (message) return message;
-    }
-    return null;
-  }
-
-  if (!node || typeof node !== "object") return null;
-
-  for (const value of Object.values(node as Record<string, unknown>)) {
-    const message = extractFirstMessage(value);
-    if (message) return message;
-  }
-
-  return null;
-}
-
-function getEnrollErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    const status = error.response?.status ?? 0;
-    const data = error.response?.data as
-      | {
-          message?: string;
-          errors?: Record<string, unknown>;
-          error?: {
-            code?: string;
-            message?: string;
-            details?: unknown;
-          };
-        }
-      | undefined;
-
-    const detailsMessage = extractFirstMessage(data?.error?.details);
-    if (detailsMessage) return detailsMessage;
-
-    const validationMessage = extractFirstMessage(data?.errors);
-    if (validationMessage) return validationMessage;
-
-    if (typeof data?.error?.message === "string" && data.error.message.trim()) {
-      return data.error.message;
-    }
-
-    if (typeof data?.message === "string" && data.message.trim()) {
-      return data.message;
-    }
-
-    if (status === 401) {
-      return "Your session is invalid. Please sign in again.";
-    }
-    if (status === 403) {
-      return "You do not have permission to enroll this student for the selected center.";
-    }
-    if (status === 404) {
-      return "Selected course was not found for this center.";
-    }
-    if (status === 422) {
-      return "Unable to create enrollment with the selected student/course.";
-    }
-  }
-
-  return "Unable to enroll student. Please try again.";
 }
 
 export function EnrollStudentDialog({
@@ -148,8 +79,8 @@ export function EnrollStudentDialog({
   const isUnbrandedStudent = studentCenterId == null;
   const centerPickerTypeFilter = isUnbrandedStudent ? "unbranded" : undefined;
   const centerPickerAllLabel = isUnbrandedStudent
-    ? "Select unbranded center"
-    : "Select center";
+    ? t("pages.students.dialogs.enroll.centerPickerUnbranded")
+    : t("pages.students.dialogs.enroll.centerPicker");
   const centerIdForQuery = normalizeCenterId(selectedCenterId);
   const hasSelectedCenter = centerIdForQuery != null;
 
@@ -265,17 +196,19 @@ export function EnrollStudentDialog({
     setErrorMessage(null);
 
     if (!hasSelectedCenter) {
-      setErrorMessage("Select a center first.");
+      setErrorMessage(t("pages.students.dialogs.enroll.errors.selectCenter"));
       return;
     }
 
     if (!student?.id) {
-      setErrorMessage("Student not found. Please try again.");
+      setErrorMessage(
+        t("pages.students.dialogs.enroll.errors.studentNotFound"),
+      );
       return;
     }
 
     if (!selectedCourse) {
-      setErrorMessage("Select a course first.");
+      setErrorMessage(t("pages.students.dialogs.enroll.errors.selectCourse"));
       return;
     }
 
@@ -289,12 +222,12 @@ export function EnrollStudentDialog({
       },
       {
         onSuccess: () => {
-          onSuccess?.("Student enrolled successfully.");
+          onSuccess?.(t("pages.students.dialogs.enroll.messages.enrolled"));
           void queryClient.invalidateQueries({ queryKey: ["students"] });
           onOpenChange(false);
         },
         onError: (error) => {
-          setErrorMessage(getEnrollErrorMessage(error));
+          setErrorMessage(getEnrollErrorMessage(error, t));
         },
       },
     );
@@ -304,13 +237,19 @@ export function EnrollStudentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
-          <DialogTitle>
-            {t("auto.features.students.components.enrollstudentdialog.s1")}
-          </DialogTitle>
+          <DialogTitle>{t("pages.students.dialogs.enroll.title")}</DialogTitle>
           <DialogDescription>
-            Choose {showCenterPicker ? "a center and " : ""}
-            {t("auto.features.students.components.enrollstudentdialog.s2")}{" "}
-            {student?.name ?? "this student"}.
+            {showCenterPicker
+              ? t("pages.students.dialogs.enroll.descriptionWithCenter", {
+                  name:
+                    student?.name ??
+                    t("pages.students.dialogs.enrollmentPrompt.entityFallback"),
+                })
+              : t("pages.students.dialogs.enroll.description", {
+                  name:
+                    student?.name ??
+                    t("pages.students.dialogs.enrollmentPrompt.entityFallback"),
+                })}
           </DialogDescription>
         </DialogHeader>
 
@@ -324,7 +263,7 @@ export function EnrollStudentDialog({
           {showCenterPicker ? (
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Center
+                {t("pages.students.dialogs.enroll.fields.center")}
               </p>
               <CenterPicker
                 value={selectedCenterId}
@@ -343,7 +282,7 @@ export function EnrollStudentDialog({
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Course
+              {t("pages.students.dialogs.enroll.fields.course")}
             </p>
             <SearchableSelect
               key={String(centerIdForQuery ?? "none")}
@@ -353,13 +292,19 @@ export function EnrollStudentDialog({
               searchValue={courseSearch}
               onSearchValueChange={setCourseSearch}
               placeholder={
-                hasSelectedCenter ? "Select a course" : "Select center first"
+                hasSelectedCenter
+                  ? t("pages.students.dialogs.enroll.placeholders.course")
+                  : t(
+                      "pages.students.dialogs.enroll.placeholders.selectCenterFirst",
+                    )
               }
-              searchPlaceholder="Search courses..."
+              searchPlaceholder={t(
+                "pages.students.dialogs.enroll.placeholders.searchCourses",
+              )}
               emptyMessage={
                 hasSelectedCenter
-                  ? "No courses found"
-                  : "Select a center to load courses"
+                  ? t("pages.students.dialogs.enroll.empty.noCourses")
+                  : t("pages.students.dialogs.enroll.empty.loadCenterFirst")
               }
               isLoading={coursesQuery.isLoading}
               filterOptions={false}
@@ -379,10 +324,12 @@ export function EnrollStudentDialog({
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("auto.features.students.components.enrollstudentdialog.s3")}
+            {t("common.actions.cancel")}
           </Button>
           <Button onClick={handleEnroll} disabled={enrollMutation.isPending}>
-            {enrollMutation.isPending ? "Enrolling..." : "Enroll"}
+            {enrollMutation.isPending
+              ? t("pages.students.dialogs.enroll.actions.enrolling")
+              : t("pages.students.dialogs.enroll.actions.enroll")}
           </Button>
         </div>
       </DialogContent>

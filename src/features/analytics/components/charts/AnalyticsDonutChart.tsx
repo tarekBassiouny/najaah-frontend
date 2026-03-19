@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useTranslation } from "@/features/localization";
 
 type AnalyticsDonutChartProps = {
@@ -10,111 +11,209 @@ type AnalyticsDonutChartProps = {
   height?: number;
 };
 
+const DEFAULT_COLORS = [
+  "#3c50e0",
+  "#13c296",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899",
+];
+
+function formatTotal(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+  return value.toLocaleString();
+}
+
+function CustomTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    payload: { name: string; value: number; fill: string; percent: number };
+  }>;
+}) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+        {item.name}
+      </p>
+      <p className="text-base font-bold" style={{ color: item.fill }}>
+        {item.value.toLocaleString()}{" "}
+        <span className="text-xs font-normal text-gray-400">
+          ({Math.round(item.percent)}%)
+        </span>
+      </p>
+    </div>
+  );
+}
+
+function CenterTotal({ total, size }: { total: number; size: number }) {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <span className="text-lg font-semibold text-gray-900 dark:text-white">
+        {formatTotal(total)}
+      </span>
+      <span className="text-[11px] text-gray-400 dark:text-gray-500">
+        Total
+      </span>
+    </div>
+  );
+}
+
 /**
- * CSS-based donut/pie chart visualization.
- * ApexCharts is disabled due to React 19 compatibility issues.
- * See: https://github.com/apexcharts/react-apexcharts/issues/475
+ * Recharts-based donut chart with hover effects and legend.
  */
 export function AnalyticsDonutChart({
   labels,
   values,
-  colors = ["#3c50e0", "#13c296", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"],
+  colors = DEFAULT_COLORS,
   height = 280,
 }: AnalyticsDonutChartProps) {
   const { t } = useTranslation();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const safeValues = useMemo(
-    () => values.map((value) => (Number.isFinite(value) ? value : 0)),
+    () => values.map((v) => (Number.isFinite(v) ? v : 0)),
     [values],
   );
-  const total = safeValues.reduce((sum, value) => sum + value, 0);
+  const total = safeValues.reduce((sum, v) => sum + v, 0);
   const hasData = labels.length > 0 && safeValues.length > 0 && total > 0;
 
-  // Calculate segments for the CSS conic-gradient donut
-  const segments = useMemo(() => {
+  const chartData = useMemo(() => {
     if (!hasData) return [];
-    let currentAngle = 0;
-    return safeValues.map((value, index) => {
-      const percent = (value / total) * 100;
-      const startAngle = currentAngle;
-      currentAngle += percent;
-      return {
-        label: labels[index],
-        value,
-        percent,
-        startAngle,
-        endAngle: currentAngle,
-        color: colors[index % colors.length],
-      };
-    });
-  }, [safeValues, total, labels, colors, hasData]);
+    return safeValues.map((value, index) => ({
+      name: labels[index],
+      value,
+      fill: colors[index % colors.length],
+      percent: (value / total) * 100,
+    }));
+  }, [safeValues, labels, colors, total, hasData]);
 
-  // Build conic-gradient string
-  const gradientString = useMemo(() => {
-    if (segments.length === 0) return "transparent";
-    return segments
-      .map((seg) => `${seg.color} ${seg.startAngle}% ${seg.endAngle}%`)
-      .join(", ");
-  }, [segments]);
+  const handleMouseEnter = useCallback(
+    (_: unknown, index: number) => setHoveredIndex(index),
+    [],
+  );
+  const handleMouseLeave = useCallback(() => setHoveredIndex(null), []);
 
   if (!hasData) {
     return (
       <div
-        className="flex items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
+        className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 dark:border-gray-700"
         style={{ minHeight: height }}
       >
-        {t("auto.features.analytics.components.charts.analyticsdonutchart.s1")}
+        <svg
+          className="h-10 w-10 text-gray-300 dark:text-gray-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"
+          />
+        </svg>
+        <span className="text-sm text-gray-400 dark:text-gray-500">
+          {t(
+            "auto.features.analytics.components.charts.analyticsdonutchart.s1",
+          )}
+        </span>
       </div>
     );
   }
 
+  const chartHeight = Math.min(220, height - 60);
+
   return (
     <div
-      className="flex flex-col items-center gap-6"
+      className="flex flex-col items-center gap-4"
       style={{ minHeight: height }}
     >
-      {/* Donut Chart */}
-      <div className="relative">
-        <div
-          className="rounded-full"
-          style={{
-            width: 180,
-            height: 180,
-            background: `conic-gradient(${gradientString})`,
-          }}
-        />
-        {/* Center hole */}
-        <div
-          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white dark:bg-gray-900"
-          style={{ width: 100, height: 100 }}
-        >
-          <div className="text-center">
-            <div className="text-xl font-semibold text-gray-900 dark:text-white">
-              {total.toLocaleString()}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Total
-            </div>
-          </div>
-        </div>
+      <div
+        className="relative mx-auto"
+        style={{ width: chartHeight, height: chartHeight }}
+      >
+        <ResponsiveContainer width="100%" height={chartHeight} minWidth={0}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius="55%"
+              outerRadius="85%"
+              paddingAngle={2}
+              dataKey="value"
+              animationDuration={800}
+              animationEasing="ease-out"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              label={false}
+            >
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.fill}
+                  stroke="none"
+                  opacity={
+                    hoveredIndex !== null && hoveredIndex !== index ? 0.4 : 1
+                  }
+                  style={{ transition: "opacity 0.2s" }}
+                />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+        <CenterTotal total={total} size={chartHeight} />
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-        {segments.map((seg) => (
-          <div key={seg.label} className="flex items-center gap-2 text-sm">
-            <span
-              className="h-3 w-3 rounded-full"
-              style={{ backgroundColor: seg.color }}
-            />
-            <span className="text-gray-600 dark:text-gray-400">
-              {seg.label}
-            </span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              {seg.value.toLocaleString()} ({Math.round(seg.percent)}%)
-            </span>
-          </div>
-        ))}
+      <div className="flex flex-wrap justify-center gap-x-5 gap-y-2.5">
+        {chartData.map((seg, index) => {
+          const isHovered = hoveredIndex === index;
+          return (
+            <div
+              key={seg.name}
+              className="flex cursor-pointer items-center gap-2 text-sm transition-opacity"
+              style={{
+                opacity: hoveredIndex !== null && !isHovered ? 0.4 : 1,
+              }}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full transition-transform"
+                style={{
+                  backgroundColor: seg.fill,
+                  transform: isHovered ? "scale(1.4)" : "scale(1)",
+                }}
+              />
+              <span className="text-gray-600 dark:text-gray-400">
+                {seg.name}
+              </span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {seg.value.toLocaleString()}{" "}
+                <span className="text-gray-400 dark:text-gray-500">
+                  ({Math.round(seg.percent)}%)
+                </span>
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import {
   resolveVideoThumbnailState,
 } from "@/features/videos/lib/video-thumbnail";
 import { useTranslation } from "@/features/localization";
+import { VideoTranscriptPanel } from "./VideoTranscriptPanel";
 
 type VideoDetailsDialogProps = {
   open: boolean;
@@ -474,6 +475,8 @@ export function VideoDetailsDialog({
                 </a>
               </div>
             ) : null}
+
+            <VideoTranscriptPanel centerId={centerId} video={activeVideo} />
 
             <div className="space-y-2 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center justify-between">

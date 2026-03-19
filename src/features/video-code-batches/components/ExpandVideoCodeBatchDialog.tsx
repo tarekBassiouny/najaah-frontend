@@ -33,6 +33,11 @@ export function ExpandVideoCodeBatchDialog({
   onCompleted,
 }: ExpandVideoCodeBatchDialogProps) {
   const { t } = useTranslation();
+  const dialogT = (key: string, params?: Record<string, string | number>) =>
+    t(
+      `auto.features.video_code_batches.components.expandvideocodebatchdialog.${key}`,
+      params,
+    );
   const expandMutation = useExpandVideoCodeBatch();
   const [additionalQuantity, setAdditionalQuantity] = useState("50");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -48,7 +53,7 @@ export function ExpandVideoCodeBatchDialog({
 
     const parsedQuantity = Number(additionalQuantity);
     if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
-      setErrorMessage("Additional quantity must be at least 1.");
+      setErrorMessage(dialogT("errors.invalidAdditionalQuantity"));
       return;
     }
 
@@ -71,7 +76,7 @@ export function ExpandVideoCodeBatchDialog({
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "Failed to expand video code batch.",
+              : dialogT("errors.expandFailed"),
           );
         },
       },
@@ -148,14 +153,16 @@ export function ExpandVideoCodeBatchDialog({
             onClick={() => onOpenChange(false)}
             disabled={expandMutation.isPending}
           >
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={expandMutation.isPending || !batch}
           >
-            {expandMutation.isPending ? "Expanding..." : "Expand Batch"}
+            {expandMutation.isPending
+              ? dialogT("expanding")
+              : dialogT("expandBatch")}
           </Button>
         </DialogFooter>
       </DialogContent>

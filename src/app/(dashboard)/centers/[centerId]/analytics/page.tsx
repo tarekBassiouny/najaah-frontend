@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/localization";
 import { AnalyticsFiltersBar } from "@/features/analytics/components/AnalyticsFiltersBar";
+import { AnalyticsSectionHeader } from "@/features/analytics/components/AnalyticsSectionHeader";
 import { AnalyticsOverviewPanel } from "@/features/analytics/components/AnalyticsOverviewPanel";
 import { AnalyticsCoursesMediaPanel } from "@/features/analytics/components/AnalyticsCoursesMediaPanel";
 import { AnalyticsLearnersEnrollmentsPanel } from "@/features/analytics/components/AnalyticsLearnersEnrollmentsPanel";
@@ -73,7 +74,7 @@ export default function CenterAnalyticsPage({ params }: PageProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title={t("pages.analytics.title")}
         description={t("pages.centerAnalytics.description")}
@@ -98,24 +99,34 @@ export default function CenterAnalyticsPage({ params }: PageProps) {
         isLoading={isLoadingAny}
       />
 
+      <AnalyticsSectionHeader title={t("pages.analytics.sectionOverview")} />
       <AnalyticsOverviewPanel
         data={overviewQuery.data}
         isLoading={overviewQuery.isLoading}
         isError={overviewQuery.isError}
       />
 
+      <AnalyticsSectionHeader
+        title={t("pages.analytics.sectionCoursesMedia")}
+      />
       <AnalyticsCoursesMediaPanel
         data={coursesMediaQuery.data}
         isLoading={coursesMediaQuery.isLoading}
         isError={coursesMediaQuery.isError}
       />
 
+      <AnalyticsSectionHeader
+        title={t("pages.analytics.sectionLearnersEnrollments")}
+      />
       <AnalyticsLearnersEnrollmentsPanel
         data={learnersQuery.data}
         isLoading={learnersQuery.isLoading}
         isError={learnersQuery.isError}
       />
 
+      <AnalyticsSectionHeader
+        title={t("pages.analytics.sectionDevicesRequests")}
+      />
       <AnalyticsDevicesRequestsPanel
         data={devicesQuery.data}
         isLoading={devicesQuery.isLoading}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -36,7 +36,10 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
 const COUNTRY_CODE_REGEX = /^\+[1-9]\d{0,3}$/;
@@ -59,30 +62,38 @@ function getInitials(value: string) {
     .slice(0, 2);
 }
 
-const schema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters."),
-  email: z.string().trim().email("Enter a valid email address."),
-  phone: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
-      "Use base mobile number only (10 digits, no leading 0).",
-    ),
-  countryCode: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) => !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
-      "Country code must be in +NN format (for example +20).",
-    ),
-  centerId: z.string().trim().optional(),
-  status: z.enum(["1", "0", "2"]),
-});
+const buildSchema = (t: TranslateFunction) =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(2, t("pages.admins.dialogs.form.validation.nameMin")),
+    email: z
+      .string()
+      .trim()
+      .email(t("pages.admins.dialogs.form.validation.emailInvalid")),
+    phone: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
+        t("pages.admins.dialogs.form.validation.phoneInvalid"),
+      ),
+    countryCode: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) =>
+          !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
+        t("pages.admins.dialogs.form.validation.countryCodeInvalid"),
+      ),
+    centerId: z.string().trim().optional(),
+    status: z.enum(["1", "0", "2"]),
+  });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 type AdminUserFormDialogProps = {
   user?: AdminUser | null;
@@ -92,7 +103,7 @@ type AdminUserFormDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: TranslateFunction) {
   const fieldMessage = getAdminApiFirstFieldError(error);
   if (fieldMessage) {
     return fieldMessage;
@@ -100,7 +111,7 @@ function getErrorMessage(error: unknown) {
 
   return getAdminApiErrorMessage(
     error,
-    "Unable to save admin user. Please try again.",
+    t("pages.admins.dialogs.form.errors.saveFailed"),
   );
 }
 
@@ -112,6 +123,7 @@ export function AdminUserFormDialog({
   scopeCenterId,
 }: AdminUserFormDialogProps) {
   const { t } = useTranslation();
+  const schema = useMemo(() => buildSchema(t), [t]);
 
   const [formError, setFormError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -120,8 +132,12 @@ export function AdminUserFormDialog({
   const isCenterScoped = Boolean(centerSlug) || scopeCenterId != null;
   const effectiveScopeCenterId = scopeCenterId ?? tenantCenterId ?? null;
 
-  const displayName = user?.name ? String(user.name) : "Admin User";
-  const displayEmail = user?.email ? String(user.email) : "new.admin@company";
+  const displayName = user?.name
+    ? String(user.name)
+    : t("pages.admins.fallbacks.adminUser");
+  const displayEmail = user?.email
+    ? String(user.email)
+    : t("pages.admins.dialogs.form.placeholders.email");
 
   const createMutation = useCreateAdminUser({
     centerId: effectiveScopeCenterId,
@@ -178,7 +194,7 @@ export function AdminUserFormDialog({
     if (!isEditMode && !normalizedPhone) {
       form.setError("phone", {
         type: "manual",
-        message: "Phone is required to create an admin user.",
+        message: t("pages.admins.dialogs.form.validation.phoneRequired"),
       });
       return;
     }
@@ -186,7 +202,7 @@ export function AdminUserFormDialog({
     if (normalizedPhone && !BASE_MOBILE_REGEX.test(normalizedPhone)) {
       form.setError("phone", {
         type: "manual",
-        message: "Use base mobile number only (10 digits, no leading 0).",
+        message: t("pages.admins.dialogs.form.validation.phoneInvalid"),
       });
       return;
     }
@@ -197,7 +213,7 @@ export function AdminUserFormDialog({
     ) {
       form.setError("countryCode", {
         type: "manual",
-        message: "Country code must be in +NN format (for example +20).",
+        message: t("pages.admins.dialogs.form.validation.countryCodeInvalid"),
       });
       return;
     }
@@ -230,7 +246,7 @@ export function AdminUserFormDialog({
               setFormError(
                 getAdminResponseMessage(
                   response,
-                  "Unable to save admin user. Please try again.",
+                  t("pages.admins.dialogs.form.errors.saveFailed"),
                 ),
               );
               return;
@@ -239,11 +255,11 @@ export function AdminUserFormDialog({
             onSuccess?.(
               getAdminResponseMessage(
                 response,
-                "Admin user updated successfully.",
+                t("pages.admins.dialogs.form.messages.updated"),
               ),
             );
           },
-          onError: (error) => setFormError(getErrorMessage(error)),
+          onError: (error) => setFormError(getErrorMessage(error, t)),
         },
       );
       return;
@@ -255,7 +271,7 @@ export function AdminUserFormDialog({
           setFormError(
             getAdminResponseMessage(
               createdUser,
-              "Unable to save admin user. Please try again.",
+              t("pages.admins.dialogs.form.errors.saveFailed"),
             ),
           );
           return;
@@ -264,14 +280,14 @@ export function AdminUserFormDialog({
         onSuccess?.(
           getAdminResponseMessage(
             createdUser,
-            "Admin invitation sent successfully.",
+            t("pages.admins.dialogs.form.messages.created"),
           ),
         );
         if (createdUser) {
           onCreated?.(createdUser);
         }
       },
-      onError: (error) => setFormError(getErrorMessage(error)),
+      onError: (error) => setFormError(getErrorMessage(error, t)),
     });
   };
 
@@ -286,12 +302,14 @@ export function AdminUserFormDialog({
           </div>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white">
-              {isEditMode ? "Edit Admin User" : "Create Admin User"}
+              {isEditMode
+                ? t("pages.admins.dialogs.form.titleEdit")
+                : t("pages.admins.dialogs.form.titleCreate")}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {isEditMode
-                ? "Update admin account details and status."
-                : "Create a new admin account."}
+                ? t("pages.admins.dialogs.form.descriptionEdit")
+                : t("pages.admins.dialogs.form.descriptionCreate")}
             </p>
             <p className="text-xs text-gray-400">
               {displayName} · {displayEmail}
@@ -300,10 +318,10 @@ export function AdminUserFormDialog({
         </div>
         <div className="mt-1 flex flex-wrap gap-3 pb-3 text-xs">
           <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            {t("auto.features.admin_users.components.adminuserformdialog.s1")}
+            {t("pages.admins.dialogs.form.badges.accountDetails")}
           </span>
           <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            {t("auto.features.admin_users.components.adminuserformdialog.s2")}
+            {t("pages.admins.dialogs.form.badges.accountAccess")}
           </span>
         </div>
       </DialogHeader>
@@ -311,10 +329,10 @@ export function AdminUserFormDialog({
       <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900">
         <div>
           <p className="font-medium text-gray-900 dark:text-white">
-            {t("auto.features.admin_users.components.adminuserformdialog.s3")}
+            {t("pages.admins.dialogs.form.advanced.title")}
           </p>
           <p className="text-xs text-gray-400">
-            {t("auto.features.admin_users.components.adminuserformdialog.s4")}
+            {t("pages.admins.dialogs.form.advanced.description")}
           </p>
         </div>
         <Button
@@ -323,14 +341,16 @@ export function AdminUserFormDialog({
           size="sm"
           onClick={() => setShowAdvanced((prev) => !prev)}
         >
-          {showAdvanced ? "Hide" : "Show"}
+          {showAdvanced
+            ? t("pages.admins.dialogs.form.actions.hideAdvanced")
+            : t("pages.admins.dialogs.form.actions.showAdvanced")}
         </Button>
       </div>
 
       {formError && (
         <Alert variant="destructive">
           <AlertTitle>
-            {t("auto.features.admin_users.components.adminuserformdialog.s5")}
+            {t("pages.admins.dialogs.form.errors.errorTitle")}
           </AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
@@ -347,12 +367,13 @@ export function AdminUserFormDialog({
             render={({ field }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel>
-                  Name <span className="text-red-500">*</span>
+                  {t("pages.admins.dialogs.form.fields.name")}{" "}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
                     placeholder={t(
-                      "auto.features.admin_users.components.adminuserformdialog.s6",
+                      "pages.admins.dialogs.form.placeholders.name",
                     )}
                     {...field}
                     disabled={isPending}
@@ -369,12 +390,13 @@ export function AdminUserFormDialog({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Email <span className="text-red-500">*</span>
+                  {t("pages.admins.dialogs.form.fields.email")}{" "}
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
                     placeholder={t(
-                      "auto.features.admin_users.components.adminuserformdialog.s7",
+                      "pages.admins.dialogs.form.placeholders.email",
                     )}
                     {...field}
                     disabled={isPending}
@@ -391,20 +413,20 @@ export function AdminUserFormDialog({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Phone{" "}
+                  {t("pages.admins.dialogs.form.fields.phone")}{" "}
                   {!isEditMode ? <span className="text-red-500">*</span> : null}
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="1225291841"
+                    placeholder={t(
+                      "pages.admins.dialogs.form.placeholders.phone",
+                    )}
                     {...field}
                     disabled={isPending}
                   />
                 </FormControl>
                 <p className="text-xs text-gray-400">
-                  {t(
-                    "auto.features.admin_users.components.adminuserformdialog.s8",
-                  )}
+                  {t("pages.admins.dialogs.form.hints.phone")}
                 </p>
                 <FormMessage />
               </FormItem>
@@ -418,12 +440,16 @@ export function AdminUserFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t(
-                      "auto.features.admin_users.components.adminuserformdialog.s9",
-                    )}
+                    {t("pages.admins.dialogs.form.fields.countryCode")}
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="+20" {...field} disabled={isPending} />
+                    <Input
+                      placeholder={t(
+                        "pages.admins.dialogs.form.placeholders.countryCode",
+                      )}
+                      {...field}
+                      disabled={isPending}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -438,11 +464,9 @@ export function AdminUserFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Center{" "}
+                    {t("pages.admins.dialogs.form.fields.center")}{" "}
                     <span className="text-gray-400">
-                      {t(
-                        "auto.features.admin_users.components.adminuserformdialog.s10",
-                      )}
+                      {t("pages.admins.dialogs.form.optionalLabel")}
                     </span>
                   </FormLabel>
                   <FormControl>
@@ -455,7 +479,7 @@ export function AdminUserFormDialog({
                             : "",
                         )
                       }
-                      allLabel="No center (optional)"
+                      allLabel={t("pages.admins.dialogs.form.centerAllLabel")}
                       hideWhenCenterScoped={false}
                       className="w-full min-w-0"
                       selectClassName="bg-none bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
@@ -464,16 +488,15 @@ export function AdminUserFormDialog({
                   </FormControl>
                   {isCenterScoped ? (
                     <p className="text-xs text-gray-400">
-                      {t(
-                        "auto.features.admin_users.components.adminuserformdialog.s11",
-                      )}
-                      {centerName ?? "Current center"}.
+                      {t("pages.admins.dialogs.form.hints.centerScoped", {
+                        center:
+                          centerName ??
+                          t("pages.admins.fallbacks.currentCenter"),
+                      })}
                     </p>
                   ) : (
                     <p className="text-xs text-gray-400">
-                      {t(
-                        "auto.features.admin_users.components.adminuserformdialog.s12",
-                      )}
+                      {t("pages.admins.dialogs.form.hints.centerOptional")}
                     </p>
                   )}
                   <FormMessage />
@@ -488,7 +511,9 @@ export function AdminUserFormDialog({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>
+                    {t("pages.admins.dialogs.form.fields.status")}
+                  </FormLabel>
                   <FormControl>
                     <Select
                       value={field.value}
@@ -499,9 +524,15 @@ export function AdminUserFormDialog({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Active</SelectItem>
-                        <SelectItem value="0">Inactive</SelectItem>
-                        <SelectItem value="2">Banned</SelectItem>
+                        <SelectItem value="1">
+                          {t("pages.admins.table.status.active")}
+                        </SelectItem>
+                        <SelectItem value="0">
+                          {t("pages.admins.table.status.inactive")}
+                        </SelectItem>
+                        <SelectItem value="2">
+                          {t("pages.admins.table.status.banned")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -518,18 +549,16 @@ export function AdminUserFormDialog({
               onClick={onClose}
               disabled={isPending}
             >
-              {t(
-                "auto.features.admin_users.components.adminuserformdialog.s13",
-              )}
+              {t("common.actions.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitDisabled}>
               {isPending
                 ? isEditMode
-                  ? "Saving..."
-                  : "Sending..."
+                  ? t("pages.admins.dialogs.form.actions.saving")
+                  : t("pages.admins.dialogs.form.actions.sending")
                 : isEditMode
-                  ? "Save Changes"
-                  : "Send Invite"}
+                  ? t("pages.admins.dialogs.form.actions.saveChanges")
+                  : t("pages.admins.dialogs.form.actions.sendInvite")}
             </Button>
           </DialogFooter>
         </form>

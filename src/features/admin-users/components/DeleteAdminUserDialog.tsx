@@ -15,7 +15,10 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 type DeleteAdminUserDialogProps = {
   user?: AdminUser | null;
@@ -25,10 +28,10 @@ type DeleteAdminUserDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: TranslateFunction) {
   return getAdminApiErrorMessage(
     error,
-    "Unable to delete admin user. Please try again.",
+    t("pages.admins.dialogs.delete.errors.deleteFailed"),
   );
 }
 
@@ -40,6 +43,7 @@ export function DeleteAdminUserDialog({
   scopeCenterId,
 }: DeleteAdminUserDialogProps) {
   const { t } = useTranslation();
+  const deletedMessage = t("pages.admins.dialogs.delete.messages.deleted");
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteAdminUser({
@@ -55,18 +59,16 @@ export function DeleteAdminUserDialog({
           setErrorMessage(
             getAdminResponseMessage(
               response,
-              "Unable to delete admin user. Please try again.",
+              t("pages.admins.dialogs.delete.errors.deleteFailed"),
             ),
           );
           return;
         }
         onOpenChange(false);
-        onSuccess?.(
-          getAdminResponseMessage(response, "Admin user deleted successfully."),
-        );
+        onSuccess?.(getAdminResponseMessage(response, deletedMessage));
       },
       onError: (error) => {
-        setErrorMessage(getErrorMessage(error));
+        setErrorMessage(getErrorMessage(error, t));
       },
     });
   };
@@ -85,18 +87,25 @@ export function DeleteAdminUserDialog({
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">
-            {t("auto.features.admin_users.components.deleteadminuserdialog.s1")}
+            {t("pages.admins.dialogs.delete.title")}
           </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title={t(
-            "auto.features.admin_users.components.deleteadminuserdialog.s1",
-          )}
+          title={t("pages.admins.dialogs.delete.title")}
           entityName={userName}
-          entityFallback="this admin user"
-          confirmButtonLabel="Delete User"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete admin user"
+          entityFallback={t("pages.admins.dialogs.delete.entityFallback")}
+          confirmText={t("pages.admins.dialogs.delete.confirmText")}
+          confirmLabel={t("pages.admins.dialogs.delete.confirmLabel", {
+            confirmText: t("pages.admins.dialogs.delete.confirmText"),
+          })}
+          confirmButtonLabel={t(
+            "pages.admins.dialogs.delete.confirmButtonLabel",
+          )}
+          pendingLabel={t("pages.admins.dialogs.delete.pendingLabel")}
+          errorTitle={t("pages.admins.dialogs.delete.errors.errorTitle")}
+          irreversibleText={t("pages.admins.dialogs.delete.irreversible")}
+          warningPrefix={t("pages.admins.dialogs.delete.warningPrefix")}
+          cancelButtonLabel={t("common.actions.cancel")}
           errorMessage={errorMessage}
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}

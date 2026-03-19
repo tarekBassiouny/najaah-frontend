@@ -4,12 +4,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { AIContentTargetType } from "@/features/ai/types/ai";
 import { useTranslation } from "@/features/localization";
+import type { ReviewLocale } from "@/features/ai/lib/review-payload";
+import type { AIContentLanguage } from "@/features/ai/types/ai";
 
 type ReviewEditPanelProps = {
   targetType: AIContentTargetType;
+  jobLanguage: AIContentLanguage;
+  activeLocale: ReviewLocale;
+  onActiveLocaleChange: (_value: ReviewLocale) => void;
   isAnyJobActionPending: boolean;
   summaryTitle: string;
   summaryContent: string;
@@ -36,6 +42,9 @@ type ReviewEditPanelProps = {
 
 export function ReviewEditPanel({
   targetType,
+  jobLanguage,
+  activeLocale,
+  onActiveLocaleChange,
   isAnyJobActionPending,
   summaryTitle,
   summaryContent,
@@ -64,6 +73,22 @@ export function ReviewEditPanel({
 
   return (
     <div className="space-y-4">
+      {jobLanguage === "both" ? (
+        <Tabs
+          value={activeLocale}
+          onValueChange={(value) => onActiveLocaleChange(value as ReviewLocale)}
+        >
+          <TabsList className="inline-flex rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-700 dark:bg-gray-900">
+            <TabsTrigger value="ar" className="w-auto">
+              {t("pages.centerAIContent.workspace.review.locales.ar")}
+            </TabsTrigger>
+            <TabsTrigger value="en" className="w-auto">
+              {t("pages.centerAIContent.workspace.review.locales.en")}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      ) : null}
+
       {targetType === "summary" ? (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">

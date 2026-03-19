@@ -1476,12 +1476,19 @@
         "lastActivity": "آخر نشاط",
         "activeDevice": "الجهاز النشط",
         "totalEnrollments": "إجمالي التسجيلات",
-        "deviceChanges": "تغييرات الجهاز"
+        "deviceChanges": "تغييرات الجهاز",
+        "email": "البريد الإلكتروني",
+        "username": "اسم المستخدم",
+        "center": "المركز",
+        "approvedAt": "تاريخ الموافقة",
+        "noEmail": "لا يوجد بريد إلكتروني",
+        "noUsername": "لا يوجد اسم مستخدم"
       },
       "device": {
         "noActive": "لا يوجد جهاز نشط",
         "fallbackActive": "جهاز نشط",
-        "lastUsedLabel": "آخر استخدام"
+        "lastUsedLabel": "آخر استخدام",
+        "approvedAt": "تمت الموافقة"
       },
       "education": {
         "title": "التعليم",
@@ -1520,13 +1527,20 @@
           "status": "الحالة",
           "progress": "التقدم",
           "enrolledAt": "تاريخ التسجيل",
+          "expiresAt": "تاريخ الانتهاء",
           "content": "المحتوى"
         },
         "videoHeaders": {
           "videoName": "اسم الفيديو",
+          "provider": "المزود",
           "watchCountLimit": "عدد المشاهدات / الحد",
           "actions": "الإجراءات"
-        }
+        },
+        "learningAssets": "أصول التعلم",
+        "learningAssetsProgress": "{completed}/{total} مكتمل",
+        "noExpiry": "بلا انتهاء",
+        "courseStatus": "الدورة: {status}",
+        "courseThumbnailAlt": "صورة مصغرة لـ {title}"
       },
       "actions": {
         "showVideos": "عرض الفيديوهات ({count})",
@@ -2388,7 +2402,8 @@
         "transcript_missing": {
           "badge": "النص التفريغي مفقود",
           "title": "النص التفريغي مطلوب",
-          "description": "هذا الفيديو غير جاهز بعد للذكاء الاصطناعي. أضف نصاً تفريغياً من صفحة الفيديوهات قبل توليد الأصول."
+          "description": "هذا الفيديو غير جاهز بعد للذكاء الاصطناعي. أضف نصاً تفريغياً من صفحة الفيديوهات قبل توليد الأصول.",
+          "action": "إدارة النسخة النصية"
         },
         "extraction_pending": {
           "badge": "الاستخراج قيد الانتظار",

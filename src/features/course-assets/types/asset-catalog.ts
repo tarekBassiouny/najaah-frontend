@@ -48,11 +48,20 @@ export type CourseAssetSlot = {
   available_actions?: string[];
 };
 
+export type AIReadiness = {
+  is_ready: boolean;
+  code: string;
+  badge: string;
+  title: string;
+  message: string;
+};
+
 export type CourseAssetSource = {
   type: "video" | "pdf";
   id: number;
   title: string | null;
   order_index: number;
+  ai_readiness?: AIReadiness | null;
   has_transcript?: boolean | null;
   transcript_format?: string | null;
   transcript_source?: string | null;

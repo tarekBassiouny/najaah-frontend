@@ -1,10 +1,11 @@
-import type { AssetSlotType } from "./asset-catalog";
+import type { AIReadiness, AssetSlotType } from "./asset-catalog";
 
 export type SelectedSource = {
   type: "video" | "pdf";
   id: number;
   title: string | null;
   sectionTitle: string | null;
+  ai_readiness?: AIReadiness | null;
   has_transcript?: boolean | null;
   transcript_format?: string | null;
   transcript_source?: string | null;

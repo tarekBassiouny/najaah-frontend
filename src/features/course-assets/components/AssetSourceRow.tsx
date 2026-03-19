@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/features/localization";
@@ -68,8 +69,19 @@ export function AssetSourceRow({
                 variant={sourceReadiness.isReady ? "success" : "warning"}
                 className="text-[10px]"
               >
-                {t(`pages.courseAssets.readiness.${sourceReadiness.key}.badge`)}
+                {sourceReadiness.backendBadge ??
+                  t(
+                    `pages.courseAssets.readiness.${sourceReadiness.key}.badge`,
+                  )}
               </Badge>
+            ) : null}
+            {sourceReadiness.key === "transcript_missing" ? (
+              <Link
+                href={`/centers/${centerId}/videos`}
+                className="text-xs font-medium text-primary underline hover:text-primary/80"
+              >
+                {t("pages.courseAssets.readiness.transcript_missing.action")}
+              </Link>
             ) : null}
           </div>
         </div>
@@ -82,9 +94,10 @@ export function AssetSourceRow({
               title={
                 sourceReadiness.isReady
                   ? undefined
-                  : t(
+                  : (sourceReadiness.backendMessage ??
+                    t(
                       `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
-                    )
+                    ))
               }
             >
               {t("pages.courseAssets.actions.generateWithAI")}
@@ -132,9 +145,10 @@ export function AssetSourceRow({
             canManageLearningAssets,
             isSourceReady: sourceReadiness.isReady,
             generateDisabledTitle: !sourceReadiness.isReady
-              ? t(
+              ? (sourceReadiness.backendMessage ??
+                t(
                   `pages.courseAssets.readiness.${sourceReadiness.key}.description`,
-                )
+                ))
               : undefined,
             onOpenGenerateModal: (src, preset, targetId) =>
               onOpenGenerateModal(src, preset, targetId),

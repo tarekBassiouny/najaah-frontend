@@ -505,11 +505,11 @@ export default function StudentProfilePage({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {studentProfile.center ? (
-                <Badge variant="secondary">
-                  {studentProfile.center.name}
-                </Badge>
+                <Badge variant="secondary">{studentProfile.center.name}</Badge>
               ) : null}
-              <Badge variant={resolveStatusVariant(studentProfile.status_label)}>
+              <Badge
+                variant={resolveStatusVariant(studentProfile.status_label)}
+              >
                 {studentProfile.status_label}
               </Badge>
             </div>
@@ -738,11 +738,13 @@ export default function StudentProfilePage({
                                   "pages.centerStudentProfile.enrollments.courseThumbnailAlt",
                                   { title: enrollment.course.title },
                                 )}
-                                className="hidden h-10 w-16 rounded border border-gray-200 object-cover sm:block dark:border-gray-700"
+                                className="hidden h-10 w-16 rounded border border-gray-200 object-cover dark:border-gray-700 sm:block"
                               />
                             ) : null}
                             <div className="min-w-0">
-                              <p className="truncate">{enrollment.course.title}</p>
+                              <p className="truncate">
+                                {enrollment.course.title}
+                              </p>
                               <div className="flex flex-wrap items-center gap-1.5">
                                 {enrollment.course.status_label ? (
                                   <Badge
@@ -756,7 +758,8 @@ export default function StudentProfilePage({
                                     {enrollment.course.status_label}
                                   </Badge>
                                 ) : null}
-                                {enrollment.course.learning_asset_count != null &&
+                                {enrollment.course.learning_asset_count !=
+                                  null &&
                                 enrollment.course.learning_asset_count > 0 ? (
                                   <span className="text-[10px] text-gray-500 dark:text-gray-400">
                                     {t(
@@ -794,9 +797,7 @@ export default function StudentProfilePage({
                                     "pages.centerStudentProfile.enrollments.progressLabel",
                                   )}
                                 </span>
-                                <span>
-                                  {enrollment.progress_percentage}%
-                                </span>
+                                <span>{enrollment.progress_percentage}%</span>
                               </div>
                               <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
                                 <div

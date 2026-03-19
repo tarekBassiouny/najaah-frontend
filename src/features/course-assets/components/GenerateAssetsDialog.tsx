@@ -179,9 +179,7 @@ export function GenerateAssetsDialog({
           <Alert>
             <AlertTitle>
               {sourceReadiness.backendTitle ??
-                t(
-                  `pages.courseAssets.readiness.${sourceReadiness.key}.title`,
-                )}
+                t(`pages.courseAssets.readiness.${sourceReadiness.key}.title`)}
             </AlertTitle>
             <AlertDescription>
               {sourceReadiness.backendMessage ??

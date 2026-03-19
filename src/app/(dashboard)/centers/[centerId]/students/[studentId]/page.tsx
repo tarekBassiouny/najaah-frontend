@@ -75,6 +75,7 @@ type ProfileDevice = {
   os_version?: string | null;
   status_label?: string | null;
   status_key?: string | null;
+  approved_at?: string | null;
   last_used_at?: string | null;
 } | null;
 
@@ -97,6 +98,7 @@ function formatActiveDeviceMeta(
   device: ProfileDevice,
   locale: string,
   lastUsedLabel: string,
+  approvedAtLabel?: string,
 ): string {
   if (!device) return "";
 
@@ -106,8 +108,12 @@ function formatActiveDeviceMeta(
   const lastUsed = device.last_used_at
     ? `${lastUsedLabel}: ${formatDateTime(device.last_used_at, locale)}`
     : null;
+  const approvedAt =
+    approvedAtLabel && device.approved_at
+      ? `${approvedAtLabel}: ${formatDateTime(device.approved_at, locale)}`
+      : null;
 
-  return [osVersion, status, lastUsed].filter(Boolean).join(" • ");
+  return [osVersion, status, lastUsed, approvedAt].filter(Boolean).join(" • ");
 }
 
 function formatPhone(countryCode: string, phone: string): string {
@@ -259,15 +265,21 @@ export default function StudentProfilePage({
   const filteredEnrollments = useMemo(() => {
     if (!profile?.enrollments) return [];
     if (selectedCourseCategory === "all") return profile.enrollments;
-    return profile.enrollments.filter(
-      (enrollment) => enrollment.status === selectedCourseCategory,
-    );
+    return profile.enrollments.filter((enrollment) => {
+      const statusStr = String(enrollment.status).toLowerCase();
+      const statusLabel = enrollment.status_label?.toLowerCase() ?? "";
+      return (
+        statusStr === selectedCourseCategory ||
+        statusLabel === selectedCourseCategory
+      );
+    });
   }, [profile?.enrollments, selectedCourseCategory]);
   const activeDevice = profile?.device ?? profile?.active_device ?? null;
   const activeDeviceMeta = formatActiveDeviceMeta(
     activeDevice,
     locale,
     t("pages.centerStudentProfile.device.lastUsedLabel"),
+    t("pages.centerStudentProfile.device.approvedAt"),
   );
 
   const handleGrantViews = async () => {
@@ -400,21 +412,27 @@ export default function StudentProfilePage({
   }
 
   const studentProfile = profile!;
-  const gradeLabel = studentProfile.grade
+  const resolvedGrade =
+    studentProfile.grade ?? studentProfile.education?.grade ?? null;
+  const resolvedSchool =
+    studentProfile.school ?? studentProfile.education?.school ?? null;
+  const resolvedCollege =
+    studentProfile.college ?? studentProfile.education?.college ?? null;
+  const gradeLabel = resolvedGrade
     ? getEducationName(
-        studentProfile.grade,
+        resolvedGrade,
         t("pages.centerStudentProfile.education.grade"),
       )
     : "—";
-  const schoolLabel = studentProfile.school
+  const schoolLabel = resolvedSchool
     ? getEducationName(
-        studentProfile.school,
+        resolvedSchool,
         t("pages.centerStudentProfile.education.school"),
       )
     : "—";
-  const collegeLabel = studentProfile.college
+  const collegeLabel = resolvedCollege
     ? getEducationName(
-        studentProfile.college,
+        resolvedCollege,
         t("pages.centerStudentProfile.education.college"),
       )
     : "—";
@@ -473,11 +491,28 @@ export default function StudentProfilePage({
                     studentProfile.phone,
                   )}
                 </p>
+                {studentProfile.email ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {studentProfile.email}
+                  </p>
+                ) : null}
+                {studentProfile.username ? (
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    @{studentProfile.username}
+                  </p>
+                ) : null}
               </div>
             </div>
-            <Badge variant={resolveStatusVariant(studentProfile.status_label)}>
-              {studentProfile.status_label}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              {studentProfile.center ? (
+                <Badge variant="secondary">{studentProfile.center.name}</Badge>
+              ) : null}
+              <Badge
+                variant={resolveStatusVariant(studentProfile.status_label)}
+              >
+                {studentProfile.status_label}
+              </Badge>
+            </div>
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-gray-200/80 bg-white/85 p-3 dark:border-gray-700 dark:bg-gray-900/50">
@@ -662,6 +697,11 @@ export default function StudentProfilePage({
                       "pages.centerStudentProfile.enrollments.headers.enrolledAt",
                     )}
                   </TableHead>
+                  <TableHead>
+                    {t(
+                      "pages.centerStudentProfile.enrollments.headers.expiresAt",
+                    )}
+                  </TableHead>
                   <TableHead className="text-right">
                     {t(
                       "pages.centerStudentProfile.enrollments.headers.content",
@@ -689,14 +729,58 @@ export default function StudentProfilePage({
                     <Fragment key={enrollment.id}>
                       <TableRow id={`course-row-${enrollment.course.id}`}>
                         <TableCell className="font-medium">
-                          {enrollment.course.title}
+                          <div className="flex items-center gap-3">
+                            {enrollment.course.thumbnail_url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={enrollment.course.thumbnail_url}
+                                alt={t(
+                                  "pages.centerStudentProfile.enrollments.courseThumbnailAlt",
+                                  { title: enrollment.course.title },
+                                )}
+                                className="hidden h-10 w-16 rounded border border-gray-200 object-cover dark:border-gray-700 sm:block"
+                              />
+                            ) : null}
+                            <div className="min-w-0">
+                              <p className="truncate">
+                                {enrollment.course.title}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {enrollment.course.status_label ? (
+                                  <Badge
+                                    variant={
+                                      enrollment.course.is_published
+                                        ? "success"
+                                        : "secondary"
+                                    }
+                                    className="text-[10px]"
+                                  >
+                                    {enrollment.course.status_label}
+                                  </Badge>
+                                ) : null}
+                                {enrollment.course.learning_asset_count !=
+                                  null &&
+                                enrollment.course.learning_asset_count > 0 ? (
+                                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                                    {t(
+                                      "pages.centerStudentProfile.enrollments.learningAssets",
+                                    )}
+                                    : {enrollment.course.learning_asset_count}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell className="capitalize">
                           <Badge
                             variant={
-                              enrollment.status === "active"
+                              String(enrollment.status) === "0" ||
+                              String(enrollment.status).toLowerCase() ===
+                                "active"
                                 ? "success"
-                                : enrollment.status === "completed"
+                                : String(enrollment.status).toLowerCase() ===
+                                    "completed"
                                   ? "secondary"
                                   : "default"
                             }
@@ -705,27 +789,70 @@ export default function StudentProfilePage({
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="w-40">
-                            <div className="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                              <span>
-                                {t(
-                                  "pages.centerStudentProfile.enrollments.progressLabel",
-                                )}
-                              </span>
-                              <span>{enrollment.progress_percentage}%</span>
+                          <div className="w-44 space-y-2">
+                            <div>
+                              <div className="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span>
+                                  {t(
+                                    "pages.centerStudentProfile.enrollments.progressLabel",
+                                  )}
+                                </span>
+                                <span>{enrollment.progress_percentage}%</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                                <div
+                                  className="h-2 rounded-full bg-primary transition-all"
+                                  style={{
+                                    width: `${Math.min(100, Math.max(0, enrollment.progress_percentage))}%`,
+                                  }}
+                                />
+                              </div>
                             </div>
-                            <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
-                              <div
-                                className="h-2 rounded-full bg-primary transition-all"
-                                style={{
-                                  width: `${Math.min(100, Math.max(0, enrollment.progress_percentage))}%`,
-                                }}
-                              />
-                            </div>
+                            {enrollment.course.learning_assets_progress &&
+                            enrollment.course.learning_assets_progress.total >
+                              0 ? (
+                              <div>
+                                <div className="mb-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                  <span>
+                                    {t(
+                                      "pages.centerStudentProfile.enrollments.learningAssets",
+                                    )}
+                                  </span>
+                                  <span>
+                                    {t(
+                                      "pages.centerStudentProfile.enrollments.learningAssetsProgress",
+                                      {
+                                        completed:
+                                          enrollment.course
+                                            .learning_assets_progress.completed,
+                                        total:
+                                          enrollment.course
+                                            .learning_assets_progress.total,
+                                      },
+                                    )}
+                                  </span>
+                                </div>
+                                <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                                  <div
+                                    className="h-2 rounded-full bg-emerald-500 transition-all"
+                                    style={{
+                                      width: `${Math.min(100, Math.max(0, enrollment.course.learning_assets_progress.progress_percentage))}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                         </TableCell>
                         <TableCell>
                           {formatDateTime(enrollment.enrolled_at, locale)}
+                        </TableCell>
+                        <TableCell>
+                          {enrollment.expires_at
+                            ? formatDateTime(enrollment.expires_at, locale)
+                            : t(
+                                "pages.centerStudentProfile.enrollments.noExpiry",
+                              )}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -757,7 +884,7 @@ export default function StudentProfilePage({
                       {isExpanded ? (
                         <TableRow>
                           <TableCell
-                            colSpan={5}
+                            colSpan={6}
                             className="bg-gray-50 dark:bg-gray-900/30"
                           >
                             <div className="mb-3 max-w-sm">
@@ -842,14 +969,24 @@ export default function StudentProfilePage({
                                               {video.title}
                                             </p>
                                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                                              <p>
-                                                {
-                                                  video.watch_progress_percentage
-                                                }
-                                                {t(
-                                                  "pages.centerStudentProfile.enrollments.watchedSuffix",
-                                                )}
-                                              </p>
+                                              <div className="flex flex-wrap items-center gap-1.5">
+                                                <span>
+                                                  {
+                                                    video.watch_progress_percentage
+                                                  }
+                                                  {t(
+                                                    "pages.centerStudentProfile.enrollments.watchedSuffix",
+                                                  )}
+                                                </span>
+                                                {video.source_provider ? (
+                                                  <Badge
+                                                    variant="secondary"
+                                                    className="text-[9px] capitalize"
+                                                  >
+                                                    {video.source_provider}
+                                                  </Badge>
+                                                ) : null}
+                                              </div>
                                               {formattedDuration ? (
                                                 <p>{formattedDuration}</p>
                                               ) : null}
@@ -936,7 +1073,7 @@ export default function StudentProfilePage({
                 {filteredEnrollments.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="py-8 text-center text-sm text-gray-500 dark:text-gray-400"
                     >
                       {t(

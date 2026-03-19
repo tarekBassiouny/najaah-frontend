@@ -90,19 +90,45 @@ export type DeviceChangeLog = {
 export type ProfileCourseVideo = {
   id: number;
   title: string;
+  title_translations?: Record<string, string> | null;
+  tags?: string[] | null;
   thumbnail_url?: string | null;
   duration_seconds?: number | null;
   duration?: number | string | null;
+  source_type?: number | string | null;
+  source_provider?: string | null;
+  source_url?: string | null;
+  source_id?: string | null;
+  library_id?: number | null;
   watch_count: number;
   watch_limit: number | null;
   watch_progress_percentage: number;
+  updated_at?: string | null;
+};
+
+export type LearningAssetsProgress = {
+  total: number;
+  completed: number;
+  in_progress: number;
+  not_started: number;
+  progress_percentage: number;
 };
 
 export type ProfileEnrollmentCourse = {
   id: number;
   title: string;
+  title_translations?: Record<string, string> | null;
+  description?: string | null;
+  description_translations?: Record<string, string> | null;
+  thumbnail?: string | null;
   thumbnail_url: string | null;
+  status?: number | string | null;
+  status_key?: string | null;
+  status_label?: string | null;
+  is_published?: boolean | null;
   video_count: number;
+  learning_asset_count?: number;
+  learning_assets_progress?: LearningAssetsProgress | null;
   videos: ProfileCourseVideo[];
 };
 
@@ -110,7 +136,7 @@ export type StudentEnrollment = {
   id: number;
   enrolled_at: string;
   expires_at: string | null;
-  status: string;
+  status: number | string;
   status_label: string;
   progress_percentage: number;
   course: ProfileEnrollmentCourse;
@@ -137,6 +163,11 @@ export type StudentProfile = {
   center: {
     id: number;
     name: string;
+  } | null;
+  education?: {
+    grade?: StudentEducationEntity | null;
+    school?: StudentEducationEntity | null;
+    college?: StudentEducationEntity | null;
   } | null;
   grade?: StudentEducationEntity | null;
   school?: StudentEducationEntity | null;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTenant } from "@/app/tenant-provider";
 import { useTranslation } from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,7 @@ import {
   resolveVideoProviderLabel,
   resolveVideoThumbnailState,
 } from "@/features/videos/lib/video-thumbnail";
+import { resolveVideoTranscriptReadiness } from "@/lib/ai-source-readiness";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -256,6 +258,19 @@ function canRetryVideoUpload(video: Video) {
   );
 }
 
+function getTranscriptBadge(video: Video, t: (_key: string) => string) {
+  const readiness = resolveVideoTranscriptReadiness(video);
+  if (!readiness.isKnown) {
+    return null;
+  }
+
+  return {
+    variant:
+      readiness.key === "ready" ? ("success" as const) : ("warning" as const),
+    label: t(`pages.videos.table.transcript.${readiness.key}`),
+  };
+}
+
 export function VideosTable({
   centerId: centerIdProp,
   courseId,
@@ -268,6 +283,8 @@ export function VideosTable({
   onBulkDelete,
 }: VideosTableProps) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
   const [page, setPage] = useState(1);
@@ -733,7 +750,12 @@ export function VideosTable({
                   {t("pages.videos.table.headers.updated")}
                 </TableHead>
                 {hasActions ? (
-                  <TableHead className="w-10 text-right font-medium">
+                  <TableHead
+                    className={cn(
+                      "w-24 min-w-[96px] font-medium",
+                      isRtl ? "text-left" : "text-right",
+                    )}
+                  >
                     {t("pages.videos.table.headers.actions")}
                   </TableHead>
                 ) : null}
@@ -812,6 +834,7 @@ export function VideosTable({
                   const sourceMode = resolveSourceMode(video, t);
                   const durationSeconds = resolveDurationSeconds(video);
                   const description = resolveVideoDescription(video);
+                  const transcriptBadge = getTranscriptBadge(video, t);
                   const tableStatus = resolveTableStatus(video);
                   const tableStatusBadge = getStatusBadge(
                     tableStatus.key,
@@ -877,6 +900,14 @@ export function VideosTable({
                           <p className="line-clamp-1 max-w-full break-all font-medium">
                             {title}
                           </p>
+                          {transcriptBadge ? (
+                            <Badge
+                              variant={transcriptBadge.variant}
+                              className="w-fit text-[10px]"
+                            >
+                              {transcriptBadge.label}
+                            </Badge>
+                          ) : null}
                           {description ? (
                             <p
                               className="line-clamp-1 max-w-full break-all text-xs leading-relaxed text-gray-500 dark:text-gray-400"
@@ -959,7 +990,13 @@ export function VideosTable({
                         </div>
                       </TableCell>
                       {hasActions ? (
-                        <TableCell className="text-right">
+                        <TableCell
+                          className={
+                            isRtl
+                              ? "w-24 min-w-[96px] text-left align-middle"
+                              : "w-24 min-w-[96px] text-right align-middle"
+                          }
+                        >
                           <div className="flex items-center justify-end">
                             <Dropdown
                               isOpen={openMenuId === video.id}
@@ -978,7 +1015,10 @@ export function VideosTable({
                               >
                                 {onView ? (
                                   <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => {
                                       setOpenMenuId(null);
                                       onView(video);
@@ -991,7 +1031,10 @@ export function VideosTable({
                                 ) : null}
                                 {onPreview ? (
                                   <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => {
                                       setOpenMenuId(null);
                                       onPreview(video);
@@ -1002,7 +1045,10 @@ export function VideosTable({
                                 ) : null}
                                 {onRetryUpload && canRetryVideoUpload(video) ? (
                                   <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => {
                                       setOpenMenuId(null);
                                       onRetryUpload(video);
@@ -1015,7 +1061,10 @@ export function VideosTable({
                                 ) : null}
                                 {onEdit ? (
                                   <button
-                                    className="w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => {
                                       setOpenMenuId(null);
                                       onEdit(video);
@@ -1026,7 +1075,10 @@ export function VideosTable({
                                 ) : null}
                                 {onDelete ? (
                                   <button
-                                    className="w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    className={cn(
+                                      "w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => {
                                       setOpenMenuId(null);
                                       onDelete(video);

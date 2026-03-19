@@ -46,6 +46,7 @@ import { useGradeOptions } from "@/features/education/hooks/use-grade-options";
 import { useSchoolOptions } from "@/features/education/hooks/use-school-options";
 import { useCollegeOptions } from "@/features/education/hooks/use-college-options";
 import { useTranslation } from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_STATUS_VALUE = "all";
@@ -132,6 +133,9 @@ export function StudentsTable({
   onBulkEnrollAndGenerate,
 }: StudentsTableProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.students.fallbacks.noValue");
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const tenant = useTenant();
   const centerId = centerIdProp ?? tenant.centerId ?? undefined;
   const isCenterScoped = Boolean(centerIdProp);
@@ -689,7 +693,12 @@ export function StudentsTable({
                   {t("pages.students.table.headers.device")}
                 </TableHead>
                 {hasActions && (
-                  <TableHead className="w-10 text-right font-medium">
+                  <TableHead
+                    className={cn(
+                      "w-24 min-w-[96px] font-medium",
+                      isRtl ? "text-left" : "text-right",
+                    )}
+                  >
                     {t("pages.students.table.headers.actions")}
                   </TableHead>
                 )}
@@ -755,6 +764,7 @@ export function StudentsTable({
                   const status = resolveStudentStatus(
                     student.status_key ?? student.status,
                     student.status_label,
+                    t,
                   );
                   const analytics = student.analytics ?? null;
                   const device = student.device ?? null;
@@ -772,28 +782,28 @@ export function StudentsTable({
                     ? `${analytics.total_enrollments ?? 0} ${t("pages.students.table.activity.enrollments")} · ${
                         analytics.total_sessions ?? 0
                       } ${t("pages.students.table.activity.sessions")}`
-                    : "—";
+                    : emptyValue;
                   const gradeLabel = student.grade
                     ? getEducationName(
                         student.grade,
                         t("pages.students.table.filters.grade"),
                       )
-                    : "—";
+                    : emptyValue;
                   const schoolLabel = student.school
                     ? getEducationName(
                         student.school,
                         t("pages.students.table.filters.school"),
                       )
-                    : "—";
+                    : emptyValue;
                   const collegeLabel = student.college
                     ? getEducationName(
                         student.college,
                         t("pages.students.table.filters.college"),
                       )
-                    : "—";
+                    : emptyValue;
                   const lastActivityLabel = analytics?.last_activity_at
                     ? formatDateTime(analytics.last_activity_at)
-                    : "—";
+                    : emptyValue;
                   const profileHref = buildProfileHref?.(student) ?? null;
                   const whatsappNumber = normalizeWhatsAppNumber(
                     student.country_code,
@@ -819,7 +829,9 @@ export function StudentsTable({
                           aria-label={t("pages.students.table.selectStudent", {
                             name:
                               student.name ??
-                              `${t("pages.students.table.headers.student")} ${student.id}`,
+                              t("pages.students.fallbacks.studentById", {
+                                id: student.id,
+                              }),
                           })}
                         />
                       </TableCell>
@@ -829,7 +841,9 @@ export function StudentsTable({
                             {getInitials(
                               student.name ??
                                 student.email ??
-                                `Student ${student.id ?? ""}`,
+                                t("pages.students.fallbacks.studentById", {
+                                  id: student.id ?? "",
+                                }),
                             )}
                           </div>
                           <div className="flex flex-col">
@@ -838,15 +852,15 @@ export function StudentsTable({
                                 href={profileHref}
                                 className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
                               >
-                                {student.name ?? "—"}
+                                {student.name ?? emptyValue}
                               </Link>
                             ) : (
                               <span className="font-medium text-gray-900 dark:text-white">
-                                {student.name ?? "—"}
+                                {student.name ?? emptyValue}
                               </span>
                             )}
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                              <span>{student.phone ?? "—"}</span>
+                              <span>{student.phone ?? emptyValue}</span>
                               {showWhatsAppAction ? (
                                 whatsappHref ? (
                                   <Link
@@ -859,7 +873,12 @@ export function StudentsTable({
                                       {
                                         name:
                                           student.name ??
-                                          `${t("pages.students.table.headers.student")} ${student.id}`,
+                                          t(
+                                            "pages.students.fallbacks.studentById",
+                                            {
+                                              id: student.id,
+                                            },
+                                          ),
                                       },
                                     )}
                                     title={t(
@@ -906,7 +925,7 @@ export function StudentsTable({
                         {student.status != null || student.status_label ? (
                           <Badge variant={status.variant}>{status.label}</Badge>
                         ) : (
-                          "—"
+                          emptyValue
                         )}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
@@ -991,7 +1010,13 @@ export function StudentsTable({
                         )}
                       </TableCell>
                       {hasActions && (
-                        <TableCell className="text-right">
+                        <TableCell
+                          className={
+                            isRtl
+                              ? "w-24 min-w-[96px] text-left align-middle"
+                              : "w-24 min-w-[96px] text-right align-middle"
+                          }
+                        >
                           <div className="flex items-center justify-end">
                             <Dropdown
                               isOpen={openMenuId === student.id}

@@ -15,6 +15,12 @@ const AI_ERROR_MESSAGES: Record<string, string> = {
     "Selected AI provider is not available for this center.",
   AI_PROVIDER_NOT_CONFIGURED: "Selected AI provider is not configured.",
   AI_MODEL_NOT_ALLOWED: "Selected model is not allowed for this provider.",
+  TRANSCRIPT_NOT_FOUND:
+    "This video is not AI-ready yet. Add a transcript before generating content.",
+  PDF_NOT_READY:
+    "This PDF is not AI-ready yet. Wait for text extraction to complete.",
+  PDF_TEXT_EXTRACTION_FAILED:
+    "PDF text extraction failed. Re-upload or replace the file before generating content.",
   INVALID_STATE: "This action is not allowed in the current job state.",
   VALIDATION_ERROR: "Please review and fix the highlighted fields.",
 };

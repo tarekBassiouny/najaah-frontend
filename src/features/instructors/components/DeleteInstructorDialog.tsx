@@ -30,6 +30,7 @@ export function DeleteInstructorDialog({
   onSuccess,
 }: DeleteInstructorDialogProps) {
   const { t } = useTranslation();
+  const deletedMessage = t("pages.instructors.dialogs.delete.messages.deleted");
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteInstructor({
@@ -44,14 +45,14 @@ export function DeleteInstructorDialog({
     deleteMutation.mutate(instructor.id, {
       onSuccess: () => {
         onOpenChange(false);
-        onSuccess?.("Instructor deleted successfully.");
-        showToast("Instructor deleted successfully.", "success");
+        onSuccess?.(deletedMessage);
+        showToast(deletedMessage, "success");
       },
       onError: (error) => {
         setErrorMessage(
           getInstructorApiErrorMessage(
             error,
-            "Unable to delete instructor. Please try again.",
+            t("pages.instructors.dialogs.delete.errorMessage"),
           ),
         );
       },
@@ -72,20 +73,25 @@ export function DeleteInstructorDialog({
       <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="sr-only">
-            {t(
-              "auto.features.instructors.components.deleteinstructordialog.s1",
-            )}
+            {t("pages.instructors.dialogs.delete.title")}
           </DialogTitle>
         </DialogHeader>
         <HardDeletePanel
-          title={t(
-            "auto.features.instructors.components.deleteinstructordialog.s1",
-          )}
+          title={t("pages.instructors.dialogs.delete.title")}
           entityName={instructorName}
-          entityFallback="this instructor"
-          confirmButtonLabel="Delete Instructor"
-          pendingLabel="Deleting..."
-          errorTitle="Could not delete instructor"
+          entityFallback={t("pages.instructors.dialogs.delete.entityFallback")}
+          confirmText={t("pages.instructors.dialogs.delete.confirmText")}
+          confirmLabel={t("pages.instructors.dialogs.delete.confirmLabel", {
+            confirmText: t("pages.instructors.dialogs.delete.confirmText"),
+          })}
+          confirmButtonLabel={t(
+            "pages.instructors.dialogs.delete.confirmButtonLabel",
+          )}
+          pendingLabel={t("pages.instructors.dialogs.delete.pendingLabel")}
+          errorTitle={t("pages.instructors.dialogs.delete.errorTitle")}
+          irreversibleText={t("pages.instructors.dialogs.delete.irreversible")}
+          warningPrefix={t("pages.instructors.dialogs.delete.warningPrefix")}
+          cancelButtonLabel={t("common.actions.cancel")}
           errorMessage={errorMessage}
           isPending={deleteMutation.isPending}
           onCancel={() => onOpenChange(false)}

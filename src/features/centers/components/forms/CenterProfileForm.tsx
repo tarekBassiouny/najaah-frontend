@@ -48,8 +48,29 @@ function resolveTier(value: CenterTierValue | undefined): TierValue {
   return "standard";
 }
 
-function toTitleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+function getCenterTypeLabel(
+  value: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase() === "branded"
+    ? t("pages.centerSettings.forms.profile.options.type.branded")
+    : t("pages.centerSettings.forms.profile.options.type.unbranded");
+}
+
+function getTierLabel(
+  value: CenterTierValue | undefined,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  switch (resolveTier(value)) {
+    case "premium":
+      return t("pages.centerSettings.forms.profile.options.tier.premium");
+    case "vip":
+      return t("pages.centerSettings.forms.profile.options.tier.vip");
+    default:
+      return t("pages.centerSettings.forms.profile.options.tier.standard");
+  }
 }
 
 export function CenterProfileForm({
@@ -100,7 +121,9 @@ export function CenterProfileForm({
     if (!center) return;
 
     if (!name.trim()) {
-      setSaveError("Center name is required.");
+      setSaveError(
+        t("pages.centerSettings.forms.profile.validation.nameRequired"),
+      );
       return;
     }
 
@@ -121,7 +144,7 @@ export function CenterProfileForm({
           setSaveError(
             getCenterApiErrorMessage(
               error,
-              "Unable to update center profile. Please try again.",
+              t("pages.centerSettings.forms.profile.errors.fallback"),
             ),
           );
         },
@@ -132,18 +155,26 @@ export function CenterProfileForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isCreate ? "Center Details" : "Center Profile"}</CardTitle>
+        <CardTitle>
+          {t(
+            isCreate
+              ? "pages.centerSettings.forms.profile.titleCreate"
+              : "pages.centerSettings.forms.profile.titleEdit",
+          )}
+        </CardTitle>
         <CardDescription>
-          {isCreate
-            ? "Provide required metadata for the center profile."
-            : "Update center metadata used in listings and branding."}
+          {t(
+            isCreate
+              ? "pages.centerSettings.forms.profile.descriptionCreate"
+              : "pages.centerSettings.forms.profile.descriptionEdit",
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {saveError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.centers.components.forms.centerprofileform.s1")}
+              {t("pages.centerSettings.forms.profile.errorTitle")}
             </AlertTitle>
             <AlertDescription>{saveError}</AlertDescription>
           </Alert>
@@ -151,7 +182,7 @@ export function CenterProfileForm({
 
         <div className="space-y-2">
           <Label htmlFor="center-name">
-            {t("auto.features.centers.components.forms.centerprofileform.s2")}
+            {t("pages.centerSettings.forms.profile.fields.name.label")}
             {isCreate ? "*" : ""}
           </Label>
           {isPlatformAdmin ? (
@@ -160,7 +191,7 @@ export function CenterProfileForm({
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder={t(
-                "auto.features.centers.components.forms.centerprofileform.s3",
+                "pages.centerSettings.forms.profile.fields.name.placeholder",
               )}
               required={isCreate}
               className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
@@ -177,7 +208,7 @@ export function CenterProfileForm({
         {isCreate ? (
           <div className="space-y-2">
             <Label htmlFor="center-slug">
-              {t("auto.features.centers.components.forms.centerprofileform.s4")}
+              {t("pages.centerSettings.forms.profile.fields.slug.label")}
             </Label>
             <div className="flex gap-2">
               <Input
@@ -185,7 +216,7 @@ export function CenterProfileForm({
                 value={slug}
                 onChange={(event) => setSlug(event.target.value)}
                 placeholder={t(
-                  "auto.features.centers.components.forms.centerprofileform.s5",
+                  "pages.centerSettings.forms.profile.fields.slug.placeholder",
                 )}
                 required
                 className="h-10 bg-white shadow-sm transition-shadow focus-visible:ring-2 focus-visible:ring-primary/30 dark:bg-gray-900"
@@ -196,14 +227,16 @@ export function CenterProfileForm({
                 onClick={generateSlug}
                 disabled={!name}
               >
-                Generate
+                {t("pages.centerSettings.forms.profile.actions.generateSlug")}
               </Button>
             </div>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Slug</Label>
+              <Label>
+                {t("pages.centerSettings.forms.profile.fields.slug.label")}
+              </Label>
               <Input
                 value={center?.slug ?? ""}
                 disabled
@@ -211,9 +244,11 @@ export function CenterProfileForm({
               />
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>
+                {t("pages.centerSettings.forms.profile.fields.type.label")}
+              </Label>
               <Input
-                value={toTitleCase(String(center?.type ?? "unbranded"))}
+                value={getCenterTypeLabel(center?.type, t)}
                 disabled
                 className="h-10 bg-gray-50 dark:bg-gray-900/60"
               />
@@ -225,9 +260,7 @@ export function CenterProfileForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>
-                {t(
-                  "auto.features.centers.components.forms.centerprofileform.s6",
-                )}
+                {t("pages.centerSettings.forms.profile.fields.type.label")}
               </Label>
               <Select
                 value={type}
@@ -239,14 +272,24 @@ export function CenterProfileForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unbranded">Unbranded</SelectItem>
-                  <SelectItem value="branded">Branded</SelectItem>
+                  <SelectItem value="unbranded">
+                    {t(
+                      "pages.centerSettings.forms.profile.options.type.unbranded",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="branded">
+                    {t(
+                      "pages.centerSettings.forms.profile.options.type.branded",
+                    )}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Tier</Label>
+              <Label>
+                {t("pages.centerSettings.forms.profile.fields.tier.label")}
+              </Label>
               <Select
                 value={tier}
                 onValueChange={(value) => setTier(value as TierValue)}
@@ -255,9 +298,19 @@ export function CenterProfileForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="vip">VIP</SelectItem>
+                  <SelectItem value="standard">
+                    {t(
+                      "pages.centerSettings.forms.profile.options.tier.standard",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="premium">
+                    {t(
+                      "pages.centerSettings.forms.profile.options.tier.premium",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="vip">
+                    {t("pages.centerSettings.forms.profile.options.tier.vip")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -267,7 +320,9 @@ export function CenterProfileForm({
         {!isCreate && isPlatformAdmin ? (
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label>Tier</Label>
+              <Label>
+                {t("pages.centerSettings.forms.profile.fields.tier.label")}
+              </Label>
               <Select
                 value={tier}
                 onValueChange={(value) => setTier(value as TierValue)}
@@ -276,15 +331,27 @@ export function CenterProfileForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="vip">VIP</SelectItem>
+                  <SelectItem value="standard">
+                    {t(
+                      "pages.centerSettings.forms.profile.options.tier.standard",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="premium">
+                    {t(
+                      "pages.centerSettings.forms.profile.options.tier.premium",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="vip">
+                    {t("pages.centerSettings.forms.profile.options.tier.vip")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Featured</Label>
+              <Label>
+                {t("pages.centerSettings.forms.profile.fields.featured.label")}
+              </Label>
               <label className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
                 <input
                   type="checkbox"
@@ -292,7 +359,7 @@ export function CenterProfileForm({
                   onChange={(event) => setIsFeatured(event.target.checked)}
                 />
                 {t(
-                  "auto.features.centers.components.forms.centerprofileform.s7",
+                  "pages.centerSettings.forms.profile.fields.featured.checkbox",
                 )}
               </label>
             </div>
@@ -300,7 +367,7 @@ export function CenterProfileForm({
             <div className="space-y-2">
               <Label>
                 {t(
-                  "auto.features.centers.components.forms.centerprofileform.s8",
+                  "pages.centerSettings.forms.profile.fields.allowGuestBrowsing.label",
                 )}
               </Label>
               <label className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
@@ -312,7 +379,7 @@ export function CenterProfileForm({
                   }
                 />
                 {t(
-                  "auto.features.centers.components.forms.centerprofileform.s9",
+                  "pages.centerSettings.forms.profile.fields.allowGuestBrowsing.checkbox",
                 )}
               </label>
             </div>
@@ -321,9 +388,11 @@ export function CenterProfileForm({
 
         {!isCreate && !isPlatformAdmin ? (
           <div className="space-y-2">
-            <Label>Tier</Label>
+            <Label>
+              {t("pages.centerSettings.forms.profile.fields.tier.label")}
+            </Label>
             <Input
-              value={toTitleCase(String(center?.tier ?? "standard"))}
+              value={getTierLabel(center?.tier, t)}
               disabled
               className="h-10 bg-gray-50 dark:bg-gray-900/60"
             />
@@ -332,14 +401,16 @@ export function CenterProfileForm({
 
         {isCreate && isPlatformAdmin ? (
           <div className="space-y-2">
-            <Label>Featured</Label>
+            <Label>
+              {t("pages.centerSettings.forms.profile.fields.featured.label")}
+            </Label>
             <label className="flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
               <input
                 type="checkbox"
                 checked={isFeatured}
                 onChange={(event) => setIsFeatured(event.target.checked)}
               />
-              {t("auto.features.centers.components.forms.centerprofileform.s7")}
+              {t("pages.centerSettings.forms.profile.fields.featured.checkbox")}
             </label>
           </div>
         ) : null}
@@ -350,7 +421,9 @@ export function CenterProfileForm({
               onClick={handleSave}
               disabled={updateCenterMutation.isPending}
             >
-              {updateCenterMutation.isPending ? "Saving..." : "Save Changes"}
+              {updateCenterMutation.isPending
+                ? t("pages.centerSettings.forms.profile.actions.saving")
+                : t("pages.centerSettings.forms.profile.actions.save")}
             </Button>
           </div>
         ) : null}

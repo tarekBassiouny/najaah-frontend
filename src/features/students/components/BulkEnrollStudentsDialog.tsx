@@ -208,16 +208,20 @@ export function BulkEnrollStudentsDialog({
     setResult(null);
 
     if (!hasSelectedCenter) {
-      setErrorMessage("Select a center before enrolling students.");
+      setErrorMessage(
+        t("pages.students.dialogs.bulkEnroll.errors.selectCenter"),
+      );
       return;
     }
 
     if (!selectedCourse) {
-      setErrorMessage("Select a course to enroll students.");
+      setErrorMessage(
+        t("pages.students.dialogs.bulkEnroll.errors.selectCourse"),
+      );
       return;
     }
     if (students.length === 0) {
-      setErrorMessage("No students selected.");
+      setErrorMessage(t("pages.students.dialogs.bulkEnroll.errors.noStudents"));
       return;
     }
 
@@ -237,7 +241,7 @@ export function BulkEnrollStudentsDialog({
               status: "approved" as const,
             };
           } catch (error) {
-            const message = getEnrollErrorMessage(error);
+            const message = getEnrollErrorMessage(error, t);
             if (isAlreadyEnrolledMessage(message)) {
               return {
                 user_id: student.id,
@@ -262,7 +266,9 @@ export function BulkEnrollStudentsDialog({
         .filter((item) => item.status === "failed")
         .map((item) => ({
           user_id: item.user_id,
-          reason: item.reason ?? "Failed",
+          reason:
+            item.reason ??
+            t("pages.students.dialogs.bulkEnroll.summary.failedFallback"),
         }));
       const approved = enrollmentResults.filter(
         (item) => item.status === "approved",
@@ -285,12 +291,12 @@ export function BulkEnrollStudentsDialog({
       ]);
 
       if (failed.length === 0 && skipped.length === 0) {
-        onSuccess?.("All selected students were enrolled successfully.");
+        onSuccess?.(t("pages.students.dialogs.bulkEnroll.messages.updated"));
         onOpenChange(false);
         return;
       }
 
-      onSuccess?.("Bulk enrollment processed.");
+      onSuccess?.(t("pages.students.dialogs.bulkEnroll.messages.processed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -315,15 +321,12 @@ export function BulkEnrollStudentsDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            {t("auto.features.students.components.bulkenrollstudentsdialog.s1")}
+            {t("pages.students.dialogs.bulkEnroll.title")}
           </DialogTitle>
           <DialogDescription>
-            Choose {showCenterPicker ? "a center and " : ""}
-            {t(
-              "auto.features.students.components.bulkenrollstudentsdialog.s2",
-            )}{" "}
-            {students.length}{" "}
-            {t("auto.features.students.components.bulkenrollstudentsdialog.s3")}
+            {t("pages.students.dialogs.bulkEnroll.description", {
+              count: students.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -338,27 +341,37 @@ export function BulkEnrollStudentsDialog({
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                 <div className="rounded-md border border-gray-200 bg-white px-3 py-2 text-center dark:border-gray-700 dark:bg-gray-900">
-                  <p className="text-gray-500 dark:text-gray-400">Total</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {t("pages.students.dialogs.bulkEnroll.summary.totalLabel")}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                     {result.counts.total ?? students.length}
                   </p>
                 </div>
                 <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center dark:border-emerald-900/40 dark:bg-emerald-900/20">
                   <p className="text-emerald-700 dark:text-emerald-300">
-                    Approved
+                    {t(
+                      "pages.students.dialogs.bulkEnroll.summary.approvedLabel",
+                    )}
                   </p>
                   <p className="mt-1 text-base font-semibold text-emerald-800 dark:text-emerald-200">
                     {result.counts.approved ?? 0}
                   </p>
                 </div>
                 <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center dark:border-amber-900/40 dark:bg-amber-900/20">
-                  <p className="text-amber-700 dark:text-amber-300">Skipped</p>
+                  <p className="text-amber-700 dark:text-amber-300">
+                    {t(
+                      "pages.students.dialogs.bulkEnroll.summary.skippedLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-amber-800 dark:text-amber-200">
                     {result.counts.skipped ?? 0}
                   </p>
                 </div>
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center dark:border-red-900/40 dark:bg-red-900/20">
-                  <p className="text-red-700 dark:text-red-300">Failed</p>
+                  <p className="text-red-700 dark:text-red-300">
+                    {t("pages.students.dialogs.bulkEnroll.summary.failedLabel")}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
                     {result.counts.failed ?? 0}
                   </p>
@@ -368,16 +381,25 @@ export function BulkEnrollStudentsDialog({
                 <div className="mt-3 space-y-1 text-xs">
                   {result.failed.map((item, index) => (
                     <p key={`${item.user_id}-${index}`}>
-                      #{item.user_id ?? "?"}: {item.reason ?? "Failed"}
+                      {t(
+                        "pages.students.dialogs.bulkEnroll.summary.studentPrefix",
+                      )}
+                      {item.user_id ??
+                        t(
+                          "pages.students.dialogs.bulkEnroll.summary.unknownId",
+                        )}
+                      :{" "}
+                      {item.reason ??
+                        t(
+                          "pages.students.dialogs.bulkEnroll.summary.failedFallback",
+                        )}
                     </p>
                   ))}
                 </div>
               ) : null}
               {result.skipped && result.skipped.length > 0 ? (
                 <div className="mt-3 text-xs">
-                  {t(
-                    "auto.features.students.components.bulkenrollstudentsdialog.s4",
-                  )}
+                  {t("pages.students.dialogs.bulkEnroll.summary.skippedIds")}
                   {result.skipped.join(", ")}
                 </div>
               ) : null}
@@ -387,7 +409,7 @@ export function BulkEnrollStudentsDialog({
           {showCenterPicker ? (
             <div className="space-y-2">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Center
+                {t("pages.students.dialogs.bulkEnroll.fields.center")}
               </p>
               <CenterPicker
                 value={selectedCenterId}
@@ -404,7 +426,7 @@ export function BulkEnrollStudentsDialog({
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Course
+              {t("pages.students.dialogs.bulkEnroll.fields.course")}
             </p>
             <SearchableSelect
               key={String(centerIdForQuery ?? "none")}
@@ -414,13 +436,19 @@ export function BulkEnrollStudentsDialog({
               searchValue={courseSearch}
               onSearchValueChange={setCourseSearch}
               placeholder={
-                hasSelectedCenter ? "Select a course" : "Select center first"
+                hasSelectedCenter
+                  ? t("pages.students.dialogs.bulkEnroll.placeholders.course")
+                  : t(
+                      "pages.students.dialogs.bulkEnroll.placeholders.selectCenterFirst",
+                    )
               }
-              searchPlaceholder="Search courses..."
+              searchPlaceholder={t(
+                "pages.students.dialogs.bulkEnroll.placeholders.searchCourses",
+              )}
               emptyMessage={
                 hasSelectedCenter
-                  ? "No courses found"
-                  : "Select a center to load courses"
+                  ? t("pages.students.dialogs.bulkEnroll.empty.noCourses")
+                  : t("pages.students.dialogs.bulkEnroll.empty.loadCenterFirst")
               }
               isLoading={coursesQuery.isLoading}
               filterOptions={false}
@@ -444,10 +472,12 @@ export function BulkEnrollStudentsDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            {t("auto.features.students.components.bulkenrollstudentsdialog.s5")}
+            {t("common.actions.cancel")}
           </Button>
           <Button onClick={handleEnroll} disabled={isSubmitting}>
-            {isSubmitting ? "Enrolling..." : "Enroll Students"}
+            {isSubmitting
+              ? t("pages.students.dialogs.bulkEnroll.actions.enrolling")
+              : t("pages.students.dialogs.bulkEnroll.actions.enrollStudents")}
           </Button>
         </div>
       </DialogContent>

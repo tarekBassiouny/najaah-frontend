@@ -21,7 +21,10 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 const ROLES_PAGE_SIZE = 100;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -34,19 +37,26 @@ type BulkAssignRolesDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, t: TranslateFunction): string {
   return getAdminApiErrorMessage(
     error,
-    "Unable to assign roles. Please try again.",
+    t("pages.admins.dialogs.bulkAssignRoles.errors.assignFailed"),
   );
 }
 
-function roleName(role: {
-  name?: string | null;
-  slug?: string | null;
-  id: string | number;
-}) {
-  return role.name ?? role.slug ?? `Role ${role.id}`;
+function roleName(
+  role: {
+    name?: string | null;
+    slug?: string | null;
+    id: string | number;
+  },
+  t: TranslateFunction,
+) {
+  return (
+    role.name ??
+    role.slug ??
+    t("pages.admins.fallbacks.roleById", { id: role.id })
+  );
 }
 
 function permissionCount(role: { permissions?: unknown }) {
@@ -61,6 +71,7 @@ export function BulkAssignRolesDialog({
   scopeCenterId,
 }: BulkAssignRolesDialogProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.admins.fallbacks.noValue");
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -133,12 +144,14 @@ export function BulkAssignRolesDialog({
     setResult(null);
 
     if (selectedRoleIds.size === 0) {
-      setErrorMessage("Select at least one role.");
+      setErrorMessage(
+        t("pages.admins.dialogs.bulkAssignRoles.errors.selectRole"),
+      );
       return;
     }
 
     if (users.length === 0) {
-      setErrorMessage("No users selected.");
+      setErrorMessage(t("pages.admins.dialogs.bulkAssignRoles.errors.noUsers"));
       return;
     }
 
@@ -150,7 +163,10 @@ export function BulkAssignRolesDialog({
 
       if (!isAdminRequestSuccessful(response)) {
         setErrorMessage(
-          getAdminResponseMessage(response, "Unable to assign roles."),
+          getAdminResponseMessage(
+            response,
+            t("pages.admins.dialogs.bulkAssignRoles.errors.processFailed"),
+          ),
         );
         return;
       }
@@ -162,7 +178,7 @@ export function BulkAssignRolesDialog({
         onSuccess?.(
           getAdminResponseMessage(
             response,
-            "All users assigned to roles successfully.",
+            t("pages.admins.dialogs.bulkAssignRoles.messages.updated"),
           ),
         );
         onOpenChange(false);
@@ -170,10 +186,13 @@ export function BulkAssignRolesDialog({
       }
 
       onSuccess?.(
-        getAdminResponseMessage(response, "Bulk role assignment processed."),
+        getAdminResponseMessage(
+          response,
+          t("pages.admins.dialogs.bulkAssignRoles.messages.processed"),
+        ),
       );
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setErrorMessage(getErrorMessage(error, t));
     }
   };
 
@@ -190,13 +209,12 @@ export function BulkAssignRolesDialog({
       <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-2xl overflow-y-auto p-4 sm:max-h-[calc(100dvh-4rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            {t("auto.features.admin_users.components.bulkassignrolesdialog.s1")}
+            {t("pages.admins.dialogs.bulkAssignRoles.title")}
           </DialogTitle>
           <DialogDescription>
-            {t("auto.features.admin_users.components.bulkassignrolesdialog.s2")}
-            {users.length}{" "}
-            {t("auto.features.admin_users.components.bulkassignrolesdialog.s3")}
-            {users.length === 1 ? "" : "s"}.
+            {t("pages.admins.dialogs.bulkAssignRoles.description", {
+              count: users.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -211,27 +229,41 @@ export function BulkAssignRolesDialog({
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-800 dark:bg-gray-900/40">
               <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                 <div className="rounded-md border border-gray-200 bg-white px-3 py-2 text-center dark:border-gray-700 dark:bg-gray-900">
-                  <p className="text-gray-500 dark:text-gray-400">Total</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {t(
+                      "pages.admins.dialogs.bulkAssignRoles.summary.totalLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
                     {result.counts.total ?? 0}
                   </p>
                 </div>
                 <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-center dark:border-emerald-900/40 dark:bg-emerald-900/20">
                   <p className="text-emerald-700 dark:text-emerald-300">
-                    Updated
+                    {t(
+                      "pages.admins.dialogs.bulkAssignRoles.summary.updatedLabel",
+                    )}
                   </p>
                   <p className="mt-1 text-base font-semibold text-emerald-800 dark:text-emerald-200">
                     {result.counts.updated ?? 0}
                   </p>
                 </div>
                 <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center dark:border-amber-900/40 dark:bg-amber-900/20">
-                  <p className="text-amber-700 dark:text-amber-300">Skipped</p>
+                  <p className="text-amber-700 dark:text-amber-300">
+                    {t(
+                      "pages.admins.dialogs.bulkAssignRoles.summary.skippedLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-amber-800 dark:text-amber-200">
                     {result.counts.skipped ?? 0}
                   </p>
                 </div>
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-center dark:border-red-900/40 dark:bg-red-900/20">
-                  <p className="text-red-700 dark:text-red-300">Failed</p>
+                  <p className="text-red-700 dark:text-red-300">
+                    {t(
+                      "pages.admins.dialogs.bulkAssignRoles.summary.failedLabel",
+                    )}
+                  </p>
                   <p className="mt-1 text-base font-semibold text-red-800 dark:text-red-200">
                     {result.counts.failed ?? 0}
                   </p>
@@ -242,15 +274,19 @@ export function BulkAssignRolesDialog({
                 <div className="mt-3 space-y-1 text-xs text-red-700 dark:text-red-300">
                   <p className="font-medium">
                     {t(
-                      "auto.features.admin_users.components.bulkassignrolesdialog.s4",
+                      "pages.admins.dialogs.bulkAssignRoles.summary.failedTitle",
                     )}
                   </p>
                   {result.failed.map((item, index) => (
                     <p key={`failed-${item.user_id}-${index}`}>
                       {t(
-                        "auto.features.admin_users.components.bulkassignrolesdialog.s5",
+                        "pages.admins.dialogs.bulkAssignRoles.summary.userPrefix",
                       )}
-                      {item.user_id}: {item.reason ?? "Failed"}
+                      {item.user_id}:{" "}
+                      {item.reason ??
+                        t(
+                          "pages.admins.dialogs.bulkAssignRoles.summary.failedFallback",
+                        )}
                     </p>
                   ))}
                 </div>
@@ -260,15 +296,19 @@ export function BulkAssignRolesDialog({
                 <div className="mt-3 text-xs text-amber-700 dark:text-amber-300">
                   <p className="font-medium">
                     {t(
-                      "auto.features.admin_users.components.bulkassignrolesdialog.s6",
+                      "pages.admins.dialogs.bulkAssignRoles.summary.skippedTitle",
                     )}
                   </p>
                   {result.skipped.map((item, index) => (
                     <p key={`skipped-${item.user_id}-${index}`}>
                       {t(
-                        "auto.features.admin_users.components.bulkassignrolesdialog.s5",
+                        "pages.admins.dialogs.bulkAssignRoles.summary.userPrefix",
                       )}
-                      {item.user_id}: {item.reason ?? "Skipped"}
+                      {item.user_id}:{" "}
+                      {item.reason ??
+                        t(
+                          "pages.admins.dialogs.bulkAssignRoles.summary.skippedFallback",
+                        )}
                     </p>
                   ))}
                 </div>
@@ -294,7 +334,7 @@ export function BulkAssignRolesDialog({
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder={t(
-                    "auto.features.admin_users.components.bulkassignrolesdialog.s7",
+                    "pages.admins.dialogs.bulkAssignRoles.searchPlaceholder",
                   )}
                   className="pl-10"
                   disabled={isSubmitting}
@@ -310,7 +350,11 @@ export function BulkAssignRolesDialog({
                   </div>
                 ) : roles.length === 0 ? (
                   <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    {debouncedSearch ? "No roles found" : "No roles available"}
+                    {debouncedSearch
+                      ? t(
+                          "pages.admins.dialogs.bulkAssignRoles.empty.noResults",
+                        )
+                      : t("pages.admins.dialogs.bulkAssignRoles.empty.noRoles")}
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -335,13 +379,16 @@ export function BulkAssignRolesDialog({
                           />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                              {roleName(role)}
+                              {roleName(role, t)}
                             </p>
                             <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                              {(role.slug ?? "—") +
-                                " • " +
-                                permissionCount(role) +
-                                " permissions"}
+                              {t(
+                                "pages.admins.dialogs.bulkAssignRoles.roleMeta",
+                                {
+                                  slug: role.slug ?? emptyValue,
+                                  count: permissionCount(role),
+                                },
+                              )}
                             </p>
                           </div>
                         </label>
@@ -353,8 +400,9 @@ export function BulkAssignRolesDialog({
 
               {selectedRoleIds.size > 0 && (
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedRoleIds.size} role
-                  {selectedRoleIds.size === 1 ? "" : "s"} selected
+                  {t("pages.admins.dialogs.bulkAssignRoles.selectedCount", {
+                    count: selectedRoleIds.size,
+                  })}
                 </p>
               )}
             </>
@@ -367,14 +415,16 @@ export function BulkAssignRolesDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            {result ? "Close" : "Cancel"}
+            {result ? t("common.actions.close") : t("common.actions.cancel")}
           </Button>
           {!result && (
             <Button
               onClick={handleAssign}
               disabled={isSubmitting || selectedRoleIds.size === 0}
             >
-              {isSubmitting ? "Assigning..." : "Assign Roles"}
+              {isSubmitting
+                ? t("pages.admins.dialogs.bulkAssignRoles.actions.assigning")
+                : t("pages.admins.dialogs.bulkAssignRoles.actions.assign")}
             </Button>
           )}
         </div>

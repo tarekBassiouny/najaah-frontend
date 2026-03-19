@@ -28,8 +28,24 @@ function getOnboardingBadgeVariant(status: string) {
   return "secondary" as const;
 }
 
-function toTitleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+function getOnboardingStatusLabel(
+  status: string,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  const normalized = status.trim().toUpperCase();
+  if (normalized === "ACTIVE") {
+    return t("pages.centerSettings.badges.onboarding.active");
+  }
+  if (normalized === "FAILED") {
+    return t("pages.centerSettings.badges.onboarding.failed");
+  }
+  if (normalized === "IN_PROGRESS") {
+    return t("pages.centerSettings.badges.onboarding.inProgress");
+  }
+  if (normalized === "DRAFT") {
+    return t("pages.centerSettings.badges.onboarding.draft");
+  }
+  return t("pages.centerSettings.badges.onboarding.unknown");
 }
 
 export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
@@ -48,7 +64,7 @@ export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
         setRetryError(
           getCenterApiErrorMessage(
             error,
-            "Unable to retry onboarding. Please try again.",
+            t("pages.centerSettings.cards.onboarding.errors.fallback"),
           ),
         );
       },
@@ -58,18 +74,18 @@ export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Onboarding</CardTitle>
+        <CardTitle>
+          {t("pages.centerSettings.cards.onboarding.title")}
+        </CardTitle>
         <CardDescription>
-          {t("auto.features.centers.components.forms.centeronboardingcard.s1")}
+          {t("pages.centerSettings.cards.onboarding.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {retryError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t(
-                "auto.features.centers.components.forms.centeronboardingcard.s2",
-              )}
+              {t("pages.centerSettings.cards.onboarding.errorTitle")}
             </AlertTitle>
             <AlertDescription>{retryError}</AlertDescription>
           </Alert>
@@ -77,12 +93,10 @@ export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {t(
-              "auto.features.centers.components.forms.centeronboardingcard.s3",
-            )}
+            {t("pages.centerSettings.cards.onboarding.currentLabel")}
           </span>
           <Badge variant={getOnboardingBadgeVariant(onboardingStatus)}>
-            {toTitleCase(onboardingStatus.replace(/_/g, " "))}
+            {getOnboardingStatusLabel(onboardingStatus, t)}
           </Badge>
         </div>
 
@@ -92,7 +106,9 @@ export function CenterOnboardingCard({ center }: CenterOnboardingCardProps) {
           onClick={handleRetryOnboarding}
           disabled={retryMutation.isPending}
         >
-          {retryMutation.isPending ? "Retrying..." : "Retry Onboarding"}
+          {retryMutation.isPending
+            ? t("pages.centerSettings.cards.onboarding.actions.retrying")
+            : t("pages.centerSettings.cards.onboarding.actions.retry")}
         </Button>
       </CardContent>
     </Card>

@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { EditablePayload } from "@/features/ai/lib/review-payload";
 import {
   readArrayFromPaths,
-  readStringFromPaths,
+  readLocalizedStringFromPaths,
+  readLocalizedTextValue,
+  type ReviewLocale,
 } from "@/features/ai/lib/review-payload";
 import type { AIContentTargetType } from "@/features/ai/types/ai";
 import { useTranslation } from "@/features/localization";
@@ -13,36 +15,59 @@ import { useTranslation } from "@/features/localization";
 type ReviewAssetPreviewProps = {
   targetType: AIContentTargetType;
   payload: EditablePayload;
+  activeLocale: ReviewLocale;
 };
 
 export function ReviewAssetPreview({
   targetType,
   payload,
+  activeLocale,
 }: ReviewAssetPreviewProps) {
   switch (targetType) {
     case "summary":
-      return <SummaryPreviewPanel payload={payload} />;
+      return (
+        <SummaryPreviewPanel payload={payload} activeLocale={activeLocale} />
+      );
     case "quiz":
-      return <QuizPreviewPanel payload={payload} />;
+      return <QuizPreviewPanel payload={payload} activeLocale={activeLocale} />;
     case "flashcards":
-      return <FlashcardsPreviewPanel payload={payload} />;
+      return (
+        <FlashcardsPreviewPanel payload={payload} activeLocale={activeLocale} />
+      );
     case "assignment":
-      return <AssignmentPreviewPanel payload={payload} />;
+      return (
+        <AssignmentPreviewPanel payload={payload} activeLocale={activeLocale} />
+      );
+    case "interactive_activity":
+      return (
+        <InteractivePreviewPanel
+          payload={payload}
+          activeLocale={activeLocale}
+        />
+      );
     default:
       return null;
   }
 }
 
-function SummaryPreviewPanel({ payload }: { payload: EditablePayload }) {
+function SummaryPreviewPanel({
+  payload,
+  activeLocale,
+}: {
+  payload: EditablePayload;
+  activeLocale: ReviewLocale;
+}) {
   const { t } = useTranslation();
-  const title = readStringFromPaths(payload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const content = readStringFromPaths(payload, [
-    ["content"],
-    ["content_translations", "en"],
-  ]);
+  const title = readLocalizedStringFromPaths(
+    payload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const content = readLocalizedStringFromPaths(
+    payload,
+    [["content"], ["content_translations"]],
+    activeLocale,
+  );
 
   return (
     <div className="space-y-3">
@@ -69,12 +94,19 @@ function SummaryPreviewPanel({ payload }: { payload: EditablePayload }) {
   );
 }
 
-function QuizPreviewPanel({ payload }: { payload: EditablePayload }) {
+function QuizPreviewPanel({
+  payload,
+  activeLocale,
+}: {
+  payload: EditablePayload;
+  activeLocale: ReviewLocale;
+}) {
   const { t } = useTranslation();
-  const title = readStringFromPaths(payload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
+  const title = readLocalizedStringFromPaths(
+    payload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
   const questions = readArrayFromPaths(payload, [["questions"]]) as Array<
     Record<string, unknown>
   >;
@@ -97,9 +129,9 @@ function QuizPreviewPanel({ payload }: { payload: EditablePayload }) {
       <div className="max-h-96 space-y-2 overflow-auto">
         {questions.map((question, index) => {
           const questionText =
-            (question.question as string) ||
-            (question.text as string) ||
-            (question.title as string) ||
+            readLocalizedTextValue(question.question, activeLocale) ||
+            readLocalizedTextValue(question.text, activeLocale) ||
+            readLocalizedTextValue(question.title, activeLocale) ||
             "";
           const options = Array.isArray(question.options)
             ? (question.options as Array<Record<string, unknown>>)
@@ -116,9 +148,9 @@ function QuizPreviewPanel({ payload }: { payload: EditablePayload }) {
                   <div className="mt-2 space-y-1">
                     {options.map((option, optionIndex) => {
                       const optionText =
-                        (option.text as string) ||
-                        (option.label as string) ||
-                        (option.answer as string) ||
+                        readLocalizedTextValue(option.text, activeLocale) ||
+                        readLocalizedTextValue(option.label, activeLocale) ||
+                        readLocalizedTextValue(option.answer, activeLocale) ||
                         String(option);
                       const isCorrect =
                         option.is_correct === true || option.correct === true;
@@ -155,12 +187,19 @@ function QuizPreviewPanel({ payload }: { payload: EditablePayload }) {
   );
 }
 
-function FlashcardsPreviewPanel({ payload }: { payload: EditablePayload }) {
+function FlashcardsPreviewPanel({
+  payload,
+  activeLocale,
+}: {
+  payload: EditablePayload;
+  activeLocale: ReviewLocale;
+}) {
   const { t } = useTranslation();
-  const title = readStringFromPaths(payload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
+  const title = readLocalizedStringFromPaths(
+    payload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
   const cards = readArrayFromPaths(payload, [["cards"]]) as Array<
     Record<string, unknown>
   >;
@@ -183,14 +222,14 @@ function FlashcardsPreviewPanel({ payload }: { payload: EditablePayload }) {
       <div className="max-h-96 space-y-2 overflow-auto">
         {cards.map((card, index) => {
           const front =
-            (card.front as string) ||
-            (card.question as string) ||
-            (card.term as string) ||
+            readLocalizedTextValue(card.front, activeLocale) ||
+            readLocalizedTextValue(card.question, activeLocale) ||
+            readLocalizedTextValue(card.term, activeLocale) ||
             "";
           const back =
-            (card.back as string) ||
-            (card.answer as string) ||
-            (card.definition as string) ||
+            readLocalizedTextValue(card.back, activeLocale) ||
+            readLocalizedTextValue(card.answer, activeLocale) ||
+            readLocalizedTextValue(card.definition, activeLocale) ||
             "";
 
           return (
@@ -227,16 +266,24 @@ function FlashcardsPreviewPanel({ payload }: { payload: EditablePayload }) {
   );
 }
 
-function AssignmentPreviewPanel({ payload }: { payload: EditablePayload }) {
+function AssignmentPreviewPanel({
+  payload,
+  activeLocale,
+}: {
+  payload: EditablePayload;
+  activeLocale: ReviewLocale;
+}) {
   const { t } = useTranslation();
-  const title = readStringFromPaths(payload, [
-    ["title"],
-    ["title_translations", "en"],
-  ]);
-  const description = readStringFromPaths(payload, [
-    ["description"],
-    ["description_translations", "en"],
-  ]);
+  const title = readLocalizedStringFromPaths(
+    payload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const description = readLocalizedStringFromPaths(
+    payload,
+    [["description"], ["description_translations"]],
+    activeLocale,
+  );
 
   return (
     <div className="space-y-3">
@@ -257,6 +304,86 @@ function AssignmentPreviewPanel({ payload }: { payload: EditablePayload }) {
           {t("pages.courseAssets.review.noContent")}
         </p>
       )}
+    </div>
+  );
+}
+
+function InteractivePreviewPanel({
+  payload,
+  activeLocale,
+}: {
+  payload: EditablePayload;
+  activeLocale: ReviewLocale;
+}) {
+  const { t } = useTranslation();
+  const title = readLocalizedStringFromPaths(
+    payload,
+    [["title"], ["title_translations"]],
+    activeLocale,
+  );
+  const instructions = readLocalizedStringFromPaths(
+    payload,
+    [["instructions"]],
+    activeLocale,
+  );
+  const steps = readArrayFromPaths(payload, [["steps"]]) as Array<
+    Record<string, unknown>
+  >;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          {t("pages.centerCourseDetail.panels.interactiveActivity")}
+        </p>
+        <Badge variant="outline">
+          {steps.length}{" "}
+          {t("pages.centerAIContent.workspace.review.interactive.steps")}
+        </Badge>
+      </div>
+      {title ? (
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+          {title}
+        </h3>
+      ) : null}
+      {instructions ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+          {instructions}
+        </div>
+      ) : null}
+      <div className="max-h-96 space-y-2 overflow-auto">
+        {steps.map((step, index) => {
+          const stepTitle =
+            readLocalizedTextValue(step.title, activeLocale) ||
+            readLocalizedTextValue(step.label, activeLocale) ||
+            readLocalizedTextValue(step.prompt, activeLocale) ||
+            `${index + 1}`;
+          const stepContent =
+            readLocalizedTextValue(step.content, activeLocale) ||
+            readLocalizedTextValue(step.instructions, activeLocale) ||
+            readLocalizedTextValue(step.description, activeLocale);
+
+          return (
+            <Card key={index} className="border-gray-200 dark:border-gray-700">
+              <CardContent className="space-y-2 p-3">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {stepTitle}
+                </p>
+                {stepContent ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {stepContent}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          );
+        })}
+        {steps.length === 0 && !instructions ? (
+          <p className="text-sm text-gray-400 dark:text-gray-500">
+            {t("pages.courseAssets.review.noContent")}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

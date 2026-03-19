@@ -614,7 +614,446 @@
       "notFoundDesc": "الصفحة التي تحاول فتحها تخص مركزاً لم يعد موجوداً.",
       "loadFailed": "فشل تحميل هذا المركز. يرجى المحاولة مرة أخرى.",
       "unbrandedNotice": "يمكن إعداد الصفحات الرئيسية للمراكز المميزة فقط. المراكز غير المميزة تستخدم صفحة النظام المشتركة.",
-      "unbrandedHint": "حوّل هذا المركز إلى مركز مميز قبل فتح محرر الصفحة الرئيسية."
+      "unbrandedHint": "حوّل هذا المركز إلى مركز مميز قبل فتح محرر الصفحة الرئيسية.",
+      "editor": {
+        "title": "محرر الصفحة الرئيسية",
+        "loading": {
+          "description": "جارٍ تجهيز المحرر المميز وتحميل أحدث مسودة."
+        },
+        "localizedField": {
+          "placeholder": "{label} باللغة {locale}"
+        },
+        "publishing": {
+          "title": "المعاينة والنشر",
+          "description": "أنشئ معاينة، راجعها داخل الصفحة، ثم انشر فقط عندما يصبح المركز المميز جاهزاً."
+        },
+        "badges": {
+          "public": "عام",
+          "draftOnly": "مسودة فقط"
+        },
+        "summary": {
+          "lastUpdated": "آخر تحديث",
+          "previewToken": "وصول المعاينة",
+          "previewLocale": "لغة المعاينة",
+          "previewEmpty": "أنشئ معاينة لعرض الإطار المضمن.",
+          "previewExpiresAt": "تنتهي في {datetime}"
+        },
+        "preview": {
+          "title": "إطار المعاينة",
+          "description": "راجع الصفحة الرئيسية المميزة باللغة {locale} باستخدام رمز المعاينة الحالي قبل النشر.",
+          "iframeTitle": "معاينة الصفحة الرئيسية للمركز"
+        },
+        "tabs": {
+          "meta": {
+            "label": "الميتا",
+            "description": "بيانات البحث الخاصة بالصفحة العامة."
+          },
+          "hero": {
+            "label": "الواجهة الرئيسية",
+            "description": "العنوان الرئيسي وزر الدعوة والخلفية."
+          },
+          "about": {
+            "label": "من نحن",
+            "description": "المحتوى المترجم وصورة القسم التعريفي."
+          },
+          "contact": {
+            "label": "التواصل",
+            "description": "البريد والهاتف والعنوان العام."
+          },
+          "social": {
+            "label": "روابط التواصل",
+            "description": "روابط الشبكات الاجتماعية الظاهرة في الصفحة."
+          },
+          "layout": {
+            "label": "التخطيط",
+            "description": "ترتيب الأقسام والأنماط وتخصيصات العرض."
+          },
+          "styling": {
+            "label": "التصميم",
+            "description": "اللون الأساسي والثانوي ونوع الخط."
+          },
+          "visibility": {
+            "label": "الظهور",
+            "description": "التحكم في الأقسام الظاهرة في الصفحة العامة."
+          },
+          "testimonials": {
+            "label": "التوصيات",
+            "description": "إنشاء التوصيات وترتيبها وتحديثها."
+          }
+        },
+        "actions": {
+          "generatePreview": "إنشاء معاينة",
+          "refreshPreview": "تحديث المعاينة",
+          "refreshingPreview": "جارٍ تحديث المعاينة...",
+          "openPreview": "فتح المعاينة",
+          "publish": "نشر",
+          "publishing": "جارٍ النشر...",
+          "unpublish": "إلغاء النشر",
+          "unpublishing": "جارٍ إلغاء النشر...",
+          "saveMeta": "حفظ الميتا",
+          "saveHero": "حفظ الواجهة الرئيسية",
+          "saveAbout": "حفظ من نحن",
+          "saveContact": "حفظ التواصل",
+          "saveSocial": "حفظ الروابط الاجتماعية",
+          "saveLayout": "حفظ التخطيط",
+          "saveStyling": "حفظ التصميم",
+          "saveVisibility": "حفظ الظهور",
+          "moveUp": "أعلى",
+          "moveDown": "أسفل",
+          "saveOrder": "حفظ الترتيب",
+          "savingOrder": "جارٍ حفظ الترتيب...",
+          "addTestimonial": "إضافة توصية",
+          "creatingTestimonial": "جارٍ الإنشاء...",
+          "updateTestimonial": "تحديث التوصية",
+          "uploadBackground": "رفع الخلفية",
+          "uploadingBackground": "جارٍ رفع الخلفية...",
+          "uploadImage": "رفع الصورة",
+          "uploadingImage": "جارٍ رفع الصورة...",
+          "uploadAuthorImage": "رفع صورة صاحب التوصية",
+          "uploadingAuthorImage": "جارٍ رفع صورة صاحب التوصية..."
+        },
+        "errors": {
+          "missingCenterId": "معرف المركز مفقود.",
+          "loadFailed": "فشل تحميل محرر الصفحة الرئيسية.",
+          "loadDescription": "تعذر على المحرر تحميل مسودة المركز الحالية.",
+          "unableToLoad": "تعذر التحميل",
+          "permissionDenied": "ليست لديك صلاحية لإدارة هذه الصفحة الرئيسية.",
+          "notFound": "تعذر العثور على هذا المركز أو صفحته الرئيسية.",
+          "unbrandedOnly": "الصفحات الرئيسية متاحة للمراكز المميزة فقط.",
+          "invalidImageType": "يرجى اختيار ملف صورة صالح.",
+          "imageTooLarge": "يجب ألا يتجاوز حجم الصورة {maxSizeLabel}.",
+          "chooseImageFirst": "اختر ملف صورة أولاً.",
+          "selectTestimonialBeforeUpload": "اختر توصية قبل رفع صورتها.",
+          "invalidPrimaryColor": {
+            "title": "اللون الأساسي غير صالح",
+            "description": "استخدم ألوان Hex تبدأ بالرمز # فقط، مثل #4F46E5 أو #FFFFFFFF."
+          },
+          "invalidSecondaryColor": {
+            "title": "اللون الثانوي غير صالح",
+            "description": "استخدم ألوان Hex تبدأ بالرمز # فقط، مثل #FFF أو #111827."
+          },
+          "missingTestimonialIds": {
+            "title": "معرّفات التوصيات مفقودة",
+            "description": "احفظ كل توصية بشكل منفصل قبل إرسال طلب إعادة الترتيب."
+          }
+        },
+        "fields": {
+          "metaTitle": "عنوان الميتا",
+          "metaDescription": "وصف الميتا",
+          "metaKeywords": "الكلمات المفتاحية للميتا",
+          "heroTitle": "عنوان الواجهة الرئيسية",
+          "heroSubtitle": "الوصف الفرعي للواجهة الرئيسية",
+          "heroCtaText": "نص زر الدعوة",
+          "heroCtaUrl": "رابط زر الدعوة",
+          "heroBackgroundUrl": "رابط خلفية الواجهة الرئيسية",
+          "heroBackgroundUpload": "رفع خلفية الواجهة الرئيسية",
+          "aboutTitle": "عنوان من نحن",
+          "aboutContent": "محتوى من نحن",
+          "aboutImageUrl": "رابط صورة من نحن",
+          "aboutImageUpload": "رفع صورة من نحن",
+          "contactEmail": "بريد التواصل",
+          "contactPhone": "هاتف التواصل",
+          "contactAddress": "عنوان التواصل",
+          "content": "المحتوى",
+          "authorName": "اسم صاحب التوصية",
+          "authorTitle": "صفة صاحب التوصية",
+          "authorImageUrl": "رابط صورة صاحب التوصية",
+          "authorImageUpload": "رفع صورة صاحب التوصية",
+          "rating": "التقييم",
+          "primaryColor": "اللون الأساسي",
+          "secondaryColor": "اللون الثانوي",
+          "fontFamily": "نوع الخط"
+        },
+        "placeholders": {
+          "metaTitle": "عنوان الصفحة الرئيسية للمركز",
+          "metaDescription": "صف المركز بوصف مختصر مناسب لمحركات البحث.",
+          "metaKeywords": "تعليم، تعلم عبر الإنترنت، اسم المركز",
+          "heroCtaText": "الإجراء الرئيسي",
+          "heroBackgroundUrl": "https://cdn.example.com/hero-background.jpg",
+          "aboutImageUrl": "https://cdn.example.com/about-image.jpg",
+          "contactEmail": "support@example.com",
+          "contactPhone": "+20 123 456 7890",
+          "contactAddress": "القاهرة، مصر",
+          "authorName": "اسم صاحب التوصية",
+          "authorTitle": "ولي أمر، متعلم، معلم",
+          "authorImageUrl": "https://cdn.example.com/author.jpg",
+          "primaryColor": "#4F46E5",
+          "secondaryColor": "#111827",
+          "fontFamily": "Cairo, Inter, system-ui"
+        },
+        "help": {
+          "metaKeywords": "احتفظ بالكلمات المفتاحية كسلسلة مفصولة بفواصل فقط.",
+          "heroTitle": "احتفظ بترجمات الواجهة الرئيسية ككائنين للغتين العربية والإنجليزية.",
+          "heroBackgroundUpload": "ارفع صورة خلفية جديدة للواجهة الرئيسية. يقوم النظام بحفظها مباشرة وإرجاع الرابط النهائي.",
+          "aboutTitle": "يساعد المحتوى المترجم على إبقاء النسختين العربية والإنجليزية متطابقتين في الصفحة العامة.",
+          "aboutImageUpload": "ارفع الصورة الداعمة لقسم من نحن. يقوم النظام بحفظها مباشرة وإرجاع الرابط النهائي.",
+          "primaryColor": "يدعم الصيغ #RGB و #RRGGBB وقيم Hex من 8 خانات مع الشفافية.",
+          "secondaryColor": "اللون الثانوي اختياري، لكن يجب أن يستخدم نفس صيغة Hex.",
+          "authorImageUploadNew": "ارفع صورة لصاحب التوصية. يعيد النظام رابط الصورة فقط؛ احفظ التوصية بعد ذلك لتثبيتها.",
+          "authorImageUploadEdit": "ارفع صورة بديلة لصاحب التوصية. يتم تطبيق الرابط محلياً؛ احفظ التوصية لتثبيته."
+        },
+        "imageUpload": {
+          "emptyState": "لم يتم اختيار صورة بعد.",
+          "maxSize": "الحد الأقصى: {maxSizeLabel}.",
+          "selectedFile": "الملف المختار",
+          "currentUrl": "الرابط الحالي:",
+          "clearSelection": "مسح الاختيار",
+          "openFile": "فتح الملف"
+        },
+        "social": {
+          "facebook": "فيسبوك",
+          "twitter": "إكس",
+          "instagram": "إنستغرام",
+          "youtube": "يوتيوب",
+          "linkedin": "لينكدإن",
+          "tiktok": "تيك توك"
+        },
+        "sections": {
+          "hero": "الواجهة الرئيسية",
+          "about": "من نحن",
+          "courses": "الدورات",
+          "testimonials": "التوصيات",
+          "contact": "التواصل"
+        },
+        "layout": {
+          "orderTitle": "ترتيب الأقسام",
+          "orderDescription": "حرّك الأقسام للأعلى أو للأسفل للتحكم في ترتيب الصفحة العامة النهائي. تحتفظ الأقسام المخفية بموضعها المحفوظ وتظهر فقط عند تفعيلها من تبويب الظهور.",
+          "variant": "النمط: {value}",
+          "visible": "ظاهر",
+          "hidden": "مخفي",
+          "sectionDescription": "اضبط النمط وتخصيصات العرض لهذا القسم.",
+          "sectionVariantLabel": "نمط {section}",
+          "textAlign": "محاذاة النص",
+          "overlayOpacity": "شفافية الطبقة",
+          "contentWidth": "عرض المحتوى",
+          "imageFit": "احتواء الصورة",
+          "coursesPlaceholder": "يبقى قسم الدورات حالياً كعنصر تصميمي فقط إلى أن تتضمن بيانات الصفحة بطاقات دورات فعلية.",
+          "desktopColumns": "أعمدة سطح المكتب",
+          "mobileColumns": "أعمدة الجوال",
+          "cardStyle": "نمط البطاقة",
+          "contactStyle": "نمط التواصل",
+          "showMapPlaceholder": "إظهار موضع الخريطة",
+          "showMapPlaceholderDescription": "هذا تلميح تخطيطي فقط حالياً. لا توجد بعد بيانات رابط تضمين أو إحداثيات ضمن بيانات الصفحة.",
+          "options": {
+            "inherit": "استخدام الافتراضي",
+            "left": "يسار",
+            "center": "وسط",
+            "right": "يمين",
+            "narrow": "ضيق",
+            "medium": "متوسط",
+            "wide": "عريض",
+            "cover": "تغطية",
+            "contain": "احتواء",
+            "soft": "ناعم",
+            "outline": "محدد",
+            "solid": "مصمت",
+            "cards": "بطاقات",
+            "stacked": "مكدس",
+            "default": "افتراضي",
+            "split": "مقسوم",
+            "grid": "شبكة"
+          }
+        },
+        "visibility": {
+          "hero": {
+            "label": "قسم الواجهة الرئيسية",
+            "description": "إظهار قسم الواجهة الرئيسية وزر الدعوة في الصفحة العامة."
+          },
+          "about": {
+            "label": "قسم من نحن",
+            "description": "إظهار قسم من نحن مع النص المترجم والصورة."
+          },
+          "courses": {
+            "label": "دعوة الدورات",
+            "description": "إظهار مساحة الدورات العامة وزر الدعوة الخاص بها."
+          },
+          "testimonials": {
+            "label": "التوصيات",
+            "description": "إظهار قسم التوصيات في الصفحة العامة."
+          },
+          "contact": {
+            "label": "قسم التواصل",
+            "description": "إظهار بيانات التواصل العامة وتخطيط قسم التواصل."
+          }
+        },
+        "testimonials": {
+          "existingTitle": "التوصيات الحالية",
+          "existingDescription": "استخدم الجدول لمراجعة الحالة، وتغطية اللغات، والتعديل السريع، والترتيب.",
+          "empty": "لا توجد توصيات بعد.",
+          "untitled": "بدون عنوان",
+          "noTitle": "بدون صفة",
+          "noCopy": "لا يوجد محتوى",
+          "hidden": "مخفي",
+          "addTitle": "إضافة توصية",
+          "addDescription": "تتطلب التوصية الجديدة اسم صاحب التوصية ومحتوى بلغة واحدة على الأقل.",
+          "editTitle": "تعديل توصية",
+          "editDescription": "اختر توصية من الجدول لتعديل محتواها وحالتها.",
+          "selectToEdit": "اختر توصية من الجدول لتعديلها.",
+          "table": {
+            "author": "صاحب التوصية",
+            "locales": "اللغات",
+            "rating": "التقييم"
+          }
+        },
+        "notices": {
+          "metaSaved": {
+            "title": "تم حفظ الميتا",
+            "description": "تم تحديث عنوان البحث والوصف والكلمات المفتاحية."
+          },
+          "metaSaveFailed": {
+            "title": "فشل حفظ الميتا",
+            "description": "تعذر حفظ بيانات الميتا."
+          },
+          "heroSaved": {
+            "title": "تم حفظ الواجهة الرئيسية",
+            "description": "تم تحديث النص وزر الدعوة وإعدادات الخلفية."
+          },
+          "heroSaveFailed": {
+            "title": "فشل حفظ الواجهة الرئيسية",
+            "description": "تعذر حفظ الواجهة الرئيسية."
+          },
+          "aboutSaved": {
+            "title": "تم حفظ قسم من نحن",
+            "description": "تم تحديث نص قسم من نحن وإعدادات الصورة."
+          },
+          "aboutSaveFailed": {
+            "title": "فشل حفظ قسم من نحن",
+            "description": "تعذر حفظ قسم من نحن."
+          },
+          "contactSaved": {
+            "title": "تم حفظ بيانات التواصل",
+            "description": "تم تحديث البريد والهاتف والعنوان العام."
+          },
+          "contactSaveFailed": {
+            "title": "فشل حفظ بيانات التواصل",
+            "description": "تعذر حفظ بيانات التواصل."
+          },
+          "socialSaved": {
+            "title": "تم حفظ الروابط الاجتماعية",
+            "description": "تم تحديث روابط التواصل العامة."
+          },
+          "socialSaveFailed": {
+            "title": "فشل حفظ الروابط الاجتماعية",
+            "description": "تعذر حفظ الروابط الاجتماعية."
+          },
+          "stylingSaved": {
+            "title": "تم حفظ التصميم",
+            "description": "تم تحديث الألوان ونوع الخط."
+          },
+          "stylingSaveFailed": {
+            "title": "فشل حفظ التصميم",
+            "description": "تعذر حفظ إعدادات تصميم الصفحة."
+          },
+          "visibilitySaved": {
+            "title": "تم حفظ الظهور",
+            "description": "تم تحديث حالات إظهار الأقسام."
+          },
+          "visibilitySaveFailed": {
+            "title": "فشل حفظ الظهور",
+            "description": "تعذر حفظ إعدادات الظهور."
+          },
+          "layoutSaved": {
+            "title": "تم حفظ التخطيط",
+            "description": "تم تحديث ترتيب الأقسام والأنماط وتخصيصات العرض."
+          },
+          "layoutSaveFailed": {
+            "title": "فشل حفظ التخطيط",
+            "description": "تعذر حفظ إعدادات تخطيط الصفحة الرئيسية."
+          },
+          "published": {
+            "title": "تم نشر الصفحة الرئيسية",
+            "description": "أصبحت الصفحة الرئيسية المميزة متاحة الآن عبر نقطة الوصول العامة."
+          },
+          "publishFailed": {
+            "title": "فشل النشر",
+            "description": "تعذر نشر الصفحة الرئيسية."
+          },
+          "unpublished": {
+            "title": "تمت إعادة الصفحة إلى المسودة",
+            "description": "أصبحت الصفحة العامة مخفية الآن ما لم يتم استخدام رمز معاينة صالح."
+          },
+          "unpublishFailed": {
+            "title": "فشل إلغاء النشر",
+            "description": "تعذر إعادة الصفحة الرئيسية إلى حالة المسودة."
+          },
+          "previewUrlMissing": {
+            "title": "رابط المعاينة مفقود",
+            "description": "تم إنشاء رمز معاينة، لكن الخادم لم يرجع رابط معاينة صالحاً للاستخدام."
+          },
+          "previewReady": {
+            "title": "المعاينة جاهزة",
+            "description": "يستخدم الإطار أدناه الآن أحدث رمز معاينة قابل لإعادة الاستخدام."
+          },
+          "previewFailed": {
+            "title": "فشلت المعاينة",
+            "description": "تعذر إنشاء رمز معاينة."
+          },
+          "heroImageUploaded": {
+            "title": "تم رفع صورة الواجهة الرئيسية",
+            "description": "تم رفع صورة الخلفية وحفظها في الصفحة الرئيسية."
+          },
+          "heroImageUploadFailed": {
+            "title": "فشل رفع صورة الواجهة الرئيسية",
+            "description": "تعذر رفع صورة خلفية الواجهة الرئيسية."
+          },
+          "aboutImageUploaded": {
+            "title": "تم رفع صورة من نحن",
+            "description": "تم رفع صورة قسم من نحن وحفظها في الصفحة الرئيسية."
+          },
+          "aboutImageUploadFailed": {
+            "title": "فشل رفع صورة من نحن",
+            "description": "تعذر رفع صورة قسم من نحن."
+          },
+          "testimonialCreated": {
+            "title": "تم إنشاء التوصية",
+            "description": "تمت إضافة التوصية. جارٍ تحديث القائمة الآن."
+          },
+          "testimonialCreateFailed": {
+            "title": "فشل الإنشاء",
+            "description": "تعذر إنشاء التوصية."
+          },
+          "testimonialUpdated": {
+            "title": "تم تحديث التوصية",
+            "description": "تم حفظ التغييرات. جارٍ تحديث القائمة الآن."
+          },
+          "testimonialUpdateFailed": {
+            "title": "فشل التحديث",
+            "description": "تعذر تحديث التوصية."
+          },
+          "testimonialDeleted": {
+            "title": "تم حذف التوصية",
+            "description": "تمت إزالة التوصية. جارٍ تحديث القائمة الآن."
+          },
+          "testimonialDeleteFailed": {
+            "title": "فشل الحذف",
+            "description": "تعذر حذف التوصية."
+          },
+          "orderSaved": {
+            "title": "تم حفظ الترتيب",
+            "description": "تم تحديث ترتيب التوصيات بنجاح."
+          },
+          "orderSaveFailed": {
+            "title": "فشل إعادة الترتيب",
+            "description": "تعذر حفظ ترتيب التوصيات."
+          },
+          "testimonialImageUrlMissing": {
+            "title": "رابط الصورة مفقود",
+            "description": "اكتمل الرفع، لكن لم يتم إرجاع رابط لصورة التوصية."
+          },
+          "testimonialImageApplyFailed": {
+            "title": "رابط الصورة مفقود",
+            "description": "اكتمل الرفع، لكن تعذر تطبيق رابط صورة التوصية."
+          },
+          "testimonialImageUploaded": {
+            "title": "تم رفع صورة التوصية",
+            "description": "أصبح الرابط جاهزاً الآن. احفظ التوصية لتثبيت الصورة الرمزية."
+          },
+          "testimonialImageUploadFailed": {
+            "title": "فشل رفع الصورة",
+            "description": "تعذر رفع صورة التوصية."
+          }
+        }
+      }
     },
     "centerPdfs": {
       "title": "ملفات PDF للمركز",
@@ -1104,6 +1543,54 @@
         "grantFailedTitle": "تعذر منح المشاهدات الإضافية",
         "customExtraViews": "مشاهدات إضافية مخصصة"
       },
+      "playbackModal": {
+        "title": "جلسات التشغيل",
+        "sessionCount": "{count} جلسة",
+        "pageRows": "الصفحة {page} · {rows} صفوف",
+        "showing": "عرض {count} جلسة",
+        "searchPlaceholder": "ابحث بالمستخدم أو الجهاز أو تفاصيل الجلسة",
+        "clearSearch": "مسح بحث جلسات التشغيل",
+        "resultsTitle": "النتائج ({count})",
+        "empty": "لا توجد جلسات تشغيل.",
+        "closeReason": "سبب الإغلاق: ",
+        "filters": {
+          "fromDate": "من تاريخ",
+          "toDate": "إلى تاريخ",
+          "fullPlayOnly": "المشاهدة الكاملة فقط",
+          "lockedSessions": "الجلسات المقفلة",
+          "autoClosed": "أُغلقت تلقائياً",
+          "active": "نشطة"
+        },
+        "sort": {
+          "startedAt": "تاريخ البدء",
+          "updatedAt": "تاريخ التحديث",
+          "progress": "نسبة التقدم",
+          "watchDuration": "مدة المشاهدة",
+          "ascending": "تصاعدي",
+          "descending": "تنازلي"
+        },
+        "headers": {
+          "device": "الجهاز",
+          "started": "بدأت في",
+          "lastActivity": "آخر نشاط",
+          "duration": "المدة",
+          "progress": "التقدم",
+          "flags": "العلامات"
+        },
+        "badges": {
+          "fullPlay": "مشاهدة كاملة",
+          "locked": "مقفل",
+          "autoClosed": "إغلاق تلقائي",
+          "active": "نشط"
+        },
+        "fallbacks": {
+          "video": "فيديو",
+          "course": "دورة",
+          "student": "طالب",
+          "device": "جهاز",
+          "emptyValue": "—"
+        }
+      },
       "messages": {
         "grantSuccess": "تم منح {count} مشاهدة إضافية لـ {name}.",
         "grantFailedFallback": "تعذر منح المشاهدات الإضافية."
@@ -1116,6 +1603,7 @@
     "centerSettings": {
       "title": "إعدادات {name}",
       "titleFallback": "إعدادات المركز",
+      "centerNameFallback": "المركز {id}",
       "description": "إدارة تفاصيل المركز والحالة وعمليات التهيئة",
       "notFoundTitle": "المركز غير موجود",
       "notFoundDesc": "المركز المطلوب غير موجود أو لم يعد متاحاً.",
@@ -1128,7 +1616,232 @@
       "tier": "المستوى",
       "centerContextRequired": "سياق المركز مطلوب لإدارة الإعدادات.",
       "workspaceDescription": "إدارة العلامة التجارية للمركز وتفضيلات التشغيل",
-      "idLabel": "المعرف"
+      "idLabel": "المعرف",
+      "badges": {
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط"
+        },
+        "onboarding": {
+          "active": "مكتمل",
+          "failed": "فشل",
+          "inProgress": "قيد التنفيذ",
+          "draft": "مسودة",
+          "unknown": "غير معروف"
+        }
+      },
+      "forms": {
+        "profile": {
+          "titleCreate": "تفاصيل المركز",
+          "titleEdit": "ملف المركز",
+          "descriptionCreate": "أدخل البيانات الأساسية المطلوبة لملف المركز.",
+          "descriptionEdit": "حدّث بيانات المركز المستخدمة في القوائم والهوية.",
+          "errorTitle": "تعذر حفظ ملف المركز",
+          "validation": {
+            "nameRequired": "اسم المركز مطلوب."
+          },
+          "errors": {
+            "fallback": "تعذر تحديث ملف المركز. يرجى المحاولة مرة أخرى."
+          },
+          "fields": {
+            "name": {
+              "label": "اسم المركز",
+              "placeholder": "أدخل اسم المركز"
+            },
+            "slug": {
+              "label": "المعرف النصي",
+              "placeholder": "أدخل المعرف النصي للمركز"
+            },
+            "type": {
+              "label": "النوع"
+            },
+            "tier": {
+              "label": "المستوى"
+            },
+            "featured": {
+              "label": "مميز",
+              "checkbox": "عرض هذا المركز كمركز مميز"
+            },
+            "allowGuestBrowsing": {
+              "label": "تصفح الزوار",
+              "checkbox": "السماح للزوار بتصفح هذا المركز"
+            }
+          },
+          "options": {
+            "type": {
+              "unbranded": "بدون علامة",
+              "branded": "بعلامة"
+            },
+            "tier": {
+              "standard": "قياسي",
+              "premium": "متميز",
+              "vip": "VIP"
+            }
+          },
+          "actions": {
+            "generateSlug": "توليد",
+            "saving": "جارٍ الحفظ...",
+            "save": "حفظ التغييرات"
+          }
+        },
+        "branding": {
+          "title": "الهوية",
+          "descriptionCreate": "اضبط اللون الأساسي وشعار المركز.",
+          "descriptionBranded": "إدارة هوية المركز بما يشمل الشعار واللون الأساسي.",
+          "descriptionUnbranded": "ارفع شعار المركز أو استبدله (بحد أقصى 5 ميجابايت).",
+          "colorErrorTitle": "تعذر حفظ اللون",
+          "logoErrorTitle": "تعذر رفع الشعار",
+          "validation": {
+            "primaryColorRequired": "اللون الأساسي مطلوب للمراكز ذات العلامة."
+          },
+          "errors": {
+            "colorFallback": "تعذر تحديث اللون الأساسي. يرجى المحاولة مرة أخرى.",
+            "logoFallback": "تعذر رفع شعار المركز. يرجى المحاولة مرة أخرى."
+          },
+          "source": {
+            "custom": "مخصص لهذا المركز",
+            "inherited": "موروث"
+          },
+          "fields": {
+            "primaryColor": {
+              "label": "اللون الأساسي",
+              "placeholder": "أدخل لوناً بصيغة hex مثل #0ea5e9"
+            },
+            "logo": {
+              "label": "الشعار"
+            }
+          },
+          "preview": {
+            "selected": "الشعار المحدد",
+            "selectedLoadFailed": "تعذر تحميل معاينة الشعار المحدد.",
+            "current": "الشعار الحالي",
+            "currentAlt": "الشعار الحالي لـ{name}",
+            "currentLoadFailed": "تعذر تحميل معاينة الشعار الحالي.",
+            "new": "الشعار الجديد",
+            "newAlt": "معاينة الشعار المحدد",
+            "expand": "معاينة",
+            "empty": "لا يوجد شعار مرفوع بعد.",
+            "dialogTitleNew": "معاينة الشعار الجديد",
+            "dialogTitleCurrent": "معاينة الشعار الحالي",
+            "logoAlt": "شعار {name}"
+          },
+          "actions": {
+            "clear": "مسح",
+            "savingColor": "جارٍ الحفظ...",
+            "saveColor": "حفظ اللون",
+            "uploading": "جارٍ الرفع...",
+            "upload": "رفع الشعار"
+          }
+        },
+        "policy": {
+          "title": "سياسة المركز",
+          "loadingDescription": "جارٍ تحميل إعدادات سياسة المركز.",
+          "description": "إدارة حدود المشاهدة والموافقات والتنزيلات وإعدادات إعادة المحاولة على مستوى المركز.",
+          "errorTitle": "خطأ",
+          "successTitle": "تم الحفظ",
+          "successDescription": "تم حفظ إعدادات سياسة المركز بنجاح.",
+          "loadErrorTitle": "تعذر تحميل سياسة المركز",
+          "loadErrorDescription": "فشل في تحميل إعدادات سياسة المركز.",
+          "sectionTitle": "عناصر التحكم بالسياسة",
+          "sectionDescription": "حدّث الحدود وخيارات التفعيل التي تطبق على هذا المركز.",
+          "source": {
+            "custom": "مخصص لهذا المركز",
+            "inherited": "باستخدام القيمة الافتراضية الموروثة"
+          },
+          "validation": {
+            "integer": "يجب أن تكون قيمة {label} عدداً صحيحاً.",
+            "videoCodeExpiryDaysMin": "يجب أن تكون مدة صلاحية رمز الفيديو يوماً واحداً على الأقل.",
+            "whatsappMaxRetriesMin": "يجب أن تكون محاولات واتساب القصوى صفراً أو أكثر."
+          },
+          "errors": {
+            "saveFallback": "فشل حفظ الإعدادات. يرجى المحاولة مرة أخرى."
+          },
+          "fields": {
+            "integerPlaceholder": "أدخل عدداً صحيحاً",
+            "defaultViewLimit": {
+              "label": "الحد الافتراضي للمشاهدات"
+            },
+            "deviceLimit": {
+              "label": "حد الأجهزة"
+            },
+            "videoCodeExpiryDays": {
+              "label": "أيام صلاحية رمز الفيديو",
+              "placeholder": "أدخل عدد الأيام"
+            },
+            "whatsappMaxRetries": {
+              "label": "الحد الأقصى لمحاولات واتساب"
+            },
+            "allowExtraViewRequests": {
+              "label": "السماح بطلبات مشاهدة إضافية"
+            },
+            "requiresVideoApproval": {
+              "label": "يتطلب موافقة على الفيديو"
+            },
+            "pdfDownloadPermission": {
+              "label": "السماح بتنزيل ملفات PDF"
+            }
+          },
+          "actions": {
+            "retry": "إعادة المحاولة",
+            "saving": "جارٍ الحفظ...",
+            "save": "حفظ سياسة المركز"
+          }
+        },
+        "educationProfile": {
+          "title": "الملف التعليمي",
+          "description": "حدد الوحدات التعليمية المتاحة للطلاب والحقول المطلوبة في تحديثات التعليم.",
+          "errorTitle": "تعذر حفظ الملف التعليمي",
+          "successTitle": "تم الحفظ",
+          "successDescription": "تم حفظ إعدادات الملف التعليمي بنجاح.",
+          "loadErrorTitle": "تعذر تحميل الملف التعليمي",
+          "loadErrorDescription": "تعذر جلب إعدادات الملف التعليمي لهذا المركز.",
+          "helperText": "تعطيل أي وحدة يؤثر على سلوك البحث التعليمي للطلاب والجوال. تبقى عمليات الإدارة الخاصة بالصفوف والمدارس والكليات متاحة.",
+          "errors": {
+            "saveFallback": "فشل حفظ إعدادات الملف التعليمي."
+          },
+          "modules": {
+            "grades": "الصفوف",
+            "schools": "المدارس",
+            "colleges": "الكليات"
+          },
+          "fields": {
+            "enable": "تفعيل",
+            "required": "مطلوب"
+          },
+          "actions": {
+            "saving": "جارٍ الحفظ...",
+            "save": "حفظ إعدادات التعليم"
+          }
+        }
+      },
+      "cards": {
+        "status": {
+          "title": "الحالة",
+          "description": "حدّث حالة المركز الحالية.",
+          "errorTitle": "تعذر تحديث الحالة",
+          "currentLabel": "الحالة الحالية",
+          "errors": {
+            "fallback": "تعذر تحديث حالة المركز. يرجى المحاولة مرة أخرى."
+          },
+          "actions": {
+            "updating": "جارٍ التحديث...",
+            "update": "تحديث الحالة"
+          }
+        },
+        "onboarding": {
+          "title": "التهيئة",
+          "description": "راجع تقدم التهيئة وأعد المحاولة عند الحاجة.",
+          "errorTitle": "تعذرت إعادة التهيئة",
+          "currentLabel": "الحالة الحالية",
+          "errors": {
+            "fallback": "تعذرت إعادة التهيئة. يرجى المحاولة مرة أخرى."
+          },
+          "actions": {
+            "retrying": "جارٍ إعادة المحاولة...",
+            "retry": "إعادة التهيئة"
+          }
+        }
+      }
     },
     "centerAISettings": {
       "title": "تخصيصات مزودي الذكاء الاصطناعي",
@@ -1215,6 +1928,11 @@
           "section": "قسم",
           "course": "دورة"
         },
+        "languages": {
+          "ar": "العربية",
+          "en": "الإنجليزية",
+          "both": "العربية + الإنجليزية"
+        },
         "difficulty": {
           "easy": "سهل",
           "medium": "متوسط",
@@ -1234,8 +1952,21 @@
           "scenario": "سيناريو",
           "practice": "تدريب"
         },
+        "readiness": {
+          "loadingTitle": "جارٍ التحقق من جاهزية المصدر",
+          "loadingDescription": "يتم تحميل بيانات المصدر للتأكد من جاهزية النص التفريغي أو استخراج النص.",
+          "unknownTitle": "جاهزية غير متاحة",
+          "unknownDescription": "لم يتم تأكيد جاهزية هذا المصدر بعد. حدّث بيانات المصدر قبل إنشاء وظيفة ذكاء اصطناعي مباشرة.",
+          "transcriptTitle": "النص التفريغي مطلوب",
+          "transcriptDescription": "هذا الفيديو غير جاهز بعد للذكاء الاصطناعي. أضف نصاً تفريغياً قبل إنشاء وظيفة ذكاء اصطناعي مباشرة.",
+          "extractionTitle": "استخراج PDF غير جاهز",
+          "pendingDescription": "هذا الملف ينتظر استخراج النص. حاول مرة أخرى بعد اكتمال الاستخراج.",
+          "processingDescription": "ما زال هذا الملف يعالج النص المستخرج. حاول مرة أخرى بعد اكتمال الاستخراج.",
+          "failedDescription": "هذا الملف غير جاهز للذكاء الاصطناعي لأن استخراج النص فشل أو تم تخطيه. استبدل الملف أو أعد رفعه قبل إنشاء وظيفة مباشرة."
+        },
         "statusLabels": {
           "pending": "قيد الانتظار",
+          "retrying": "جارٍ إعادة المحاولة",
           "processing": "قيد المعالجة",
           "completed": "مكتمل",
           "failed": "فشل",
@@ -1250,6 +1981,7 @@
           "sourceRequired": "معرف المصدر مطلوب.",
           "providerRequired": "مزود الذكاء الاصطناعي مطلوب.",
           "modelRequired": "نموذج الذكاء الاصطناعي مطلوب.",
+          "languageRequired": "اللغة مطلوبة.",
           "quizRange": "عدد الأسئلة يجب أن يكون بين 1 و50.",
           "flashcardsRange": "عدد البطاقات يجب أن يكون بين 1 و100.",
           "stepsRange": "عدد الخطوات يجب أن يكون بين 1 و20.",
@@ -1271,6 +2003,7 @@
           "configTitle": "إعدادات توليد {target}",
           "fields": {
             "courseId": "معرف الدورة",
+            "language": "اللغة",
             "targetType": "نوع الهدف",
             "sourceType": "نوع المصدر",
             "sourceId": "معرف المصدر",
@@ -1375,6 +2108,9 @@
           "reviewHint": "استخدم الحقول السريعة للتعديلات الأساسية ثم أكمل عبر محرر JSON قبل الحفظ.",
           "reviewLocked": "تحرير المراجعة متاح فقط عندما تكون الحالة مكتمل أو معتمد.",
           "failureTitle": "فشلت الوظيفة",
+          "retryingTitle": "الوظيفة قيد إعادة المحاولة",
+          "validationWarningsTitle": "تحذيرات التحقق",
+          "validationWarningsDescription": "واجهت أول استجابة من الذكاء الاصطناعي مشاكل تحقق وتمت إعادة المحاولة تلقائياً. راجع النتيجة بعناية.",
           "dirty": "تعديلات مراجعة غير محفوظة",
           "synced": "المراجعة متزامنة",
           "savedAt": "آخر حفظ",
@@ -1383,6 +2119,7 @@
             "target": "الهدف",
             "source": "المصدر",
             "model": "المزوّد / النموذج",
+            "language": "اللغة",
             "createdAt": "الإنشاء",
             "startedAt": "البدء",
             "completedAt": "الاكتمال"
@@ -1395,6 +2132,10 @@
           "reviewPermissionRequired": "المراجعة/الاعتماد/النشر تتطلب صلاحية ai_content.review_publish."
         },
         "review": {
+          "locales": {
+            "ar": "العربية",
+            "en": "الإنجليزية"
+          },
           "summary": {
             "title": "عنوان الملخص",
             "content": "محتوى الملخص"
@@ -1501,7 +2242,8 @@
         "summary": "ملخص",
         "quiz": "اختبار",
         "flashcards": "بطاقات تعليمية",
-        "assignment": "واجب"
+        "assignment": "واجب",
+        "interactive_activity": "نشاط تفاعلي"
       },
       "slotStates": {
         "missing": "غير موجود",
@@ -1535,6 +2277,12 @@
         "descriptionWithSource": "توليد الأصول لـ {type}: {title}.",
         "source": "المصدر",
         "section": "القسم",
+        "language": "لغة التوليد",
+        "languageOptions": {
+          "ar": "العربية",
+          "en": "الإنجليزية",
+          "both": "العربية + الإنجليزية"
+        },
         "assets": "الأصول",
         "assetsHint": "اختر أصلًا واحدًا أو أكثر لتوليدها بالذكاء الاصطناعي لهذا المصدر.",
         "mixedModeHint": "سيتم جدولة وظائف الذكاء الاصطناعي الآن. الأصول اليدوية تُنشأ من إجراءات صف المصدر بعد بدء الدفعة.",
@@ -1592,6 +2340,16 @@
             "link": "رابط"
           },
           "manualHint": "الوضع اليدوي للواجب يفتح نموذج الواجب الحالي من صف المصدر."
+        },
+        "interactiveActivity": {
+          "style": "نمط النشاط",
+          "styleOptions": {
+            "steps": "خطوات",
+            "scenario": "سيناريو",
+            "practice": "تدريب"
+          },
+          "stepsCount": "عدد الخطوات",
+          "includeReflection": "تضمين أسئلة انعكاس"
         }
       },
       "batch": {
@@ -1621,6 +2379,43 @@
         "manualFromRow": "استخدم إجراءات صف المصدر لبدء الإنشاء اليدوي.",
         "refreshed": "تم تحديث كتالوج أصول الدورة."
       },
+      "readiness": {
+        "ready": {
+          "badge": "جاهز للذكاء الاصطناعي",
+          "title": "المصدر جاهز",
+          "description": "هذا المصدر جاهز للتوليد المباشر بالذكاء الاصطناعي."
+        },
+        "transcript_missing": {
+          "badge": "النص التفريغي مفقود",
+          "title": "النص التفريغي مطلوب",
+          "description": "هذا الفيديو غير جاهز بعد للذكاء الاصطناعي. أضف نصاً تفريغياً من صفحة الفيديوهات قبل توليد الأصول."
+        },
+        "extraction_pending": {
+          "badge": "الاستخراج قيد الانتظار",
+          "title": "الاستخراج قيد الانتظار",
+          "description": "هذا الملف غير جاهز بعد للذكاء الاصطناعي. انتظر حتى يكتمل استخراج النص قبل توليد الأصول."
+        },
+        "extraction_processing": {
+          "badge": "الاستخراج جارٍ",
+          "title": "الاستخراج جارٍ",
+          "description": "ما زال هذا الملف يعالج النص المستخرج. حاول مرة أخرى بعد اكتمال الاستخراج."
+        },
+        "extraction_failed": {
+          "badge": "فشل الاستخراج",
+          "title": "فشل الاستخراج",
+          "description": "هذا الملف غير جاهز للذكاء الاصطناعي لأن استخراج النص فشل. استبدل الملف أو أعد رفعه قبل توليد الأصول."
+        },
+        "extraction_skipped": {
+          "badge": "تم تخطي الاستخراج",
+          "title": "الاستخراج غير متاح",
+          "description": "هذا الملف غير جاهز للذكاء الاصطناعي لأن استخراج النص تم تخطيه. استبدل الملف أو أعد رفعه قبل توليد الأصول."
+        },
+        "unknown": {
+          "badge": "الحالة غير معروفة",
+          "title": "جاهزية غير معروفة",
+          "description": "تعذر تحديد حالة جاهزية الذكاء الاصطناعي لهذا المصدر."
+        }
+      },
       "manualModal": {
         "title": "إنشاء يدويًا",
         "description": "اختر مسار الإنشاء اليدوي الذي تريد فتحه لهذا المصدر.",
@@ -1641,7 +2436,8 @@
           "summary": "ملخص مُنشأ بالذكاء الاصطناعي لمحتوى المصدر",
           "quiz": "اختبار تلقائي مع أسئلة قابلة للتخصيص",
           "flashcards": "بطاقات دراسية للمفاهيم الرئيسية",
-          "assignment": "واجب تدريبي مع خيارات التسليم"
+          "assignment": "واجب تدريبي مع خيارات التسليم",
+          "interactive_activity": "مسودة نشاط تفاعلي ببنية قابلة للتخصيص"
         }
       },
       "review": {
@@ -1988,6 +2784,11 @@
       "description": "إدارة حسابات الطلاب",
       "createStudent": "إضافة طالب",
       "editStudent": "تعديل بيانات الطالب",
+      "fallbacks": {
+        "noValue": "—",
+        "student": "طالب",
+        "studentById": "الطالب {id}"
+      },
       "table": {
         "searchPlaceholder": "البحث بالاسم أو الهاتف أو البريد",
         "clearSearch": "مسح البحث",
@@ -2027,8 +2828,17 @@
         },
         "status": {
           "active": "نشط",
+          "enabled": "مفعل",
+          "approved": "تمت الموافقة",
+          "pending": "قيد الانتظار",
+          "processing": "جارٍ المعالجة",
           "inactive": "غير نشط",
-          "banned": "محظور"
+          "disabled": "معطل",
+          "failed": "فشل",
+          "rejected": "مرفوض",
+          "error": "خطأ",
+          "banned": "محظور",
+          "unknown": "غير معروف"
         },
         "education": {
           "grade": "الصف:",
@@ -2073,6 +2883,426 @@
         "selectAll": "تحديد كل الطلاب في هذه الصفحة",
         "selectStudent": "تحديد {name}",
         "fallbackCenter": "تطبيق نجاح"
+      },
+      "dialogs": {
+        "form": {
+          "titleEdit": "تعديل الطالب",
+          "titleCreate": "إنشاء طالب",
+          "descriptionEdit": "حدّث ملف الطالب وحالة الحساب.",
+          "descriptionCreate": "أضف طالباً جديداً ثم سجله اختيارياً في دورة.",
+          "badges": {
+            "studentDetails": "تفاصيل الطالب",
+            "enrollLater": "التسجيل لاحقاً"
+          },
+          "advanced": {
+            "title": "خيارات متقدمة",
+            "description": "إعدادات المركز ورمز الدولة وحالة الحساب."
+          },
+          "fields": {
+            "name": "الاسم",
+            "email": "البريد الإلكتروني",
+            "phone": "الهاتف",
+            "countryCode": "رمز الدولة",
+            "center": "المركز",
+            "status": "الحالة"
+          },
+          "placeholders": {
+            "name": "اسم الطالب",
+            "email": "new.student@example.com",
+            "phone": "1225291841",
+            "countryCode": "+20"
+          },
+          "hints": {
+            "phone": "أدخل الرقم الأساسي فقط (10 أرقام) بدون رمز الدولة أو صفر في البداية.",
+            "enrollAfterCreate": "بعد إنشاء الطالب يمكنك تسجيله في دورة من الخطوة التالية."
+          },
+          "validation": {
+            "nameMin": "يجب أن يكون الاسم مكوناً من حرفين على الأقل.",
+            "emailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
+            "phoneRequired": "الهاتف مطلوب لإنشاء طالب.",
+            "phoneInvalid": "استخدم رقم الموبايل الأساسي فقط (10 أرقام بدون صفر في البداية).",
+            "countryCodeInvalid": "يجب أن يكون رمز الدولة بصيغة +NN مثل +20."
+          },
+          "errors": {
+            "errorTitle": "تعذر حفظ الطالب",
+            "saveFailed": "تعذر حفظ الطالب. يرجى المحاولة مرة أخرى."
+          },
+          "messages": {
+            "updated": "تم تحديث الطالب بنجاح.",
+            "created": "تم إنشاء الطالب بنجاح."
+          },
+          "actions": {
+            "showAdvanced": "إظهار",
+            "hideAdvanced": "إخفاء",
+            "saving": "جارٍ الحفظ...",
+            "creating": "جارٍ الإنشاء...",
+            "saveChanges": "حفظ التغييرات",
+            "create": "إنشاء طالب"
+          },
+          "optionalLabel": "(اختياري)",
+          "centerAllLabel": "بدون مركز (اختياري)"
+        },
+        "delete": {
+          "title": "حذف الطالب",
+          "description": "حذف حساب هذا الطالب بشكل نهائي.",
+          "entityFallback": "هذا الطالب",
+          "confirmText": "حذف",
+          "confirmLabel": "اكتب {confirmText} للتأكيد",
+          "confirmButtonLabel": "حذف الطالب",
+          "pendingLabel": "جارٍ الحذف...",
+          "irreversible": "لا يمكن التراجع عن هذا الإجراء.",
+          "warningPrefix": "أنت على وشك حذف",
+          "messages": {
+            "deleted": "تم حذف الطالب بنجاح."
+          },
+          "errors": {
+            "errorTitle": "تعذر حذف الطالب",
+            "deleteFailed": "تعذر حذف الطالب. يرجى المحاولة مرة أخرى."
+          }
+        },
+        "enrollmentPrompt": {
+          "title": "تسجيل الطالب",
+          "description": "هل تريد تسجيل {name} في دورة الآن؟",
+          "entityFallback": "هذا الطالب",
+          "phone": "الهاتف: {phone}",
+          "helper": "يمكنك تخطي هذه الخطوة وتسجيل الطالب لاحقاً من جدول الطلاب.",
+          "actions": {
+            "skip": "تخطي الآن",
+            "enroll": "سجل الآن"
+          }
+        },
+        "enroll": {
+          "title": "تسجيل الطالب",
+          "description": "اختر دورة لتسجيل {name}.",
+          "descriptionWithCenter": "اختر مركزاً ودورة لتسجيل {name}.",
+          "centerPicker": "اختر مركزاً",
+          "centerPickerUnbranded": "اختر مركزاً غير مميز",
+          "fields": {
+            "center": "المركز",
+            "course": "الدورة"
+          },
+          "placeholders": {
+            "course": "اختر دورة",
+            "selectCenterFirst": "اختر المركز أولاً",
+            "searchCourses": "ابحث في الدورات..."
+          },
+          "empty": {
+            "noCourses": "لا توجد دورات",
+            "loadCenterFirst": "اختر مركزاً لتحميل الدورات"
+          },
+          "errors": {
+            "selectCenter": "اختر مركزاً أولاً.",
+            "studentNotFound": "الطالب غير موجود. يرجى المحاولة مرة أخرى.",
+            "selectCourse": "اختر دورة أولاً.",
+            "sessionInvalid": "جلستك غير صالحة. يرجى تسجيل الدخول مرة أخرى.",
+            "permissionDenied": "ليست لديك صلاحية لتسجيل هذا الطالب في المركز المحدد.",
+            "courseNotFound": "الدورة المحددة غير موجودة في هذا المركز.",
+            "validation": "تعذر إنشاء التسجيل بالطالب أو الدورة المحددة.",
+            "enrollFailed": "تعذر تسجيل الطالب. يرجى المحاولة مرة أخرى."
+          },
+          "messages": {
+            "enrolled": "تم تسجيل الطالب بنجاح."
+          },
+          "actions": {
+            "enrolling": "جارٍ التسجيل...",
+            "enroll": "تسجيل"
+          }
+        },
+        "bulkEnroll": {
+          "title": "تسجيل الطلاب جماعياً",
+          "description": "اختر دورة لـ {count} من الطلاب المحددين.",
+          "fields": {
+            "center": "المركز",
+            "course": "الدورة"
+          },
+          "placeholders": {
+            "course": "اختر دورة",
+            "selectCenterFirst": "اختر المركز أولاً",
+            "searchCourses": "ابحث في الدورات..."
+          },
+          "empty": {
+            "noCourses": "لا توجد دورات",
+            "loadCenterFirst": "اختر مركزاً لتحميل الدورات"
+          },
+          "errors": {
+            "selectCenter": "اختر مركزاً قبل تسجيل الطلاب.",
+            "selectCourse": "اختر دورة لتسجيل الطلاب.",
+            "noStudents": "لم يتم تحديد أي طلاب."
+          },
+          "messages": {
+            "updated": "تم تسجيل جميع الطلاب المحددين بنجاح.",
+            "processed": "تمت معالجة التسجيل الجماعي."
+          },
+          "summary": {
+            "totalLabel": "الإجمالي",
+            "approvedLabel": "تم",
+            "skippedLabel": "تم التخطي",
+            "failedLabel": "فشل",
+            "studentPrefix": "#",
+            "unknownId": "?",
+            "failedFallback": "فشل",
+            "skippedIds": "المعرفات التي تم تخطيها: "
+          },
+          "actions": {
+            "enrolling": "جارٍ التسجيل...",
+            "enrollStudents": "تسجيل الطلاب"
+          }
+        },
+        "bulkStatus": {
+          "title": "تغيير الحالة جماعياً",
+          "description": "حدّث الحالة لـ {count} من الطلاب المحددين.",
+          "help": "اختر الحالة الجديدة للطلاب المحددين.",
+          "errors": {
+            "errorTitle": "تعذر التحديث",
+            "noStudents": "لم يتم تحديد أي طلاب.",
+            "processFailed": "تعذر تحديث الحالة.",
+            "updateFailed": "تعذر تحديث الحالة. يرجى المحاولة مرة أخرى."
+          },
+          "messages": {
+            "processed": "تمت معالجة تحديث الحالة الجماعي."
+          },
+          "summary": {
+            "total": "الإجمالي: ",
+            "updated": "تم التحديث: ",
+            "skipped": "تم التخطي: ",
+            "failed": "فشل: ",
+            "studentPrefix": "#",
+            "failedFallback": "فشل"
+          },
+          "actions": {
+            "updating": "جارٍ التحديث...",
+            "update": "تحديث الحالة"
+          }
+        },
+        "details": {
+          "description": "ملف الطالب ونشاط التعلم والتعليم وتفاصيل الجهاز.",
+          "sections": {
+            "profile": "الملف الشخصي",
+            "activity": "النشاط",
+            "education": "التعليم",
+            "device": "الجهاز"
+          },
+          "fields": {
+            "email": "البريد الإلكتروني",
+            "phone": "الهاتف",
+            "center": "المركز",
+            "status": "الحالة",
+            "totalEnrollments": "إجمالي التسجيلات",
+            "activeEnrollments": "التسجيلات النشطة",
+            "totalSessions": "إجمالي الجلسات",
+            "fullPlaySessions": "جلسات المشاهدة الكاملة",
+            "viewedVideos": "الفيديوهات التي تمت مشاهدتها",
+            "grade": "الصف",
+            "school": "المدرسة",
+            "college": "الكلية",
+            "deviceName": "اسم الجهاز",
+            "deviceType": "نوع الجهاز",
+            "deviceId": "معرف الجهاز",
+            "model": "الطراز",
+            "osVersion": "إصدار النظام",
+            "deviceStatus": "حالة الجهاز",
+            "approvedAt": "تاريخ الموافقة",
+            "lastUsedAt": "آخر استخدام"
+          },
+          "states": {
+            "noActivity": "لا يوجد نشاط",
+            "active": "نشط",
+            "none": "لا شيء",
+            "noDevice": "لا يوجد جهاز مرتبط بعد."
+          }
+        },
+        "bulkGenerateAccess": {
+          "title": "إنشاء رموز الوصول جماعياً",
+          "description": "أنشئ رموز وصول لـ {count} من الطلاب المحددين.",
+          "fields": {
+            "center": "المركز",
+            "sendWhatsapp": "الإرسال عبر واتساب",
+            "whatsappFormat": "صيغة واتساب"
+          },
+          "placeholders": {
+            "course": "الدورة",
+            "video": "الفيديو",
+            "format": "الصيغة",
+            "selectCenterFirst": "اختر المركز أولاً",
+            "selectCourseFirst": "اختر الدورة أولاً",
+            "searchCourses": "ابحث في الدورات...",
+            "searchVideos": "ابحث في الفيديوهات..."
+          },
+          "empty": {
+            "noCourses": "لا توجد دورات",
+            "noVideos": "لا توجد فيديوهات",
+            "loadCenterFirst": "اختر المركز أولاً",
+            "loadCourseFirst": "اختر الدورة أولاً"
+          },
+          "formats": {
+            "textCode": "نص الكود",
+            "qrCode": "رمز QR"
+          },
+          "errors": {
+            "errorTitle": "تعذر إنشاء الرموز",
+            "selectCenter": "اختر مركزاً قبل إنشاء الرموز.",
+            "selectCourse": "اختر دورة.",
+            "selectVideo": "اختر فيديو.",
+            "noStudents": "لم يتم تحديد أي طلاب.",
+            "generateFailed": "تعذر إنشاء الرموز."
+          },
+          "summary": {
+            "totalLabel": "الإجمالي",
+            "generatedLabel": "تم الإنشاء",
+            "failedLabel": "فشل",
+            "whatsappSentLabel": "تم الإرسال عبر واتساب",
+            "whatsappFailedLabel": "فشل واتساب",
+            "studentPrefix": "#",
+            "failedFallback": "فشل"
+          },
+          "actions": {
+            "generating": "جارٍ الإنشاء...",
+            "generateCodes": "إنشاء الرموز"
+          }
+        },
+        "bulkEnrollAndGenerate": {
+          "title": "تسجيل وإنشاء رموز",
+          "description": "سجّل الطلاب المحددين أولاً ثم أنشئ رموز وصول الفيديو للطلاب المؤهلين.",
+          "steps": {
+            "enroll": "1. التسجيل",
+            "generate": "2. الإنشاء"
+          },
+          "fields": {
+            "center": "المركز",
+            "enrollCourse": "دورة التسجيل",
+            "generateCourse": "الدورة",
+            "video": "الفيديو",
+            "sendWhatsapp": "الإرسال عبر واتساب",
+            "whatsappFormat": "صيغة واتساب"
+          },
+          "placeholders": {
+            "selectCourse": "اختر دورة",
+            "selectVideo": "اختر فيديو",
+            "format": "الصيغة",
+            "selectCenterFirst": "اختر المركز أولاً",
+            "selectCourseFirst": "اختر الدورة أولاً",
+            "searchCourses": "ابحث في الدورات...",
+            "searchVideos": "ابحث في الفيديوهات..."
+          },
+          "empty": {
+            "noCourses": "لا توجد دورات",
+            "noVideos": "لا توجد فيديوهات",
+            "loadCenterFirst": "اختر المركز أولاً",
+            "loadCourseFirst": "اختر الدورة أولاً",
+            "noEligibleStudents": "أكمل التسجيل بنجاح لطالب واحد على الأقل قبل إنشاء الرموز."
+          },
+          "formats": {
+            "textCode": "نص الكود",
+            "qrCode": "رمز QR"
+          },
+          "errors": {
+            "enrollTitle": "تعذر تسجيل الطلاب",
+            "generateTitle": "تعذر إنشاء الرموز",
+            "selectCenter": "اختر مركزاً قبل المتابعة.",
+            "selectEnrollCourse": "اختر دورة لتسجيل الطلاب.",
+            "selectGenerateCourse": "اختر دورة.",
+            "selectVideo": "اختر فيديو.",
+            "noStudents": "لم يتم تحديد أي طلاب.",
+            "noEligibleStudents": "لا يوجد طلاب مؤهلون لإنشاء الرموز.",
+            "generateFailed": "تعذر إنشاء الرموز."
+          },
+          "summary": {
+            "totalLabel": "الإجمالي",
+            "approvedLabel": "تم",
+            "skippedLabel": "تم التخطي",
+            "failedLabel": "فشل",
+            "generatedLabel": "تم الإنشاء",
+            "whatsappSentLabel": "تم الإرسال عبر واتساب",
+            "whatsappFailedLabel": "فشل واتساب",
+            "studentPrefix": "#",
+            "unknownId": "?",
+            "failedFallback": "فشل",
+            "skippedIds": "المعرفات التي تم تخطيها: ",
+            "eligibleStudents": "الطلاب المؤهلون: "
+          },
+          "actions": {
+            "goToGenerate": "الانتقال إلى خطوة الإنشاء",
+            "retryFailed": "إعادة محاولة التسجيلات الفاشلة",
+            "enrolling": "جارٍ التسجيل...",
+            "enrollStudents": "تسجيل الطلاب",
+            "back": "رجوع",
+            "generating": "جارٍ الإنشاء...",
+            "generateCodes": "إنشاء الرموز"
+          }
+        }
+      }
+    },
+    "videoAccess": {
+      "dialogs": {
+        "generateCode": {
+          "title": "إنشاء كود وصول للفيديو",
+          "description": "اختر الطالب والدورة والفيديو لإنشاء كود وصول للفيديو.",
+          "centerPicker": "اختر مركزاً",
+          "centerPickerUnbranded": "اختر مركزاً غير مميز",
+          "fields": {
+            "student": "الطالب",
+            "course": "الدورة",
+            "video": "الفيديو",
+            "center": "المركز",
+            "whatsapp": "واتساب"
+          },
+          "placeholders": {
+            "searchStudents": "ابحث في الطلاب...",
+            "searchCourses": "ابحث في الدورات...",
+            "searchVideos": "ابحث في الفيديوهات...",
+            "selectCenterFirst": "اختر مركزاً لتحميل الدورات",
+            "selectCourseFirst": "اختر الدورة أولاً",
+            "format": "الصيغة"
+          },
+          "empty": {
+            "noStudents": "لا يوجد طلاب",
+            "noCourses": "لا توجد دورات",
+            "noVideos": "لا توجد فيديوهات",
+            "loadCenterFirst": "اختر مركزاً لتحميل الدورات",
+            "loadCourseFirst": "اختر الدورة أولاً"
+          },
+          "formats": {
+            "textCode": "نص الكود",
+            "qrCode": "رمز QR"
+          },
+          "errors": {
+            "errorTitle": "تعذر المتابعة",
+            "centerRequired": "سياق المركز مطلوب.",
+            "selectCourse": "اختر الدورة أولاً.",
+            "selectStudentAndVideo": "اختر الطالب والفيديو أولاً.",
+            "generateFirst": "أنشئ الكود أولاً.",
+            "generateFailed": "تعذر إنشاء كود الوصول.",
+            "whatsappFailed": "تعذر إرسال الكود المُنشأ عبر واتساب."
+          },
+          "result": {
+            "statusGenerated": "تم الإنشاء",
+            "emptyValue": "—",
+            "expiresAt": "ينتهي في",
+            "qrAlt": "رمز QR المُنشأ",
+            "courseById": "الدورة {id}",
+            "videoById": "الفيديو {id}",
+            "centerById": "المركز {id}",
+            "notAvailable": "غير متاح",
+            "generatedBy": "تم الإنشاء بواسطة",
+            "generatedAt": "تاريخ الإنشاء",
+            "whatsappError": "خطأ واتساب: ",
+            "fields": {
+              "code": "الكود"
+            },
+            "whatsapp": {
+              "notRequested": "لم يُطلب",
+              "sent": "تم الإرسال",
+              "failed": "فشل"
+            }
+          },
+          "actions": {
+            "copyCode": "نسخ الكود",
+            "sending": "جارٍ الإرسال...",
+            "sendWhatsapp": "إرسال واتساب",
+            "generating": "جارٍ الإنشاء...",
+            "generateCode": "إنشاء الكود"
+          }
+        }
       }
     },
     "enrollments": {
@@ -2139,6 +3369,106 @@
       "editInstructor": "تعديل بيانات المدرب",
       "selectCenterTitle": "اختر مركزاً",
       "selectCenterDescription": "اختر مركزاً لإدارة المدربين.",
+      "feedback": {
+        "successTitle": "نجاح"
+      },
+      "fallbacks": {
+        "instructor": "مدرب",
+        "instructorById": "المدرب {id}",
+        "newInstructorEmail": "مدرب جديد",
+        "noValue": "—"
+      },
+      "avatarAlt": "صورة {name}",
+      "dialogs": {
+        "form": {
+          "descriptionCreate": "أضف ملفاً جديداً للمدرب.",
+          "descriptionEdit": "حدّث تفاصيل ملف المدرب.",
+          "badges": {
+            "profileDetails": "تفاصيل الملف",
+            "contactInfo": "معلومات التواصل"
+          },
+          "fields": {
+            "avatar": "الصورة الرمزية",
+            "title": "الصفة",
+            "bio": "نبذة"
+          },
+          "placeholders": {
+            "name": "اسم المدرب",
+            "email": "instructor@example.com",
+            "title": "مثال: محاضر أول",
+            "bio": "نبذة قصيرة عن المدرب"
+          },
+          "hints": {
+            "avatarRequirements": "JPG أو PNG أو WebP. الحد الأقصى 5 ميجابايت.",
+            "avatarCreate": "سيتم رفع الصورة الرمزية مع المدرب الجديد عند الإرسال."
+          },
+          "validation": {
+            "nameMin": "يجب أن يكون الاسم مكوناً من حرفين على الأقل.",
+            "invalidEmail": "أدخل بريداً إلكترونياً صحيحاً."
+          },
+          "errors": {
+            "saveFailedTitle": "تعذر حفظ بيانات المدرب",
+            "saveFailed": "تعذر حفظ المدرب. يرجى المحاولة مرة أخرى.",
+            "invalidAvatarType": "يرجى اختيار صورة صحيحة بصيغة JPG أو PNG أو WebP.",
+            "avatarTooLarge": "يجب ألا يتجاوز حجم الصورة الرمزية 5 ميجابايت.",
+            "selectCenterBeforeAvatar": "اختر مركزاً قبل رفع صورة رمزية.",
+            "saveBeforeAvatarUpload": "احفظ المدرب أولاً ثم ارفع الصورة الرمزية.",
+            "chooseAvatarFirst": "اختر ملف صورة أولاً.",
+            "uploadAvatarFailed": "تعذر رفع الصورة الرمزية. يرجى المحاولة مرة أخرى.",
+            "selectCenterBeforeSubmit": "اختر مركزاً قبل إنشاء أو تحديث المدربين."
+          },
+          "actions": {
+            "uploadAvatar": "رفع الصورة الرمزية",
+            "uploadingAvatar": "جارٍ الرفع...",
+            "saveChanges": "حفظ التغييرات",
+            "saving": "جارٍ الحفظ...",
+            "creating": "جارٍ الإنشاء..."
+          },
+          "messages": {
+            "avatarUpdated": "تم تحديث الصورة الرمزية للمدرب بنجاح.",
+            "created": "تم إنشاء المدرب بنجاح.",
+            "updated": "تم تحديث بيانات المدرب بنجاح."
+          }
+        },
+        "delete": {
+          "title": "حذف المدرب",
+          "entityFallback": "هذا المدرب",
+          "confirmText": "حذف",
+          "confirmLabel": "اكتب {confirmText} للتأكيد",
+          "confirmButtonLabel": "حذف المدرب",
+          "pendingLabel": "جارٍ الحذف...",
+          "errorTitle": "تعذر حذف المدرب",
+          "errorMessage": "تعذر حذف المدرب. يرجى المحاولة مرة أخرى.",
+          "irreversible": "لا يمكن التراجع عن هذا الإجراء.",
+          "warningPrefix": "أنت على وشك حذف",
+          "messages": {
+            "deleted": "تم حذف المدرب بنجاح."
+          }
+        },
+        "details": {
+          "description": "تفاصيل ملف المدرب وجميع الحقول الواردة من الواجهة البرمجية.",
+          "sections": {
+            "profile": "الملف الشخصي",
+            "bio": "النبذة",
+            "translations": "الترجمات",
+            "socialLinks": "روابط التواصل",
+            "metadata": "البيانات الإضافية",
+            "audit": "سجل التتبع"
+          },
+          "fields": {
+            "createdBy": "أنشأه",
+            "nameTranslations": "ترجمات الاسم",
+            "titleTranslations": "ترجمات الصفة",
+            "bioTranslations": "ترجمات النبذة",
+            "updatedAt": "آخر تحديث",
+            "statusUnknown": "غير معروف",
+            "noBio": "لا توجد نبذة.",
+            "noSocialLinks": "لا توجد روابط تواصل.",
+            "noMetadata": "لا توجد بيانات إضافية.",
+            "refreshing": "جارٍ تحديث أحدث تفاصيل المدرب..."
+          }
+        }
+      },
       "table": {
         "searchPlaceholder": "البحث في المدربين...",
         "clearSearch": "مسح البحث",
@@ -2148,6 +3478,7 @@
         "summaryPlural": "{count} مدرب",
         "filters": {
           "course": "الدورة",
+          "courseById": "الدورة {id}",
           "searchCourses": "البحث في الدورات...",
           "allCourses": "كل الدورات",
           "noCourses": "لا توجد دورات",
@@ -2289,6 +3620,10 @@
           "failed": "فشل",
           "unknown": "غير معروف"
         },
+        "transcript": {
+          "ready": "النص التفريغي جاهز",
+          "missing": "النص التفريغي مفقود"
+        },
         "sourceMode": {
           "upload": "رفع",
           "url": "رابط"
@@ -2382,6 +3717,7 @@
             "sourceMode": "وضع المصدر",
             "duration": "المدة",
             "videoId": "رقم الفيديو",
+            "transcript": "النص التفريغي",
             "thumbnail": "الصورة المصغرة",
             "uploadedBy": "تم الرفع بواسطة",
             "center": "المركز",
@@ -2408,6 +3744,40 @@
             "noThumbnail": "لا توجد صورة مصغرة",
             "noThumbnailAvailable": "لا توجد صورة مصغرة متاحة",
             "alt": "الصورة المصغرة لـ {title}"
+          },
+          "transcript": {
+            "status": {
+              "ready": "النص التفريغي جاهز",
+              "missing": "النص التفريغي مفقود",
+              "unknown": "حالة النص التفريغي غير متاحة"
+            },
+            "source": {
+              "manual": "يدوي"
+            },
+            "missingTitle": "النص التفريغي مطلوب للتوليد بالذكاء الاصطناعي",
+            "missingDescription": "يتطلب التوليد المباشر من هذا الفيديو وجود نص تفريغي محفوظ. ألصق النص أو ارفع ملف TXT أو VTT أو SRT أدناه.",
+            "placeholder": "ألصق النص التفريغي هنا...",
+            "textHint": "حفظ النص سيستبدل النص التفريغي المخزن حالياً.",
+            "uploadTitle": "رفع ملف النص التفريغي",
+            "uploadHint": "الصيغ المدعومة: TXT وVTT وSRT. يتم تحويل الملفات المرفوعة إلى نص عادي.",
+            "actions": {
+              "saveText": "حفظ نص التفريغ",
+              "uploadFile": "رفع ملف التفريغ",
+              "delete": "حذف النص التفريغي",
+              "saving": "جارٍ الحفظ...",
+              "uploading": "جارٍ الرفع..."
+            },
+            "toasts": {
+              "saved": "تم حفظ النص التفريغي بنجاح.",
+              "deleted": "تم حذف النص التفريغي بنجاح."
+            },
+            "errors": {
+              "loadTitle": "تعذر تحميل النص التفريغي",
+              "loadFailed": "تعذر تحميل النص التفريغي لهذا الفيديو.",
+              "unsupportedFile": "الملفات المدعومة للنص التفريغي هي TXT وVTT وSRT فقط.",
+              "saveFailed": "فشل حفظ النص التفريغي.",
+              "deleteFailed": "فشل حذف النص التفريغي."
+            }
           },
           "noUploadSessions": "لا توجد جلسات رفع لهذا الفيديو.",
           "sessionLabel": "جلسة #{id}",
@@ -2748,8 +4118,24 @@
           "failed": "فشل",
           "unknown": "غير معروف"
         },
+        "extraction": {
+          "pending": "قيد الانتظار",
+          "processing": "جاري المعالجة",
+          "ready": "جاهز",
+          "failed": "فشل",
+          "skipped": "تم التخطي",
+          "unknown": "غير معروف"
+        },
         "description": {
           "noDescription": "لا يوجد وصف"
+        },
+        "extraction": {
+          "ready": "استخراج النص جاهز",
+          "pending": "استخراج النص قيد الانتظار",
+          "processing": "استخراج النص جارٍ",
+          "failed": "فشل استخراج النص",
+          "skipped": "تم تخطي استخراج النص",
+          "unknown": "حالة استخراج النص غير متاحة"
         },
         "usage": {
           "course": "دورة",
@@ -2849,6 +4235,7 @@
           },
           "sections": {
             "metadata": "البيانات",
+            "extraction": "استخراج النص",
             "usage": "الاستخدام",
             "timeline": "الجدول الزمني"
           },
@@ -2856,6 +4243,7 @@
             "id": "المعرف",
             "fileType": "نوع الملف",
             "sourceType": "نوع المصدر",
+            "extraction": "حالة الاستخراج",
             "courses": "الدورات",
             "sections": "الأقسام",
             "createdAt": "تاريخ الإنشاء",
@@ -3232,6 +4620,190 @@
     "roles": {
       "title": "الأدوار والصلاحيات",
       "description": "إدارة أدوار المستخدمين وصلاحياتهم",
+      "fallbacks": {
+        "noValue": "—",
+        "role": "دور",
+        "roleById": "الدور {id}"
+      },
+      "dialogs": {
+        "form": {
+          "titleEdit": "تعديل الدور",
+          "titleCreate": "إنشاء دور",
+          "descriptionEdit": "حدّث هوية الدور ووصفه.",
+          "descriptionCreate": "أنشئ دوراً جديداً للتحكم بالوصول حسب الأدوار.",
+          "fields": {
+            "slug": "المعرّف"
+          },
+          "placeholders": {
+            "name": "مسؤول المحتوى",
+            "slug": "content_admin",
+            "description": "وصف مختصر"
+          },
+          "actions": {
+            "saveChanges": "حفظ التغييرات",
+            "createRole": "إنشاء دور"
+          },
+          "messages": {
+            "created": "تم إنشاء الدور بنجاح.",
+            "updated": "تم تحديث الدور بنجاح."
+          },
+          "validation": {
+            "nameRequired": "اسم الدور مطلوب.",
+            "nameMax": "يجب ألا يزيد اسم الدور عن 100 حرف.",
+            "slugRequired": "المعرّف مطلوب.",
+            "slugMax": "يجب ألا يزيد المعرّف عن 100 حرف.",
+            "slugPattern": "يسمح في المعرّف بالحروف والأرقام والنقطة (.) والشرطة السفلية (_) والشرطة (-) فقط.",
+            "descriptionMax": "يجب ألا يزيد الوصف عن 255 حرفاً."
+          },
+          "errors": {
+            "saveFailedTitle": "تعذر حفظ الدور",
+            "saveFailed": "تعذر حفظ الدور. يرجى المحاولة مرة أخرى.",
+            "permissionDenied": "ليس لديك صلاحية لتنفيذ هذا الإجراء.",
+            "systemScopeRequired": "يتطلب هذا الإجراء نطاق النظام. يرجى استخدام لوحة إدارة المنصة.",
+            "systemApiKeyRequired": "يتطلب هذا الإجراء مفتاح API للنظام. يرجى التواصل مع المسؤول.",
+            "apiKeyCenterMismatch": "مفتاح API لا يطابق هذا المركز. حدّث الصفحة ثم حاول مرة أخرى.",
+            "centerMismatch": "هذا الدور يتبع مركزاً آخر ولا يمكن تعديله هنا.",
+            "notFound": "لم يتم العثور على الدور المطلوب. ربما تم حذفه.",
+            "validation": "يرجى التحقق من المدخلات ثم المحاولة مرة أخرى."
+          }
+        },
+        "delete": {
+          "title": "حذف الدور",
+          "entityFallback": "هذا الدور",
+          "confirmText": "حذف",
+          "confirmLabel": "اكتب {confirmText} للتأكيد",
+          "confirmButtonLabel": "حذف الدور",
+          "pendingLabel": "جارٍ الحذف...",
+          "irreversible": "لا يمكن التراجع عن هذا الإجراء.",
+          "warningPrefix": "أنت على وشك حذف",
+          "messages": {
+            "deleted": "تم حذف الدور بنجاح."
+          },
+          "errors": {
+            "errorTitle": "تعذر حذف الدور",
+            "deleteFailed": "تعذر حذف الدور. يرجى المحاولة مرة أخرى.",
+            "permissionDenied": "ليس لديك صلاحية لحذف هذا الدور.",
+            "systemScopeRequired": "يتطلب هذا الإجراء نطاق النظام. يرجى استخدام لوحة إدارة المنصة.",
+            "systemApiKeyRequired": "يتطلب هذا الإجراء مفتاح API للنظام. يرجى التواصل مع المسؤول.",
+            "apiKeyCenterMismatch": "مفتاح API لا يطابق هذا المركز. حدّث الصفحة ثم حاول مرة أخرى.",
+            "centerMismatch": "هذا الدور يتبع مركزاً آخر ولا يمكن حذفه هنا.",
+            "notFound": "لم يتم العثور على الدور المطلوب. ربما تم حذفه بالفعل.",
+            "validation": "تعذر حذف الدور بسبب قيود التحقق."
+          }
+        }
+      },
+      "permissions": {
+        "title": "مزامنة الصلاحيات",
+        "descriptionWrite": "حدّث صلاحيات {name} باستخدام قائمة صلاحيات قابلة للبحث.",
+        "descriptionReadOnly": "عرض صلاحيات {name}.",
+        "summary": {
+          "selected": "{count} محدد",
+          "total": "{count} إجمالي"
+        },
+        "groups": {
+          "admin": "الإدارة",
+          "rolesPermissions": "الأدوار والصلاحيات",
+          "centers": "المراكز",
+          "courses": "الدورات",
+          "videos": "الفيديوهات",
+          "pdfs": "ملفات PDF",
+          "instructors": "المدربون",
+          "enrollments": "التسجيلات / الطلاب",
+          "requestsControls": "الطلبات والضوابط",
+          "auditSystem": "التدقيق والنظام",
+          "other": "أخرى"
+        },
+        "search": {
+          "label": "البحث في الصلاحيات",
+          "placeholder": "ابحث بالاسم أو المعرّف أو الوصف...",
+          "hint": "استخدم البحث لتصفية الصلاحيات بسرعة، وراجع التغييرات قبل الحفظ."
+        },
+        "actions": {
+          "selectAll": "تحديد الكل",
+          "clear": "مسح",
+          "continue": "متابعة",
+          "selectPermission": "تحديد {name}"
+        },
+        "readOnly": {
+          "title": "للقراءة فقط",
+          "description": "يمكنك عرض الصلاحيات المعينة، لكن التحديثات تتطلب صلاحية manage_roles."
+        },
+        "empty": {
+          "selected": "لا توجد صلاحيات محددة.",
+          "noResults": "لا توجد صلاحيات تطابق البحث.",
+          "noPermissions": "لا توجد صلاحيات متاحة."
+        },
+        "changes": {
+          "title": "تغييرات الصلاحيات:",
+          "added": "+{count} مضافة",
+          "removed": "-{count} محذوفة",
+          "more": "+ المزيد"
+        },
+        "confirm": {
+          "title": "تأكيد تغييرات الصلاحيات",
+          "description": "راجع تحديثات صلاحيات {name} قبل التطبيق.",
+          "selectedCount": "{count} صلاحية محددة",
+          "errorTitle": "تعذر مزامنة الصلاحيات",
+          "addTitle": "الصلاحيات التي ستُضاف",
+          "removeTitle": "الصلاحيات التي ستُزال",
+          "none": "لا يوجد",
+          "acknowledgement": "أفهم أن هذا سيغيّر صلاحيات الوصول لهذا الدور.",
+          "confirming": "جارٍ التأكيد...",
+          "apply": "تأكيد وتطبيق"
+        },
+        "notFound": {
+          "scopeLabel": "صلاحيات الدور",
+          "title": "الدور غير موجود",
+          "description": "الدور الذي طلبته غير موجود أو لم يعد متاحاً.",
+          "goToRoles": "الانتقال إلى الأدوار",
+          "goToPlatformRoles": "الانتقال إلى أدوار المنصة"
+        },
+        "fallbacks": {
+          "permissionById": "الصلاحية {id}"
+        },
+        "errors": {
+          "loadFailed": "فشل تحميل صلاحيات الدور.",
+          "validationTitle": "فشل التحقق من الصلاحيات",
+          "updateFailedTitle": "تعذر تحديث الصلاحيات",
+          "updateFailed": "تعذر تحديث صلاحيات الدور. يرجى المحاولة مرة أخرى.",
+          "invalidSelection": "واحدة أو أكثر من الصلاحيات المحددة لم تعد متاحة. حدّث الصفحة ثم حاول مرة أخرى.",
+          "permissionDenied": "ليس لديك صلاحية لتحديث صلاحيات الدور.",
+          "systemScopeRequired": "يتطلب هذا الإجراء نطاق النظام. يرجى استخدام لوحة إدارة المنصة.",
+          "systemApiKeyRequired": "يتطلب هذا الإجراء مفتاح API للنظام. يرجى التواصل مع المسؤول.",
+          "apiKeyCenterMismatch": "مفتاح API لا يطابق هذا المركز. حدّث الصفحة ثم حاول مرة أخرى.",
+          "centerMismatch": "هذا الدور يتبع مركزاً آخر ولا يمكن تعديله هنا.",
+          "notFound": "لم يتم العثور على الدور المطلوب. ربما تم حذفه.",
+          "validation": "يرجى التحقق من المدخلات ثم المحاولة مرة أخرى."
+        }
+      },
+      "bulkPermissions": {
+        "title": "إدارة الصلاحيات بشكل جماعي",
+        "description": "عيّن نفس مجموعة الصلاحيات إلى {count} دور/أدوار محددة.",
+        "selectedRoles": "الأدوار المحددة ({count})",
+        "searchPlaceholder": "البحث في الصلاحيات...",
+        "selectedPermissions": "{count} صلاحية محددة",
+        "actions": {
+          "clearSelection": "مسح التحديد",
+          "applying": "جارٍ التطبيق...",
+          "applyPermissions": "تطبيق الصلاحيات"
+        },
+        "messages": {
+          "cleared": "تمت مزامنة الصلاحيات لـ {roles} دور/أدوار مع مسح الصلاحيات.",
+          "applied": "تمت مزامنة الصلاحيات لـ {roles} دور/أدوار مع {permissions} صلاحية."
+        },
+        "empty": {
+          "noResults": "لا توجد صلاحيات",
+          "noPermissions": "لا توجد صلاحيات متاحة",
+          "noDescription": "لا يوجد وصف"
+        },
+        "errors": {
+          "title": "تعذر تحديث الصلاحيات",
+          "updateFailed": "تعذر تعيين الصلاحيات. يرجى المحاولة مرة أخرى.",
+          "selectRole": "حدد دوراً واحداً على الأقل.",
+          "uniqueRoles": "يجب أن تكون الأدوار المحددة فريدة.",
+          "invalidPermissions": "واحدة أو أكثر من الصلاحيات المحددة غير صالحة. حدّث الصلاحيات ثم حاول مرة أخرى."
+        }
+      },
       "table": {
         "searchPlaceholder": "البحث باسم الدور أو المعرّف",
         "clearSearch": "مسح البحث",
@@ -3271,13 +4843,218 @@
           "syncPermissions": "مزامنة الصلاحيات",
           "viewPermissionsReadOnly": "صلاحيات الدور (للقراءة فقط)",
           "updatePermissionsFor": "تحديث صلاحيات {name}.",
-          "updatePermissionsGeneric": "تحديث صلاحيات هذا الدور."
+          "updatePermissionsGeneric": "تحديث صلاحيات هذا الدور.",
+          "permissionsUpdated": "تم تحديث الصلاحيات ({added} مضافة، {removed} محذوفة)."
         }
       }
     },
     "admins": {
       "title": "المشرفون",
       "description": "إدارة حسابات المشرفين",
+      "fallbacks": {
+        "noValue": "—",
+        "role": "دور",
+        "roleById": "الدور #{id}",
+        "userById": "المستخدم #{id}",
+        "adminById": "مشرف {id}",
+        "adminUser": "مشرف",
+        "currentCenter": "المركز الحالي"
+      },
+      "dialogs": {
+        "form": {
+          "titleEdit": "تعديل المشرف",
+          "titleCreate": "إنشاء مشرف",
+          "descriptionEdit": "حدّث بيانات حساب المشرف وحالته.",
+          "descriptionCreate": "أنشئ حساب مشرف جديداً.",
+          "badges": {
+            "accountDetails": "تفاصيل الحساب",
+            "accountAccess": "وصول الحساب"
+          },
+          "advanced": {
+            "title": "خيارات متقدمة",
+            "description": "إعدادات المركز ورمز الدولة والحالة."
+          },
+          "fields": {
+            "name": "الاسم",
+            "email": "البريد الإلكتروني",
+            "phone": "الهاتف",
+            "countryCode": "رمز الدولة",
+            "center": "المركز",
+            "status": "الحالة"
+          },
+          "placeholders": {
+            "name": "جين أدمن",
+            "email": "jane.admin@example.com",
+            "phone": "1225291841",
+            "countryCode": "+20"
+          },
+          "hints": {
+            "phone": "أدخل الرقم الأساسي فقط (10 أرقام) بدون رمز الدولة أو صفر في البداية.",
+            "centerScoped": "مقيد بالمركز الحالي: {center}.",
+            "centerOptional": "اتركه فارغاً لإنشاء مشرف على مستوى النظام بدون تعيين مركز."
+          },
+          "validation": {
+            "nameMin": "يجب أن يتكون الاسم من حرفين على الأقل.",
+            "emailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
+            "phoneRequired": "رقم الهاتف مطلوب لإنشاء مشرف.",
+            "phoneInvalid": "استخدم رقم الهاتف الأساسي فقط (10 أرقام بدون صفر في البداية).",
+            "countryCodeInvalid": "يجب أن يكون رمز الدولة بصيغة +NN مثل +20."
+          },
+          "errors": {
+            "errorTitle": "تعذر حفظ المشرف",
+            "saveFailed": "تعذر حفظ المشرف. يرجى المحاولة مرة أخرى."
+          },
+          "messages": {
+            "updated": "تم تحديث المشرف بنجاح.",
+            "created": "تم إرسال دعوة المشرف بنجاح."
+          },
+          "actions": {
+            "showAdvanced": "إظهار",
+            "hideAdvanced": "إخفاء",
+            "saving": "جارٍ الحفظ...",
+            "sending": "جارٍ الإرسال...",
+            "saveChanges": "حفظ التغييرات",
+            "sendInvite": "إرسال الدعوة"
+          },
+          "optionalLabel": "(اختياري)",
+          "centerAllLabel": "بدون مركز (اختياري)"
+        },
+        "delete": {
+          "title": "حذف المشرف",
+          "entityFallback": "هذا المشرف",
+          "confirmText": "حذف",
+          "confirmLabel": "اكتب {confirmText} للتأكيد",
+          "confirmButtonLabel": "حذف المستخدم",
+          "pendingLabel": "جارٍ الحذف...",
+          "irreversible": "لا يمكن التراجع عن هذا الإجراء.",
+          "warningPrefix": "أنت على وشك حذف",
+          "messages": {
+            "deleted": "تم حذف المشرف بنجاح."
+          },
+          "errors": {
+            "errorTitle": "تعذر حذف المشرف",
+            "deleteFailed": "تعذر حذف المشرف. يرجى المحاولة مرة أخرى."
+          }
+        },
+        "status": {
+          "title": "تغيير الحالة",
+          "description": "حدّث حالة الحساب لـ {name}.",
+          "help": "اختر الحالة الجديدة لهذا المشرف.",
+          "actions": {
+            "updating": "جارٍ التحديث...",
+            "update": "تحديث الحالة"
+          },
+          "messages": {
+            "updated": "تم تحديث حالة المشرف بنجاح."
+          },
+          "errors": {
+            "errorTitle": "تعذر التحديث",
+            "updateFailed": "تعذر تحديث حالة المشرف. يرجى المحاولة مرة أخرى.",
+            "notFound": "لم يتم العثور على المشرف."
+          }
+        },
+        "bulkStatus": {
+          "title": "تغيير الحالة جماعياً",
+          "description": "حدّث الحالة لـ {count} من المشرفين المحددين.",
+          "help": "اختر الحالة الجديدة للمشرفين المحددين.",
+          "actions": {
+            "updating": "جارٍ التحديث...",
+            "update": "تحديث الحالة"
+          },
+          "messages": {
+            "updated": "تم تحديث حالة المشرفين بنجاح.",
+            "processed": "تمت معالجة تحديث الحالة الجماعي."
+          },
+          "errors": {
+            "errorTitle": "تعذر التحديث",
+            "updateFailed": "تعذر تحديث حالة المشرفين المحددين. يرجى المحاولة مرة أخرى.",
+            "processFailed": "تعذر تحديث حالة المشرفين المحددين.",
+            "noUsers": "لم يتم تحديد أي مشرفين."
+          },
+          "summary": {
+            "total": "الإجمالي: ",
+            "updated": "تم التحديث: ",
+            "skipped": "تم التخطي: ",
+            "failed": "فشل: ",
+            "userPrefix": "المستخدم #",
+            "failedFallback": "فشل",
+            "skippedFallback": "تم التخطي"
+          }
+        },
+        "bulkAssignRoles": {
+          "title": "تعيين الأدوار",
+          "description": "اختر الأدوار لتعيينها إلى {count} من المشرفين المحددين.",
+          "searchPlaceholder": "ابحث في الأدوار...",
+          "roleMeta": "{slug} • {count} صلاحية",
+          "selectedCount": "{count} دور/أدوار محددة",
+          "actions": {
+            "assigning": "جارٍ التعيين...",
+            "assign": "تعيين الأدوار"
+          },
+          "messages": {
+            "updated": "تم تعيين الأدوار لجميع المستخدمين بنجاح.",
+            "processed": "تمت معالجة التعيين الجماعي للأدوار."
+          },
+          "errors": {
+            "assignFailed": "تعذر تعيين الأدوار. يرجى المحاولة مرة أخرى.",
+            "processFailed": "تعذر تعيين الأدوار.",
+            "selectRole": "حدد دوراً واحداً على الأقل.",
+            "noUsers": "لم يتم تحديد أي مستخدمين."
+          },
+          "summary": {
+            "totalLabel": "الإجمالي",
+            "updatedLabel": "تم التحديث",
+            "skippedLabel": "تم التخطي",
+            "failedLabel": "فشل",
+            "failedTitle": "فشل:",
+            "skippedTitle": "تم التخطي:",
+            "userPrefix": "المستخدم #",
+            "failedFallback": "فشل",
+            "skippedFallback": "تم التخطي"
+          },
+          "empty": {
+            "noResults": "لا توجد أدوار مطابقة",
+            "noRoles": "لا توجد أدوار متاحة"
+          }
+        },
+        "syncRoles": {
+          "title": "مزامنة الأدوار",
+          "description": "حدّث الأدوار لـ {name} باستخدام تحديد الأدوار مع معاينة الصلاحيات.",
+          "roleMeta": "{slug} · {count} صلاحية",
+          "roleMore": "+{count} المزيد",
+          "summary": {
+            "roles": "{count} دور",
+            "permissions": "{count} صلاحية"
+          },
+          "search": {
+            "label": "البحث في الأدوار",
+            "placeholder": "ابحث بالدور أو المعرّف أو الصلاحية...",
+            "hint": "استخدم البحث لتصفية الأدوار بسرعة. تظهر معاينة التغييرات بالأسفل قبل التطبيق."
+          },
+          "actions": {
+            "selectAll": "تحديد الكل",
+            "clear": "مسح",
+            "selectRole": "تحديد {name}",
+            "continue": "متابعة"
+          },
+          "empty": {
+            "selected": "لم يتم تحديد أي أدوار.",
+            "loading": "جارٍ تحميل الأدوار...",
+            "noResults": "لا توجد أدوار مطابقة للبحث.",
+            "noRoles": "لا توجد أدوار متاحة."
+          },
+          "changes": {
+            "title": "تغييرات الصلاحيات:",
+            "added": "+{count} تمت إضافتها",
+            "removed": "-{count} تمت إزالتها",
+            "more": "+ المزيد"
+          },
+          "errors": {
+            "errorTitle": "تعذر مزامنة الأدوار",
+            "selectRole": "حدد دوراً واحداً على الأقل."
+          }
+        }
+      },
       "table": {
         "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني",
         "clearSearch": "مسح البحث",
@@ -3522,6 +5299,77 @@
             "course": "دورة غير معروفة",
             "video": "فيديو غير معروف",
             "center": "تطبيق نجاح"
+          },
+          "dialogs": {
+            "generateCode": {
+              "title": "إنشاء كود وصول للفيديو",
+              "description": "اختر الطالب والدورة والفيديو لإنشاء كود وصول للفيديو.",
+              "centerPicker": "اختر مركزاً",
+              "centerPickerUnbranded": "اختر مركزاً غير مميز",
+              "fields": {
+                "student": "الطالب",
+                "course": "الدورة",
+                "video": "الفيديو",
+                "center": "المركز",
+                "whatsapp": "واتساب"
+              },
+              "placeholders": {
+                "searchStudents": "ابحث في الطلاب...",
+                "searchCourses": "ابحث في الدورات...",
+                "searchVideos": "ابحث في الفيديوهات...",
+                "selectCenterFirst": "اختر مركزاً لتحميل الدورات",
+                "selectCourseFirst": "اختر الدورة أولاً",
+                "format": "الصيغة"
+              },
+              "empty": {
+                "noStudents": "لا يوجد طلاب",
+                "noCourses": "لا توجد دورات",
+                "noVideos": "لا توجد فيديوهات",
+                "loadCenterFirst": "اختر مركزاً لتحميل الدورات",
+                "loadCourseFirst": "اختر الدورة أولاً"
+              },
+              "formats": {
+                "textCode": "نص الكود",
+                "qrCode": "رمز QR"
+              },
+              "errors": {
+                "errorTitle": "تعذر المتابعة",
+                "centerRequired": "سياق المركز مطلوب.",
+                "selectCourse": "اختر الدورة أولاً.",
+                "selectStudentAndVideo": "اختر الطالب والفيديو أولاً.",
+                "generateFirst": "أنشئ الكود أولاً.",
+                "generateFailed": "تعذر إنشاء كود الوصول.",
+                "whatsappFailed": "تعذر إرسال الكود المُنشأ عبر واتساب."
+              },
+              "result": {
+                "statusGenerated": "تم الإنشاء",
+                "emptyValue": "—",
+                "expiresAt": "ينتهي في",
+                "qrAlt": "رمز QR المُنشأ",
+                "courseById": "الدورة {id}",
+                "videoById": "الفيديو {id}",
+                "centerById": "المركز {id}",
+                "notAvailable": "غير متاح",
+                "generatedBy": "تم الإنشاء بواسطة",
+                "generatedAt": "تاريخ الإنشاء",
+                "whatsappError": "خطأ واتساب: ",
+                "fields": {
+                  "code": "الكود"
+                },
+                "whatsapp": {
+                  "notRequested": "لم يُطلب",
+                  "sent": "تم الإرسال",
+                  "failed": "فشل"
+                }
+              },
+              "actions": {
+                "copyCode": "نسخ الكود",
+                "sending": "جارٍ الإرسال...",
+                "sendWhatsapp": "إرسال واتساب",
+                "generating": "جارٍ الإنشاء...",
+                "generateCode": "إنشاء الكود"
+              }
+            }
           }
         },
         "videoAccessCodes": {
@@ -3613,6 +5461,199 @@
       "descriptionByCenter": "إدارة الصفوف والمدارس والكليات حسب المركز.",
       "descriptionForProfiles": "إدارة الصفوف والمدارس والكليات لملفات الطلاب.",
       "selectCenterPrompt": "اختر مركزاً من المحدد لإدارة القوائم التعليمية.",
+      "dialogs": {
+        "gradeForm": {
+          "titleCreate": "إنشاء صف",
+          "titleEdit": "تعديل الصف",
+          "descriptionCreate": "أضف صفاً جديداً لهذا المركز.",
+          "descriptionEdit": "حدّث أسماء الصف والمرحلة والحالة.",
+          "errorTitle": "تعذر حفظ الصف",
+          "validation": {
+            "orderMin": "يجب أن يكون الترتيب صفراً أو أكثر.",
+            "nameRequired": "أدخل اسماً واحداً على الأقل بالإنجليزية أو العربية."
+          },
+          "errors": {
+            "duplicateSlug": "يوجد صف بهذا المعرف النصي داخل هذا المركز.",
+            "validation": "يرجى مراجعة حقول الصف والمحاولة مرة أخرى.",
+            "fallback": "تعذر حفظ الصف."
+          },
+          "success": {
+            "created": "تم إنشاء الصف بنجاح.",
+            "updated": "تم تحديث الصف بنجاح."
+          },
+          "fields": {
+            "nameEn": {
+              "label": "الاسم بالإنجليزية",
+              "placeholder": "أدخل اسم الصف بالإنجليزية"
+            },
+            "nameAr": {
+              "label": "الاسم بالعربية",
+              "placeholder": "أدخل اسم الصف بالعربية"
+            },
+            "stage": {
+              "label": "المرحلة"
+            },
+            "order": {
+              "label": "الترتيب"
+            },
+            "isActive": {
+              "label": "نشط"
+            }
+          },
+          "actions": {
+            "cancel": "إلغاء",
+            "saving": "جارٍ الحفظ...",
+            "save": "حفظ التغييرات",
+            "create": "إنشاء صف"
+          }
+        },
+        "deleteGrade": {
+          "title": "حذف الصف",
+          "description": "لا يمكن التراجع عن هذا الإجراء.",
+          "entityFallback": "هذا الصف",
+          "warningPrefix": "أنت على وشك حذف",
+          "confirmLabel": "اكتب DELETE للتأكيد",
+          "errorTitle": "تعذر حذف الصف",
+          "success": "تم حذف الصف بنجاح.",
+          "errors": {
+            "hasStudents": "هذا الصف مرتبط حالياً بطلاب ولا يمكن حذفه.",
+            "fallback": "تعذر حذف الصف."
+          },
+          "actions": {
+            "cancel": "إلغاء",
+            "confirm": "حذف الصف",
+            "pending": "جارٍ الحذف..."
+          }
+        },
+        "schoolForm": {
+          "titleCreate": "إنشاء مدرسة",
+          "titleEdit": "تعديل المدرسة",
+          "descriptionCreate": "أضف مدرسة جديدة لهذا المركز.",
+          "descriptionEdit": "حدّث تفاصيل المدرسة وحالتها.",
+          "errorTitle": "تعذر حفظ المدرسة",
+          "validation": {
+            "nameRequired": "أدخل اسماً واحداً على الأقل بالإنجليزية أو العربية."
+          },
+          "errors": {
+            "duplicateSlug": "توجد مدرسة بهذا المعرف النصي داخل هذا المركز.",
+            "validation": "يرجى مراجعة حقول المدرسة والمحاولة مرة أخرى.",
+            "fallback": "تعذر حفظ المدرسة."
+          },
+          "success": {
+            "created": "تم إنشاء المدرسة بنجاح.",
+            "updated": "تم تحديث المدرسة بنجاح."
+          },
+          "fields": {
+            "nameEn": {
+              "label": "الاسم بالإنجليزية",
+              "placeholder": "أدخل اسم المدرسة بالإنجليزية"
+            },
+            "nameAr": {
+              "label": "الاسم بالعربية",
+              "placeholder": "أدخل اسم المدرسة بالعربية"
+            },
+            "type": {
+              "label": "النوع"
+            },
+            "address": {
+              "label": "العنوان",
+              "placeholder": "أدخل عنوان المدرسة"
+            },
+            "isActive": {
+              "label": "نشط"
+            }
+          },
+          "actions": {
+            "cancel": "إلغاء",
+            "saving": "جارٍ الحفظ...",
+            "save": "حفظ التغييرات",
+            "create": "إنشاء مدرسة"
+          }
+        },
+        "deleteSchool": {
+          "title": "حذف المدرسة",
+          "description": "لا يمكن التراجع عن هذا الإجراء.",
+          "entityFallback": "هذه المدرسة",
+          "warningPrefix": "أنت على وشك حذف",
+          "confirmLabel": "اكتب DELETE للتأكيد",
+          "errorTitle": "تعذر حذف المدرسة",
+          "success": "تم حذف المدرسة بنجاح.",
+          "errors": {
+            "hasStudents": "هذه المدرسة مرتبطة حالياً بطلاب ولا يمكن حذفها.",
+            "fallback": "تعذر حذف المدرسة."
+          },
+          "actions": {
+            "cancel": "إلغاء",
+            "confirm": "حذف المدرسة",
+            "pending": "جارٍ الحذف..."
+          }
+        },
+        "collegeForm": {
+          "titleCreate": "إنشاء كلية",
+          "titleEdit": "تعديل الكلية",
+          "descriptionCreate": "أضف كلية جديدة لهذا المركز.",
+          "descriptionEdit": "حدّث تفاصيل الكلية وحالتها.",
+          "errorTitle": "تعذر حفظ الكلية",
+          "validation": {
+            "nameRequired": "أدخل اسماً واحداً على الأقل بالإنجليزية أو العربية.",
+            "typeInteger": "يجب أن يكون النوع رقماً صحيحاً يساوي صفراً أو أكثر."
+          },
+          "errors": {
+            "duplicateSlug": "توجد كلية بهذا المعرف النصي داخل هذا المركز.",
+            "validation": "يرجى مراجعة حقول الكلية والمحاولة مرة أخرى.",
+            "fallback": "تعذر حفظ الكلية."
+          },
+          "success": {
+            "created": "تم إنشاء الكلية بنجاح.",
+            "updated": "تم تحديث الكلية بنجاح."
+          },
+          "fields": {
+            "nameEn": {
+              "label": "الاسم بالإنجليزية",
+              "placeholder": "أدخل اسم الكلية بالإنجليزية"
+            },
+            "nameAr": {
+              "label": "الاسم بالعربية",
+              "placeholder": "أدخل اسم الكلية بالعربية"
+            },
+            "type": {
+              "label": "النوع",
+              "placeholder": "أدخل رقم نوع الكلية"
+            },
+            "address": {
+              "label": "العنوان",
+              "placeholder": "أدخل عنوان الكلية"
+            },
+            "isActive": {
+              "label": "نشط"
+            }
+          },
+          "actions": {
+            "cancel": "إلغاء",
+            "saving": "جارٍ الحفظ...",
+            "save": "حفظ التغييرات",
+            "create": "إنشاء كلية"
+          }
+        },
+        "deleteCollege": {
+          "title": "حذف الكلية",
+          "description": "لا يمكن التراجع عن هذا الإجراء.",
+          "entityFallback": "هذه الكلية",
+          "warningPrefix": "أنت على وشك حذف",
+          "confirmLabel": "اكتب DELETE للتأكيد",
+          "errorTitle": "تعذر حذف الكلية",
+          "success": "تم حذف الكلية بنجاح.",
+          "errors": {
+            "hasStudents": "هذه الكلية مرتبطة حالياً بطلاب ولا يمكن حذفها.",
+            "fallback": "تعذر حذف الكلية."
+          },
+          "actions": {
+            "cancel": "إلغاء",
+            "confirm": "حذف الكلية",
+            "pending": "جارٍ الحذف..."
+          }
+        }
+      },
       "panel": {
         "successTitle": "نجاح",
         "tabs": {
@@ -5488,11 +7529,17 @@
             "title": "دفعات أكواد الفيديو",
             "description": "إدارة دفعات أكواد الوصول المجهولة لدورات أكواد الفيديو.",
             "createBatch": "إنشاء دفعة",
+            "summarySingle": "{count} دفعة",
+            "summaryPlural": "{count} دفعات",
             "searchPlaceholder": "البحث في الدفعات...",
+            "searchCourses": "البحث في الدورات...",
+            "searchVideos": "البحث في الفيديوهات...",
             "allCourses": "جميع الدورات",
             "noCoursesFound": "لم يتم العثور على دورات أكواد فيديو",
             "courseFilterLocked": "فلتر الدورة مقفل على هذه الدورة",
             "allVideos": "جميع الفيديوهات",
+            "noVideosFound": "لم يتم العثور على فيديوهات",
+            "noVideosForCourse": "لم يتم العثور على فيديوهات لهذه الدورة",
             "allStatuses": "جميع الحالات",
             "failedToLoad": "فشل تحميل الدفعات",
             "viewLimit": "حد المشاهدة",
@@ -5515,46 +7562,132 @@
             "unknownVideo": "فيديو غير معروف",
             "unknownCourse": "دورة غير معروفة",
             "unknownAdmin": "مشرف غير معروف",
+            "unknownStatus": "غير معروف",
+            "courseWithId": "الدورة {id}",
+            "videoWithId": "الفيديو {id}",
+            "batchWithId": "دفعة {id}",
+            "batchCreatedSuccess": "تم إنشاء {batch} بنجاح.",
+            "whatsappSentSuccess": "تم إرسال ملف CSV عبر واتساب بنجاح.",
+            "whatsappSendStarted": "بدأ إرسال ملف CSV عبر واتساب.",
+            "exportCsvSuccess": "تم تصدير CSV بنجاح.",
+            "exportPdfSuccess": "تم تصدير PDF بنجاح.",
+            "exportCsvFailed": "فشل تصدير CSV.",
+            "exportPdfFailed": "فشل تصدير PDF.",
             "statusOpen": "مفتوحة",
-            "statusClosed": "مغلقة"
+            "statusClosed": "مغلقة",
+            "columns": {
+              "batch": "الدفعة",
+              "video": "الفيديو",
+              "course": "الدورة",
+              "status": "الحالة",
+              "codes": "الأكواد",
+              "generated": "تم الإنشاء"
+            }
           },
           "videocodebatchdetailspage": {
             "batchNotFound": "الدفعة غير موجودة",
+            "loadFailed": "تعذر تحميل الدفعة المطلوبة.",
             "backToBatches": "العودة للدفعات",
             "sendCsvWhatsapp": "إرسال CSV عبر واتساب",
             "expandBatch": "توسيع الدفعة",
             "generatedBy": "أُنشئت بواسطة",
+            "generatedOn": "في",
             "closedOn": "أُغلقت في",
+            "unknownVideo": "فيديو غير معروف",
+            "unknownCourse": "دورة غير معروفة",
+            "unknownAdmin": "مشرف غير معروف",
+            "unknownStudent": "طالب غير معروف",
+            "unknownTime": "وقت غير معروف",
+            "notSet": "غير محدد",
             "batchInformation": "معلومات الدفعة",
+            "course": "الدورة",
+            "video": "الفيديو",
             "batchCode": "رمز الدفعة",
             "firstRedemption": "أول استرداد",
             "lastRedemption": "آخر استرداد",
+            "redemptionsTitle": "عمليات الاسترداد",
             "exportHistory": "سجل التصدير",
             "noExportsTitle": "لا توجد عمليات تصدير بعد",
             "noExportsDescription": "ستظهر عمليات تصدير CSV و PDF هنا بعد أول تصدير.",
             "waitingWhatsappDelivery": "في انتظار تأكيد تسليم واتساب...",
+            "completed": "اكتمل",
+            "fullBatchExport": "تصدير كامل الدفعة",
+            "codesRange": "الأكواد {range}",
+            "codesCount": "{count} كود",
             "recentRedemptionActivity": "نشاط الاسترداد الأخير",
             "noRecentRedemptionsTitle": "لا توجد عمليات استرداد حديثة",
             "noRecentRedemptionsDescription": "سيظهر نشاط الاسترداد الأخير من نقطة الإحصائيات هنا.",
             "searchRedemptionsPlaceholder": "البحث في الاستردادات...",
             "redeemedAt": "تاريخ الاسترداد",
             "noRedemptionsTitle": "لم يتم العثور على استردادات",
-            "noRedemptionsDescription": "ستظهر الاستردادات هنا بمجرد بدء الطلاب في استرداد الأكواد من هذه الدفعة."
+            "noRedemptionsDescription": "ستظهر الاستردادات هنا بمجرد بدء الطلاب في استرداد الأكواد من هذه الدفعة.",
+            "whatsappSentSuccess": "تم إرسال ملف CSV عبر واتساب بنجاح.",
+            "whatsappSendStarted": "بدأ إرسال ملف CSV عبر واتساب.",
+            "stats": {
+              "totalCodes": "إجمالي الأكواد",
+              "redeemed": "المستردة",
+              "available": "المتاحة",
+              "viewLimit": "حد المشاهدة",
+              "soldLimit": "حد المبيعات"
+            },
+            "columns": {
+              "code": "الكود",
+              "sequence": "التسلسل",
+              "student": "الطالب",
+              "phone": "الهاتف"
+            },
+            "exportTitles": {
+              "whatsappCsv": "CSV واتساب",
+              "pdfDownload": "تنزيل PDF",
+              "csvDownload": "تنزيل CSV",
+              "export": "تصدير"
+            },
+            "deliveryChannel": {
+              "whatsapp": "واتساب",
+              "download": "تنزيل"
+            },
+            "exportStatus": {
+              "processing": "قيد المعالجة",
+              "sent": "تم الإرسال",
+              "completed": "مكتمل",
+              "failed": "فشل"
+            }
           },
           "createvideocodebatchdialog": {
             "title": "إنشاء دفعة أكواد فيديو",
             "description": "إنشاء دفعة جديدة من أكواد الوصول المجهولة للفيديو لدورة أكواد الفيديو.",
             "errorTitle": "تعذر إنشاء الدفعة",
+            "course": "الدورة",
+            "video": "الفيديو",
+            "quantity": "الكمية",
             "selectCourse": "اختر الدورة",
             "noCoursesFound": "لم يتم العثور على دورات أكواد فيديو",
             "selectVideo": "اختر الفيديو",
+            "searchCourses": "البحث في الدورات...",
+            "searchVideos": "البحث في الفيديوهات...",
+            "noVideosForCourse": "لم يتم العثور على فيديوهات لهذه الدورة",
+            "selectCourseFirst": "اختر دورة أولاً",
+            "courseWithId": "الدورة {id}",
+            "videoWithId": "الفيديو {id}",
             "viewLimitPerCode": "حد المشاهدة لكل كود",
             "batchLifecycle": "دورة حياة الدفعة",
-            "batchLifecycleDescription": "صدّر الأكواد المُنشأة، بعها دون اتصال، ثم أغلق الدفعة بعدد المبيعات المؤكد للفوترة."
+            "batchLifecycleDescription": "صدّر الأكواد المُنشأة، بعها دون اتصال، ثم أغلق الدفعة بعدد المبيعات المؤكد للفوترة.",
+            "createBatch": "إنشاء دفعة",
+            "creating": "جارٍ الإنشاء...",
+            "errors": {
+              "selectCourse": "اختر دورة أكواد فيديو قبل إنشاء الدفعة.",
+              "selectVideo": "اختر فيديو قبل إنشاء الدفعة.",
+              "invalidQuantity": "يجب أن تكون الكمية 1 على الأقل.",
+              "invalidViewLimit": "يجب أن يكون حد المشاهدة لكل كود 1 على الأقل.",
+              "createFailed": "فشل إنشاء دفعة أكواد الفيديو."
+            }
           },
           "closevideocodebatchdialog": {
             "description": "أكد عدد الأكواد المباعة فعلياً. ستتوقف الأكواد غير المباعة عن كونها قابلة للاسترداد بمجرد تطبيق حد المبيعات.",
             "errorTitle": "تعذر حفظ حد المبيعات",
+            "closeBatch": "إغلاق الدفعة",
+            "updateSoldLimit": "تحديث حد المبيعات",
+            "notSet": "غير محدد",
             "currentStatus": "الحالة الحالية",
             "totalCodes": "إجمالي الأكواد:",
             "alreadyRedeemed": ". المستردة بالفعل:",
@@ -5564,7 +7697,14 @@
             "redeemedCodesValid": "كود مسترد يظل صالحاً،",
             "moreCodesRedeemable": "كود إضافي يمكن استرداده، و",
             "codesInvalid": "كود يصبح غير صالح.",
-            "confirmSoldCount": "أؤكد أن عدد المبيعات صحيح."
+            "confirmSoldCount": "أؤكد أن عدد المبيعات صحيح.",
+            "errors": {
+              "invalidSoldLimit": "يجب أن يكون حد المبيعات رقماً صالحاً.",
+              "soldLimitBelowRedeemed": "لا يمكن أن يكون حد المبيعات أقل من عدد الأكواد المستردة ({count}).",
+              "soldLimitExceedsQuantity": "لا يمكن أن يتجاوز حد المبيعات كمية الدفعة ({count}).",
+              "confirmSoldCount": "أكد عدد المبيعات قبل الحفظ.",
+              "saveFailed": "فشل تحديث حد المبيعات."
+            }
           },
           "expandvideocodebatchdialog": {
             "title": "توسيع الدفعة",
@@ -5573,7 +7713,13 @@
             "additionalQuantity": "الكمية الإضافية",
             "currentBatch": "الدفعة الحالية",
             "existingQuantity": "الكمية الحالية:",
-            "newCodesNote": ". يمكن تصدير الأكواد الجديدة بعد توسيع الدفعة."
+            "newCodesNote": ". يمكن تصدير الأكواد الجديدة بعد توسيع الدفعة.",
+            "expandBatch": "توسيع الدفعة",
+            "expanding": "جارٍ التوسيع...",
+            "errors": {
+              "invalidAdditionalQuantity": "يجب أن تكون الكمية الإضافية 1 على الأقل.",
+              "expandFailed": "فشل توسيع دفعة أكواد الفيديو."
+            }
           },
           "sendvideocodebatchwhatsappcsvdialog": {
             "title": "إرسال CSV عبر واتساب",
@@ -5587,7 +7733,19 @@
             "destination": "الوجهة:",
             "range": ". النطاق:",
             "count": ". العدد:",
-            "file": ". الملف:"
+            "file": ". الملف:",
+            "fallbackFile": "video-batch.csv",
+            "send": "إرسال CSV عبر واتساب",
+            "sending": "جارٍ الإرسال...",
+            "errors": {
+              "invalidCountryCode": "أدخل رمز دولة صالحاً مثل +20.",
+              "invalidEgyptPhone": "أدخل رقم جوال مصرياً بصيغة محلية من 11 رقماً، مثل 01001234567.",
+              "invalidPhone": "أدخل رقم جوال صالحاً.",
+              "invalidStartSequence": "يجب أن يكون تسلسل البداية 1 على الأقل.",
+              "invalidEndSequence": "يجب أن يكون تسلسل النهاية أكبر من أو يساوي تسلسل البداية.",
+              "endExceedsQuantity": "لا يمكن أن يتجاوز تسلسل النهاية كمية الدفعة ({count}).",
+              "sendFailed": "فشل إرسال ملف CSV عبر واتساب."
+            }
           }
         },
         "pages": {

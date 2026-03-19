@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isRetryingAIJob } from "@/features/ai/lib/job-status";
 import { useTranslation } from "@/features/localization";
 import { formatDateTime } from "@/lib/format-date-time";
 import { STATUS_BADGE_VARIANTS } from "../lib/slot-badge";
@@ -32,6 +33,8 @@ export function ReviewDialog({
   canReviewPublishAI,
 }: ReviewDialogProps) {
   const { t } = useTranslation();
+  const isRetrying = isRetryingAIJob(review.reviewJob);
+  const validationWarnings = review.reviewJob?.validation_warnings ?? [];
 
   const handleOpenChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen);
@@ -141,7 +144,38 @@ export function ReviewDialog({
               </p>
             </div>
 
-            {review.reviewJob.error_message ? (
+            {validationWarnings.length > 0 ? (
+              <Alert>
+                <AlertTitle>
+                  {t(
+                    "pages.centerAIContent.workspace.details.validationWarningsTitle",
+                  )}
+                </AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <p>
+                    {t(
+                      "pages.centerAIContent.workspace.details.validationWarningsDescription",
+                    )}
+                  </p>
+                  <ul className="list-disc space-y-1 ps-5">
+                    {validationWarnings.map((warning, index) => (
+                      <li key={`${warning}-${index}`}>{warning}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            {isRetrying ? (
+              <Alert>
+                <AlertTitle>
+                  {t("pages.centerAIContent.workspace.details.retryingTitle")}
+                </AlertTitle>
+                <AlertDescription>
+                  {review.reviewJob.error_message}
+                </AlertDescription>
+              </Alert>
+            ) : review.reviewJob.error_message ? (
               <Alert variant="destructive">
                 <AlertTitle>
                   {t("pages.centerAIContent.workspace.details.failureTitle")}
@@ -162,6 +196,7 @@ export function ReviewDialog({
                       review.reviewJob.generated_payload ??
                       {}) as Record<string, unknown>
                   }
+                  activeLocale={review.activeLocale}
                 />
               </div>
 
@@ -172,6 +207,9 @@ export function ReviewDialog({
                   </p>
                   <ReviewEditPanel
                     targetType={review.reviewJob.target_type}
+                    jobLanguage={review.reviewLanguage}
+                    activeLocale={review.activeLocale}
+                    onActiveLocaleChange={review.setActiveLocale}
                     isAnyJobActionPending={review.isAnyJobActionPending}
                     summaryTitle={review.summaryTitle}
                     summaryContent={review.summaryContent}

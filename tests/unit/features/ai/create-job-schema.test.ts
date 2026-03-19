@@ -24,6 +24,7 @@ describe("create-job schema helpers", () => {
       source_type: "video",
       source_id: 0,
       target_type: "summary",
+      language: "ar",
       ai_provider: "" as never,
       ai_model: "",
     });
@@ -42,6 +43,7 @@ describe("create-job schema helpers", () => {
       source_type: "course",
       source_id: 1,
       target_type: "quiz",
+      language: "ar",
       ai_provider: "gemini",
       ai_model: "gemini-2.0-flash",
       generation_config: {
@@ -58,6 +60,7 @@ describe("create-job schema helpers", () => {
       source_type: "section",
       source_id: 11,
       target_type: "flashcards",
+      language: "ar",
       ai_provider: "gemini",
       ai_model: "gemini-2.0-flash",
       generation_config: {
@@ -74,6 +77,7 @@ describe("create-job schema helpers", () => {
       source_type: "pdf",
       source_id: 11,
       target_type: "interactive_activity",
+      language: "ar",
       ai_provider: "gemini",
       ai_model: "gemini-2.0-flash",
       generation_config: {
@@ -90,6 +94,7 @@ describe("create-job schema helpers", () => {
       source_type: "course",
       source_id: 1,
       target_type: "assignment",
+      language: "ar",
       ai_provider: "gemini",
       ai_model: "gemini-2.0-flash",
       generation_config: {
@@ -107,6 +112,7 @@ describe("create-job schema helpers", () => {
       source_type: "course",
       source_id: 1,
       target_type: "summary",
+      language: "ar",
       ai_provider: "gemini",
       ai_model: "gemini-2.0-flash",
       generation_config: {

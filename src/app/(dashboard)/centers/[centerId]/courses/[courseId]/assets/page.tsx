@@ -203,8 +203,12 @@ export default function CourseAssetsPage({ params }: PageProps) {
         onOpenChange={generateForm.setIsOpen}
         selectedSource={generateForm.selectedSource}
         generateForm={generateForm.generateForm}
+        language={generateForm.language}
+        onLanguageChange={generateForm.setLanguage}
         onFormChange={generateForm.setGenerateForm}
         generateError={generateForm.generateError}
+        sourceReadiness={generateForm.sourceReadiness}
+        isSourceReadinessLoading={generateForm.isSourceReadinessLoading}
         isCreatingBatch={generateForm.isCreatingBatch}
         selectedAssetsCount={generateForm.selectedAssetsCount}
         onSubmit={() => void handleGenerateSubmit()}

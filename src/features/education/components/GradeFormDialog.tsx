@@ -45,20 +45,13 @@ import {
 } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
 
-const schema = z
-  .object({
-    nameEn: z.string().trim().optional(),
-    nameAr: z.string().trim().optional(),
-    stage: z.string().trim(),
-    order: z.coerce.number().int().min(0, "Order must be 0 or more."),
-    isActive: z.boolean(),
-  })
-  .refine((values) => Boolean(values.nameEn || values.nameAr), {
-    message: "Enter at least one name (English or Arabic).",
-    path: ["nameEn"],
-  });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  nameEn?: string;
+  nameAr?: string;
+  stage: string;
+  order: number;
+  isActive: boolean;
+};
 
 type GradeFormDialogProps = {
   centerId: string | number;
@@ -69,15 +62,16 @@ type GradeFormDialogProps = {
   onSaved?: (_grade: Grade) => void;
 };
 
-const ERROR_CODE_MESSAGES: Record<string, string> = {
-  DUPLICATE_SLUG: "A grade with this slug already exists in this center.",
-  VALIDATION_ERROR: "Please check the grade fields and try again.",
-};
-
-function getErrorMessage(error: unknown) {
+function getErrorMessage(
+  error: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const code = getAdminApiErrorCode(error);
-  if (code && ERROR_CODE_MESSAGES[code]) {
-    return ERROR_CODE_MESSAGES[code];
+  if (code === "DUPLICATE_SLUG") {
+    return t("pages.education.dialogs.gradeForm.errors.duplicateSlug");
+  }
+  if (code === "VALIDATION_ERROR") {
+    return t("pages.education.dialogs.gradeForm.errors.validation");
   }
 
   const fieldMessage = getAdminApiFirstFieldError(error);
@@ -85,7 +79,10 @@ function getErrorMessage(error: unknown) {
     return fieldMessage;
   }
 
-  return getAdminApiErrorMessage(error, "Unable to save grade.");
+  return getAdminApiErrorMessage(
+    error,
+    t("pages.education.dialogs.gradeForm.errors.fallback"),
+  );
 }
 
 export function GradeFormDialog({
@@ -97,6 +94,21 @@ export function GradeFormDialog({
   onSaved,
 }: GradeFormDialogProps) {
   const { t } = useTranslation();
+  const schema = z
+    .object({
+      nameEn: z.string().trim().optional(),
+      nameAr: z.string().trim().optional(),
+      stage: z.string().trim(),
+      order: z.coerce
+        .number()
+        .int()
+        .min(0, t("pages.education.dialogs.gradeForm.validation.orderMin")),
+      isActive: z.boolean(),
+    })
+    .refine((values) => Boolean(values.nameEn || values.nameAr), {
+      message: t("pages.education.dialogs.gradeForm.validation.nameRequired"),
+      path: ["nameEn"],
+    });
 
   const isEditMode = Boolean(grade);
   const createMutation = useCreateGrade();
@@ -154,11 +166,11 @@ export function GradeFormDialog({
           onSuccess: (savedGrade) => {
             onOpenChange(false);
             onSaved?.(savedGrade);
-            onSuccess?.("Grade updated successfully.");
+            onSuccess?.(t("pages.education.dialogs.gradeForm.success.updated"));
           },
           onError: (error) => {
             form.setError("root", {
-              message: getErrorMessage(error),
+              message: getErrorMessage(error, t),
             });
           },
         },
@@ -175,11 +187,11 @@ export function GradeFormDialog({
         onSuccess: (savedGrade) => {
           onOpenChange(false);
           onSaved?.(savedGrade);
-          onSuccess?.("Grade created successfully.");
+          onSuccess?.(t("pages.education.dialogs.gradeForm.success.created"));
         },
         onError: (error) => {
           form.setError("root", {
-            message: getErrorMessage(error),
+            message: getErrorMessage(error, t),
           });
         },
       },
@@ -191,19 +203,25 @@ export function GradeFormDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? "Edit Grade" : "Create Grade"}
+            {t(
+              isEditMode
+                ? "pages.education.dialogs.gradeForm.titleEdit"
+                : "pages.education.dialogs.gradeForm.titleCreate",
+            )}
           </DialogTitle>
           <DialogDescription>
-            {isEditMode
-              ? "Update grade names, stage, and status."
-              : "Add a new grade for this center."}
+            {t(
+              isEditMode
+                ? "pages.education.dialogs.gradeForm.descriptionEdit"
+                : "pages.education.dialogs.gradeForm.descriptionCreate",
+            )}
           </DialogDescription>
         </DialogHeader>
 
         {form.formState.errors.root?.message ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.education.components.gradeformdialog.s1")}
+              {t("pages.education.dialogs.gradeForm.errorTitle")}
             </AlertTitle>
             <AlertDescription>
               {form.formState.errors.root.message}
@@ -222,12 +240,12 @@ export function GradeFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("auto.features.education.components.gradeformdialog.s2")}
+                    {t("pages.education.dialogs.gradeForm.fields.nameEn.label")}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.gradeformdialog.s3",
+                        "pages.education.dialogs.gradeForm.fields.nameEn.placeholder",
                       )}
                       {...field}
                     />
@@ -243,12 +261,12 @@ export function GradeFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("auto.features.education.components.gradeformdialog.s4")}
+                    {t("pages.education.dialogs.gradeForm.fields.nameAr.label")}
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder={t(
-                        "auto.features.education.components.gradeformdialog.s5",
+                        "pages.education.dialogs.gradeForm.fields.nameAr.placeholder",
                       )}
                       {...field}
                     />
@@ -264,7 +282,7 @@ export function GradeFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {t("auto.features.education.components.gradeformdialog.s6")}
+                    {t("pages.education.dialogs.gradeForm.fields.stage.label")}
                   </FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
@@ -290,7 +308,9 @@ export function GradeFormDialog({
               name="order"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Order</FormLabel>
+                  <FormLabel>
+                    {t("pages.education.dialogs.gradeForm.fields.order.label")}
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" min={0} {...field} />
                   </FormControl>
@@ -311,7 +331,9 @@ export function GradeFormDialog({
                       onChange={(event) => field.onChange(event.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600"
                     />
-                    {t("auto.features.education.components.gradeformdialog.s7")}
+                    {t(
+                      "pages.education.dialogs.gradeForm.fields.isActive.label",
+                    )}
                   </label>
                   <FormMessage />
                 </FormItem>
@@ -325,14 +347,16 @@ export function GradeFormDialog({
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
               >
-                {t("auto.features.education.components.gradeformdialog.s8")}
+                {t("pages.education.dialogs.gradeForm.actions.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
-                  ? "Saving..."
-                  : isEditMode
-                    ? "Save Changes"
-                    : "Create Grade"}
+                  ? t("pages.education.dialogs.gradeForm.actions.saving")
+                  : t(
+                      isEditMode
+                        ? "pages.education.dialogs.gradeForm.actions.save"
+                        : "pages.education.dialogs.gradeForm.actions.create",
+                    )}
               </Button>
             </DialogFooter>
           </form>

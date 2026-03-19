@@ -249,6 +249,7 @@ describe("ai.service", () => {
       source_type: "section",
       source_id: 11,
       target_type: "summary",
+      language: "ar",
       ai_provider: "gemini",
       ai_model: "gemini-2.0-flash",
       generation_config: {

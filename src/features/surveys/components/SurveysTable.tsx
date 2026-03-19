@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTenant } from "@/app/tenant-provider";
 import { useTranslation } from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -190,6 +191,8 @@ export function SurveysTable({
   onViewResults,
 }: SurveysTableProps) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const tenant = useTenant();
   const scopeCenterId = useMemo(() => {
     if (centerIdProp == null) return undefined;
@@ -813,7 +816,12 @@ export function SurveysTable({
                   {t("pages.surveys.table.headers.submitted")}
                 </TableHead>
                 {hasActions ? (
-                  <TableHead className="w-10 text-right font-medium">
+                  <TableHead
+                    className={cn(
+                      "w-24 min-w-[96px] font-medium",
+                      isRtl ? "text-left" : "text-right",
+                    )}
+                  >
                     {t("pages.surveys.table.headers.actions")}
                   </TableHead>
                 ) : null}
@@ -926,7 +934,13 @@ export function SurveysTable({
                       </TableCell>
 
                       {hasActions ? (
-                        <TableCell className="text-right">
+                        <TableCell
+                          className={
+                            isRtl
+                              ? "w-24 min-w-[96px] text-left align-middle"
+                              : "w-24 min-w-[96px] text-right align-middle"
+                          }
+                        >
                           <div className="flex items-center justify-end">
                             <Dropdown
                               isOpen={openMenuId === survey.id}

@@ -39,6 +39,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/features/localization";
+import { useLocale } from "@/features/localization/locale-context";
+import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format-date-time";
 import { triggerBrowserDownload } from "@/features/video-code-batches/lib/download-file";
 import { buildVideoCodeBatchExportFilename } from "@/features/video-code-batches/lib/export-filename";
@@ -70,30 +72,53 @@ function normalizeStatus(value: unknown) {
   return value.trim().toLowerCase();
 }
 
-function resolveStatusMeta(status: unknown) {
+function resolveStatusMeta(
+  status: unknown,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
   const normalized = normalizeStatus(status);
   if (normalized === "open") {
     return {
-      label: "Open",
+      label: t(
+        "auto.features.video_code_batches.components.videocodebatchestable.statusOpen",
+      ),
       variant: "success" as const,
     };
   }
 
   if (normalized === "closed") {
     return {
-      label: "Closed",
+      label: t(
+        "auto.features.video_code_batches.components.videocodebatchestable.statusClosed",
+      ),
       variant: "default" as const,
     };
   }
 
   return {
-    label: typeof status === "string" && status.trim() ? status : "Unknown",
+    label:
+      typeof status === "string" && status.trim()
+        ? status
+        : t(
+            "auto.features.video_code_batches.components.videocodebatchestable.unknownStatus",
+          ),
     variant: "secondary" as const,
   };
 }
 
-function resolveBatchTitle(batch: VideoCodeBatch) {
-  return batch.batch_code ?? `Batch ${batch.id}`;
+function resolveBatchTitle(
+  batch: VideoCodeBatch,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
+) {
+  return (
+    batch.batch_code ??
+    t(
+      "auto.features.video_code_batches.components.videocodebatchestable.batchWithId",
+      {
+        id: batch.id,
+      },
+    )
+  );
 }
 
 export function VideoCodeBatchesTable({
@@ -102,6 +127,8 @@ export function VideoCodeBatchesTable({
   hideHeader = false,
 }: VideoCodeBatchesTableProps) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const { showToast } = useModal();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -198,9 +225,15 @@ export function VideoCodeBatchesTable({
   const courseOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     return (coursesQuery.data?.items ?? []).map((course) => ({
       value: String(course.id),
-      label: course.title ?? course.name ?? `Course ${course.id}`,
+      label:
+        course.title ??
+        course.name ??
+        t(
+          "auto.features.video_code_batches.components.videocodebatchestable.courseWithId",
+          { id: course.id },
+        ),
     }));
-  }, [coursesQuery.data?.items]);
+  }, [coursesQuery.data?.items, t]);
 
   const videoOptions = useMemo<SearchableSelectOption<string>[]>(() => {
     return (videosQuery.data?.items ?? []).map((video) => ({
@@ -209,9 +242,12 @@ export function VideoCodeBatchesTable({
         video.title ??
         video.title_translations?.en ??
         video.title_translations?.ar ??
-        `Video ${video.id}`,
+        t(
+          "auto.features.video_code_batches.components.videocodebatchestable.videoWithId",
+          { id: video.id },
+        ),
     }));
-  }, [videosQuery.data?.items]);
+  }, [t, videosQuery.data?.items]);
 
   const items = batchesQuery.data?.items ?? [];
   const total = batchesQuery.data?.meta.total ?? 0;
@@ -237,12 +273,23 @@ export function VideoCodeBatchesTable({
       const fallbackName = buildVideoCodeBatchExportFilename(batch, format);
       triggerBrowserDownload(response.blob, response.filename ?? fallbackName);
       await batchesQuery.refetch();
-      showToast(`${format.toUpperCase()} exported successfully.`, "success");
+      showToast(
+        t(
+          format === "csv"
+            ? "auto.features.video_code_batches.components.videocodebatchestable.exportCsvSuccess"
+            : "auto.features.video_code_batches.components.videocodebatchestable.exportPdfSuccess",
+        ),
+        "success",
+      );
     } catch (error) {
       showToast(
         error instanceof Error
           ? error.message
-          : `Failed to export ${format.toUpperCase()}.`,
+          : t(
+              format === "csv"
+                ? "auto.features.video_code_batches.components.videocodebatchestable.exportCsvFailed"
+                : "auto.features.video_code_batches.components.videocodebatchestable.exportPdfFailed",
+            ),
         "error",
       );
     } finally {
@@ -293,7 +340,12 @@ export function VideoCodeBatchesTable({
             setSelectedStatus(ALL_FILTER_VALUE);
             setPage(1);
           }}
-          summary={`${total} batch${total === 1 ? "" : "es"}`}
+          summary={t(
+            total === 1
+              ? "auto.features.video_code_batches.components.videocodebatchestable.summarySingle"
+              : "auto.features.video_code_batches.components.videocodebatchestable.summaryPlural",
+            { count: total },
+          )}
           gridClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-4"
         >
           <div className="relative">
@@ -333,7 +385,9 @@ export function VideoCodeBatchesTable({
               placeholder={t(
                 "auto.features.video_code_batches.components.videocodebatchestable.allCourses",
               )}
-              searchPlaceholder="Search courses..."
+              searchPlaceholder={t(
+                "auto.features.video_code_batches.components.videocodebatchestable.searchCourses",
+              )}
               emptyMessage={t(
                 "auto.features.video_code_batches.components.videocodebatchestable.noCoursesFound",
               )}
@@ -359,11 +413,17 @@ export function VideoCodeBatchesTable({
             placeholder={t(
               "auto.features.video_code_batches.components.videocodebatchestable.allVideos",
             )}
-            searchPlaceholder="Search videos..."
+            searchPlaceholder={t(
+              "auto.features.video_code_batches.components.videocodebatchestable.searchVideos",
+            )}
             emptyMessage={
               effectiveCourseId
-                ? "No videos found for this course"
-                : "No videos found"
+                ? t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.noVideosForCourse",
+                  )
+                : t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.noVideosFound",
+                  )
             }
             allowClear
           />
@@ -413,33 +473,66 @@ export function VideoCodeBatchesTable({
               <AlertDescription>
                 {batchesQuery.error instanceof Error
                   ? batchesQuery.error.message
-                  : "Please try again."}
+                  : t("common.messages.loadFailed")}
               </AlertDescription>
             </Alert>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[1220px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Batch</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Codes</TableHead>
-                    <TableHead>
+                    <TableHead className="w-[160px] min-w-[160px]">
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.columns.batch",
+                      )}
+                    </TableHead>
+                    <TableHead className="w-[240px] min-w-[240px]">
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.columns.video",
+                      )}
+                    </TableHead>
+                    <TableHead className="w-[240px] min-w-[240px]">
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.columns.course",
+                      )}
+                    </TableHead>
+                    <TableHead className="w-[110px] min-w-[110px]">
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.columns.status",
+                      )}
+                    </TableHead>
+                    <TableHead className="w-[170px] min-w-[170px]">
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.columns.codes",
+                      )}
+                    </TableHead>
+                    <TableHead className="w-[100px] min-w-[100px]">
                       {t(
                         "auto.features.video_code_batches.components.videocodebatchestable.viewLimit",
                       )}
                     </TableHead>
-                    <TableHead>Generated</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-[190px] min-w-[190px]">
+                      {t(
+                        "auto.features.video_code_batches.components.videocodebatchestable.columns.generated",
+                      )}
+                    </TableHead>
+                    <TableHead
+                      className={cn(
+                        "w-24 min-w-[96px] font-medium",
+                        isRtl ? "text-left" : "text-right",
+                      )}
+                    >
+                      {t("common.labels.actions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, index) => (
                       <TableRow key={index}>
-                        {Array.from({ length: 6 }).map((__, cellIndex) => (
+                        {Array.from({ length: 8 }).map((__, cellIndex) => (
                           <TableCell key={cellIndex}>
                             <Skeleton className="h-4 w-24" />
                           </TableCell>
@@ -448,7 +541,7 @@ export function VideoCodeBatchesTable({
                     ))
                   ) : items.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="py-10">
+                      <TableCell colSpan={8} className="py-10">
                         <EmptyState
                           title={t(
                             "auto.features.video_code_batches.components.videocodebatchestable.noBatchesTitle",
@@ -471,6 +564,7 @@ export function VideoCodeBatchesTable({
                     items.map((batch) => {
                       const status = resolveStatusMeta(
                         batch.status_label ?? batch.status,
+                        t,
                       );
                       const redeemedCount = Number(batch.redeemed_count ?? 0);
                       const quantity = Number(batch.quantity ?? 0);
@@ -486,31 +580,74 @@ export function VideoCodeBatchesTable({
                         normalizeStatus(batch.status) === "open";
 
                       return (
-                        <TableRow key={batch.id}>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <Link
-                                href={`/centers/${centerId}/code-batches/${batch.id}`}
-                                className="text-sm font-semibold text-gray-900 hover:text-primary dark:text-white"
-                              >
-                                {resolveBatchTitle(batch)}
-                              </Link>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                <div>
-                                  {batch.video_title ?? "Unknown video"}
-                                </div>
-                                <div>
-                                  {batch.course_title ?? "Unknown course"}
-                                </div>
+                        <TableRow
+                          key={batch.id}
+                          className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-gray-800/40"
+                        >
+                          <TableCell className="align-top">
+                            <div className="space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Link
+                                  href={`/centers/${centerId}/code-batches/${batch.id}`}
+                                  className="text-sm font-semibold text-gray-900 hover:text-primary dark:text-white"
+                                >
+                                  {resolveBatchTitle(batch, t)}
+                                </Link>
+                                <Badge
+                                  variant="outline"
+                                  className="font-mono text-[11px]"
+                                >
+                                  #{batch.id}
+                                </Badge>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
+
+                          <TableCell className="align-top">
+                            <div className="space-y-2">
+                              <p className="line-clamp-2 text-sm font-medium text-gray-900 dark:text-white">
+                                {batch.video_title ??
+                                  t(
+                                    "auto.features.video_code_batches.components.videocodebatchestable.unknownVideo",
+                                  )}
+                              </p>
+                              <Badge
+                                variant="secondary"
+                                className="font-normal"
+                              >
+                                {t(
+                                  "auto.features.video_code_batches.components.videocodebatchestable.videoWithId",
+                                  { id: batch.video_id ?? "—" },
+                                )}
+                              </Badge>
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="align-top">
+                            <div className="space-y-2">
+                              <p className="line-clamp-2 text-sm text-gray-700 dark:text-gray-300">
+                                {batch.course_title ??
+                                  t(
+                                    "auto.features.video_code_batches.components.videocodebatchestable.unknownCourse",
+                                  )}
+                              </p>
+                              <Badge
+                                variant="secondary"
+                                className="font-normal"
+                              >
+                                {t(
+                                  "auto.features.video_code_batches.components.videocodebatchestable.courseWithId",
+                                  { id: batch.course_id ?? "—" },
+                                )}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top">
                             <Badge variant={status.variant}>
                               {status.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-gray-600 dark:text-gray-300">
+                          <TableCell className="align-top text-sm text-gray-600 dark:text-gray-300">
                             <div>
                               {t(
                                 "auto.features.video_code_batches.components.videocodebatchestable.total",
@@ -539,20 +676,28 @@ export function VideoCodeBatchesTable({
                                 )}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="align-top">
                             {batch.view_limit_per_code ?? "—"}
                           </TableCell>
-                          <TableCell className="text-sm text-gray-600 dark:text-gray-300">
+                          <TableCell className="align-top text-sm text-gray-600 dark:text-gray-300">
                             <div>
                               {batch.generated_at
                                 ? formatDateTime(String(batch.generated_at))
                                 : "—"}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {batch.generated_by?.name ?? "Unknown admin"}
+                              {batch.generated_by?.name ??
+                                t(
+                                  "auto.features.video_code_batches.components.videocodebatchestable.unknownAdmin",
+                                )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell
+                            className={cn(
+                              "w-24 min-w-[96px] align-middle",
+                              isRtl ? "text-left" : "text-right",
+                            )}
+                          >
                             <div className="flex items-center justify-end">
                               <Dropdown
                                 isOpen={openMenuId === batch.id}
@@ -560,7 +705,7 @@ export function VideoCodeBatchesTable({
                                   setOpenMenuId(value ? batch.id : null)
                                 }
                               >
-                                <DropdownTrigger className="px-2 text-lg text-gray-400 hover:text-gray-600">
+                                <DropdownTrigger className="text-gray-400 hover:text-gray-600">
                                   ⋮
                                 </DropdownTrigger>
                                 <DropdownContent
@@ -569,7 +714,10 @@ export function VideoCodeBatchesTable({
                                 >
                                   <Link
                                     href={`/centers/${centerId}/code-batches/${batch.id}`}
-                                    className="block rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "block rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => setOpenMenuId(null)}
                                   >
                                     {t(
@@ -578,7 +726,10 @@ export function VideoCodeBatchesTable({
                                   </Link>
                                   <button
                                     type="button"
-                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 disabled:opacity-60 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "block w-full rounded px-3 py-2 hover:bg-gray-50 disabled:opacity-60 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() =>
                                       void handleExport(batch, "csv")
                                     }
@@ -596,7 +747,10 @@ export function VideoCodeBatchesTable({
                                   </button>
                                   <button
                                     type="button"
-                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 disabled:opacity-60 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "block w-full rounded px-3 py-2 hover:bg-gray-50 disabled:opacity-60 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() =>
                                       void handleExport(batch, "pdf")
                                     }
@@ -614,7 +768,10 @@ export function VideoCodeBatchesTable({
                                   </button>
                                   <button
                                     type="button"
-                                    className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                    className={cn(
+                                      "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                      isRtl ? "text-right" : "text-left",
+                                    )}
                                     onClick={() => {
                                       setWhatsappBatch(batch);
                                       setOpenMenuId(null);
@@ -627,7 +784,10 @@ export function VideoCodeBatchesTable({
                                   {canExpand ? (
                                     <button
                                       type="button"
-                                      className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                      className={cn(
+                                        "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                        isRtl ? "text-right" : "text-left",
+                                      )}
                                       onClick={() => {
                                         setExpandBatch(batch);
                                         setOpenMenuId(null);
@@ -641,7 +801,10 @@ export function VideoCodeBatchesTable({
                                   {canClose ? (
                                     <button
                                       type="button"
-                                      className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
+                                      className={cn(
+                                        "block w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                        isRtl ? "text-right" : "text-left",
+                                      )}
                                       onClick={() => {
                                         setCloseBatch(batch);
                                         setOpenMenuId(null);
@@ -699,13 +862,22 @@ export function VideoCodeBatchesTable({
                 label:
                   courseOptions.find(
                     (option) => option.value === String(fixedCourseId),
-                  )?.label ?? `Course ${fixedCourseId}`,
+                  )?.label ??
+                  t(
+                    "auto.features.video_code_batches.components.videocodebatchestable.courseWithId",
+                    { id: fixedCourseId },
+                  ),
               }
             : null
         }
         onCreated={(batch) => {
           showToast(
-            `Batch ${resolveBatchTitle(batch)} created successfully.`,
+            t(
+              "auto.features.video_code_batches.components.videocodebatchestable.batchCreatedSuccess",
+              {
+                batch: resolveBatchTitle(batch, t),
+              },
+            ),
             "success",
           );
         }}
@@ -742,8 +914,12 @@ export function VideoCodeBatchesTable({
         onSent={(record) => {
           showToast(
             normalizeStatus(record.status) === "sent"
-              ? "WhatsApp CSV sent successfully."
-              : "WhatsApp CSV send started.",
+              ? t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.whatsappSentSuccess",
+                )
+              : t(
+                  "auto.features.video_code_batches.components.videocodebatchestable.whatsappSendStarted",
+                ),
             "success",
           );
         }}

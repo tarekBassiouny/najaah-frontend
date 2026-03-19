@@ -293,7 +293,7 @@ export function SchoolsTable({
                 </TableHead>
                 <TableHead
                   className={cn(
-                    "w-10 font-medium",
+                    "w-24 min-w-[96px] font-medium",
                     isRtl ? "text-left" : "text-right",
                   )}
                 >
@@ -385,56 +385,64 @@ export function SchoolsTable({
                               )}
                         </Badge>
                       </TableCell>
-                      <TableCell className={isRtl ? "text-left" : "text-right"}>
-                        <Dropdown
-                          isOpen={openMenuId === school.id}
-                          setIsOpen={(value) =>
-                            setOpenMenuId(value ? school.id : null)
-                          }
-                        >
-                          <DropdownTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300">
-                            ⋮
-                          </DropdownTrigger>
-                          <DropdownContent
-                            align="end"
-                            className={cn(
-                              "w-40 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
-                            )}
+                      <TableCell
+                        className={
+                          isRtl
+                            ? "w-24 min-w-[96px] text-left align-middle"
+                            : "w-24 min-w-[96px] text-right align-middle"
+                        }
+                      >
+                        <div className="flex items-center justify-end">
+                          <Dropdown
+                            isOpen={openMenuId === school.id}
+                            setIsOpen={(value) =>
+                              setOpenMenuId(value ? school.id : null)
+                            }
                           >
-                            {onEdit ? (
-                              <button
-                                className={cn(
-                                  "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
-                                  isRtl ? "text-right" : "text-left",
-                                )}
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onEdit(school);
-                                }}
-                              >
-                                {t(
-                                  "pages.education.tables.schools.actions.edit",
-                                )}
-                              </button>
-                            ) : null}
-                            {onDelete ? (
-                              <button
-                                className={cn(
-                                  "w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
-                                  isRtl ? "text-right" : "text-left",
-                                )}
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  onDelete(school);
-                                }}
-                              >
-                                {t(
-                                  "pages.education.tables.schools.actions.delete",
-                                )}
-                              </button>
-                            ) : null}
-                          </DropdownContent>
-                        </Dropdown>
+                            <DropdownTrigger className="text-gray-400 hover:text-gray-600">
+                              ⋮
+                            </DropdownTrigger>
+                            <DropdownContent
+                              align="end"
+                              className={cn(
+                                "w-40 rounded-md border border-gray-200 bg-white p-1 text-sm text-gray-700 shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
+                              )}
+                            >
+                              {onEdit ? (
+                                <button
+                                  className={cn(
+                                    "w-full rounded px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onEdit(school);
+                                  }}
+                                >
+                                  {t(
+                                    "pages.education.tables.schools.actions.edit",
+                                  )}
+                                </button>
+                              ) : null}
+                              {onDelete ? (
+                                <button
+                                  className={cn(
+                                    "w-full rounded px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20",
+                                    isRtl ? "text-right" : "text-left",
+                                  )}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onDelete(school);
+                                  }}
+                                >
+                                  {t(
+                                    "pages.education.tables.schools.actions.delete",
+                                  )}
+                                </button>
+                              ) : null}
+                            </DropdownContent>
+                          </Dropdown>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

@@ -61,31 +61,6 @@ type PlaybackSessionsModalProps = {
 
 type LocalFilters = typeof DEFAULT_FILTERS;
 
-const BOOLEAN_FILTERS: Array<{
-  stateKey: keyof Pick<
-    LocalFilters,
-    "isFullPlay" | "isLocked" | "autoClosed" | "isActive"
-  >;
-  label: string;
-}> = [
-  { stateKey: "isFullPlay", label: "Full play only" },
-  { stateKey: "isLocked", label: "Locked sessions" },
-  { stateKey: "autoClosed", label: "Auto-closed" },
-  { stateKey: "isActive", label: "Active" },
-];
-
-const SORT_FIELDS = [
-  { value: "started_at", label: "Started at" },
-  { value: "updated_at", label: "Updated at" },
-  { value: "progress_percent", label: "Progress %" },
-  { value: "watch_duration", label: "Watch duration" },
-] as const;
-
-const SORT_DIRECTIONS = [
-  { value: "asc", label: "Ascending" },
-  { value: "desc", label: "Descending" },
-] as const;
-
 const FilterSearchIcon = ({ className }: { className?: string }) => (
   <svg
     className={cn("h-4 w-4", className)}
@@ -127,6 +102,78 @@ export function PlaybackSessionsModal({
   userId,
 }: PlaybackSessionsModalProps) {
   const { t } = useTranslation();
+  const emptyValue = t(
+    "pages.centerStudentProfile.playbackModal.fallbacks.emptyValue",
+  );
+  const fallbackVideo = t(
+    "pages.centerStudentProfile.playbackModal.fallbacks.video",
+  );
+  const fallbackCourse = t(
+    "pages.centerStudentProfile.playbackModal.fallbacks.course",
+  );
+  const fallbackStudent = t(
+    "pages.centerStudentProfile.playbackModal.fallbacks.student",
+  );
+  const fallbackDevice = t(
+    "pages.centerStudentProfile.playbackModal.fallbacks.device",
+  );
+
+  const booleanFilters: Array<{
+    stateKey: keyof Pick<
+      LocalFilters,
+      "isFullPlay" | "isLocked" | "autoClosed" | "isActive"
+    >;
+    label: string;
+  }> = [
+    {
+      stateKey: "isFullPlay",
+      label: t("pages.centerStudentProfile.playbackModal.filters.fullPlayOnly"),
+    },
+    {
+      stateKey: "isLocked",
+      label: t(
+        "pages.centerStudentProfile.playbackModal.filters.lockedSessions",
+      ),
+    },
+    {
+      stateKey: "autoClosed",
+      label: t("pages.centerStudentProfile.playbackModal.filters.autoClosed"),
+    },
+    {
+      stateKey: "isActive",
+      label: t("pages.centerStudentProfile.playbackModal.filters.active"),
+    },
+  ];
+
+  const sortFields = [
+    {
+      value: "started_at",
+      label: t("pages.centerStudentProfile.playbackModal.sort.startedAt"),
+    },
+    {
+      value: "updated_at",
+      label: t("pages.centerStudentProfile.playbackModal.sort.updatedAt"),
+    },
+    {
+      value: "progress_percent",
+      label: t("pages.centerStudentProfile.playbackModal.sort.progress"),
+    },
+    {
+      value: "watch_duration",
+      label: t("pages.centerStudentProfile.playbackModal.sort.watchDuration"),
+    },
+  ] as const;
+
+  const sortDirections = [
+    {
+      value: "asc",
+      label: t("pages.centerStudentProfile.playbackModal.sort.ascending"),
+    },
+    {
+      value: "desc",
+      label: t("pages.centerStudentProfile.playbackModal.sort.descending"),
+    },
+  ] as const;
 
   const [filters, setFilters] = useState<LocalFilters>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
@@ -162,7 +209,7 @@ export function PlaybackSessionsModal({
   const sessions = query.data?.items ?? [];
   const total = query.data?.meta?.total ?? 0;
   const lastPage = Math.max(1, Math.ceil(total / perPage));
-  const activeBooleanFilters = BOOLEAN_FILTERS.reduce(
+  const activeBooleanFilters = booleanFilters.reduce(
     (count, filter) => (filters[filter.stateKey] ? count + 1 : count),
     0,
   );
@@ -213,20 +260,22 @@ export function PlaybackSessionsModal({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <DialogTitle>
-                {t(
-                  "auto.features.playback_sessions.components.playbacksessionsmodal.s1",
-                )}
+                {t("pages.centerStudentProfile.playbackModal.title")}
               </DialogTitle>
               <DialogDescription className="text-sm text-gray-500">
-                {videoTitle ? `${videoTitle}` : "Video"} ·{" "}
-                {courseTitle ?? "Course"}
+                {videoTitle || fallbackVideo} · {courseTitle || fallbackCourse}
               </DialogDescription>
               <div className="mt-1 flex flex-wrap gap-2 text-xs">
                 <Badge variant="secondary">
-                  {total.toLocaleString()} session{total === 1 ? "" : "s"}
+                  {t("pages.centerStudentProfile.playbackModal.sessionCount", {
+                    count: total.toLocaleString(),
+                  })}
                 </Badge>
                 <Badge variant="outline">
-                  Page {page} · {perPage} rows
+                  {t("pages.centerStudentProfile.playbackModal.pageRows", {
+                    page,
+                    rows: perPage,
+                  })}
                 </Badge>
               </div>
             </div>
@@ -237,7 +286,7 @@ export function PlaybackSessionsModal({
                 onClick={refresh}
                 disabled={query.isFetching}
               >
-                Refresh
+                {t("common.actions.refresh")}
               </Button>
             </div>
           </div>
@@ -249,7 +298,9 @@ export function PlaybackSessionsModal({
             onClear={clearFilters}
             summary={
               <span className="text-xs text-gray-500">
-                Showing {total.toLocaleString()} sessions
+                {t("pages.centerStudentProfile.playbackModal.showing", {
+                  count: total.toLocaleString(),
+                })}
               </span>
             }
             className="rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/80 dark:shadow-none"
@@ -270,7 +321,7 @@ export function PlaybackSessionsModal({
                     setPage(1);
                   }}
                   placeholder={t(
-                    "auto.features.playback_sessions.components.playbacksessionsmodal.s2",
+                    "pages.centerStudentProfile.playbackModal.searchPlaceholder",
                   )}
                   className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-sm transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
@@ -285,7 +336,7 @@ export function PlaybackSessionsModal({
                     setPage(1);
                   }}
                   aria-label={t(
-                    "auto.features.playback_sessions.components.playbacksessionsmodal.s3",
+                    "pages.centerStudentProfile.playbackModal.clearSearch",
                   )}
                 >
                   <svg
@@ -313,7 +364,7 @@ export function PlaybackSessionsModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SORT_FIELDS.map((option) => (
+                  {sortFields.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -324,11 +375,11 @@ export function PlaybackSessionsModal({
             <div className="grid w-full gap-3 sm:grid-cols-2 lg:col-span-2">
               <div>
                 <span className="text-[11px] uppercase tracking-wide text-gray-500">
-                  From
+                  {t("common.labels.from")}
                 </span>
                 <input
                   title={t(
-                    "auto.features.playback_sessions.components.playbacksessionsmodal.s4",
+                    "pages.centerStudentProfile.playbackModal.filters.fromDate",
                   )}
                   type="date"
                   value={filters.startedFrom}
@@ -348,11 +399,11 @@ export function PlaybackSessionsModal({
               </div>
               <div>
                 <span className="text-[11px] uppercase tracking-wide text-gray-500">
-                  To
+                  {t("common.labels.to")}
                 </span>
                 <input
                   title={t(
-                    "auto.features.playback_sessions.components.playbacksessionsmodal.s5",
+                    "pages.centerStudentProfile.playbackModal.filters.toDate",
                   )}
                   type="date"
                   value={filters.startedTo}
@@ -380,7 +431,7 @@ export function PlaybackSessionsModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SORT_DIRECTIONS.map((option) => (
+                  {sortDirections.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -390,7 +441,7 @@ export function PlaybackSessionsModal({
             </div>
           </ListingFilters>
           <div className="flex flex-wrap items-center gap-2">
-            {BOOLEAN_FILTERS.map((filter) => {
+            {booleanFilters.map((filter) => {
               const active = Boolean(filters[filter.stateKey]);
               return (
                 <Badge
@@ -409,10 +460,9 @@ export function PlaybackSessionsModal({
         <div className="mt-4">
           <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:bg-gray-900/40">
-              {t(
-                "auto.features.playback_sessions.components.playbacksessionsmodal.s6",
-              )}
-              {total.toLocaleString()})
+              {t("pages.centerStudentProfile.playbackModal.resultsTitle", {
+                count: total.toLocaleString(),
+              })}
             </div>
             <div className="min-h-[200px]">
               {query.isLoading ? (
@@ -423,29 +473,43 @@ export function PlaybackSessionsModal({
                 </div>
               ) : sessions.length === 0 ? (
                 <div className="flex items-center justify-center px-4 py-10 text-sm text-gray-500">
-                  {t(
-                    "auto.features.playback_sessions.components.playbacksessionsmodal.s7",
-                  )}
+                  {t("pages.centerStudentProfile.playbackModal.empty")}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>User</TableHead>
+                      <TableHead>{t("common.labels.user")}</TableHead>
                       <TableHead>
                         {t(
-                          "auto.features.playback_sessions.components.playbacksessionsmodal.s8",
+                          "pages.centerStudentProfile.playbackModal.headers.device",
                         )}
                       </TableHead>
-                      <TableHead>Started</TableHead>
                       <TableHead>
                         {t(
-                          "auto.features.playback_sessions.components.playbacksessionsmodal.s9",
+                          "pages.centerStudentProfile.playbackModal.headers.started",
                         )}
                       </TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Flags</TableHead>
+                      <TableHead>
+                        {t(
+                          "pages.centerStudentProfile.playbackModal.headers.lastActivity",
+                        )}
+                      </TableHead>
+                      <TableHead>
+                        {t(
+                          "pages.centerStudentProfile.playbackModal.headers.duration",
+                        )}
+                      </TableHead>
+                      <TableHead>
+                        {t(
+                          "pages.centerStudentProfile.playbackModal.headers.progress",
+                        )}
+                      </TableHead>
+                      <TableHead>
+                        {t(
+                          "pages.centerStudentProfile.playbackModal.headers.flags",
+                        )}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -460,7 +524,7 @@ export function PlaybackSessionsModal({
                                 session.user?.name ??
                                 session.user?.email ??
                                 session.user?.phone ??
-                                "Student"
+                                fallbackStudent
                               }
                             />
                             <div className="min-w-0 truncate">
@@ -468,12 +532,12 @@ export function PlaybackSessionsModal({
                                 {session.user?.name ??
                                   session.user?.email ??
                                   session.user?.phone ??
-                                  "Student"}
+                                  fallbackStudent}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {session.user?.email ??
                                   session.user?.phone ??
-                                  "—"}
+                                  emptyValue}
                               </p>
                               {(session.course?.title ||
                                 session.video?.title) && (
@@ -505,10 +569,10 @@ export function PlaybackSessionsModal({
                           <p className="font-medium">
                             {session.device?.device_name ??
                               session.device?.device_id ??
-                              "Device"}
+                              fallbackDevice}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {session.device?.device_type ?? "—"}
+                            {session.device?.device_type ?? emptyValue}
                           </p>
                           {session.device?.status_label ||
                           session.device?.status_key ? (
@@ -531,7 +595,7 @@ export function PlaybackSessionsModal({
                           <div className="text-sm font-medium">
                             {session.progress_percent != null
                               ? `${Math.round(session.progress_percent)}%`
-                              : "—"}
+                              : emptyValue}
                           </div>
                           <div className="mt-1 h-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
                             <div
@@ -554,24 +618,36 @@ export function PlaybackSessionsModal({
                             {session.is_full_play && (
                               <Badge variant="success">
                                 {t(
-                                  "auto.features.playback_sessions.components.playbacksessionsmodal.s10",
+                                  "pages.centerStudentProfile.playbackModal.badges.fullPlay",
                                 )}
                               </Badge>
                             )}
                             {session.is_locked && (
-                              <Badge variant="warning">Locked</Badge>
+                              <Badge variant="warning">
+                                {t(
+                                  "pages.centerStudentProfile.playbackModal.badges.locked",
+                                )}
+                              </Badge>
                             )}
                             {session.auto_closed && (
-                              <Badge variant="secondary">Auto-closed</Badge>
+                              <Badge variant="secondary">
+                                {t(
+                                  "pages.centerStudentProfile.playbackModal.badges.autoClosed",
+                                )}
+                              </Badge>
                             )}
                             {session.is_active && (
-                              <Badge variant="default">Active</Badge>
+                              <Badge variant="default">
+                                {t(
+                                  "pages.centerStudentProfile.playbackModal.badges.active",
+                                )}
+                              </Badge>
                             )}
                           </div>
                           {session.close_reason ? (
                             <p className="text-xs text-gray-500">
                               {t(
-                                "auto.features.playback_sessions.components.playbacksessionsmodal.s11",
+                                "pages.centerStudentProfile.playbackModal.closeReason",
                               )}
                               {session.close_reason}
                             </p>
@@ -600,9 +676,7 @@ export function PlaybackSessionsModal({
             perPageOptions={[10, 20, 50, 100]}
           />
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t(
-              "auto.features.playback_sessions.components.playbacksessionsmodal.s12",
-            )}
+            {t("common.actions.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

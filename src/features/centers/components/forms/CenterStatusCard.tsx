@@ -50,7 +50,12 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
   const [statusError, setStatusError] = useState<string | null>(null);
 
   const statusLabel =
-    center.status_label ?? (status === "active" ? "Active" : "Inactive");
+    center.status_label ??
+    t(
+      status === "active"
+        ? "pages.centerSettings.badges.status.active"
+        : "pages.centerSettings.badges.status.inactive",
+    );
 
   useEffect(() => {
     setStatus(resolveStatus(center.status, center.status_label));
@@ -68,7 +73,7 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
           setStatusError(
             getCenterApiErrorMessage(
               error,
-              "Unable to update center status. Please try again.",
+              t("pages.centerSettings.cards.status.errors.fallback"),
             ),
           );
         },
@@ -79,16 +84,16 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Status</CardTitle>
+        <CardTitle>{t("pages.centerSettings.cards.status.title")}</CardTitle>
         <CardDescription>
-          {t("auto.features.centers.components.forms.centerstatuscard.s1")}
+          {t("pages.centerSettings.cards.status.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {statusError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.centers.components.forms.centerstatuscard.s2")}
+              {t("pages.centerSettings.cards.status.errorTitle")}
             </AlertTitle>
             <AlertDescription>{statusError}</AlertDescription>
           </Alert>
@@ -96,7 +101,7 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {t("auto.features.centers.components.forms.centerstatuscard.s3")}
+            {t("pages.centerSettings.cards.status.currentLabel")}
           </span>
           <Badge variant={status === "active" ? "success" : "secondary"}>
             {statusLabel}
@@ -111,8 +116,12 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="active">
+              {t("pages.centerSettings.badges.status.active")}
+            </SelectItem>
+            <SelectItem value="inactive">
+              {t("pages.centerSettings.badges.status.inactive")}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -121,7 +130,9 @@ export function CenterStatusCard({ center }: CenterStatusCardProps) {
           onClick={handleStatusUpdate}
           disabled={updateStatusMutation.isPending}
         >
-          {updateStatusMutation.isPending ? "Updating..." : "Update Status"}
+          {updateStatusMutation.isPending
+            ? t("pages.centerSettings.cards.status.actions.updating")
+            : t("pages.centerSettings.cards.status.actions.update")}
         </Button>
       </CardContent>
     </Card>

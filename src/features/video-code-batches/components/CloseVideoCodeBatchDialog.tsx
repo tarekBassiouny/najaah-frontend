@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,11 @@ export function CloseVideoCodeBatchDialog({
   onCompleted,
 }: CloseVideoCodeBatchDialogProps) {
   const { t } = useTranslation();
+  const dialogT = (key: string, params?: Record<string, string | number>) =>
+    t(
+      `auto.features.video_code_batches.components.closevideocodebatchdialog.${key}`,
+      params,
+    );
   const closeMutation = useCloseVideoCodeBatch();
   const redeemedCount = Number(batch?.redeemed_count ?? 0);
   const quantity = Number(batch?.quantity ?? 0);
@@ -64,35 +69,34 @@ export function CloseVideoCodeBatchDialog({
       .trim()
       .toLowerCase() === "closed";
 
-  const actionLabel = useMemo(() => {
-    if (isClosedBatch) return "Update Sold Limit";
-    return "Close Batch";
-  }, [isClosedBatch]);
+  const actionLabel = isClosedBatch
+    ? dialogT("updateSoldLimit")
+    : dialogT("closeBatch");
 
   const handleSubmit = () => {
     if (!batch?.id) return;
 
     if (!Number.isFinite(parsedSoldLimit)) {
-      setErrorMessage("Sold limit must be a valid number.");
+      setErrorMessage(dialogT("errors.invalidSoldLimit"));
       return;
     }
 
     if (parsedSoldLimit < redeemedCount) {
       setErrorMessage(
-        `Sold limit cannot be lower than the redeemed count (${redeemedCount}).`,
+        dialogT("errors.soldLimitBelowRedeemed", { count: redeemedCount }),
       );
       return;
     }
 
     if (parsedSoldLimit > quantity) {
       setErrorMessage(
-        `Sold limit cannot exceed the batch quantity (${quantity}).`,
+        dialogT("errors.soldLimitExceedsQuantity", { count: quantity }),
       );
       return;
     }
 
     if (!isConfirmed) {
-      setErrorMessage("Confirm the sold count before saving.");
+      setErrorMessage(dialogT("errors.confirmSoldCount"));
       return;
     }
 
@@ -115,7 +119,7 @@ export function CloseVideoCodeBatchDialog({
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "Failed to update the sold limit.",
+              : dialogT("errors.saveFailed"),
           );
         },
       },
@@ -166,7 +170,7 @@ export function CloseVideoCodeBatchDialog({
               {t(
                 "auto.features.video_code_batches.components.closevideocodebatchdialog.currentSoldLimit",
               )}{" "}
-              {batch?.sold_limit ?? "Not set"}.
+              {batch?.sold_limit ?? dialogT("notSet")}.
             </AlertDescription>
           </Alert>
 
@@ -231,14 +235,14 @@ export function CloseVideoCodeBatchDialog({
             onClick={() => onOpenChange(false)}
             disabled={closeMutation.isPending}
           >
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button
             type="button"
             onClick={handleSubmit}
             disabled={closeMutation.isPending || !batch}
           >
-            {closeMutation.isPending ? "Saving..." : actionLabel}
+            {closeMutation.isPending ? t("common.actions.saving") : actionLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

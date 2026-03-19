@@ -28,7 +28,9 @@ export function StudentEnrollmentPromptDialog({
 }: StudentEnrollmentPromptDialogProps) {
   const { t } = useTranslation();
 
-  const name = student?.name ? String(student.name) : "this student";
+  const name = student?.name
+    ? String(student.name)
+    : t("pages.students.dialogs.enrollmentPrompt.entityFallback");
   const phone = student?.phone ? String(student.phone) : null;
 
   return (
@@ -47,25 +49,18 @@ export function StudentEnrollmentPromptDialog({
             </div>
             <div className="space-y-1">
               <DialogTitle>
-                {t(
-                  "auto.features.students.components.studentenrollmentpromptdialog.s1",
-                )}
+                {t("pages.students.dialogs.enrollmentPrompt.title")}
               </DialogTitle>
               <DialogDescription>
-                {t(
-                  "auto.features.students.components.studentenrollmentpromptdialog.s2",
-                )}
-                {name}
-                {t(
-                  "auto.features.students.components.studentenrollmentpromptdialog.s3",
-                )}
+                {t("pages.students.dialogs.enrollmentPrompt.description", {
+                  name,
+                })}
               </DialogDescription>
               {phone ? (
                 <p className="text-xs text-gray-400">
-                  {t(
-                    "auto.features.students.components.studentenrollmentpromptdialog.s4",
-                  )}
-                  {phone}
+                  {t("pages.students.dialogs.enrollmentPrompt.phone", {
+                    phone,
+                  })}
                 </p>
               ) : null}
             </div>
@@ -73,21 +68,15 @@ export function StudentEnrollmentPromptDialog({
         </DialogHeader>
 
         <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
-          {t(
-            "auto.features.students.components.studentenrollmentpromptdialog.s5",
-          )}
+          {t("pages.students.dialogs.enrollmentPrompt.helper")}
         </div>
 
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto">
           <Button variant="outline" onClick={onSkip}>
-            {t(
-              "auto.features.students.components.studentenrollmentpromptdialog.s6",
-            )}
+            {t("pages.students.dialogs.enrollmentPrompt.actions.skip")}
           </Button>
           <Button onClick={onEnroll}>
-            {t(
-              "auto.features.students.components.studentenrollmentpromptdialog.s7",
-            )}
+            {t("pages.students.dialogs.enrollmentPrompt.actions.enroll")}
           </Button>
         </div>
       </DialogContent>

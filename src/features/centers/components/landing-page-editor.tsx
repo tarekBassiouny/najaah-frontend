@@ -114,106 +114,110 @@ type LayoutMutationFailure = {
 
 const editorTabs: Array<{
   id: TabId;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
 }> = [
   {
     id: "meta",
-    label: "Meta",
-    description:
-      "Control search metadata and the page summary shown in previews.",
+    labelKey: "tabs.meta.label",
+    descriptionKey: "tabs.meta.description",
   },
   {
     id: "hero",
-    label: "Hero",
-    description:
-      "Manage the opening banner, localized headline, CTA, and background.",
+    labelKey: "tabs.hero.label",
+    descriptionKey: "tabs.hero.description",
   },
   {
     id: "about",
-    label: "About",
-    description: "Explain the center story with EN/AR copy and an image.",
+    labelKey: "tabs.about.label",
+    descriptionKey: "tabs.about.description",
   },
   {
     id: "contact",
-    label: "Contact",
-    description: "Update the contact block shown on the public page.",
+    labelKey: "tabs.contact.label",
+    descriptionKey: "tabs.contact.description",
   },
   {
     id: "social",
-    label: "Social",
-    description:
-      "Maintain the public social links that appear on the landing page.",
+    labelKey: "tabs.social.label",
+    descriptionKey: "tabs.social.description",
   },
   {
     id: "layout",
-    label: "Layout",
-    description:
-      "Control section order, layout variants, and section-level style presets.",
+    labelKey: "tabs.layout.label",
+    descriptionKey: "tabs.layout.description",
   },
   {
     id: "styling",
-    label: "Styling",
-    description:
-      "Tune colors and typography using the backend-approved hex format.",
+    labelKey: "tabs.styling.label",
+    descriptionKey: "tabs.styling.description",
   },
   {
     id: "visibility",
-    label: "Visibility",
-    description:
-      "Show or hide each landing-page block without exposing protected content.",
+    labelKey: "tabs.visibility.label",
+    descriptionKey: "tabs.visibility.description",
   },
   {
     id: "testimonials",
-    label: "Testimonials",
-    description:
-      "Create, edit, activate, delete, and reorder testimonials in one place.",
+    labelKey: "tabs.testimonials.label",
+    descriptionKey: "tabs.testimonials.description",
   },
 ];
 
 const socialFieldDefinitions = [
-  { id: "social-facebook", label: "Facebook", field: "social_facebook" },
-  { id: "social-twitter", label: "Twitter", field: "social_twitter" },
-  { id: "social-instagram", label: "Instagram", field: "social_instagram" },
-  { id: "social-youtube", label: "YouTube", field: "social_youtube" },
-  { id: "social-linkedin", label: "LinkedIn", field: "social_linkedin" },
-  { id: "social-tiktok", label: "TikTok", field: "social_tiktok" },
+  {
+    id: "social-facebook",
+    labelKey: "social.facebook",
+    field: "social_facebook",
+  },
+  { id: "social-twitter", labelKey: "social.twitter", field: "social_twitter" },
+  {
+    id: "social-instagram",
+    labelKey: "social.instagram",
+    field: "social_instagram",
+  },
+  { id: "social-youtube", labelKey: "social.youtube", field: "social_youtube" },
+  {
+    id: "social-linkedin",
+    labelKey: "social.linkedin",
+    field: "social_linkedin",
+  },
+  { id: "social-tiktok", labelKey: "social.tiktok", field: "social_tiktok" },
 ] as const;
 
-const layoutSectionLabels: Record<LandingPageSectionId, string> = {
-  hero: "Hero",
-  about: "About",
-  courses: "Courses",
-  testimonials: "Testimonials",
-  contact: "Contact",
+const layoutSectionLabelKeys: Record<LandingPageSectionId, string> = {
+  hero: "sections.hero",
+  about: "sections.about",
+  courses: "sections.courses",
+  testimonials: "sections.testimonials",
+  contact: "sections.contact",
 };
 
 const visibilityFieldDefinitions = [
   {
     field: "show_hero",
-    label: "Hero section",
-    description: "Controls the branded banner and primary CTA.",
+    labelKey: "visibility.hero.label",
+    descriptionKey: "visibility.hero.description",
   },
   {
     field: "show_about",
-    label: "About section",
-    description: "Shows the center overview and supporting image.",
+    labelKey: "visibility.about.label",
+    descriptionKey: "visibility.about.description",
   },
   {
     field: "show_courses",
-    label: "Courses CTA",
-    description:
-      "Visibility only. This does not expose course cards, sections, or videos.",
+    labelKey: "visibility.courses.label",
+    descriptionKey: "visibility.courses.description",
   },
   {
     field: "show_testimonials",
-    label: "Testimonials",
-    description: "Displays only active testimonials in the configured order.",
+    labelKey: "visibility.testimonials.label",
+    descriptionKey: "visibility.testimonials.description",
   },
   {
     field: "show_contact",
-    label: "Contact block",
-    description: "Shows the public email, phone, and address information.",
+    labelKey: "visibility.contact.label",
+    descriptionKey: "visibility.contact.description",
   },
 ] as const;
 
@@ -452,7 +456,10 @@ function updatePreviewUrlLocale(
   }
 }
 
-function resolvePublishState(landing?: LandingPagePayload | null) {
+function resolvePublishState(
+  landing: LandingPagePayload | null | undefined,
+  labels: { published: string; draft: string },
+) {
   const isPublished =
     landing?.is_published === true ||
     Number(landing?.status) === 1 ||
@@ -466,18 +473,21 @@ function resolvePublishState(landing?: LandingPagePayload | null) {
       typeof landing?.status_label === "string" && landing.status_label.trim()
         ? landing.status_label
         : isPublished
-          ? "Published"
-          : "Draft",
+          ? labels.published
+          : labels.draft,
     badgeVariant: isPublished ? "success" : "secondary",
   } as const;
 }
 
-function describeLocales(content?: LocalizedString | null) {
+function describeLocales(
+  content: LocalizedString | null | undefined,
+  emptyLabel: string,
+) {
   const labels = SUPPORTED_LOCALES.filter((localeCode) =>
     Boolean(content?.[localeCode]?.trim()),
   ).map((localeCode) => localeCode.toUpperCase());
 
-  return labels.length ? labels.join(", ") : "No copy";
+  return labels.length ? labels.join(", ") : emptyLabel;
 }
 
 function isValidHexColor(value?: string | null) {
@@ -485,13 +495,18 @@ function isValidHexColor(value?: string | null) {
   return HEX_COLOR_REGEX.test(value);
 }
 
-function validateImageFile(file: File, maxBytes: number) {
+function validateImageFile(
+  file: File,
+  maxBytes: number,
+  invalidTypeMessage: string,
+  tooLargeMessage: string,
+) {
   if (!file.type.startsWith("image/")) {
-    return "Please choose a valid image file.";
+    return invalidTypeMessage;
   }
 
   if (file.size > maxBytes) {
-    return `Image must be ${Math.round(maxBytes / (1024 * 1024))}MB or smaller.`;
+    return tooLargeMessage;
   }
 
   return null;
@@ -535,6 +550,7 @@ type LocalizedFieldProps = {
   values: LocalizedString;
   description?: string;
   textarea?: boolean;
+  getPlaceholder: (_locale: Locale) => string;
   onChange: (_locale: Locale, _next: string) => void;
 };
 
@@ -543,6 +559,7 @@ function LocalizedField({
   label,
   values,
   description,
+  getPlaceholder,
   onChange,
   textarea,
 }: LocalizedFieldProps) {
@@ -566,7 +583,7 @@ function LocalizedField({
                   const nextValue = event.currentTarget.value;
                   onChange(localeCode, nextValue);
                 }}
-                placeholder={`${label} in ${localeCode.toUpperCase()}`}
+                placeholder={getPlaceholder(localeCode)}
               />
             ) : (
               <Input
@@ -576,7 +593,7 @@ function LocalizedField({
                   const nextValue = event.currentTarget.value;
                   onChange(localeCode, nextValue);
                 }}
-                placeholder={`${label} in ${localeCode.toUpperCase()}`}
+                placeholder={getPlaceholder(localeCode)}
               />
             )}
           </div>
@@ -592,7 +609,6 @@ function LocalizedField({
 }
 
 type ImageUploadFieldProps = {
-  t: (_key: string, _params?: Record<string, string | number>) => string;
   inputId: string;
   label: string;
   description: string;
@@ -602,6 +618,12 @@ type ImageUploadFieldProps = {
   maxSizeLabel: string;
   isPending?: boolean;
   uploadLabel: string;
+  uploadPendingLabel: string;
+  emptyStateLabel: string;
+  selectedFileLabel: string;
+  currentUrlLabel: string;
+  clearSelectionLabel: string;
+  openFileLabel: string;
   error?: string | null;
   onFileChange: (_file: File | null) => void;
   onUpload: () => void;
@@ -609,7 +631,6 @@ type ImageUploadFieldProps = {
 };
 
 function ImageUploadField({
-  t,
   inputId,
   label,
   description,
@@ -619,6 +640,12 @@ function ImageUploadField({
   maxSizeLabel,
   isPending,
   uploadLabel,
+  uploadPendingLabel,
+  emptyStateLabel,
+  selectedFileLabel,
+  currentUrlLabel,
+  clearSelectionLabel,
+  openFileLabel,
   error,
   onFileChange,
   onUpload,
@@ -645,7 +672,7 @@ function ImageUploadField({
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            {t("auto.features.centers.components.landing_page_editor.s1")}
+            {emptyStateLabel}
           </div>
         )}
 
@@ -661,15 +688,14 @@ function ImageUploadField({
             }}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t("auto.features.centers.components.landing_page_editor.s2", {
-              maxSizeLabel,
-            })}
-            {selectedFileName ? ` Selected: ${selectedFileName}` : ""}
+            {maxSizeLabel}
+            {selectedFileName
+              ? ` ${selectedFileLabel}: ${selectedFileName}`
+              : ""}
           </p>
           {currentUrl ? (
             <p className="break-all text-xs text-gray-500 dark:text-gray-400">
-              {t("auto.features.centers.components.landing_page_editor.s3")}{" "}
-              {currentUrl}
+              {currentUrlLabel} {currentUrl}
             </p>
           ) : null}
         </div>
@@ -681,17 +707,17 @@ function ImageUploadField({
             onClick={onUpload}
             disabled={isPending || !selectedFileName}
           >
-            {isPending ? t("common.actions.loading") : uploadLabel}
+            {isPending ? uploadPendingLabel : uploadLabel}
           </Button>
           {onClearSelection && selectedFileName ? (
             <Button type="button" variant="ghost" onClick={onClearSelection}>
-              {t("auto.features.centers.components.landing_page_editor.s4")}
+              {clearSelectionLabel}
             </Button>
           ) : null}
           {currentUrl ? (
             <Button asChild type="button" variant="ghost">
               <a href={currentUrl} target="_blank" rel="noreferrer">
-                {t("auto.features.centers.components.landing_page_editor.s5")}
+                {openFileLabel}
               </a>
             </Button>
           ) : null}
@@ -711,9 +737,38 @@ type Props = {
 
 export function LandingPageEditor({ centerId }: Props) {
   const { t } = useTranslation();
-
   const queryClient = useQueryClient();
   const { locale } = useLocale();
+  const editorT = (key: string, params?: Record<string, string | number>) =>
+    t(`pages.centerLandingPage.editor.${key}`, params);
+  const localizedFieldPlaceholder = (label: string, localeCode: Locale) =>
+    editorT("localizedField.placeholder", {
+      label,
+      locale: localeCode.toUpperCase(),
+    });
+  const localizedEditorTabs = editorTabs.map((tab) => ({
+    ...tab,
+    label: editorT(tab.labelKey),
+    description: editorT(tab.descriptionKey),
+  }));
+  const localizedSocialFields = socialFieldDefinitions.map((item) => ({
+    ...item,
+    label: editorT(item.labelKey),
+  }));
+  const localizedVisibilityFields = visibilityFieldDefinitions.map(
+    (option) => ({
+      ...option,
+      label: editorT(option.labelKey),
+      description: editorT(option.descriptionKey),
+    }),
+  );
+  const layoutSectionLabels = LANDING_PAGE_SECTION_IDS.reduce(
+    (accumulator, sectionId) => {
+      accumulator[sectionId] = editorT(layoutSectionLabelKeys[sectionId]);
+      return accumulator;
+    },
+    {} as Record<LandingPageSectionId, string>,
+  );
 
   const landingQuery = useQuery<
     LandingPagePayload | null,
@@ -726,7 +781,14 @@ export function LandingPageEditor({ centerId }: Props) {
   });
 
   const landing = landingQuery.data;
-  const publishState = useMemo(() => resolvePublishState(landing), [landing]);
+  const publishState = useMemo(
+    () =>
+      resolvePublishState(landing, {
+        published: t("common.status.published"),
+        draft: t("common.status.draft"),
+      }),
+    [landing, t],
+  );
 
   const [activeTab, setActiveTab] = useState<TabId>("meta");
   const [metaDraft, setMetaDraft] = useState<LandingPageMeta>(() =>
@@ -796,8 +858,10 @@ export function LandingPageEditor({ centerId }: Props) {
   );
 
   const currentTab = useMemo(
-    () => editorTabs.find((tab) => tab.id === activeTab) ?? editorTabs[0],
-    [activeTab],
+    () =>
+      localizedEditorTabs.find((tab) => tab.id === activeTab) ??
+      localizedEditorTabs[0],
+    [activeTab, localizedEditorTabs],
   );
 
   const selectedTestimonial = useMemo(
@@ -945,15 +1009,19 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "meta",
         createSuccessNotice(
-          "Meta saved",
-          "Search title, description, and keywords were updated.",
+          editorT("notices.metaSaved.title"),
+          editorT("notices.metaSaved.description"),
         ),
       );
     },
     onError(error) {
       setSectionNotice(
         "meta",
-        createErrorNotice(error, "Meta save failed", "Unable to save meta."),
+        createErrorNotice(
+          error,
+          editorT("notices.metaSaveFailed.title"),
+          editorT("notices.metaSaveFailed.description"),
+        ),
       );
     },
   });
@@ -966,15 +1034,19 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "hero",
         createSuccessNotice(
-          "Hero saved",
-          "Hero copy, CTA, and background settings were updated.",
+          editorT("notices.heroSaved.title"),
+          editorT("notices.heroSaved.description"),
         ),
       );
     },
     onError(error) {
       setSectionNotice(
         "hero",
-        createErrorNotice(error, "Hero save failed", "Unable to save hero."),
+        createErrorNotice(
+          error,
+          editorT("notices.heroSaveFailed.title"),
+          editorT("notices.heroSaveFailed.description"),
+        ),
       );
     },
   });
@@ -987,8 +1059,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "about",
         createSuccessNotice(
-          "About saved",
-          "About copy and image settings were updated.",
+          editorT("notices.aboutSaved.title"),
+          editorT("notices.aboutSaved.description"),
         ),
       );
     },
@@ -997,8 +1069,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "about",
         createErrorNotice(
           error,
-          "About save failed",
-          "Unable to save the about section.",
+          editorT("notices.aboutSaveFailed.title"),
+          editorT("notices.aboutSaveFailed.description"),
         ),
       );
     },
@@ -1012,8 +1084,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "contact",
         createSuccessNotice(
-          "Contact saved",
-          "Public email, phone, and address were updated.",
+          editorT("notices.contactSaved.title"),
+          editorT("notices.contactSaved.description"),
         ),
       );
     },
@@ -1022,8 +1094,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "contact",
         createErrorNotice(
           error,
-          "Contact save failed",
-          "Unable to save contact details.",
+          editorT("notices.contactSaveFailed.title"),
+          editorT("notices.contactSaveFailed.description"),
         ),
       );
     },
@@ -1037,8 +1109,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "social",
         createSuccessNotice(
-          "Social links saved",
-          "Public social URLs were updated.",
+          editorT("notices.socialSaved.title"),
+          editorT("notices.socialSaved.description"),
         ),
       );
     },
@@ -1047,8 +1119,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "social",
         createErrorNotice(
           error,
-          "Social save failed",
-          "Unable to save social links.",
+          editorT("notices.socialSaveFailed.title"),
+          editorT("notices.socialSaveFailed.description"),
         ),
       );
     },
@@ -1062,8 +1134,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "styling",
         createSuccessNotice(
-          "Styling saved",
-          "Colors and font settings were updated.",
+          editorT("notices.stylingSaved.title"),
+          editorT("notices.stylingSaved.description"),
         ),
       );
     },
@@ -1072,8 +1144,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "styling",
         createErrorNotice(
           error,
-          "Styling save failed",
-          "Unable to save landing-page styling.",
+          editorT("notices.stylingSaveFailed.title"),
+          editorT("notices.stylingSaveFailed.description"),
         ),
       );
     },
@@ -1087,8 +1159,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "visibility",
         createSuccessNotice(
-          "Visibility saved",
-          "Section visibility flags were updated.",
+          editorT("notices.visibilitySaved.title"),
+          editorT("notices.visibilitySaved.description"),
         ),
       );
     },
@@ -1097,8 +1169,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "visibility",
         createErrorNotice(
           error,
-          "Visibility save failed",
-          "Unable to save visibility settings.",
+          editorT("notices.visibilitySaveFailed.title"),
+          editorT("notices.visibilitySaveFailed.description"),
         ),
       );
     },
@@ -1121,8 +1193,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "testimonials",
         createSuccessNotice(
-          "Testimonial created",
-          "The testimonial was added. Refreshing the list now.",
+          editorT("notices.testimonialCreated.title"),
+          editorT("notices.testimonialCreated.description"),
         ),
       );
       void queryClient.invalidateQueries({
@@ -1134,8 +1206,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "testimonials",
         createErrorNotice(
           error,
-          "Create failed",
-          "Unable to create the testimonial.",
+          editorT("notices.testimonialCreateFailed.title"),
+          editorT("notices.testimonialCreateFailed.description"),
         ),
       );
     },
@@ -1152,8 +1224,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "testimonials",
         createSuccessNotice(
-          "Testimonial updated",
-          "Changes were saved. Refreshing the list now.",
+          editorT("notices.testimonialUpdated.title"),
+          editorT("notices.testimonialUpdated.description"),
         ),
       );
       void queryClient.invalidateQueries({
@@ -1165,8 +1237,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "testimonials",
         createErrorNotice(
           error,
-          "Update failed",
-          "Unable to update the testimonial.",
+          editorT("notices.testimonialUpdateFailed.title"),
+          editorT("notices.testimonialUpdateFailed.description"),
         ),
       );
     },
@@ -1185,8 +1257,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "testimonials",
         createSuccessNotice(
-          "Testimonial deleted",
-          "The testimonial was removed. Refreshing the list now.",
+          editorT("notices.testimonialDeleted.title"),
+          editorT("notices.testimonialDeleted.description"),
         ),
       );
       void queryClient.invalidateQueries({
@@ -1198,8 +1270,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "testimonials",
         createErrorNotice(
           error,
-          "Delete failed",
-          "Unable to delete the testimonial.",
+          editorT("notices.testimonialDeleteFailed.title"),
+          editorT("notices.testimonialDeleteFailed.description"),
         ),
       );
     },
@@ -1216,8 +1288,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "testimonials",
         createSuccessNotice(
-          "Order saved",
-          "Testimonial order was updated successfully.",
+          editorT("notices.orderSaved.title"),
+          editorT("notices.orderSaved.description"),
         ),
       );
     },
@@ -1226,8 +1298,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "testimonials",
         createErrorNotice(
           error,
-          "Reorder failed",
-          "Unable to save testimonial order.",
+          editorT("notices.orderSaveFailed.title"),
+          editorT("notices.orderSaveFailed.description"),
         ),
       );
     },
@@ -1239,8 +1311,8 @@ export function LandingPageEditor({ centerId }: Props) {
       updateLandingCache(data);
       setStatusNotice(
         createSuccessNotice(
-          "Landing page published",
-          "The branded landing page is now live on the public resolve endpoint.",
+          editorT("notices.published.title"),
+          editorT("notices.published.description"),
         ),
       );
     },
@@ -1248,8 +1320,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setStatusNotice(
         createErrorNotice(
           error,
-          "Publish failed",
-          "Unable to publish the landing page.",
+          editorT("notices.publishFailed.title"),
+          editorT("notices.publishFailed.description"),
         ),
       );
     },
@@ -1261,8 +1333,8 @@ export function LandingPageEditor({ centerId }: Props) {
       updateLandingCache(data);
       setStatusNotice(
         createSuccessNotice(
-          "Landing page reverted to draft",
-          "The public page is now hidden unless a valid preview token is used.",
+          editorT("notices.unpublished.title"),
+          editorT("notices.unpublished.description"),
         ),
       );
     },
@@ -1270,8 +1342,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setStatusNotice(
         createErrorNotice(
           error,
-          "Unpublish failed",
-          "Unable to move the landing page back to draft.",
+          editorT("notices.unpublishFailed.title"),
+          editorT("notices.unpublishFailed.description"),
         ),
       );
     },
@@ -1285,9 +1357,8 @@ export function LandingPageEditor({ centerId }: Props) {
       if (!nextPreviewUrl) {
         setStatusNotice({
           variant: "destructive",
-          title: "Preview URL missing",
-          description:
-            "A preview token was generated, but the backend did not return a usable preview URL.",
+          title: editorT("notices.previewUrlMissing.title"),
+          description: editorT("notices.previewUrlMissing.description"),
         });
         return;
       }
@@ -1302,8 +1373,8 @@ export function LandingPageEditor({ centerId }: Props) {
       );
       setStatusNotice(
         createSuccessNotice(
-          "Preview ready",
-          "The iframe below is now using the latest reusable preview token.",
+          editorT("notices.previewReady.title"),
+          editorT("notices.previewReady.description"),
         ),
       );
     },
@@ -1311,8 +1382,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setStatusNotice(
         createErrorNotice(
           error,
-          "Preview failed",
-          "Unable to generate a preview token.",
+          editorT("notices.previewFailed.title"),
+          editorT("notices.previewFailed.description"),
         ),
       );
     },
@@ -1336,8 +1407,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "hero",
         createSuccessNotice(
-          "Hero image uploaded",
-          "The background image was uploaded and persisted on the landing page.",
+          editorT("notices.heroImageUploaded.title"),
+          editorT("notices.heroImageUploaded.description"),
         ),
       );
     },
@@ -1346,12 +1417,12 @@ export function LandingPageEditor({ centerId }: Props) {
         getAdminApiFirstFieldError(error) ??
         getAdminApiErrorMessage(
           error,
-          "Unable to upload the hero background image.",
+          editorT("notices.heroImageUploadFailed.description"),
         );
       setHeroUploadError(message);
       setSectionNotice("hero", {
         variant: "destructive",
-        title: "Hero image upload failed",
+        title: editorT("notices.heroImageUploadFailed.title"),
         description: message,
       });
     },
@@ -1397,8 +1468,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "layout",
         createSuccessNotice(
-          "Layout saved",
-          "Section order, variants, and style overrides were updated.",
+          editorT("notices.layoutSaved.title"),
+          editorT("notices.layoutSaved.description"),
         ),
       );
     },
@@ -1416,8 +1487,8 @@ export function LandingPageEditor({ centerId }: Props) {
         "layout",
         createErrorNotice(
           sourceError,
-          "Layout save failed",
-          "Unable to save the landing-page layout configuration.",
+          editorT("notices.layoutSaveFailed.title"),
+          editorT("notices.layoutSaveFailed.description"),
         ),
       );
     },
@@ -1441,19 +1512,22 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "about",
         createSuccessNotice(
-          "About image uploaded",
-          "The about image was uploaded and persisted on the landing page.",
+          editorT("notices.aboutImageUploaded.title"),
+          editorT("notices.aboutImageUploaded.description"),
         ),
       );
     },
     onError(error) {
       const message =
         getAdminApiFirstFieldError(error) ??
-        getAdminApiErrorMessage(error, "Unable to upload the about image.");
+        getAdminApiErrorMessage(
+          error,
+          editorT("notices.aboutImageUploadFailed.description"),
+        );
       setAboutUploadError(message);
       setSectionNotice("about", {
         variant: "destructive",
-        title: "About image upload failed",
+        title: editorT("notices.aboutImageUploadFailed.title"),
         description: message,
       });
     },
@@ -1467,12 +1541,13 @@ export function LandingPageEditor({ centerId }: Props) {
       }),
     onSuccess(result) {
       if (!result.url) {
-        const message =
-          "Upload completed, but no testimonial image URL was returned.";
+        const message = editorT(
+          "notices.testimonialImageUrlMissing.description",
+        );
         setNewTestimonialUploadError(message);
         setSectionNotice("testimonials", {
           variant: "destructive",
-          title: "Image URL missing",
+          title: editorT("notices.testimonialImageUrlMissing.title"),
           description: message,
         });
         return;
@@ -1487,8 +1562,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "testimonials",
         createSuccessNotice(
-          "Testimonial image uploaded",
-          "The URL is ready. Save the testimonial to persist the avatar.",
+          editorT("notices.testimonialImageUploaded.title"),
+          editorT("notices.testimonialImageUploaded.description"),
         ),
       );
     },
@@ -1497,12 +1572,12 @@ export function LandingPageEditor({ centerId }: Props) {
         getAdminApiFirstFieldError(error) ??
         getAdminApiErrorMessage(
           error,
-          "Unable to upload the testimonial image.",
+          editorT("notices.testimonialImageUploadFailed.description"),
         );
       setNewTestimonialUploadError(message);
       setSectionNotice("testimonials", {
         variant: "destructive",
-        title: "Image upload failed",
+        title: editorT("notices.testimonialImageUploadFailed.title"),
         description: message,
       });
     },
@@ -1516,12 +1591,13 @@ export function LandingPageEditor({ centerId }: Props) {
       }),
     onSuccess(result) {
       if (!result.url || typeof selectedTestimonialId !== "number") {
-        const message =
-          "Upload completed, but the testimonial image URL could not be applied.";
+        const message = editorT(
+          "notices.testimonialImageApplyFailed.description",
+        );
         setSelectedTestimonialUploadError(message);
         setSectionNotice("testimonials", {
           variant: "destructive",
-          title: "Image URL missing",
+          title: editorT("notices.testimonialImageApplyFailed.title"),
           description: message,
         });
         return;
@@ -1542,8 +1618,8 @@ export function LandingPageEditor({ centerId }: Props) {
       setSectionNotice(
         "testimonials",
         createSuccessNotice(
-          "Testimonial image uploaded",
-          "The URL is ready. Save the testimonial to persist the avatar.",
+          editorT("notices.testimonialImageUploaded.title"),
+          editorT("notices.testimonialImageUploaded.description"),
         ),
       );
     },
@@ -1552,12 +1628,12 @@ export function LandingPageEditor({ centerId }: Props) {
         getAdminApiFirstFieldError(error) ??
         getAdminApiErrorMessage(
           error,
-          "Unable to upload the testimonial image.",
+          editorT("notices.testimonialImageUploadFailed.description"),
         );
       setSelectedTestimonialUploadError(message);
       setSectionNotice("testimonials", {
         variant: "destructive",
-        title: "Image upload failed",
+        title: editorT("notices.testimonialImageUploadFailed.title"),
         description: message,
       });
     },
@@ -1567,9 +1643,8 @@ export function LandingPageEditor({ centerId }: Props) {
     if (!isValidHexColor(stylingDraft.primary_color)) {
       setSectionNotice("styling", {
         variant: "destructive",
-        title: "Invalid primary color",
-        description:
-          "Use hex colors with a leading # only, for example #4F46E5 or #FFFFFFFF.",
+        title: editorT("errors.invalidPrimaryColor.title"),
+        description: editorT("errors.invalidPrimaryColor.description"),
       });
       return;
     }
@@ -1577,9 +1652,8 @@ export function LandingPageEditor({ centerId }: Props) {
     if (!isValidHexColor(stylingDraft.secondary_color)) {
       setSectionNotice("styling", {
         variant: "destructive",
-        title: "Invalid secondary color",
-        description:
-          "Use hex colors with a leading # only, for example #FFF or #111827.",
+        title: editorT("errors.invalidSecondaryColor.title"),
+        description: editorT("errors.invalidSecondaryColor.description"),
       });
       return;
     }
@@ -1594,6 +1668,7 @@ export function LandingPageEditor({ centerId }: Props) {
   const handleImageSelection = (
     file: File | null,
     maxBytes: number,
+    maxSizeLabel: string,
     setFile: (_file: File | null) => void,
     setError: (_message: string | null) => void,
   ) => {
@@ -1604,7 +1679,12 @@ export function LandingPageEditor({ centerId }: Props) {
       return;
     }
 
-    const validationMessage = validateImageFile(file, maxBytes);
+    const validationMessage = validateImageFile(
+      file,
+      maxBytes,
+      editorT("errors.invalidImageType"),
+      editorT("errors.imageTooLarge", { maxSizeLabel }),
+    );
     if (validationMessage) {
       setFile(null);
       setError(validationMessage);
@@ -1616,7 +1696,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
   const handleHeroImageUpload = () => {
     if (!heroImageFile) {
-      setHeroUploadError("Choose an image file first.");
+      setHeroUploadError(editorT("errors.chooseImageFirst"));
       return;
     }
 
@@ -1626,7 +1706,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
   const handleAboutImageUpload = () => {
     if (!aboutImageFile) {
-      setAboutUploadError("Choose an image file first.");
+      setAboutUploadError(editorT("errors.chooseImageFirst"));
       return;
     }
 
@@ -1636,7 +1716,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
   const handleNewTestimonialImageUpload = () => {
     if (!newTestimonialImageFile) {
-      setNewTestimonialUploadError("Choose an image file first.");
+      setNewTestimonialUploadError(editorT("errors.chooseImageFirst"));
       return;
     }
 
@@ -1647,13 +1727,13 @@ export function LandingPageEditor({ centerId }: Props) {
   const handleSelectedTestimonialImageUpload = () => {
     if (typeof selectedTestimonialId !== "number") {
       setSelectedTestimonialUploadError(
-        "Select a testimonial before uploading its image.",
+        editorT("errors.selectTestimonialBeforeUpload"),
       );
       return;
     }
 
     if (!selectedTestimonialImageFile) {
-      setSelectedTestimonialUploadError("Choose an image file first.");
+      setSelectedTestimonialUploadError(editorT("errors.chooseImageFirst"));
       return;
     }
 
@@ -1679,7 +1759,7 @@ export function LandingPageEditor({ centerId }: Props) {
       <Card>
         <CardContent className="py-6">
           <p className="text-sm text-red-600 dark:text-red-400">
-            {t("auto.features.centers.components.landing_page_editor.s1")}
+            {editorT("errors.missingCenterId")}
           </p>
         </CardContent>
       </Card>
@@ -1690,12 +1770,8 @@ export function LandingPageEditor({ centerId }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>
-            {t("auto.features.centers.components.landing_page_editor.s2")}
-          </CardTitle>
-          <CardDescription>
-            {t("auto.features.centers.components.landing_page_editor.s3")}
-          </CardDescription>
+          <CardTitle>{editorT("title")}</CardTitle>
+          <CardDescription>{editorT("loading.description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="h-10 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
@@ -1711,32 +1787,26 @@ export function LandingPageEditor({ centerId }: Props) {
 
     let message = getAdminApiErrorMessage(
       landingQuery.error,
-      "Failed to load the landing page editor.",
+      editorT("errors.loadFailed"),
     );
 
     if (errorCode === "PERMISSION_DENIED") {
-      message = "You do not have permission to manage this landing page.";
+      message = editorT("errors.permissionDenied");
     } else if (errorCode === "NOT_FOUND") {
-      message = "This center or landing page could not be found.";
+      message = editorT("errors.notFound");
     } else if (errorCode === "VALIDATION_ERROR") {
-      message = "Landing pages are available only for branded centers.";
+      message = editorT("errors.unbrandedOnly");
     }
 
     return (
       <Card>
         <CardHeader>
-          <CardTitle>
-            {t("auto.features.centers.components.landing_page_editor.s2")}
-          </CardTitle>
-          <CardDescription>
-            {t("auto.features.centers.components.landing_page_editor.s4")}
-          </CardDescription>
+          <CardTitle>{editorT("title")}</CardTitle>
+          <CardDescription>{editorT("errors.loadDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
-            <AlertTitle>
-              {t("auto.features.centers.components.landing_page_editor.s5")}
-            </AlertTitle>
+            <AlertTitle>{editorT("errors.unableToLoad")}</AlertTitle>
             <AlertDescription>{message}</AlertDescription>
           </Alert>
         </CardContent>
@@ -1750,24 +1820,24 @@ export function LandingPageEditor({ centerId }: Props) {
         <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <CardTitle>
-                {t("auto.features.centers.components.landing_page_editor.s6")}
-              </CardTitle>
+              <CardTitle>{editorT("publishing.title")}</CardTitle>
               <Badge
                 variant="outline"
                 className="px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide"
               >
-                Beta
+                {t("badges.beta")}
               </Badge>
               <Badge variant={publishState.badgeVariant}>
                 {publishState.label}
               </Badge>
               <Badge variant="outline">
-                {publishState.isPublished ? "Public" : "Draft only"}
+                {publishState.isPublished
+                  ? editorT("badges.public")
+                  : editorT("badges.draftOnly")}
               </Badge>
             </div>
             <CardDescription>
-              {t("auto.features.centers.components.landing_page_editor.s7")}
+              {editorT("publishing.description")}
             </CardDescription>
           </div>
 
@@ -1778,15 +1848,15 @@ export function LandingPageEditor({ centerId }: Props) {
               disabled={previewMutation.isPending}
             >
               {previewMutation.isPending
-                ? "Refreshing preview..."
+                ? editorT("actions.refreshingPreview")
                 : previewUrl
-                  ? "Refresh preview"
-                  : "Generate preview"}
+                  ? editorT("actions.refreshPreview")
+                  : editorT("actions.generatePreview")}
             </Button>
             {previewUrl ? (
               <Button asChild variant="secondary">
                 <a href={previewUrl} target="_blank" rel="noreferrer">
-                  {t("auto.features.centers.components.landing_page_editor.s8")}
+                  {editorT("actions.openPreview")}
                 </a>
               </Button>
             ) : null}
@@ -1794,7 +1864,9 @@ export function LandingPageEditor({ centerId }: Props) {
               onClick={() => publishMutation.mutate()}
               disabled={publishMutation.isPending || publishState.isPublished}
             >
-              {publishMutation.isPending ? "Publishing..." : "Publish"}
+              {publishMutation.isPending
+                ? editorT("actions.publishing")
+                : editorT("actions.publish")}
             </Button>
             <Button
               variant="outline"
@@ -1803,7 +1875,9 @@ export function LandingPageEditor({ centerId }: Props) {
                 unpublishMutation.isPending || !publishState.isPublished
               }
             >
-              {unpublishMutation.isPending ? "Unpublishing..." : "Unpublish"}
+              {unpublishMutation.isPending
+                ? editorT("actions.unpublishing")
+                : editorT("actions.unpublish")}
             </Button>
           </div>
         </CardHeader>
@@ -1812,7 +1886,7 @@ export function LandingPageEditor({ centerId }: Props) {
           <div className="grid gap-3 md:grid-cols-4">
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                Status
+                {t("common.labels.status")}
               </p>
               <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                 {publishState.label}
@@ -1821,7 +1895,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                {t("auto.features.centers.components.landing_page_editor.s9")}
+                {editorT("summary.lastUpdated")}
               </p>
               <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                 {formatDateTime(landing?.updated_at)}
@@ -1830,18 +1904,20 @@ export function LandingPageEditor({ centerId }: Props) {
 
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                {t("auto.features.centers.components.landing_page_editor.s10")}
+                {editorT("summary.previewToken")}
               </p>
               <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
                 {previewExpiresAt
-                  ? `Expires ${formatDateTime(previewExpiresAt)}`
-                  : "Generate preview to load the iframe."}
+                  ? editorT("summary.previewExpiresAt", {
+                      datetime: formatDateTime(previewExpiresAt),
+                    })
+                  : editorT("summary.previewEmpty")}
               </p>
             </div>
 
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                {t("auto.features.centers.components.landing_page_editor.s11")}
+                {editorT("summary.previewLocale")}
               </p>
               <div className="mt-3 flex gap-2">
                 {SUPPORTED_LOCALES.map((localeCode) => (
@@ -1870,13 +1946,11 @@ export function LandingPageEditor({ centerId }: Props) {
         <Card>
           <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-2">
-              <CardTitle>
-                {t("auto.features.centers.components.landing_page_editor.s12")}
-              </CardTitle>
+              <CardTitle>{editorT("preview.title")}</CardTitle>
               <CardDescription>
-                {t("auto.features.centers.components.landing_page_editor.s13")}
-                {previewLocale.toUpperCase()}{" "}
-                {t("auto.features.centers.components.landing_page_editor.s14")}
+                {editorT("preview.description", {
+                  locale: previewLocale.toUpperCase(),
+                })}
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -1898,9 +1972,7 @@ export function LandingPageEditor({ centerId }: Props) {
             <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
               <iframe
                 src={previewUrl}
-                title={t(
-                  "auto.features.centers.components.landing_page_editor.s15",
-                )}
+                title={editorT("preview.iframeTitle")}
                 className="h-[720px] w-full bg-white"
               />
             </div>
@@ -1911,7 +1983,7 @@ export function LandingPageEditor({ centerId }: Props) {
       <Card>
         <CardContent className="p-3">
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {editorTabs.map((tab) => (
+            {localizedEditorTabs.map((tab) => (
               <Button
                 key={tab.id}
                 type="button"
@@ -1935,8 +2007,10 @@ export function LandingPageEditor({ centerId }: Props) {
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle>{currentTab.label}</CardTitle>
             <Badge variant="outline">
-              {editorTabs.findIndex((tab) => tab.id === currentTab.id) + 1} /{" "}
-              {editorTabs.length}
+              {localizedEditorTabs.findIndex(
+                (tab) => tab.id === currentTab.id,
+              ) + 1}{" "}
+              / {localizedEditorTabs.length}
             </Badge>
           </div>
           <CardDescription>{currentTab.description}</CardDescription>
@@ -1949,9 +2023,7 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <div className="space-y-2">
                 <Label htmlFor="meta-title">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s16",
-                  )}
+                  {editorT("fields.metaTitle")}
                 </Label>
                 <Input
                   id="meta-title"
@@ -1963,17 +2035,13 @@ export function LandingPageEditor({ centerId }: Props) {
                       meta_title: nextValue,
                     }));
                   }}
-                  placeholder={t(
-                    "auto.features.centers.components.landing_page_editor.s17",
-                  )}
+                  placeholder={editorT("placeholders.metaTitle")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="meta-description">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s18",
-                  )}
+                  {editorT("fields.metaDescription")}
                 </Label>
                 <Textarea
                   id="meta-description"
@@ -1986,17 +2054,13 @@ export function LandingPageEditor({ centerId }: Props) {
                       meta_description: nextValue,
                     }));
                   }}
-                  placeholder={t(
-                    "auto.features.centers.components.landing_page_editor.s19",
-                  )}
+                  placeholder={editorT("placeholders.metaDescription")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="meta-keywords">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s20",
-                  )}
+                  {editorT("fields.metaKeywords")}
                 </Label>
                 <Input
                   id="meta-keywords"
@@ -2008,14 +2072,10 @@ export function LandingPageEditor({ centerId }: Props) {
                       meta_keywords: nextValue,
                     }));
                   }}
-                  placeholder={t(
-                    "auto.features.centers.components.landing_page_editor.s21",
-                  )}
+                  placeholder={editorT("placeholders.metaKeywords")}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s22",
-                  )}
+                  {editorT("help.metaKeywords")}
                 </p>
               </div>
 
@@ -2030,7 +2090,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   }
                   disabled={metaMutation.isPending}
                 >
-                  {metaMutation.isPending ? "Saving..." : "Save Meta"}
+                  {metaMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveMeta")}
                 </Button>
               </div>
             </>
@@ -2040,13 +2102,15 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <LocalizedField
                 id="hero-title"
-                label={t(
-                  "auto.features.centers.components.landing_page_editor.s23",
-                )}
+                label={editorT("fields.heroTitle")}
                 values={heroDraft.hero_title ?? emptyLocalized}
-                description={t(
-                  "auto.features.centers.components.landing_page_editor.s24",
-                )}
+                description={editorT("help.heroTitle")}
+                getPlaceholder={(localeCode) =>
+                  localizedFieldPlaceholder(
+                    editorT("fields.heroTitle"),
+                    localeCode,
+                  )
+                }
                 onChange={(localeCode, nextValue) =>
                   setHeroDraft((current) => ({
                     ...current,
@@ -2060,10 +2124,14 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <LocalizedField
                 id="hero-subtitle"
-                label={t(
-                  "auto.features.centers.components.landing_page_editor.s25",
-                )}
+                label={editorT("fields.heroSubtitle")}
                 values={heroDraft.hero_subtitle ?? emptyLocalized}
+                getPlaceholder={(localeCode) =>
+                  localizedFieldPlaceholder(
+                    editorT("fields.heroSubtitle"),
+                    localeCode,
+                  )
+                }
                 onChange={(localeCode, nextValue) =>
                   setHeroDraft((current) => ({
                     ...current,
@@ -2078,9 +2146,7 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="hero-cta-text">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s26",
-                    )}
+                    {editorT("fields.heroCtaText")}
                   </Label>
                   <Input
                     id="hero-cta-text"
@@ -2092,17 +2158,13 @@ export function LandingPageEditor({ centerId }: Props) {
                         hero_cta_text: nextValue,
                       }));
                     }}
-                    placeholder={t(
-                      "auto.features.centers.components.landing_page_editor.s27",
-                    )}
+                    placeholder={editorT("placeholders.heroCtaText")}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="hero-cta-url">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s28",
-                    )}
+                    {editorT("fields.heroCtaUrl")}
                   </Label>
                   <Input
                     id="hero-cta-url"
@@ -2122,9 +2184,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="hero-background-url">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s29",
-                  )}
+                  {editorT("fields.heroBackgroundUrl")}
                 </Label>
                 <Input
                   id="hero-background-url"
@@ -2136,32 +2196,36 @@ export function LandingPageEditor({ centerId }: Props) {
                       hero_background_url: nextValue,
                     }));
                   }}
-                  placeholder="https://cdn.example.com/hero-background.jpg"
+                  placeholder={editorT("placeholders.heroBackgroundUrl")}
                 />
               </div>
 
               <ImageUploadField
-                t={t}
                 inputId="hero-background-upload"
-                label={t(
-                  "auto.features.centers.components.landing_page_editor.s30",
-                )}
-                description={t(
-                  "auto.features.centers.components.landing_page_editor.s31",
-                )}
+                label={editorT("fields.heroBackgroundUpload")}
+                description={editorT("help.heroBackgroundUpload")}
                 currentUrl={heroDraft.hero_background_url}
                 selectedFileName={heroImageFile?.name ?? null}
                 previewUrl={
                   heroImagePreviewUrl ?? heroDraft.hero_background_url
                 }
-                maxSizeLabel="5MB"
+                maxSizeLabel={editorT("imageUpload.maxSize", {
+                  maxSizeLabel: "5MB",
+                })}
                 isPending={heroImageMutation.isPending}
-                uploadLabel="Upload background"
+                uploadLabel={editorT("actions.uploadBackground")}
+                uploadPendingLabel={editorT("actions.uploadingBackground")}
+                emptyStateLabel={editorT("imageUpload.emptyState")}
+                selectedFileLabel={editorT("imageUpload.selectedFile")}
+                currentUrlLabel={editorT("imageUpload.currentUrl")}
+                clearSelectionLabel={editorT("imageUpload.clearSelection")}
+                openFileLabel={editorT("imageUpload.openFile")}
                 error={heroUploadError}
                 onFileChange={(file) =>
                   handleImageSelection(
                     file,
                     HERO_AND_ABOUT_IMAGE_MAX_BYTES,
+                    "5MB",
                     setHeroImageFile,
                     setHeroUploadError,
                   )
@@ -2188,7 +2252,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   }
                   disabled={heroMutation.isPending}
                 >
-                  {heroMutation.isPending ? "Saving..." : "Save Hero"}
+                  {heroMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveHero")}
                 </Button>
               </div>
             </>
@@ -2198,13 +2264,15 @@ export function LandingPageEditor({ centerId }: Props) {
             <>
               <LocalizedField
                 id="about-title"
-                label={t(
-                  "auto.features.centers.components.landing_page_editor.s32",
-                )}
+                label={editorT("fields.aboutTitle")}
                 values={aboutDraft.about_title ?? emptyLocalized}
-                description={t(
-                  "auto.features.centers.components.landing_page_editor.s33",
-                )}
+                description={editorT("help.aboutTitle")}
+                getPlaceholder={(localeCode) =>
+                  localizedFieldPlaceholder(
+                    editorT("fields.aboutTitle"),
+                    localeCode,
+                  )
+                }
                 onChange={(localeCode, nextValue) =>
                   setAboutDraft((current) => ({
                     ...current,
@@ -2218,11 +2286,15 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <LocalizedField
                 id="about-content"
-                label={t(
-                  "auto.features.centers.components.landing_page_editor.s34",
-                )}
+                label={editorT("fields.aboutContent")}
                 textarea
                 values={aboutDraft.about_content ?? emptyLocalized}
+                getPlaceholder={(localeCode) =>
+                  localizedFieldPlaceholder(
+                    editorT("fields.aboutContent"),
+                    localeCode,
+                  )
+                }
                 onChange={(localeCode, nextValue) =>
                   setAboutDraft((current) => ({
                     ...current,
@@ -2236,9 +2308,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="about-image-url">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s35",
-                  )}
+                  {editorT("fields.aboutImageUrl")}
                 </Label>
                 <Input
                   id="about-image-url"
@@ -2250,30 +2320,34 @@ export function LandingPageEditor({ centerId }: Props) {
                       about_image_url: nextValue,
                     }));
                   }}
-                  placeholder="https://cdn.example.com/about-image.jpg"
+                  placeholder={editorT("placeholders.aboutImageUrl")}
                 />
               </div>
 
               <ImageUploadField
-                t={t}
                 inputId="about-image-upload"
-                label={t(
-                  "auto.features.centers.components.landing_page_editor.s36",
-                )}
-                description={t(
-                  "auto.features.centers.components.landing_page_editor.s37",
-                )}
+                label={editorT("fields.aboutImageUpload")}
+                description={editorT("help.aboutImageUpload")}
                 currentUrl={aboutDraft.about_image_url}
                 selectedFileName={aboutImageFile?.name ?? null}
                 previewUrl={aboutImagePreviewUrl ?? aboutDraft.about_image_url}
-                maxSizeLabel="5MB"
+                maxSizeLabel={editorT("imageUpload.maxSize", {
+                  maxSizeLabel: "5MB",
+                })}
                 isPending={aboutImageMutation.isPending}
-                uploadLabel="Upload image"
+                uploadLabel={editorT("actions.uploadImage")}
+                uploadPendingLabel={editorT("actions.uploadingImage")}
+                emptyStateLabel={editorT("imageUpload.emptyState")}
+                selectedFileLabel={editorT("imageUpload.selectedFile")}
+                currentUrlLabel={editorT("imageUpload.currentUrl")}
+                clearSelectionLabel={editorT("imageUpload.clearSelection")}
+                openFileLabel={editorT("imageUpload.openFile")}
                 error={aboutUploadError}
                 onFileChange={(file) =>
                   handleImageSelection(
                     file,
                     HERO_AND_ABOUT_IMAGE_MAX_BYTES,
+                    "5MB",
                     setAboutImageFile,
                     setAboutUploadError,
                   )
@@ -2298,7 +2372,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   }
                   disabled={aboutMutation.isPending}
                 >
-                  {aboutMutation.isPending ? "Saving..." : "Save About"}
+                  {aboutMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveAbout")}
                 </Button>
               </div>
             </>
@@ -2309,9 +2385,7 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="contact-email">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s38",
-                    )}
+                    {editorT("fields.contactEmail")}
                   </Label>
                   <Input
                     id="contact-email"
@@ -2324,17 +2398,13 @@ export function LandingPageEditor({ centerId }: Props) {
                         contact_email: nextValue,
                       }));
                     }}
-                    placeholder={t(
-                      "auto.features.centers.components.landing_page_editor.s39",
-                    )}
+                    placeholder={editorT("placeholders.contactEmail")}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="contact-phone">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s40",
-                    )}
+                    {editorT("fields.contactPhone")}
                   </Label>
                   <Input
                     id="contact-phone"
@@ -2346,16 +2416,14 @@ export function LandingPageEditor({ centerId }: Props) {
                         contact_phone: nextValue,
                       }));
                     }}
-                    placeholder="+20 123 456 7890"
+                    placeholder={editorT("placeholders.contactPhone")}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="contact-address">
-                  {t(
-                    "auto.features.centers.components.landing_page_editor.s41",
-                  )}
+                  {editorT("fields.contactAddress")}
                 </Label>
                 <Textarea
                   id="contact-address"
@@ -2368,9 +2436,7 @@ export function LandingPageEditor({ centerId }: Props) {
                       contact_address: nextValue,
                     }));
                   }}
-                  placeholder={t(
-                    "auto.features.centers.components.landing_page_editor.s42",
-                  )}
+                  placeholder={editorT("placeholders.contactAddress")}
                 />
               </div>
 
@@ -2385,7 +2451,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   }
                   disabled={contactMutation.isPending}
                 >
-                  {contactMutation.isPending ? "Saving..." : "Save Contact"}
+                  {contactMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveContact")}
                 </Button>
               </div>
             </>
@@ -2394,7 +2462,7 @@ export function LandingPageEditor({ centerId }: Props) {
           {activeTab === "social" ? (
             <>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {socialFieldDefinitions.map((item) => (
+                {localizedSocialFields.map((item) => (
                   <div key={item.id} className="space-y-2">
                     <Label htmlFor={item.id}>{item.label}</Label>
                     <Input
@@ -2427,7 +2495,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   }
                   disabled={socialMutation.isPending}
                 >
-                  {socialMutation.isPending ? "Saving..." : "Save Social"}
+                  {socialMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveSocial")}
                 </Button>
               </div>
             </>
@@ -2438,14 +2508,10 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                 <div className="space-y-1">
                   <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s43",
-                    )}
+                    {editorT("layout.orderTitle")}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s44",
-                    )}
+                    {editorT("layout.orderDescription")}
                   </p>
                 </div>
 
@@ -2472,16 +2538,16 @@ export function LandingPageEditor({ centerId }: Props) {
                             }
                           >
                             {isSectionVisible(sectionId, visibilityDraft)
-                              ? "Visible"
-                              : "Hidden"}
+                              ? editorT("layout.visible")
+                              : editorT("layout.hidden")}
                           </Badge>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {t(
-                            "auto.features.centers.components.landing_page_editor.s45",
-                          )}{" "}
-                          {layoutDraft.section_layouts?.[sectionId] ??
-                            LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId][0]}
+                          {editorT("layout.variant", {
+                            value:
+                              layoutDraft.section_layouts?.[sectionId] ??
+                              LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId][0],
+                          })}
                         </p>
                       </div>
 
@@ -2493,7 +2559,7 @@ export function LandingPageEditor({ centerId }: Props) {
                           disabled={index === 0}
                           onClick={() => handleMoveLayoutSection(index, -1)}
                         >
-                          Up
+                          {editorT("actions.moveUp")}
                         </Button>
                         <Button
                           type="button"
@@ -2509,7 +2575,7 @@ export function LandingPageEditor({ centerId }: Props) {
                           }
                           onClick={() => handleMoveLayoutSection(index, 1)}
                         >
-                          Down
+                          {editorT("actions.moveDown")}
                         </Button>
                       </div>
                     </div>
@@ -2532,16 +2598,18 @@ export function LandingPageEditor({ centerId }: Props) {
                           {layoutSectionLabels[sectionId]}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {t(
-                            "auto.features.centers.components.landing_page_editor.s46",
-                          )}
+                          {editorT("layout.sectionDescription")}
                         </p>
                       </div>
                       <Badge variant="outline">{sectionId.toUpperCase()}</Badge>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>{layoutSectionLabels[sectionId]} variant</Label>
+                      <Label>
+                        {editorT("layout.sectionVariantLabel", {
+                          section: layoutSectionLabels[sectionId],
+                        })}
+                      </Label>
                       <Select
                         value={
                           layoutDraft.section_layouts?.[sectionId] ??
@@ -2564,8 +2632,7 @@ export function LandingPageEditor({ centerId }: Props) {
                           {LANDING_PAGE_LAYOUT_VARIANT_OPTIONS[sectionId].map(
                             (option) => (
                               <SelectItem key={option} value={option}>
-                                {option.charAt(0).toUpperCase() +
-                                  option.slice(1)}
+                                {editorT(`layout.options.${option}`)}
                               </SelectItem>
                             ),
                           )}
@@ -2576,11 +2643,7 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "hero" ? (
                       <div className="grid gap-4 md:grid-cols-3">
                         <div className="space-y-2">
-                          <Label>
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s47",
-                            )}
-                          </Label>
+                          <Label>{editorT("layout.textAlign")}</Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.hero?.text_align ??
@@ -2607,22 +2670,24 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s48",
-                                )}
+                                {editorT("layout.options.inherit")}
                               </SelectItem>
-                              <SelectItem value="left">Left</SelectItem>
-                              <SelectItem value="center">Center</SelectItem>
-                              <SelectItem value="right">Right</SelectItem>
+                              <SelectItem value="left">
+                                {editorT("layout.options.left")}
+                              </SelectItem>
+                              <SelectItem value="center">
+                                {editorT("layout.options.center")}
+                              </SelectItem>
+                              <SelectItem value="right">
+                                {editorT("layout.options.right")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="hero-overlay-opacity">
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s49",
-                            )}
+                            {editorT("layout.overlayOpacity")}
                           </Label>
                           <Input
                             id="hero-overlay-opacity"
@@ -2654,11 +2719,7 @@ export function LandingPageEditor({ centerId }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s50",
-                            )}
-                          </Label>
+                          <Label>{editorT("layout.contentWidth")}</Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.hero?.content_width ??
@@ -2685,13 +2746,17 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s48",
-                                )}
+                                {editorT("layout.options.inherit")}
                               </SelectItem>
-                              <SelectItem value="narrow">Narrow</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-                              <SelectItem value="wide">Wide</SelectItem>
+                              <SelectItem value="narrow">
+                                {editorT("layout.options.narrow")}
+                              </SelectItem>
+                              <SelectItem value="medium">
+                                {editorT("layout.options.medium")}
+                              </SelectItem>
+                              <SelectItem value="wide">
+                                {editorT("layout.options.wide")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -2701,11 +2766,7 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "about" ? (
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s47",
-                            )}
-                          </Label>
+                          <Label>{editorT("layout.textAlign")}</Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.about?.text_align ??
@@ -2732,23 +2793,23 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s48",
-                                )}
+                                {editorT("layout.options.inherit")}
                               </SelectItem>
-                              <SelectItem value="left">Left</SelectItem>
-                              <SelectItem value="center">Center</SelectItem>
-                              <SelectItem value="right">Right</SelectItem>
+                              <SelectItem value="left">
+                                {editorT("layout.options.left")}
+                              </SelectItem>
+                              <SelectItem value="center">
+                                {editorT("layout.options.center")}
+                              </SelectItem>
+                              <SelectItem value="right">
+                                {editorT("layout.options.right")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-2">
-                          <Label>
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s51",
-                            )}
-                          </Label>
+                          <Label>{editorT("layout.imageFit")}</Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.about?.image_fit ??
@@ -2775,12 +2836,14 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s48",
-                                )}
+                                {editorT("layout.options.inherit")}
                               </SelectItem>
-                              <SelectItem value="cover">Cover</SelectItem>
-                              <SelectItem value="contain">Contain</SelectItem>
+                              <SelectItem value="cover">
+                                {editorT("layout.options.cover")}
+                              </SelectItem>
+                              <SelectItem value="contain">
+                                {editorT("layout.options.contain")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -2790,17 +2853,13 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "courses" ? (
                       <div className="space-y-4">
                         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-400">
-                          {t(
-                            "auto.features.centers.components.landing_page_editor.s52",
-                          )}
+                          {editorT("layout.coursesPlaceholder")}
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor="courses-columns-desktop">
-                              {t(
-                                "auto.features.centers.components.landing_page_editor.s53",
-                              )}
+                              {editorT("layout.desktopColumns")}
                             </Label>
                             <Input
                               id="courses-columns-desktop"
@@ -2833,9 +2892,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
                           <div className="space-y-2">
                             <Label htmlFor="courses-columns-mobile">
-                              {t(
-                                "auto.features.centers.components.landing_page_editor.s54",
-                              )}
+                              {editorT("layout.mobileColumns")}
                             </Label>
                             <Input
                               id="courses-columns-mobile"
@@ -2872,11 +2929,7 @@ export function LandingPageEditor({ centerId }: Props) {
                     {sectionId === "testimonials" ? (
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label>
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s55",
-                            )}
-                          </Label>
+                          <Label>{editorT("layout.cardStyle")}</Label>
                           <Select
                             value={
                               layoutDraft.section_styles?.testimonials
@@ -2904,22 +2957,24 @@ export function LandingPageEditor({ centerId }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="inherit">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s48",
-                                )}
+                                {editorT("layout.options.inherit")}
                               </SelectItem>
-                              <SelectItem value="soft">Soft</SelectItem>
-                              <SelectItem value="outline">Outline</SelectItem>
-                              <SelectItem value="solid">Solid</SelectItem>
+                              <SelectItem value="soft">
+                                {editorT("layout.options.soft")}
+                              </SelectItem>
+                              <SelectItem value="outline">
+                                {editorT("layout.options.outline")}
+                              </SelectItem>
+                              <SelectItem value="solid">
+                                {editorT("layout.options.solid")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="testimonials-columns-desktop">
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s53",
-                            )}
+                            {editorT("layout.desktopColumns")}
                           </Label>
                           <Input
                             id="testimonials-columns-desktop"
@@ -2956,11 +3011,7 @@ export function LandingPageEditor({ centerId }: Props) {
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>
-                              {t(
-                                "auto.features.centers.components.landing_page_editor.s56",
-                              )}
-                            </Label>
+                            <Label>{editorT("layout.contactStyle")}</Label>
                             <Select
                               value={
                                 layoutDraft.section_styles?.contact?.layout ??
@@ -2988,12 +3039,14 @@ export function LandingPageEditor({ centerId }: Props) {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="inherit">
-                                  {t(
-                                    "auto.features.centers.components.landing_page_editor.s48",
-                                  )}
+                                  {editorT("layout.options.inherit")}
                                 </SelectItem>
-                                <SelectItem value="cards">Cards</SelectItem>
-                                <SelectItem value="stacked">Stacked</SelectItem>
+                                <SelectItem value="cards">
+                                  {editorT("layout.options.cards")}
+                                </SelectItem>
+                                <SelectItem value="stacked">
+                                  {editorT("layout.options.stacked")}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -3021,13 +3074,11 @@ export function LandingPageEditor({ centerId }: Props) {
                             />
                             <div className="space-y-1">
                               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s57",
-                                )}
+                                {editorT("layout.showMapPlaceholder")}
                               </p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {t(
-                                  "auto.features.centers.components.landing_page_editor.s58",
+                                {editorT(
+                                  "layout.showMapPlaceholderDescription",
                                 )}
                               </p>
                             </div>
@@ -3044,7 +3095,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   onClick={handleSaveLayout}
                   disabled={layoutMutation.isPending}
                 >
-                  {layoutMutation.isPending ? "Saving..." : "Save Layout"}
+                  {layoutMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveLayout")}
                 </Button>
               </div>
             </>
@@ -3055,9 +3108,7 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="grid gap-4 lg:grid-cols-[1fr,1fr,0.9fr]">
                 <div className="space-y-2">
                   <Label htmlFor="primary-color">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s59",
-                    )}
+                    {editorT("fields.primaryColor")}
                   </Label>
                   <Input
                     id="primary-color"
@@ -3069,9 +3120,7 @@ export function LandingPageEditor({ centerId }: Props) {
                         primary_color: nextValue,
                       }));
                     }}
-                    placeholder={t(
-                      "auto.features.centers.components.landing_page_editor.s60",
-                    )}
+                    placeholder={editorT("placeholders.primaryColor")}
                   />
                   <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-800">
                     <span
@@ -3086,18 +3135,14 @@ export function LandingPageEditor({ centerId }: Props) {
                       }
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s61",
-                      )}
+                      {editorT("help.primaryColor")}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="secondary-color">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s62",
-                    )}
+                    {editorT("fields.secondaryColor")}
                   </Label>
                   <Input
                     id="secondary-color"
@@ -3109,7 +3154,7 @@ export function LandingPageEditor({ centerId }: Props) {
                         secondary_color: nextValue,
                       }));
                     }}
-                    placeholder="#111827"
+                    placeholder={editorT("placeholders.secondaryColor")}
                   />
                   <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 dark:border-gray-800">
                     <span
@@ -3124,18 +3169,14 @@ export function LandingPageEditor({ centerId }: Props) {
                       }
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s63",
-                      )}
+                      {editorT("help.secondaryColor")}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="font-family">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s64",
-                    )}
+                    {editorT("fields.fontFamily")}
                   </Label>
                   <Input
                     id="font-family"
@@ -3147,9 +3188,7 @@ export function LandingPageEditor({ centerId }: Props) {
                         font_family: nextValue,
                       }));
                     }}
-                    placeholder={t(
-                      "auto.features.centers.components.landing_page_editor.s65",
-                    )}
+                    placeholder={editorT("placeholders.fontFamily")}
                   />
                 </div>
               </div>
@@ -3159,7 +3198,9 @@ export function LandingPageEditor({ centerId }: Props) {
                   onClick={handleSaveStyling}
                   disabled={stylingMutation.isPending}
                 >
-                  {stylingMutation.isPending ? "Saving..." : "Save Styling"}
+                  {stylingMutation.isPending
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveStyling")}
                 </Button>
               </div>
             </>
@@ -3168,7 +3209,7 @@ export function LandingPageEditor({ centerId }: Props) {
           {activeTab === "visibility" ? (
             <>
               <div className="grid gap-3 lg:grid-cols-2">
-                {visibilityFieldDefinitions.map((option) => {
+                {localizedVisibilityFields.map((option) => {
                   const fieldKey: keyof LandingPageVisibility = option.field;
 
                   return (
@@ -3215,8 +3256,8 @@ export function LandingPageEditor({ centerId }: Props) {
                   disabled={visibilityMutation.isPending}
                 >
                   {visibilityMutation.isPending
-                    ? "Saving..."
-                    : "Save Visibility"}
+                    ? t("common.actions.saving")
+                    : editorT("actions.saveVisibility")}
                 </Button>
               </div>
             </>
@@ -3227,14 +3268,10 @@ export function LandingPageEditor({ centerId }: Props) {
               <div className="space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s66",
-                    )}
+                    {editorT("testimonials.existingTitle")}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s67",
-                    )}
+                    {editorT("testimonials.existingDescription")}
                   </p>
                 </div>
 
@@ -3243,11 +3280,21 @@ export function LandingPageEditor({ centerId }: Props) {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="px-3 py-2">Author</TableHead>
-                          <TableHead className="px-3 py-2">Locales</TableHead>
-                          <TableHead className="px-3 py-2">Rating</TableHead>
-                          <TableHead className="px-3 py-2">Status</TableHead>
-                          <TableHead className="px-3 py-2">Actions</TableHead>
+                          <TableHead className="px-3 py-2">
+                            {editorT("testimonials.table.author")}
+                          </TableHead>
+                          <TableHead className="px-3 py-2">
+                            {editorT("testimonials.table.locales")}
+                          </TableHead>
+                          <TableHead className="px-3 py-2">
+                            {editorT("testimonials.table.rating")}
+                          </TableHead>
+                          <TableHead className="px-3 py-2">
+                            {t("common.labels.status")}
+                          </TableHead>
+                          <TableHead className="px-3 py-2">
+                            {t("common.labels.actions")}
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -3267,15 +3314,20 @@ export function LandingPageEditor({ centerId }: Props) {
                               <TableCell className="px-3 py-2">
                                 <div className="space-y-1">
                                   <p className="font-medium text-gray-900 dark:text-white">
-                                    {testimonial.author_name || "Untitled"}
+                                    {testimonial.author_name ||
+                                      editorT("testimonials.untitled")}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {testimonial.author_title || "No title"}
+                                    {testimonial.author_title ||
+                                      editorT("testimonials.noTitle")}
                                   </p>
                                 </div>
                               </TableCell>
                               <TableCell className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                                {describeLocales(testimonial.content)}
+                                {describeLocales(
+                                  testimonial.content,
+                                  editorT("testimonials.noCopy"),
+                                )}
                               </TableCell>
                               <TableCell className="px-3 py-2">
                                 <Badge variant="outline">
@@ -3290,7 +3342,9 @@ export function LandingPageEditor({ centerId }: Props) {
                                       : "secondary"
                                   }
                                 >
-                                  {testimonial.is_active ? "Active" : "Hidden"}
+                                  {testimonial.is_active
+                                    ? t("common.status.active")
+                                    : editorT("testimonials.hidden")}
                                 </Badge>
                               </TableCell>
                               <TableCell className="px-3 py-2">
@@ -3307,9 +3361,7 @@ export function LandingPageEditor({ centerId }: Props) {
                                       }
                                     }}
                                   >
-                                    {t(
-                                      "auto.features.centers.components.landing_page_editor.s68",
-                                    )}
+                                    {t("common.actions.edit")}
                                   </Button>
                                   <Button
                                     type="button"
@@ -3318,7 +3370,7 @@ export function LandingPageEditor({ centerId }: Props) {
                                     onClick={() => moveTestimonial(index, -1)}
                                     disabled={index === 0}
                                   >
-                                    Up
+                                    {editorT("actions.moveUp")}
                                   </Button>
                                   <Button
                                     type="button"
@@ -3327,7 +3379,7 @@ export function LandingPageEditor({ centerId }: Props) {
                                     onClick={() => moveTestimonial(index, 1)}
                                     disabled={index === testimonials.length - 1}
                                   >
-                                    Down
+                                    {editorT("actions.moveDown")}
                                   </Button>
                                   <Button
                                     type="button"
@@ -3345,9 +3397,7 @@ export function LandingPageEditor({ centerId }: Props) {
                                       }
                                     }}
                                   >
-                                    {t(
-                                      "auto.features.centers.components.landing_page_editor.s69",
-                                    )}
+                                    {t("common.actions.delete")}
                                   </Button>
                                 </div>
                               </TableCell>
@@ -3359,9 +3409,7 @@ export function LandingPageEditor({ centerId }: Props) {
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                    {t(
-                      "auto.features.centers.components.landing_page_editor.s70",
-                    )}
+                    {editorT("testimonials.empty")}
                   </div>
                 )}
 
@@ -3376,9 +3424,10 @@ export function LandingPageEditor({ centerId }: Props) {
                       if (!testimonialIds.length) {
                         setSectionNotice("testimonials", {
                           variant: "destructive",
-                          title: "Missing testimonial IDs",
-                          description:
-                            "Save individual testimonials before sending a reorder request.",
+                          title: editorT("errors.missingTestimonialIds.title"),
+                          description: editorT(
+                            "errors.missingTestimonialIds.description",
+                          ),
                         });
                         return;
                       }
@@ -3390,8 +3439,8 @@ export function LandingPageEditor({ centerId }: Props) {
                     }
                   >
                     {reorderMutation.isPending
-                      ? "Saving order..."
-                      : "Save order"}
+                      ? editorT("actions.savingOrder")
+                      : editorT("actions.saveOrder")}
                   </Button>
                 </div>
               </div>
@@ -3400,25 +3449,27 @@ export function LandingPageEditor({ centerId }: Props) {
                 <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s71",
-                      )}
+                      {editorT("testimonials.addTitle")}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s72",
-                      )}
+                      {editorT("testimonials.addDescription")}
                     </p>
                   </div>
 
                   <div className="mt-4 space-y-4">
                     <LocalizedField
                       id="new-testimonial-content"
-                      label="Content"
+                      label={editorT("fields.content")}
                       textarea
                       values={
                         (newTestimonial.content as LocalizedString) ??
                         emptyLocalized
+                      }
+                      getPlaceholder={(localeCode) =>
+                        localizedFieldPlaceholder(
+                          editorT("fields.content"),
+                          localeCode,
+                        )
                       }
                       onChange={(localeCode, nextValue) =>
                         setNewTestimonial((current) => ({
@@ -3434,9 +3485,7 @@ export function LandingPageEditor({ centerId }: Props) {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="new-testimonial-author">
-                          {t(
-                            "auto.features.centers.components.landing_page_editor.s73",
-                          )}
+                          {editorT("fields.authorName")}
                         </Label>
                         <Input
                           id="new-testimonial-author"
@@ -3448,17 +3497,13 @@ export function LandingPageEditor({ centerId }: Props) {
                               author_name: nextValue,
                             }));
                           }}
-                          placeholder={t(
-                            "auto.features.centers.components.landing_page_editor.s73",
-                          )}
+                          placeholder={editorT("placeholders.authorName")}
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="new-testimonial-title">
-                          {t(
-                            "auto.features.centers.components.landing_page_editor.s74",
-                          )}
+                          {editorT("fields.authorTitle")}
                         </Label>
                         <Input
                           id="new-testimonial-title"
@@ -3470,9 +3515,7 @@ export function LandingPageEditor({ centerId }: Props) {
                               author_title: nextValue,
                             }));
                           }}
-                          placeholder={t(
-                            "auto.features.centers.components.landing_page_editor.s75",
-                          )}
+                          placeholder={editorT("placeholders.authorTitle")}
                         />
                       </div>
                     </div>
@@ -3480,9 +3523,7 @@ export function LandingPageEditor({ centerId }: Props) {
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="new-testimonial-image">
-                          {t(
-                            "auto.features.centers.components.landing_page_editor.s76",
-                          )}
+                          {editorT("fields.authorImageUrl")}
                         </Label>
                         <Input
                           id="new-testimonial-image"
@@ -3494,12 +3535,14 @@ export function LandingPageEditor({ centerId }: Props) {
                               author_image_url: nextValue,
                             }));
                           }}
-                          placeholder="https://cdn.example.com/author.jpg"
+                          placeholder={editorT("placeholders.authorImageUrl")}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="new-testimonial-rating">Rating</Label>
+                        <Label htmlFor="new-testimonial-rating">
+                          {editorT("fields.rating")}
+                        </Label>
                         <Input
                           id="new-testimonial-rating"
                           type="number"
@@ -3518,28 +3561,36 @@ export function LandingPageEditor({ centerId }: Props) {
                     </div>
 
                     <ImageUploadField
-                      t={t}
                       inputId="new-testimonial-image-upload"
-                      label={t(
-                        "auto.features.centers.components.landing_page_editor.s77",
-                      )}
-                      description={t(
-                        "auto.features.centers.components.landing_page_editor.s78",
-                      )}
+                      label={editorT("fields.authorImageUpload")}
+                      description={editorT("help.authorImageUploadNew")}
                       currentUrl={newTestimonial.author_image_url}
                       selectedFileName={newTestimonialImageFile?.name ?? null}
                       previewUrl={
                         newTestimonialImagePreviewUrl ??
                         newTestimonial.author_image_url
                       }
-                      maxSizeLabel="2MB"
+                      maxSizeLabel={editorT("imageUpload.maxSize", {
+                        maxSizeLabel: "2MB",
+                      })}
                       isPending={newTestimonialImageMutation.isPending}
-                      uploadLabel="Upload author image"
+                      uploadLabel={editorT("actions.uploadAuthorImage")}
+                      uploadPendingLabel={editorT(
+                        "actions.uploadingAuthorImage",
+                      )}
+                      emptyStateLabel={editorT("imageUpload.emptyState")}
+                      selectedFileLabel={editorT("imageUpload.selectedFile")}
+                      currentUrlLabel={editorT("imageUpload.currentUrl")}
+                      clearSelectionLabel={editorT(
+                        "imageUpload.clearSelection",
+                      )}
+                      openFileLabel={editorT("imageUpload.openFile")}
                       error={newTestimonialUploadError}
                       onFileChange={(file) =>
                         handleImageSelection(
                           file,
                           TESTIMONIAL_IMAGE_MAX_BYTES,
+                          "2MB",
                           setNewTestimonialImageFile,
                           setNewTestimonialUploadError,
                         )
@@ -3563,7 +3614,7 @@ export function LandingPageEditor({ centerId }: Props) {
                           }));
                         }}
                       />
-                      Active
+                      {t("common.status.active")}
                     </label>
 
                     <Button
@@ -3582,8 +3633,8 @@ export function LandingPageEditor({ centerId }: Props) {
                       disabled={createTestimonialMutation.isPending}
                     >
                       {createTestimonialMutation.isPending
-                        ? "Creating..."
-                        : "Add testimonial"}
+                        ? editorT("actions.creatingTestimonial")
+                        : editorT("actions.addTestimonial")}
                     </Button>
                   </div>
                 </div>
@@ -3591,14 +3642,10 @@ export function LandingPageEditor({ centerId }: Props) {
                 <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
                   <div className="space-y-1">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s79",
-                      )}
+                      {editorT("testimonials.editTitle")}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s80",
-                      )}
+                      {editorT("testimonials.editDescription")}
                     </p>
                   </div>
 
@@ -3606,11 +3653,17 @@ export function LandingPageEditor({ centerId }: Props) {
                     <div className="mt-4 space-y-4">
                       <LocalizedField
                         id={`testimonial-content-${selectedTestimonial.id ?? "selected"}`}
-                        label="Content"
+                        label={editorT("fields.content")}
                         textarea
                         values={
                           (selectedTestimonial.content as LocalizedString) ??
                           emptyLocalized
+                        }
+                        getPlaceholder={(localeCode) =>
+                          localizedFieldPlaceholder(
+                            editorT("fields.content"),
+                            localeCode,
+                          )
                         }
                         onChange={(localeCode, nextValue) =>
                           setTestimonials((current) =>
@@ -3633,9 +3686,7 @@ export function LandingPageEditor({ centerId }: Props) {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-author">
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s73",
-                            )}
+                            {editorT("fields.authorName")}
                           </Label>
                           <Input
                             id="selected-testimonial-author"
@@ -3658,9 +3709,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-title">
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s74",
-                            )}
+                            {editorT("fields.authorTitle")}
                           </Label>
                           <Input
                             id="selected-testimonial-title"
@@ -3685,9 +3734,7 @@ export function LandingPageEditor({ centerId }: Props) {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-image">
-                            {t(
-                              "auto.features.centers.components.landing_page_editor.s76",
-                            )}
+                            {editorT("fields.authorImageUrl")}
                           </Label>
                           <Input
                             id="selected-testimonial-image"
@@ -3710,7 +3757,7 @@ export function LandingPageEditor({ centerId }: Props) {
 
                         <div className="space-y-2">
                           <Label htmlFor="selected-testimonial-rating">
-                            Rating
+                            {editorT("fields.rating")}
                           </Label>
                           <Input
                             id="selected-testimonial-rating"
@@ -3738,14 +3785,9 @@ export function LandingPageEditor({ centerId }: Props) {
                       </div>
 
                       <ImageUploadField
-                        t={t}
                         inputId="selected-testimonial-image-upload"
-                        label={t(
-                          "auto.features.centers.components.landing_page_editor.s77",
-                        )}
-                        description={t(
-                          "auto.features.centers.components.landing_page_editor.s81",
-                        )}
+                        label={editorT("fields.authorImageUpload")}
+                        description={editorT("help.authorImageUploadEdit")}
                         currentUrl={selectedTestimonial.author_image_url}
                         selectedFileName={
                           selectedTestimonialImageFile?.name ?? null
@@ -3754,14 +3796,27 @@ export function LandingPageEditor({ centerId }: Props) {
                           selectedTestimonialImagePreviewUrl ??
                           selectedTestimonial.author_image_url
                         }
-                        maxSizeLabel="2MB"
+                        maxSizeLabel={editorT("imageUpload.maxSize", {
+                          maxSizeLabel: "2MB",
+                        })}
                         isPending={selectedTestimonialImageMutation.isPending}
-                        uploadLabel="Upload author image"
+                        uploadLabel={editorT("actions.uploadAuthorImage")}
+                        uploadPendingLabel={editorT(
+                          "actions.uploadingAuthorImage",
+                        )}
+                        emptyStateLabel={editorT("imageUpload.emptyState")}
+                        selectedFileLabel={editorT("imageUpload.selectedFile")}
+                        currentUrlLabel={editorT("imageUpload.currentUrl")}
+                        clearSelectionLabel={editorT(
+                          "imageUpload.clearSelection",
+                        )}
+                        openFileLabel={editorT("imageUpload.openFile")}
                         error={selectedTestimonialUploadError}
                         onFileChange={(file) =>
                           handleImageSelection(
                             file,
                             TESTIMONIAL_IMAGE_MAX_BYTES,
+                            "2MB",
                             setSelectedTestimonialImageFile,
                             setSelectedTestimonialUploadError,
                           )
@@ -3791,7 +3846,7 @@ export function LandingPageEditor({ centerId }: Props) {
                             );
                           }}
                         />
-                        Active
+                        {t("common.status.active")}
                       </label>
 
                       <div className="flex flex-wrap items-center gap-3">
@@ -3818,16 +3873,14 @@ export function LandingPageEditor({ centerId }: Props) {
                           }
                         >
                           {updateTestimonialMutation.isPending
-                            ? "Saving..."
-                            : "Update testimonial"}
+                            ? t("common.actions.saving")
+                            : editorT("actions.updateTestimonial")}
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="mt-4 rounded-xl border border-dashed border-gray-200 px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                      {t(
-                        "auto.features.centers.components.landing_page_editor.s82",
-                      )}
+                      {editorT("testimonials.selectToEdit")}
                     </div>
                   )}
                 </div>

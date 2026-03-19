@@ -10,7 +10,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRoles } from "@/features/roles/hooks/use-roles";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
 import type { Role } from "@/features/roles/types/role";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 function getInitials(value: string) {
   const parts = value.trim().split(" ").filter(Boolean);
@@ -34,6 +37,14 @@ type SyncAdminUserRolesDialogProps = {
   onClose: () => void;
 };
 
+function getRoleLabel(role: Role, t: TranslateFunction) {
+  return (
+    role.name ??
+    role.slug ??
+    t("pages.admins.fallbacks.roleById", { id: role.id })
+  );
+}
+
 export function SyncAdminUserRolesDialog({
   user,
   initialRoleIds,
@@ -42,6 +53,7 @@ export function SyncAdminUserRolesDialog({
   onClose,
 }: SyncAdminUserRolesDialogProps) {
   const { t } = useTranslation();
+  const emptyValue = t("pages.admins.fallbacks.noValue");
 
   const [search, setSearch] = useState("");
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -172,7 +184,7 @@ export function SyncAdminUserRolesDialog({
 
   const handleContinue = () => {
     if (selectedRoleIds.length === 0) {
-      setErrorMessage("Select at least one role.");
+      setErrorMessage(t("pages.admins.dialogs.syncRoles.errors.selectRole"));
       return;
     }
 
@@ -209,29 +221,31 @@ export function SyncAdminUserRolesDialog({
       <DialogHeader className="space-y-3">
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-sm font-semibold uppercase text-primary">
-            {getInitials(user?.name ?? "Admin User")}
+            {getInitials(user?.name ?? t("pages.admins.fallbacks.adminUser"))}
           </div>
           <div className="space-y-1">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-white">
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s1",
-              )}
+              {t("pages.admins.dialogs.syncRoles.title")}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s2",
-              )}
-              {user?.name ?? `user #${user?.id ?? ""}`}{" "}
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s3",
-              )}
+              {t("pages.admins.dialogs.syncRoles.description", {
+                name:
+                  user?.name ??
+                  t("pages.admins.fallbacks.userById", {
+                    id: user?.id ?? "",
+                  }),
+              })}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3 pb-3 text-xs text-gray-400">
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {selectedRoleIds.length} roles
+                {t("pages.admins.dialogs.syncRoles.summary.roles", {
+                  count: selectedRoleIds.length,
+                })}
               </span>
               <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {selectedPermissions.size} permissions
+                {t("pages.admins.dialogs.syncRoles.summary.permissions", {
+                  count: selectedPermissions.size,
+                })}
               </span>
             </div>
           </div>
@@ -241,9 +255,7 @@ export function SyncAdminUserRolesDialog({
       {errorMessage && (
         <Alert variant="destructive">
           <AlertTitle>
-            {t(
-              "auto.features.admin_users.components.syncadminuserrolesdialog.s4",
-            )}
+            {t("pages.admins.dialogs.syncRoles.errors.errorTitle")}
           </AlertTitle>
           <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
@@ -253,9 +265,7 @@ export function SyncAdminUserRolesDialog({
         <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50/70 p-3 dark:border-gray-700 dark:bg-gray-900/40">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Label htmlFor="roles-search">
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s5",
-              )}
+              {t("pages.admins.dialogs.syncRoles.search.label")}
             </Label>
             <div className="flex items-center gap-2">
               <Button
@@ -267,9 +277,7 @@ export function SyncAdminUserRolesDialog({
                 }
                 disabled={roleOptions.length === 0}
               >
-                {t(
-                  "auto.features.admin_users.components.syncadminuserrolesdialog.s6",
-                )}
+                {t("pages.admins.dialogs.syncRoles.actions.selectAll")}
               </Button>
               <Button
                 variant="outline"
@@ -278,7 +286,7 @@ export function SyncAdminUserRolesDialog({
                 onClick={() => setSelectedRoleIds([])}
                 disabled={selectedRoleIds.length === 0}
               >
-                Clear
+                {t("pages.admins.dialogs.syncRoles.actions.clear")}
               </Button>
             </div>
           </div>
@@ -286,14 +294,10 @@ export function SyncAdminUserRolesDialog({
             id="roles-search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder={t(
-              "auto.features.admin_users.components.syncadminuserrolesdialog.s7",
-            )}
+            placeholder={t("pages.admins.dialogs.syncRoles.search.placeholder")}
           />
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t(
-              "auto.features.admin_users.components.syncadminuserrolesdialog.s8",
-            )}
+            {t("pages.admins.dialogs.syncRoles.search.hint")}
           </p>
         </div>
 
@@ -301,14 +305,12 @@ export function SyncAdminUserRolesDialog({
           {selectedRoles.length > 0 ? (
             selectedRoles.map((role) => (
               <Badge key={`selected-${role.id}`} variant="secondary">
-                {role.name ?? role.slug ?? `Role #${role.id}`}
+                {getRoleLabel(role, t)}
               </Badge>
             ))
           ) : (
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s9",
-              )}
+              {t("pages.admins.dialogs.syncRoles.empty.selected")}
             </p>
           )}
         </div>
@@ -318,15 +320,17 @@ export function SyncAdminUserRolesDialog({
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">
-                {t(
-                  "auto.features.admin_users.components.syncadminuserrolesdialog.s10",
-                )}
+                {t("pages.admins.dialogs.syncRoles.changes.title")}
               </span>
               <span className="text-green-700 dark:text-green-300">
-                +{permissionChanges.added.length} added
+                {t("pages.admins.dialogs.syncRoles.changes.added", {
+                  count: permissionChanges.added.length,
+                })}
               </span>
               <span className="text-red-700 dark:text-red-300">
-                -{permissionChanges.removed.length} removed
+                {t("pages.admins.dialogs.syncRoles.changes.removed", {
+                  count: permissionChanges.removed.length,
+                })}
               </span>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -352,9 +356,7 @@ export function SyncAdminUserRolesDialog({
                 permissionChanges.removed.length >
               12 ? (
                 <Badge variant="outline" className="text-[11px]">
-                  {t(
-                    "auto.features.admin_users.components.syncadminuserrolesdialog.s11",
-                  )}
+                  {t("pages.admins.dialogs.syncRoles.changes.more")}
                 </Badge>
               ) : null}
             </div>
@@ -364,15 +366,13 @@ export function SyncAdminUserRolesDialog({
         <div className="max-h-72 space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-white/80 p-2 dark:border-gray-700 dark:bg-gray-900/40">
           {isRolesLoading ? (
             <p className="p-2 text-sm text-gray-500 dark:text-gray-400">
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s12",
-              )}
+              {t("pages.admins.dialogs.syncRoles.empty.loading")}
             </p>
           ) : filteredRoles.length === 0 ? (
             <p className="p-2 text-sm text-gray-500 dark:text-gray-400">
-              {t(
-                "auto.features.admin_users.components.syncadminuserrolesdialog.s13",
-              )}
+              {search.trim()
+                ? t("pages.admins.dialogs.syncRoles.empty.noResults")
+                : t("pages.admins.dialogs.syncRoles.empty.noRoles")}
             </p>
           ) : (
             filteredRoles.map((role) => {
@@ -399,17 +399,25 @@ export function SyncAdminUserRolesDialog({
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {role.name ?? role.slug ?? `Role #${role.id}`}
+                        {getRoleLabel(role, t)}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {role.slug ?? "—"} · {permissions.length} permissions
+                        {t("pages.admins.dialogs.syncRoles.roleMeta", {
+                          slug: role.slug ?? emptyValue,
+                          count: permissions.length,
+                        })}
                       </p>
                     </div>
                     <input
                       type="checkbox"
                       checked={isSelected}
                       readOnly
-                      aria-label={`Select ${role.name ?? role.slug ?? `role ${role.id}`}`}
+                      aria-label={t(
+                        "pages.admins.dialogs.syncRoles.actions.selectRole",
+                        {
+                          name: getRoleLabel(role, t),
+                        },
+                      )}
                       className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                   </div>
@@ -426,7 +434,9 @@ export function SyncAdminUserRolesDialog({
                       ))}
                       {hiddenPermissionsCount > 0 && (
                         <Badge variant="outline" title={permissions.join(", ")}>
-                          +{hiddenPermissionsCount} more
+                          {t("pages.admins.dialogs.syncRoles.roleMore", {
+                            count: hiddenPermissionsCount,
+                          })}
                         </Badge>
                       )}
                     </div>
@@ -440,15 +450,13 @@ export function SyncAdminUserRolesDialog({
 
       <DialogFooter className="mt-4">
         <Button variant="outline" onClick={handleClose}>
-          {t(
-            "auto.features.admin_users.components.syncadminuserrolesdialog.s14",
-          )}
+          {t("common.actions.cancel")}
         </Button>
         <Button
           onClick={handleContinue}
           disabled={selectedRoleIds.length === 0}
         >
-          Continue
+          {t("pages.admins.dialogs.syncRoles.actions.continue")}
         </Button>
       </DialogFooter>
     </>

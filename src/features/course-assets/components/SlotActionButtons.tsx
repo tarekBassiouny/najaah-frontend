@@ -21,6 +21,8 @@ type SlotActionButtonsProps = {
   canGenerateAI: boolean;
   canReviewPublishAI: boolean;
   canManageLearningAssets: boolean;
+  isSourceReady: boolean;
+  generateDisabledTitle?: string;
   onOpenGenerateModal: (
     _source: CourseAssetSource,
     _presetAssetType: AssetSlotType,
@@ -43,6 +45,8 @@ export function SlotActionButtons({
   canGenerateAI,
   canReviewPublishAI,
   canManageLearningAssets,
+  isSourceReady,
+  generateDisabledTitle,
   onOpenGenerateModal,
   onOpenReviewDialog,
   onOpenBatchDrawer,
@@ -57,6 +61,8 @@ export function SlotActionButtons({
         key="generate"
         size="sm"
         variant="outline"
+        disabled={!isSourceReady}
+        title={generateDisabledTitle}
         onClick={() =>
           onOpenGenerateModal(source, slotType, canonical?.id ?? null)
         }

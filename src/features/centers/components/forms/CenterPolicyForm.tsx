@@ -147,6 +147,7 @@ function normalizeEditableValuesForComparison(
 function parseOptionalInteger(
   value: string,
   label: string,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
 ): { ok: true; value: number | undefined } | { ok: false; message: string } {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -155,7 +156,12 @@ function parseOptionalInteger(
 
   const parsed = Number(trimmed);
   if (!Number.isInteger(parsed)) {
-    return { ok: false, message: `${label} must be a whole number.` };
+    return {
+      ok: false,
+      message: t("pages.centerSettings.forms.policy.validation.integer", {
+        label,
+      }),
+    };
   }
 
   return { ok: true, value: parsed };
@@ -164,6 +170,7 @@ function parseOptionalInteger(
 function getCenterSettingSourceLabel(
   key: EditablePolicyKey,
   persistedSettings: CenterSettingsMap,
+  t: (_key: string, _params?: Record<string, string | number>) => string,
 ): string {
   if (key === "whatsapp_max_retries") {
     const persistedSettingsRecord = asRecord(persistedSettings);
@@ -176,13 +183,13 @@ function getCenterSettingSourceLabel(
       (typeof rawMaxRetries === "string" && rawMaxRetries.trim().length > 0);
 
     return hasCustomMaxRetries
-      ? "Custom for this center"
-      : "Using inherited default";
+      ? t("pages.centerSettings.forms.policy.source.custom")
+      : t("pages.centerSettings.forms.policy.source.inherited");
   }
 
   return hasOwnKey(asRecord(persistedSettings), key)
-    ? "Custom for this center"
-    : "Using inherited default";
+    ? t("pages.centerSettings.forms.policy.source.custom")
+    : t("pages.centerSettings.forms.policy.source.inherited");
 }
 
 export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
@@ -238,7 +245,8 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
 
     const defaultViewLimit = parseOptionalInteger(
       formValues.default_view_limit,
-      "Default view limit",
+      t("pages.centerSettings.forms.policy.fields.defaultViewLimit.label"),
+      t,
     );
     if (!defaultViewLimit.ok) {
       setFormError(defaultViewLimit.message);
@@ -247,7 +255,8 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
 
     const deviceLimit = parseOptionalInteger(
       formValues.device_limit,
-      "Device limit",
+      t("pages.centerSettings.forms.policy.fields.deviceLimit.label"),
+      t,
     );
     if (!deviceLimit.ok) {
       setFormError(deviceLimit.message);
@@ -256,7 +265,8 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
 
     const videoCodeExpiryDays = parseOptionalInteger(
       formValues.video_code_expiry_days,
-      "Video code expiry days",
+      t("pages.centerSettings.forms.policy.fields.videoCodeExpiryDays.label"),
+      t,
     );
     if (!videoCodeExpiryDays.ok) {
       setFormError(videoCodeExpiryDays.message);
@@ -266,13 +276,18 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
       typeof videoCodeExpiryDays.value === "number" &&
       videoCodeExpiryDays.value < 1
     ) {
-      setFormError("Video code expiry days must be at least 1.");
+      setFormError(
+        t(
+          "pages.centerSettings.forms.policy.validation.videoCodeExpiryDaysMin",
+        ),
+      );
       return;
     }
 
     const whatsappMaxRetries = parseOptionalInteger(
       formValues.whatsapp_max_retries,
-      "WhatsApp max retries",
+      t("pages.centerSettings.forms.policy.fields.whatsappMaxRetries.label"),
+      t,
     );
     if (!whatsappMaxRetries.ok) {
       setFormError(whatsappMaxRetries.message);
@@ -283,7 +298,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
         ? whatsappMaxRetries.value
         : WHATSAPP_MAX_RETRIES_FALLBACK;
     if (normalizedWhatsappMaxRetries < 0) {
-      setFormError("WhatsApp max retries must be 0 or greater.");
+      setFormError(
+        t("pages.centerSettings.forms.policy.validation.whatsappMaxRetriesMin"),
+      );
       return;
     }
 
@@ -363,7 +380,7 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
       setFormError(
         getAdminApiErrorMessage(
           error,
-          "Failed to save settings. Please try again.",
+          t("pages.centerSettings.forms.policy.errors.saveFallback"),
         ),
       );
     }
@@ -373,11 +390,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>
-            {t("auto.features.centers.components.forms.centerpolicyform.s1")}
-          </CardTitle>
+          <CardTitle>{t("pages.centerSettings.forms.policy.title")}</CardTitle>
           <CardDescription>
-            {t("auto.features.centers.components.forms.centerpolicyform.s2")}
+            {t("pages.centerSettings.forms.policy.loadingDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -392,27 +407,29 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
   return (
     <Card className="overflow-hidden border-gray-200/80 shadow-sm dark:border-gray-800">
       <CardHeader className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_48%,#fff7ed_100%)] dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.96)_0%,rgba(17,24,39,0.96)_48%,rgba(41,37,36,0.92)_100%)]">
-        <CardTitle>
-          {t("auto.features.centers.components.forms.centerpolicyform.s1")}
-        </CardTitle>
+        <CardTitle>{t("pages.centerSettings.forms.policy.title")}</CardTitle>
         <CardDescription>
-          {t("auto.features.centers.components.forms.centerpolicyform.s3")}
+          {t("pages.centerSettings.forms.policy.description")}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6 p-6">
         {formError ? (
           <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>
+              {t("pages.centerSettings.forms.policy.errorTitle")}
+            </AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         ) : null}
 
         {saveSuccess ? (
           <Alert>
-            <AlertTitle>Saved</AlertTitle>
+            <AlertTitle>
+              {t("pages.centerSettings.forms.policy.successTitle")}
+            </AlertTitle>
             <AlertDescription>
-              {t("auto.features.centers.components.forms.centerpolicyform.s4")}
+              {t("pages.centerSettings.forms.policy.successDescription")}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -420,20 +437,18 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
         {isError ? (
           <Alert variant="destructive">
             <AlertTitle>
-              {t("auto.features.centers.components.forms.centerpolicyform.s5")}
+              {t("pages.centerSettings.forms.policy.loadErrorTitle")}
             </AlertTitle>
             <AlertDescription className="space-y-2">
               <p>
-                {t(
-                  "auto.features.centers.components.forms.centerpolicyform.s6",
-                )}
+                {t("pages.centerSettings.forms.policy.loadErrorDescription")}
               </p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => refetchCenterSettings()}
               >
-                Retry
+                {t("pages.centerSettings.forms.policy.actions.retry")}
               </Button>
             </AlertDescription>
           </Alert>
@@ -442,10 +457,10 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
         <div className="space-y-4">
           <div className="space-y-1">
             <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-gray-400">
-              {t("auto.features.centers.components.forms.centerpolicyform.s7")}
+              {t("pages.centerSettings.forms.policy.sectionTitle")}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              {t("auto.features.centers.components.forms.centerpolicyform.s8")}
+              {t("pages.centerSettings.forms.policy.sectionDescription")}
             </p>
           </div>
 
@@ -454,13 +469,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
               <div className="space-y-1">
                 <Label htmlFor="default-view-limit">
                   {t(
-                    "auto.features.centers.components.forms.centerpolicyform.s9",
+                    "pages.centerSettings.forms.policy.fields.defaultViewLimit.label",
                   )}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
                     "default_view_limit",
                     persistedSettings,
+                    t,
                   )}
                 </p>
               </div>
@@ -471,7 +487,7 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   handleInputChange("default_view_limit", event.target.value)
                 }
                 placeholder={t(
-                  "auto.features.centers.components.forms.centerpolicyform.s10",
+                  "pages.centerSettings.forms.policy.fields.integerPlaceholder",
                 )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
@@ -482,13 +498,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
               <div className="space-y-1">
                 <Label htmlFor="device-limit">
                   {t(
-                    "auto.features.centers.components.forms.centerpolicyform.s11",
+                    "pages.centerSettings.forms.policy.fields.deviceLimit.label",
                   )}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
                     "device_limit",
                     persistedSettings,
+                    t,
                   )}
                 </p>
               </div>
@@ -499,7 +516,7 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   handleInputChange("device_limit", event.target.value)
                 }
                 placeholder={t(
-                  "auto.features.centers.components.forms.centerpolicyform.s10",
+                  "pages.centerSettings.forms.policy.fields.integerPlaceholder",
                 )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
@@ -510,13 +527,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
               <div className="space-y-1">
                 <Label htmlFor="video-code-expiry-days">
                   {t(
-                    "auto.features.centers.components.forms.centerpolicyform.s12",
+                    "pages.centerSettings.forms.policy.fields.videoCodeExpiryDays.label",
                   )}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
                     "video_code_expiry_days",
                     persistedSettings,
+                    t,
                   )}
                 </p>
               </div>
@@ -530,7 +548,7 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   )
                 }
                 placeholder={t(
-                  "auto.features.centers.components.forms.centerpolicyform.s13",
+                  "pages.centerSettings.forms.policy.fields.videoCodeExpiryDays.placeholder",
                 )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
@@ -541,13 +559,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
               <div className="space-y-1">
                 <Label htmlFor="whatsapp-max-retries">
                   {t(
-                    "auto.features.centers.components.forms.centerpolicyform.s14",
+                    "pages.centerSettings.forms.policy.fields.whatsappMaxRetries.label",
                   )}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {getCenterSettingSourceLabel(
                     "whatsapp_max_retries",
                     persistedSettings,
+                    t,
                   )}
                 </p>
               </div>
@@ -558,7 +577,7 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   handleInputChange("whatsapp_max_retries", event.target.value)
                 }
                 placeholder={t(
-                  "auto.features.centers.components.forms.centerpolicyform.s10",
+                  "pages.centerSettings.forms.policy.fields.integerPlaceholder",
                 )}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
@@ -580,13 +599,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   }
                 />
                 {t(
-                  "auto.features.centers.components.forms.centerpolicyform.s15",
+                  "pages.centerSettings.forms.policy.fields.allowExtraViewRequests.label",
                 )}
               </span>
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(
                   "allow_extra_view_requests",
                   persistedSettings,
+                  t,
                 )}
               </span>
             </label>
@@ -604,13 +624,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   }
                 />
                 {t(
-                  "auto.features.centers.components.forms.centerpolicyform.s16",
+                  "pages.centerSettings.forms.policy.fields.requiresVideoApproval.label",
                 )}
               </span>
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(
                   "requires_video_approval",
                   persistedSettings,
+                  t,
                 )}
               </span>
             </label>
@@ -628,13 +649,14 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
                   }
                 />
                 {t(
-                  "auto.features.centers.components.forms.centerpolicyform.s17",
+                  "pages.centerSettings.forms.policy.fields.pdfDownloadPermission.label",
                 )}
               </span>
               <span className="block text-xs text-gray-500 dark:text-gray-400">
                 {getCenterSettingSourceLabel(
                   "pdf_download_permission",
                   persistedSettings,
+                  t,
                 )}
               </span>
             </label>
@@ -646,7 +668,9 @@ export function CenterPolicyForm({ centerId }: CenterPolicyFormProps) {
             onClick={() => void handleSave()}
             disabled={isSaving || isLoading}
           >
-            {isSaving ? "Saving..." : "Save Center Policy"}
+            {isSaving
+              ? t("pages.centerSettings.forms.policy.actions.saving")
+              : t("pages.centerSettings.forms.policy.actions.save")}
           </Button>
         </div>
       </CardContent>

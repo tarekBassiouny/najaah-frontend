@@ -1,3 +1,11 @@
+import type {
+  DynamicAIEditableMap,
+  DynamicAIProvider,
+  DynamicSettingsCatalog,
+  DynamicGroupedSettings,
+  DynamicSettingsMap,
+} from "@/features/settings/lib/dynamic-settings";
+
 export type CenterSetting = {
   id?: string | number;
   center_id?: string | number;
@@ -18,12 +26,49 @@ export type CenterSettingsCatalogEntry = {
   [key: string]: unknown;
 };
 
-export type CenterSettingsCatalog = Record<string, CenterSettingsCatalogEntry>;
+export type CenterSettingsCatalog =
+  | Record<string, CenterSettingsCatalogEntry>
+  | DynamicSettingsCatalog;
 
-export type CenterSettingsMap = Record<string, unknown>;
+export type CenterSettingsMap = DynamicSettingsMap;
 
 export type CenterResolvedSettings = CenterSettingsMap & {
   branding?: Record<string, unknown> | null;
+};
+
+export type CenterSettingsPageContext = {
+  type?: "system_admin_center_settings" | "center_admin_settings" | string;
+  actor_scope?: "system" | "center" | string;
+  editable?: {
+    settings?: string[];
+    features?: string[];
+    ai?: {
+      providers?: DynamicAIEditableMap;
+    };
+  };
+  [key: string]: unknown;
+};
+
+export type CenterSettingsSections = {
+  settings?: {
+    groups?: DynamicGroupedSettings;
+    resolved_groups?: DynamicGroupedSettings;
+  };
+  features?: {
+    values?: Record<string, boolean>;
+  };
+  ai?: {
+    feature_enabled?: boolean;
+    providers?: DynamicAIProvider[];
+  };
+  [key: string]: unknown;
+};
+
+export type CenterSettingsSummary = {
+  type?: "info" | "warning" | "error" | string;
+  title?: string;
+  message?: string;
+  [key: string]: unknown;
 };
 
 export type CenterSettingsData = {
@@ -33,6 +78,11 @@ export type CenterSettingsData = {
   resolved_settings: CenterResolvedSettings;
   system_defaults: CenterSettingsMap;
   catalog: CenterSettingsCatalog;
+  system_constraints: CenterSettingsMap;
+  features: Record<string, boolean>;
+  page?: CenterSettingsPageContext;
+  sections?: CenterSettingsSections;
+  summaries?: CenterSettingsSummary[];
   [key: string]: unknown;
 };
 

@@ -1,129 +1,67 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import Link from "next/link";
-import { AppNotFoundState } from "@/components/ui/app-not-found-state";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { AppNotFoundState } from "@/components/ui/app-not-found-state";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { PageLoading } from "@/components/ui/page-loading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCenter } from "@/features/centers/hooks/use-centers";
+import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { useTranslation } from "@/features/localization";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
-import { CenterAIProvidersPanel } from "@/features/ai/components";
-import {
-  CenterProfileForm,
-  CenterBrandingForm,
-  CenterPolicyForm,
-  CenterEducationProfileForm,
-  CenterStatusCard,
-  CenterOnboardingCard,
-} from "@/features/centers/components/forms";
+import { CenterSettingsEditor } from "@/features/settings/components";
+import { getAdminScope } from "@/lib/user-scope";
 
 type PageProps = {
   params: Promise<{ centerId: string }>;
 };
 
-function getOnboardingBadgeVariant(status: string) {
-  const normalized = status.trim().toUpperCase();
-  if (normalized === "ACTIVE") return "success" as const;
-  if (normalized === "FAILED") return "error" as const;
-  if (normalized === "IN_PROGRESS") return "warning" as const;
-  return "secondary" as const;
-}
-
-function resolveStatusLabel(
-  status: unknown,
-  label: string | null | undefined,
-  t: (_key: string, _params?: Record<string, string | number>) => string,
-): string {
-  if (label) return label;
-  if (Number(status) === 0)
-    return t("pages.centerSettings.badges.status.inactive");
-  return t("pages.centerSettings.badges.status.active");
-}
-
-function getOnboardingStatusLabel(
-  status: string,
-  t: (_key: string, _params?: Record<string, string | number>) => string,
-) {
-  const normalized = status.trim().toUpperCase();
-  if (normalized === "ACTIVE")
-    return t("pages.centerSettings.badges.onboarding.active");
-  if (normalized === "FAILED")
-    return t("pages.centerSettings.badges.onboarding.failed");
-  if (normalized === "IN_PROGRESS") {
-    return t("pages.centerSettings.badges.onboarding.inProgress");
-  }
-  if (normalized === "DRAFT")
-    return t("pages.centerSettings.badges.onboarding.draft");
-  return t("pages.centerSettings.badges.onboarding.unknown");
-}
-
-function getCenterTypeLabel(
-  value: unknown,
-  t: (_key: string, _params?: Record<string, string | number>) => string,
-) {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase() === "branded"
-    ? t("pages.centerSettings.forms.profile.options.type.branded")
-    : t("pages.centerSettings.forms.profile.options.type.unbranded");
-}
-
-function getCenterTierLabel(
-  value: unknown,
-  t: (_key: string, _params?: Record<string, string | number>) => string,
-) {
-  const normalized = String(value ?? "")
-    .trim()
-    .toLowerCase();
-  if (normalized === "premium") {
-    return t("pages.centerSettings.forms.profile.options.tier.premium");
-  }
-  if (normalized === "vip") {
-    return t("pages.centerSettings.forms.profile.options.tier.vip");
-  }
-  return t("pages.centerSettings.forms.profile.options.tier.standard");
-}
-
-function resolveStatusVariant(
-  status: unknown,
-  label?: string | null,
-): "success" | "secondary" {
-  if (Number(status) === 0) return "secondary";
-  if (
-    String(label ?? "")
-      .trim()
-      .toLowerCase() === "inactive"
-  ) {
-    return "secondary";
-  }
-  return "success";
-}
-
-export default function CenterSettingsPage({ params }: PageProps) {
-  const { t } = useTranslation();
+export default function CenterScopedSettingsPage({ params }: PageProps) {
   const { centerId } = use(params);
+  const { t } = useTranslation();
+  const router = useRouter();
   const {
-    data: center,
-    isLoading,
-    isError,
-    error,
-    refetch: refetchCenter,
-  } = useCenter(centerId);
+    data: user,
+    isLoading: isUserLoading,
+    isFetching: isUserFetching,
+  } = useAdminMe();
+  const userScope = getAdminScope(user);
+  const isUserScopeReady = !isUserLoading && !isUserFetching;
+  const { data: center, isLoading, isError, error } = useCenter(centerId);
 
-  const statusLabel = resolveStatusLabel(
-    center?.status,
-    center?.status_label,
-    t,
-  );
-  const statusVariant = resolveStatusVariant(
-    center?.status,
-    center?.status_label,
-  );
-  const onboardingStatus = String(center?.onboarding_status ?? "DRAFT");
+  useEffect(() => {
+    if (!isUserScopeReady) {
+      return;
+    }
+
+    if (
+      userScope.isCenterAdmin &&
+      userScope.centerId &&
+      userScope.centerId !== centerId
+    ) {
+      router.replace(`/centers/${userScope.centerId}/settings`);
+    }
+  }, [
+    centerId,
+    isUserScopeReady,
+    router,
+    userScope.centerId,
+    userScope.isCenterAdmin,
+    userScope.isSystemAdmin,
+  ]);
+
+  if (
+    !isUserScopeReady ||
+    (userScope.isCenterAdmin &&
+      userScope.centerId &&
+      userScope.centerId !== centerId)
+  ) {
+    return <PageLoading />;
+  }
 
   if (isLoading) {
     return (
@@ -142,10 +80,10 @@ export default function CenterSettingsPage({ params }: PageProps) {
       <AppNotFoundState
         scopeLabel={t("pages.centerSettings.titleFallback")}
         title={t("pages.centerSettings.notFoundTitle")}
-        description={t("pages.centerSettings.notFoundDesc")}
+        description={t("pages.centerSettings.workspaceNotFoundDesc")}
         primaryAction={{
-          href: "/centers",
-          label: t("pages.centerSettings.goToCenters"),
+          href: "/dashboard",
+          label: t("pages.centerSettings.goToDashboard"),
         }}
       />
     );
@@ -158,83 +96,33 @@ export default function CenterSettingsPage({ params }: PageProps) {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {t("pages.centerSettings.loadFailed")}
           </p>
-          <Link href="/centers" className="mt-4 inline-block">
-            <Button variant="outline">
-              {t("pages.centerSettings.backToCenters")}
-            </Button>
-          </Link>
         </CardContent>
       </Card>
     );
   }
 
-  const centerData = center!;
-
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("pages.centerSettings.title", {
-          name:
-            centerData.name ??
-            t("pages.centerSettings.centerNameFallback", { id: centerData.id }),
-        })}
-        description={t("pages.centerSettings.description")}
+        title={t("pages.centerSettings.titleFallback")}
+        description="Manage your center settings from the grouped center settings payload."
         actions={
-          <Link href={`/centers/${centerData.id}`}>
-            <Button variant="outline">{t("pages.centerSettings.back")}</Button>
-          </Link>
+          userScope.isSystemAdmin ? (
+            <div className="flex items-center gap-2">
+              <Link href="/centers">
+                <Button variant="outline">
+                  {t("pages.centerSettings.backToCenters")}
+                </Button>
+              </Link>
+              <Link href={`/manage/centers/${centerId}/settings`}>
+                <Button variant="ghost">Open Management View</Button>
+              </Link>
+            </div>
+          ) : undefined
         }
       />
 
-      <Card>
-        <CardContent className="flex flex-wrap items-center gap-3 py-4">
-          <Badge variant={statusVariant}>{statusLabel}</Badge>
-          <Badge variant={getOnboardingBadgeVariant(onboardingStatus)}>
-            {getOnboardingStatusLabel(onboardingStatus, t)}
-          </Badge>
-          <Badge variant="outline">
-            {getCenterTypeLabel(centerData.type, t)}
-          </Badge>
-          <Badge variant="outline">
-            {t("pages.centerSettings.tier")}:{" "}
-            {getCenterTierLabel(centerData.tier, t)}
-          </Badge>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {t("pages.centerSettings.idLabel")}: {centerData.id}
-          </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            /{centerData.slug ?? "-"}
-          </span>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <CenterProfileForm
-            center={centerData}
-            mode="edit"
-            isPlatformAdmin={true}
-          />
-
-          <CenterBrandingForm
-            center={centerData}
-            isPlatformAdmin={true}
-            mode="edit"
-            refetchCenter={refetchCenter}
-          />
-
-          <CenterPolicyForm centerId={centerData.id} />
-
-          <CenterEducationProfileForm centerId={centerData.id} />
-
-          <CenterAIProvidersPanel centerId={centerData.id} />
-        </div>
-
-        <div className="space-y-6">
-          <CenterStatusCard center={centerData} />
-          <CenterOnboardingCard center={centerData} />
-        </div>
-      </div>
+      <CenterSettingsEditor centerId={centerId} mode="workspace" />
     </div>
   );
 }

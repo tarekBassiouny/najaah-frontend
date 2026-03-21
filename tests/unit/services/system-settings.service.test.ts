@@ -54,7 +54,14 @@ describe("system-settings.service", () => {
     });
     expect(result).toEqual({
       items: [{ id: 1, key: "student.default_country_code" }],
-      meta: { page: 2, per_page: 20, total: 1 },
+      meta: {
+        page: 2,
+        per_page: 20,
+        total: 1,
+        catalog: {},
+        catalog_groups: {},
+        defaults: {},
+      },
     });
   });
 
@@ -84,7 +91,64 @@ describe("system-settings.service", () => {
     });
     expect(result).toEqual({
       items: [{ id: 9, key: "feature.flag" }],
-      meta: { page: 3, per_page: 15, total: 31 },
+      meta: {
+        page: 3,
+        per_page: 15,
+        total: 31,
+        catalog: {},
+        catalog_groups: {},
+        defaults: {},
+      },
+    });
+  });
+
+  it("preserves catalog metadata from the list response", async () => {
+    mockedHttp.get.mockResolvedValueOnce({
+      data: {
+        data: [
+          {
+            id: 7,
+            key: "support_email",
+            value: { email: "ops@example.com" },
+            is_public: true,
+          },
+        ],
+        meta: {
+          page: 1,
+          per_page: 20,
+          total: 1,
+          catalog: {
+            support_email: {
+              scope: "system",
+              group: "general",
+              type: "string",
+            },
+          },
+          catalog_groups: {
+            general: ["support_email"],
+          },
+          defaults: {
+            support_email: "ops@example.com",
+          },
+        },
+      },
+    });
+
+    const result = await listSystemSettings({
+      page: 1,
+      per_page: 20,
+    });
+
+    expect(result.meta.catalog.support_email).toEqual({
+      scope: "system",
+      group: "general",
+      type: "string",
+    });
+    expect(result.meta.catalog_groups).toEqual({
+      general: ["support_email"],
+    });
+    expect(result.meta.defaults).toEqual({
+      support_email: "ops@example.com",
     });
   });
 

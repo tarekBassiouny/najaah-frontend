@@ -1,3 +1,8 @@
+---
+name: lms-qa
+description: Frontend testing and validation skill for the Najaah admin panel. Use for unit and integration coverage, MSW setup, regression checks, and targeted validation commands.
+---
+
 # LMS Admin Panel - Senior QA Engineer
 
 ## Purpose
@@ -10,6 +15,8 @@ Comprehensive testing knowledge base for the LMS Admin Panel. This skill provide
 - Analyzing test coverage
 - Debugging failing tests
 - Setting up MSW handlers
+
+When repo-specific guidance in this file conflicts with a generic example, follow the repo-specific guidance.
 
 ---
 
@@ -34,13 +41,17 @@ tests/
 │   ├── unit.tsx           # Unit test setup with providers
 │   └── integration.ts     # Integration test setup with MSW
 ├── unit/
-│   ├── components/        # Component tests
-│   ├── hooks/             # Hook tests
+│   ├── components/        # Shared component and route rule tests
+│   ├── features/          # Feature-specific component tests
+│   ├── lib/               # Library and utility tests
 │   └── services/          # Service tests
 ├── integration/
-│   └── features/          # Integration tests by feature
-└── mocks/
-    └── handlers/          # MSW request handlers
+│   ├── agents/            # Feature integration tests
+│   ├── auth/
+│   ├── notifications/
+│   ├── quizzes/
+│   └── msw/               # Shared MSW handlers and server
+└── unit/setupHelpers.ts   # Re-exported render helper
 ```
 
 ### Test File Naming
@@ -52,6 +63,15 @@ tests/
 ```
 
 ---
+
+## Repo-Specific Accelerators
+
+- Use `renderWithQueryProvider` from `tests/unit/setupHelpers.ts` for most component and integration tests.
+- `tests/setup/unit.tsx` already mocks `next/navigation`, provides `LocaleProvider`, and creates a no-retry React Query client.
+- `tests/setup/integration.ts` wires the MSW server. Extend `tests/integration/msw/handlers.ts` instead of creating scattered handler files unless a feature truly needs its own helper.
+- For tenant- or permission-sensitive UI, seed state with `setTenantState` from `@/lib/tenant-store` and `setAuthPermissions` from `@/lib/auth-state`.
+- For service tests, mock the `http` object methods directly and assert the exact request shape, including scoped URLs and response normalization.
+- When route capability rules change, add or update tests around `getRouteCapabilities`.
 
 ## Unit Test Patterns
 
@@ -217,10 +237,10 @@ describe("studentsService", () => {
 
 ### MSW Handler Setup
 ```typescript
-// tests/mocks/handlers/students.ts
+// tests/integration/msw/handlers.ts
 import { http, HttpResponse } from "msw";
 
-export const studentsHandlers = [
+export const handlers = [
   http.get("/api/v1/admin/students", ({ request }) => {
     const url = new URL(request.url);
     const page = url.searchParams.get("page") || "1";
@@ -280,74 +300,45 @@ export const studentsHandlers = [
 
 ### Integration Test with Full Stack
 ```typescript
-// tests/integration/features/students.integration.test.tsx
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-import { setupServer } from "msw/node";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { studentsHandlers } from "../../mocks/handlers/students";
-import { StudentsTable } from "@/features/students/components/StudentsTable";
+// tests/integration/agents/agents-components.integration.test.tsx
+import "../../setup/integration";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, beforeEach } from "vitest";
+import { renderWithQueryProvider } from "../../unit/setupHelpers";
+import { setAuthPermissions } from "@/lib/auth-state";
+import { setTenantState } from "@/lib/tenant-store";
+import { AgentExecutionsTable } from "@/features/agents/components/AgentExecutionsTable";
 
-const server = setupServer(...studentsHandlers);
-
-describe("Students Integration", () => {
-  let queryClient: QueryClient;
-
-  beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-  afterEach(() => {
-    server.resetHandlers();
-    queryClient.clear();
-  });
-  afterAll(() => server.close());
-
+describe("agents components (integration with MSW)", () => {
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    });
+    setAuthPermissions(["agent.view", "agent.execute"]);
+    setTenantState({ centerId: 1, centerName: "Center A" });
   });
 
-  const renderWithProviders = (ui: React.ReactElement) => {
-    return render(
-      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
-    );
-  };
-
-  it("loads and displays students", async () => {
-    renderWithProviders(<StudentsTable />);
+  it("renders executions list and can execute a new agent", async () => {
+    const user = userEvent.setup();
+    renderWithQueryProvider(<AgentExecutionsTable />);
 
     await waitFor(() => {
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
-      expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      expect(screen.getByText("Course")).toBeInTheDocument();
     });
-  });
 
-  it("filters students by search", async () => {
-    renderWithProviders(<StudentsTable />);
+    await user.click(screen.getByRole("button", { name: "Run Agent" }));
+
+    const dialog = await screen.findByRole("dialog");
 
     await waitFor(() => {
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(within(dialog).getByText("Algebra I")).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText("Search...");
-    fireEvent.change(searchInput, { target: { value: "john" } });
+    await user.click(within(dialog).getByRole("button", { name: "Run Agent" }));
 
     await waitFor(() => {
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
-      expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
-    });
-  });
-
-  it("handles pagination", async () => {
-    renderWithProviders(<StudentsTable />);
-
-    await waitFor(() => {
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    // Check pagination controls exist
-    expect(screen.getByRole("navigation")).toBeInTheDocument();
+    expect(screen.getByText("#99")).toBeInTheDocument();
   });
 });
 ```
@@ -359,36 +350,47 @@ describe("Students Integration", () => {
 ### Unit Test Setup
 ```typescript
 // tests/setup/unit.tsx
-import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render } from "@testing-library/react";
+import { LocaleProvider } from "@/features/localization";
 
-// Mock Next.js router
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-  }),
-  usePathname: () => "/",
-  useSearchParams: () => new URLSearchParams(),
-}));
+export function renderWithQueryProvider(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
 
-// Mock tenant store
-vi.mock("@/lib/tenant-store", () => ({
-  getTenant: () => ({ type: "center", centerId: 1 }),
-  TenantType: { PLATFORM: "platform", CENTER: "center" },
-}));
+  return render(
+    <LocaleProvider>
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    </LocaleProvider>,
+  );
+}
 ```
 
 ### Integration Test Setup
 ```typescript
 // tests/setup/integration.ts
-import "@testing-library/jest-dom";
-import { server } from "../mocks/server";
+import "@testing-library/jest-dom/vitest";
+import { server } from "../integration/msw/server";
 
 beforeAll(() => server.listen({ onUnhandledRequest: "warn" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
+```
+
+### Tenant and Permission Seeding
+```typescript
+import { setAuthPermissions } from "@/lib/auth-state";
+import { setTenantState } from "@/lib/tenant-store";
+
+beforeEach(() => {
+  setAuthPermissions(["student.manage"]);
+  setTenantState({ centerId: 1, centerName: "Center A" });
+});
 ```
 
 ### MSW Server Setup

@@ -148,6 +148,7 @@
       "videoCodeBatches": "دفعات أكواد الفيديو",
       "pdfs": "ملفات PDF",
       "landingPage": "الصفحة الرئيسية",
+      "centerSettings": "إعدادات المركز",
       "settings": "الإعدادات",
       "auditLog": "سجل التدقيق",
       "auditLogs": "سجلات التدقيق"
@@ -2680,7 +2681,7 @@
         },
         "actions": {
           "manage": "إدارة",
-          "settings": "الإعدادات",
+          "settings": "إدارة إعدادات المركز",
           "changeStatus": "تغيير الحالة",
           "retryOnboarding": "إعادة التهيئة",
           "restore": "استعادة",

@@ -148,6 +148,7 @@
       "videoCodeBatches": "Video Code Batches",
       "pdfs": "PDFs",
       "landingPage": "Landing Page",
+      "centerSettings": "Center Settings",
       "settings": "Settings",
       "auditLog": "Audit Log",
       "auditLogs": "Audit Logs"
@@ -2680,7 +2681,7 @@
         },
         "actions": {
           "manage": "Manage",
-          "settings": "Settings",
+          "settings": "Manage Center Settings",
           "changeStatus": "Change status",
           "retryOnboarding": "Retry onboarding",
           "restore": "Restore",

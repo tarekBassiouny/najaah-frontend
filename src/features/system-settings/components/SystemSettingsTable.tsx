@@ -31,13 +31,6 @@ import type { SystemSetting } from "@/features/system-settings/types/system-sett
 
 const DEFAULT_PER_PAGE = 10;
 const ALL_VISIBILITY = "all";
-const CANONICAL_DEFAULT_KEYS = new Set([
-  "timezone",
-  "support_email",
-  "require_device_approval",
-  "attendance_required",
-]);
-
 type ValueType = "string" | "number" | "boolean" | "object" | "array" | "null";
 
 function getValueType(value: unknown): ValueType {
@@ -164,25 +157,6 @@ function formatHumanValue(
 
   if (!payloadRecord) {
     return formatValuePreview(payload);
-  }
-
-  if (setting.key === "timezone") {
-    return typeof payloadRecord.timezone === "string"
-      ? payloadRecord.timezone
-      : "—";
-  }
-
-  if (setting.key === "support_email") {
-    return typeof payloadRecord.email === "string" ? payloadRecord.email : "—";
-  }
-
-  if (
-    setting.key === "require_device_approval" ||
-    setting.key === "attendance_required"
-  ) {
-    return payloadRecord.enabled === true
-      ? t("pages.settings.table.values.enabled")
-      : t("pages.settings.table.values.disabled");
   }
 
   const firstValue = Object.values(payloadRecord)[0];
@@ -498,10 +472,6 @@ export function SystemSettingsTable({
                   const valueType = getValueType(setting.value);
                   const effectiveUpdatedAt =
                     setting.updated_at ?? setting.created_at ?? null;
-                  const isCanonicalDefault = CANONICAL_DEFAULT_KEYS.has(
-                    String(setting.key),
-                  );
-
                   return (
                     <div
                       key={setting.id}
@@ -528,11 +498,6 @@ export function SystemSettingsTable({
                             <Badge variant="outline">
                               {t("pages.settings.table.labels.globalDefault")}
                             </Badge>
-                            {isCanonicalDefault ? (
-                              <Badge variant="secondary">
-                                {t("pages.settings.table.labels.managedAbove")}
-                              </Badge>
-                            ) : null}
                             <Badge
                               variant={
                                 setting.is_public ? "success" : "secondary"
@@ -568,8 +533,7 @@ export function SystemSettingsTable({
                           {getRelativeTime(effectiveUpdatedAt, locale, t)}
                         </span>
                       </div>
-                      {!isCanonicalDefault &&
-                      (onEditSetting || onDeleteSetting) ? (
+                      {onEditSetting || onDeleteSetting ? (
                         <div className="mt-4 flex gap-2">
                           {onEditSetting ? (
                             <Button
@@ -682,10 +646,6 @@ export function SystemSettingsTable({
                     effectiveUpdatedAt,
                     locale,
                   );
-                  const isCanonicalDefault = CANONICAL_DEFAULT_KEYS.has(
-                    String(setting.key),
-                  );
-
                   return (
                     <TableRow
                       key={setting.id}
@@ -699,13 +659,6 @@ export function SystemSettingsTable({
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {t("pages.settings.table.labels.globalDefaultHelp")}
                           </p>
-                          {isCanonicalDefault ? (
-                            <p className="text-xs text-amber-600 dark:text-amber-400">
-                              {t(
-                                "pages.settings.table.labels.managedFromDefaults",
-                              )}
-                            </p>
-                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[460px]">
@@ -754,37 +707,29 @@ export function SystemSettingsTable({
                       </TableCell>
                       {onEditSetting || onDeleteSetting ? (
                         <TableCell>
-                          {isCanonicalDefault ? (
-                            <div className="flex justify-end">
-                              <Badge variant="secondary">
-                                {t("pages.settings.table.labels.managedAbove")}
-                              </Badge>
-                            </div>
-                          ) : (
-                            <div className="flex justify-end gap-2">
-                              {onEditSetting ? (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => onEditSetting(setting)}
-                                >
-                                  {t("pages.settings.table.actions.edit")}
-                                </Button>
-                              ) : null}
-                              {onDeleteSetting ? (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700"
-                                  onClick={() => onDeleteSetting(setting)}
-                                >
-                                  {t("pages.settings.table.actions.delete")}
-                                </Button>
-                              ) : null}
-                            </div>
-                          )}
+                          <div className="flex justify-end gap-2">
+                            {onEditSetting ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onEditSetting(setting)}
+                              >
+                                {t("pages.settings.table.actions.edit")}
+                              </Button>
+                            ) : null}
+                            {onDeleteSetting ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => onDeleteSetting(setting)}
+                              >
+                                {t("pages.settings.table.actions.delete")}
+                              </Button>
+                            ) : null}
+                          </div>
                         </TableCell>
                       ) : null}
                     </TableRow>

@@ -68,29 +68,6 @@ type SystemSettingFormDialogProps = {
   onSuccess?: (_message: string) => void;
 };
 
-const KNOWN_SETTING_TEMPLATES: Record<
-  string,
-  { label: string; value: Record<string, unknown> }
-> = {
-  timezone: {
-    label: "Timezone default",
-    value: { timezone: "UTC" },
-  },
-  support_email: {
-    label: "Support email",
-    value: { email: "support@example.com" },
-  },
-  require_device_approval: {
-    label: "Device approval",
-    value: { enabled: true },
-  },
-  attendance_required: {
-    label: "Attendance policy",
-    value: { enabled: false },
-  },
-};
-const CANONICAL_DEFAULT_KEYS = new Set(Object.keys(KNOWN_SETTING_TEMPLATES));
-
 function getErrorMessage(error: unknown) {
   return getAdminApiErrorMessage(
     error,
@@ -105,10 +82,6 @@ function formatValueForInput(value: unknown) {
   } catch {
     return "null";
   }
-}
-
-function formatTemplateValue(value: Record<string, unknown>) {
-  return JSON.stringify(value, null, 2);
 }
 
 function parseSettingValue(input: string):
@@ -172,7 +145,6 @@ export function SystemSettingFormDialog({
     normalizedDraftKey && !isEditMode
       ? (existingByKey?.[normalizedDraftKey] ?? null)
       : null;
-  const suggestedTemplate = KNOWN_SETTING_TEMPLATES[normalizedDraftKey] ?? null;
 
   useEffect(() => {
     if (!open) {
@@ -193,13 +165,6 @@ export function SystemSettingFormDialog({
     setFormError(null);
 
     const trimmedKey = values.key.trim();
-    if (!isEditMode && CANONICAL_DEFAULT_KEYS.has(trimmedKey)) {
-      form.setError("key", {
-        message:
-          "This key is managed from the canonical defaults panel. Edit it there instead.",
-      });
-      return;
-    }
     if (!isEditMode && matchingExistingSetting) {
       form.setError("key", {
         message: "A global setting with this key already exists.",
@@ -319,67 +284,10 @@ export function SystemSettingFormDialog({
               )}
             </p>
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
-              {t(
-                "auto.features.system_settings.components.systemsettingformdialog.s3",
-              )}{" "}
-              <span className="font-mono">
-                {t(
-                  "auto.features.system_settings.components.systemsettingformdialog.s4",
-                )}
-              </span>{" "}
-              or{" "}
-              <span className="font-mono">
-                {t(
-                  "auto.features.system_settings.components.systemsettingformdialog.s5",
-                )}
-              </span>
-              {t(
-                "auto.features.system_settings.components.systemsettingformdialog.s6",
-              )}{" "}
-              <span className="font-mono">null</span>{" "}
-              {t(
-                "auto.features.system_settings.components.systemsettingformdialog.s7",
-              )}
+              Enter the raw JSON object stored for this setting row. The
+              metadata-driven page handles normal editing; this dialog is for
+              exact registry control.
             </p>
-            {suggestedTemplate && !isEditMode ? (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/80 bg-white/90 px-3 py-3 dark:border-amber-900/60 dark:bg-gray-900/80">
-                <div>
-                  <p className="text-xs font-medium text-gray-900 dark:text-white">
-                    {t(
-                      "auto.features.system_settings.components.systemsettingformdialog.s8",
-                    )}
-                    {suggestedTemplate.label}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-gray-600 dark:text-gray-300">
-                    {JSON.stringify(suggestedTemplate.value)}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    form.setValue(
-                      "valueText",
-                      formatTemplateValue(suggestedTemplate.value),
-                      { shouldDirty: true, shouldValidate: true },
-                    )
-                  }
-                  disabled={isPending}
-                >
-                  {t(
-                    "auto.features.system_settings.components.systemsettingformdialog.s9",
-                  )}
-                </Button>
-              </div>
-            ) : null}
-            {!isEditMode && CANONICAL_DEFAULT_KEYS.has(normalizedDraftKey) ? (
-              <div className="mt-4 rounded-xl border border-blue-200/80 bg-blue-50/80 px-3 py-3 text-sm text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-300">
-                {t(
-                  "auto.features.system_settings.components.systemsettingformdialog.s10",
-                )}
-              </div>
-            ) : null}
           </div>
 
           <Form {...form}>
@@ -482,11 +390,7 @@ export function SystemSettingFormDialog({
                   disabled={
                     isPending ||
                     !form.formState.isValid ||
-                    Boolean(
-                      !isEditMode &&
-                      (matchingExistingSetting ||
-                        CANONICAL_DEFAULT_KEYS.has(normalizedDraftKey)),
-                    )
+                    Boolean(!isEditMode && matchingExistingSetting)
                   }
                 >
                   {isPending

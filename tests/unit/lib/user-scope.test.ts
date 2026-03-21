@@ -70,6 +70,60 @@ describe("getAdminScope", () => {
     expect(scope.centerId).toBe("456");
   });
 
+  it("returns center admin when scope_center_id is present", () => {
+    const user: AdminUser = {
+      id: 3,
+      name: "Scoped Center Admin",
+      email: "scope@example.com",
+      center_id: null,
+      scope_type: "center",
+      scope_center_id: 77,
+    };
+
+    const scope = getAdminScope(user);
+
+    expect(scope.isSystemAdmin).toBe(false);
+    expect(scope.isCenterAdmin).toBe(true);
+    expect(scope.centerId).toBe("77");
+  });
+
+  it("returns center admin when center object is present", () => {
+    const user: AdminUser = {
+      id: 4,
+      name: "Center Admin",
+      email: "center-object@example.com",
+      center_id: null,
+      scope_type: "center",
+      center: {
+        id: 88,
+        name: "Center 88",
+      },
+    };
+
+    const scope = getAdminScope(user);
+
+    expect(scope.isSystemAdmin).toBe(false);
+    expect(scope.isCenterAdmin).toBe(true);
+    expect(scope.centerId).toBe("88");
+  });
+
+  it("returns system admin when system scope flags are present", () => {
+    const user: AdminUser = {
+      id: 5,
+      name: "System Admin",
+      email: "system@example.com",
+      center_id: 99,
+      scope_type: "system",
+      is_system_super_admin: true,
+    };
+
+    const scope = getAdminScope(user);
+
+    expect(scope.isSystemAdmin).toBe(true);
+    expect(scope.isCenterAdmin).toBe(false);
+    expect(scope.centerId).toBeNull();
+  });
+
   it("returns neither admin type for null user", () => {
     const scope = getAdminScope(null);
 
@@ -115,6 +169,7 @@ describe("isSystemOnlyRoute", () => {
   it("returns true for routes with system-only prefixes", () => {
     expect(isSystemOnlyRoute("/agents/123")).toBe(true);
     expect(isSystemOnlyRoute("/agents/execute")).toBe(true);
+    expect(isSystemOnlyRoute("/manage/centers/3/settings")).toBe(true);
     expect(isSystemOnlyRoute("/roles/1/edit")).toBe(true);
     expect(isSystemOnlyRoute("/audit-logs/details")).toBe(true);
     expect(isSystemOnlyRoute("/settings/ai-providers")).toBe(true);
@@ -161,6 +216,10 @@ describe("isCenterScopedRoute", () => {
     expect(isCenterScopedRoute("/centers/list")).toBe(false);
   });
 
+  it("returns false for /centers/settings", () => {
+    expect(isCenterScopedRoute("/centers/settings")).toBe(false);
+  });
+
   it("returns false for non-center routes", () => {
     expect(isCenterScopedRoute("/dashboard")).toBe(false);
     expect(isCenterScopedRoute("/profile")).toBe(false);
@@ -195,6 +254,10 @@ describe("extractCenterIdFromPath", () => {
     expect(extractCenterIdFromPath("/centers/list")).toBeNull();
   });
 
+  it("returns null for /centers/settings", () => {
+    expect(extractCenterIdFromPath("/centers/settings")).toBeNull();
+  });
+
   it("returns null for non-center routes", () => {
     expect(extractCenterIdFromPath("/dashboard")).toBeNull();
     expect(extractCenterIdFromPath("/profile")).toBeNull();
@@ -216,6 +279,21 @@ describe("getCenterAdminHomeUrl", () => {
   });
 });
 
+describe("settings route ownership", () => {
+  it("treats /centers/:centerId/settings as a center-scoped route", () => {
+    expect(isCenterScopedRoute("/centers/123/settings")).toBe(true);
+    expect(extractCenterIdFromPath("/centers/123/settings")).toBe("123");
+  });
+
+  it("keeps /settings/centers/:centerId system-only", () => {
+    expect(isSystemOnlyRoute("/settings/centers/123")).toBe(true);
+  });
+
+  it("keeps /manage/centers/:centerId/settings system-only", () => {
+    expect(isSystemOnlyRoute("/manage/centers/123/settings")).toBe(true);
+  });
+});
+
 describe("exported constants", () => {
   it("exports SYSTEM_ONLY_ROUTES as a Set", () => {
     expect(SYSTEM_ONLY_ROUTES).toBeInstanceOf(Set);
@@ -227,6 +305,7 @@ describe("exported constants", () => {
   it("exports SYSTEM_ONLY_PREFIXES as an array", () => {
     expect(Array.isArray(SYSTEM_ONLY_PREFIXES)).toBe(true);
     expect(SYSTEM_ONLY_PREFIXES).toContain("/agents/");
+    expect(SYSTEM_ONLY_PREFIXES).toContain("/manage/");
     expect(SYSTEM_ONLY_PREFIXES).toContain("/roles/");
     expect(SYSTEM_ONLY_PREFIXES).toContain("/settings/");
   });

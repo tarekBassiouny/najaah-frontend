@@ -1,3 +1,4 @@
+import { isSystemScopeUser } from "@/lib/admin-scope";
 import { type AdminUser } from "@/types/auth";
 
 export type AdminScope = {
@@ -6,28 +7,40 @@ export type AdminScope = {
   centerId: string | null;
 };
 
-/**
- * Determines the admin scope based on the user's center_id.
- * - System admin: center_id is null/undefined
- * - Center admin: center_id is set to a specific center
- */
+function hasValue(value: unknown): boolean {
+  if (value == null) return false;
+  return String(value).trim().length > 0;
+}
+
+function resolveCenterScopeId(
+  user: AdminUser | null | undefined,
+): string | null {
+  if (!user) {
+    return null;
+  }
+
+  const candidate =
+    user.scope_center_id ?? user.center_id ?? user.center?.id ?? null;
+
+  return hasValue(candidate) ? String(candidate) : null;
+}
+
 export function getAdminScope(user: AdminUser | null | undefined): AdminScope {
   if (!user) {
     return { isSystemAdmin: false, isCenterAdmin: false, centerId: null };
   }
 
-  const centerId = user.center_id;
+  const centerId = resolveCenterScopeId(user);
+  const isSystemAdmin = isSystemScopeUser(user, false);
 
-  // If center_id is null/undefined, user is a system admin
-  if (centerId === null || centerId === undefined) {
+  if (isSystemAdmin) {
     return { isSystemAdmin: true, isCenterAdmin: false, centerId: null };
   }
 
-  // User has a center_id, they are a center admin
   return {
     isSystemAdmin: false,
-    isCenterAdmin: true,
-    centerId: String(centerId),
+    isCenterAdmin: centerId !== null,
+    centerId,
   };
 }
 
@@ -56,11 +69,14 @@ export const SYSTEM_ONLY_ROUTES: ReadonlySet<string> = new Set([
  */
 export const SYSTEM_ONLY_PREFIXES: readonly string[] = [
   "/agents/",
+  "/manage/",
   "/roles/",
   "/audit-logs/",
   "/audit/",
   "/settings/",
 ];
+
+const NON_CENTER_ROUTE_SEGMENTS = new Set(["create", "list", "settings"]);
 
 /**
  * Checks if a route is only accessible by system admins.
@@ -93,8 +109,7 @@ export function isCenterScopedRoute(pathname: string): boolean {
   // Pattern: /centers/:centerId or /centers/:centerId/*
   if (segments.length >= 2 && segments[0] === "centers") {
     const candidate = segments[1];
-    // Exclude non-numeric IDs that are actual routes
-    if (candidate && candidate !== "create" && candidate !== "list") {
+    if (candidate && !NON_CENTER_ROUTE_SEGMENTS.has(candidate)) {
       return true;
     }
   }
@@ -111,7 +126,7 @@ export function extractCenterIdFromPath(pathname: string): string | null {
 
   if (segments.length >= 2 && segments[0] === "centers") {
     const candidate = segments[1];
-    if (candidate && candidate !== "create" && candidate !== "list") {
+    if (candidate && !NON_CENTER_ROUTE_SEGMENTS.has(candidate)) {
       return candidate;
     }
   }

@@ -522,7 +522,7 @@ export function CentersTable({
                               </Link>
 
                               <Link
-                                href={`/centers/${center.id}/settings`}
+                                href={`/manage/centers/${center.id}/settings`}
                                 className="block w-full rounded px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
                                 onClick={() => {
                                   setOpenMenuId(null);

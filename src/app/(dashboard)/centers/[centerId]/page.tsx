@@ -380,7 +380,7 @@ export default function CenterDetailPage({ params }: PageProps) {
                 </Button>
               </Link>
             )}
-            <Link href={`/centers/${centerId}/settings`}>
+            <Link href={`/manage/centers/${centerId}/settings`}>
               <Button variant="ghost" size="icon">
                 <SettingsIcon className="h-5 w-5" />
               </Button>

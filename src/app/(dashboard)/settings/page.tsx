@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { DeleteSystemSettingDialog } from "@/features/system-settings/components/DeleteSystemSettingDialog";
-import { SystemDefaultsPanel } from "@/features/system-settings/components/SystemDefaultsPanel";
 import { SystemSettingFormDialog } from "@/features/system-settings/components/SystemSettingFormDialog";
 import { SystemSettingsTable } from "@/features/system-settings/components/SystemSettingsTable";
+import { SystemSettingsCatalogEditor } from "@/features/settings/components";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
 import { useTranslation } from "@/features/localization";
 
@@ -70,8 +70,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("pages.settingsPage.registryTitle")}
-        description={t("pages.settingsPage.registryDescription")}
+        title="System Settings"
+        description="Backend metadata drives the editable settings sections below. The raw registry remains available for advanced CRUD."
         actions={
           <Link href="/settings/ai-providers">
             <Button variant="outline">
@@ -89,10 +89,12 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                {t("pages.settingsPage.heroTitle")}
+                Metadata-driven system controls
               </h2>
               <p className="max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-                {t("pages.settingsPage.heroDescription")}
+                The frontend now renders system setting groups from the backend
+                catalog and defaults. Use the advanced registry only when you
+                need raw row editing or visibility control.
               </p>
             </div>
           </div>
@@ -100,33 +102,35 @@ export default function SettingsPage() {
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                {t("pages.settingsPage.cards.systemKeys.title")}
+                Dynamic groups
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                {t("pages.settingsPage.cards.systemKeys.description")}
+                Sections and setting keys come from `meta.catalog_groups`.
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                {t("pages.settingsPage.cards.safeEditing.title")}
+                Default fallback
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                {t("pages.settingsPage.cards.safeEditing.description")}
+                Missing stored rows fall back to backend defaults without hiding
+                the setting.
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                {t("pages.settingsPage.cards.visibility.title")}
+                Advanced registry
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                {t("pages.settingsPage.cards.visibility.description")}
+                Raw CRUD is still available below for JSON payloads and
+                visibility flags.
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <SystemDefaultsPanel />
+      <SystemSettingsCatalogEditor />
 
       {feedbackMessage ? (
         <Alert>
@@ -135,11 +139,23 @@ export default function SettingsPage() {
         </Alert>
       ) : null}
 
-      <SystemSettingsTable
-        onCreateSetting={() => setIsCreateDialogOpen(true)}
-        onEditSetting={(setting) => setEditingSetting(setting)}
-        onDeleteSetting={(setting) => setDeletingSetting(setting)}
-      />
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight text-gray-950 dark:text-white">
+            Advanced Registry
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Use the raw registry when you need JSON-level control over stored
+            rows.
+          </p>
+        </div>
+
+        <SystemSettingsTable
+          onCreateSetting={() => setIsCreateDialogOpen(true)}
+          onEditSetting={(setting) => setEditingSetting(setting)}
+          onDeleteSetting={(setting) => setDeletingSetting(setting)}
+        />
+      </div>
 
       <SystemSettingFormDialog
         open={isCreateDialogOpen || Boolean(editingSetting)}

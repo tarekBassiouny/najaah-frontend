@@ -5,10 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   asRecord,
-  formatDisplayValue,
   getObjectKeys,
-  humanizeKey,
   inferFieldType,
+  translateDynamicLabel,
   type DynamicSettingDefinition,
 } from "@/features/settings/lib/dynamic-settings";
 import { useTranslation } from "@/features/localization";
@@ -30,10 +29,12 @@ function CheckboxField({
   checked,
   disabled,
   onChange,
+  label,
 }: {
   checked: boolean;
   disabled?: boolean;
   onChange: (_checked: boolean) => void;
+  label: string;
 }) {
   return (
     <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-950/40">
@@ -44,9 +45,38 @@ function CheckboxField({
         onChange={(event) => onChange(event.target.checked)}
         className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/30"
       />
-      <span>{checked ? "Enabled" : "Disabled"}</span>
+      <span>{label}</span>
     </label>
   );
+}
+
+function formatDisplayValueForLocale(
+  value: unknown,
+  t: ReturnType<typeof useTranslation>["t"],
+): string {
+  if (value === null || value === undefined || value === "") {
+    return t("pages.dynamicSettings.notSet");
+  }
+
+  if (typeof value === "boolean") {
+    return value
+      ? t("pages.dynamicSettings.enabled")
+      : t("pages.dynamicSettings.disabled");
+  }
+
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 }
 
 export function DynamicSettingField({
@@ -62,10 +92,12 @@ export function DynamicSettingField({
 }: DynamicSettingFieldProps) {
   const { t } = useTranslation();
   const type = inferFieldType(value, definition);
-  const label = humanizeKey(fieldKey);
+  const label = translateDynamicLabel(t, "fields", fieldKey);
   const objectKeys = getObjectKeys(value, definition);
   const valueRecord = asRecord(value);
   const resolvedRecord = asRecord(resolvedValue);
+  const displayValue = formatDisplayValueForLocale(value, t);
+  const displayResolvedValue = formatDisplayValueForLocale(resolvedValue, t);
 
   if (type === "object" && objectKeys.length > 0) {
     return (
@@ -135,10 +167,10 @@ export function DynamicSettingField({
           </p>
         ) : null}
         {resolvedValue !== undefined &&
-        formatDisplayValue(resolvedValue) !== formatDisplayValue(value) ? (
+        displayResolvedValue !== displayValue ? (
           <p className="text-xs leading-5 text-gray-500 dark:text-gray-400">
             {t("pages.dynamicSettings.effectiveValueLabel")}{" "}
-            {formatDisplayValue(resolvedValue)}
+            {displayResolvedValue}
           </p>
         ) : null}
       </div>
@@ -147,6 +179,11 @@ export function DynamicSettingField({
         <CheckboxField
           checked={Boolean(value)}
           disabled={disabled}
+          label={
+            value
+              ? t("pages.dynamicSettings.enabled")
+              : t("pages.dynamicSettings.disabled")
+          }
           onChange={onChange}
         />
       ) : null}

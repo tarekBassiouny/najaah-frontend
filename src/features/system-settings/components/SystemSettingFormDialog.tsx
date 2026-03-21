@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -42,24 +42,29 @@ import {
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
-import { useTranslation } from "@/features/localization";
+import {
+  useTranslation,
+  type TranslateFunction,
+} from "@/features/localization";
 
 const keyPattern = /^[a-zA-Z0-9._-]+$/;
 
-const schema = z.object({
-  key: z
-    .string()
-    .trim()
-    .min(1, "Key is required.")
-    .regex(
-      keyPattern,
-      "Key may only contain letters, numbers, dot (.), underscore (_) and hyphen (-).",
-    ),
-  valueText: z.string().trim(),
-  isPublic: z.enum(["true", "false"]),
-});
+function createSchema(t: TranslateFunction) {
+  return z.object({
+    key: z
+      .string()
+      .trim()
+      .min(1, t("pages.settingsRegistryDialog.validation.keyRequired"))
+      .regex(
+        keyPattern,
+        t("pages.settingsRegistryDialog.validation.keyInvalid"),
+      ),
+    valueText: z.string().trim(),
+    isPublic: z.enum(["true", "false"]),
+  });
+}
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof createSchema>>;
 
 type SystemSettingFormDialogProps = {
   open: boolean;
@@ -68,10 +73,10 @@ type SystemSettingFormDialogProps = {
   onSuccess?: (_message: string) => void;
 };
 
-function getErrorMessage(error: unknown) {
+function getErrorMessage(error: unknown, t: TranslateFunction) {
   return getAdminApiErrorMessage(
     error,
-    "Unable to save setting. Please try again.",
+    t("pages.settingsRegistryDialog.errors.saveFailed"),
   );
 }
 
@@ -84,7 +89,10 @@ function formatValueForInput(value: unknown) {
   }
 }
 
-function parseSettingValue(input: string):
+function parseSettingValue(
+  input: string,
+  t: TranslateFunction,
+):
   | {
       ok: true;
       value: Record<string, unknown> | null;
@@ -104,12 +112,18 @@ function parseSettingValue(input: string):
     }
 
     if (Array.isArray(parsed) || typeof parsed !== "object") {
-      return { ok: false, message: "Value must be a JSON object or null." };
+      return {
+        ok: false,
+        message: t("pages.settingsRegistryDialog.validation.valueMustBeObject"),
+      };
     }
 
     return { ok: true, value: parsed as Record<string, unknown> };
   } catch {
-    return { ok: false, message: "Value must be valid JSON." };
+    return {
+      ok: false,
+      message: t("pages.settingsRegistryDialog.validation.valueMustBeJson"),
+    };
   }
 }
 
@@ -120,6 +134,7 @@ export function SystemSettingFormDialog({
   onSuccess,
 }: SystemSettingFormDialogProps) {
   const { t } = useTranslation();
+  const schema = useMemo(() => createSchema(t), [t]);
 
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(setting);
@@ -167,12 +182,12 @@ export function SystemSettingFormDialog({
     const trimmedKey = values.key.trim();
     if (!isEditMode && matchingExistingSetting) {
       form.setError("key", {
-        message: "A global setting with this key already exists.",
+        message: t("pages.settingsRegistryDialog.validation.keyExists"),
       });
       return;
     }
 
-    const parsedValue = parseSettingValue(values.valueText.trim());
+    const parsedValue = parseSettingValue(values.valueText.trim(), t);
     if (!parsedValue.ok) {
       form.setError("valueText", {
         message: parsedValue.message,
@@ -197,7 +212,7 @@ export function SystemSettingFormDialog({
               setFormError(
                 getAdminResponseMessage(
                   response,
-                  "Unable to save setting. Please try again.",
+                  t("pages.settingsRegistryDialog.errors.saveFailed"),
                 ),
               );
               return;
@@ -206,11 +221,11 @@ export function SystemSettingFormDialog({
             onSuccess?.(
               getAdminResponseMessage(
                 response,
-                "Setting updated successfully.",
+                t("pages.settingsRegistryDialog.success.updated"),
               ),
             );
           },
-          onError: (error) => setFormError(getErrorMessage(error)),
+          onError: (error) => setFormError(getErrorMessage(error, t)),
         },
       );
       return;
@@ -228,17 +243,20 @@ export function SystemSettingFormDialog({
             setFormError(
               getAdminResponseMessage(
                 response,
-                "Unable to save setting. Please try again.",
+                t("pages.settingsRegistryDialog.errors.saveFailed"),
               ),
             );
             return;
           }
           onOpenChange(false);
           onSuccess?.(
-            getAdminResponseMessage(response, "Setting created successfully."),
+            getAdminResponseMessage(
+              response,
+              t("pages.settingsRegistryDialog.success.created"),
+            ),
           );
         },
-        onError: (error) => setFormError(getErrorMessage(error)),
+        onError: (error) => setFormError(getErrorMessage(error, t)),
       },
     );
   };
@@ -255,12 +273,14 @@ export function SystemSettingFormDialog({
         <div className="border-b border-gray-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fafc_55%,#fff7ed_100%)] px-6 py-5 dark:border-gray-800 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.98)_0%,rgba(17,24,39,0.96)_55%,rgba(41,37,36,0.92)_100%)]">
           <DialogHeader>
             <DialogTitle>
-              {isEditMode ? "Edit System Setting" : "Create System Setting"}
+              {isEditMode
+                ? t("pages.settingsRegistryDialog.titleEdit")
+                : t("pages.settingsRegistryDialog.titleCreate")}
             </DialogTitle>
             <DialogDescription>
               {isEditMode
-                ? "Update setting value and visibility. Key cannot be changed after creation."
-                : "Create a new global setting key with JSON value and visibility."}
+                ? t("pages.settingsRegistryDialog.descriptionEdit")
+                : t("pages.settingsRegistryDialog.descriptionCreate")}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -269,9 +289,7 @@ export function SystemSettingFormDialog({
           {formError && (
             <Alert variant="destructive">
               <AlertTitle>
-                {t(
-                  "auto.features.system_settings.components.systemsettingformdialog.s1",
-                )}
+                {t("pages.settingsRegistryDialog.errorTitle")}
               </AlertTitle>
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
@@ -279,9 +297,7 @@ export function SystemSettingFormDialog({
 
           <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-800 dark:bg-gray-950/50">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
-              {t(
-                "auto.features.system_settings.components.systemsettingformdialog.s2",
-              )}
+              {t("pages.settingsRegistryDialog.payloadNotesTitle")}
             </p>
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
               {t("pages.dynamicSettings.registryControlDescription")}
@@ -295,10 +311,14 @@ export function SystemSettingFormDialog({
                 name="key"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Key</FormLabel>
+                    <FormLabel>
+                      {t("pages.settingsRegistryDialog.fields.key.label")}
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="student.default_country_code"
+                        placeholder={t(
+                          "pages.settingsRegistryDialog.fields.key.placeholder",
+                        )}
                         className="h-11 rounded-xl font-mono"
                         {...field}
                         disabled={isPending || isEditMode}
@@ -307,7 +327,7 @@ export function SystemSettingFormDialog({
                     {!isEditMode && matchingExistingSetting ? (
                       <p className="text-xs text-amber-600 dark:text-amber-400">
                         {t(
-                          "auto.features.system_settings.components.systemsettingformdialog.s11",
+                          "pages.settingsRegistryDialog.validation.keyExistsHint",
                         )}
                       </p>
                     ) : null}
@@ -321,7 +341,11 @@ export function SystemSettingFormDialog({
                 name="isPublic"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Visibility</FormLabel>
+                    <FormLabel>
+                      {t(
+                        "pages.settingsRegistryDialog.fields.visibility.label",
+                      )}
+                    </FormLabel>
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
@@ -331,14 +355,22 @@ export function SystemSettingFormDialog({
                         <SelectTrigger className="h-11 rounded-xl">
                           <SelectValue
                             placeholder={t(
-                              "auto.features.system_settings.components.systemsettingformdialog.s12",
+                              "pages.settingsRegistryDialog.fields.visibility.placeholder",
                             )}
                           />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="false">Private</SelectItem>
-                        <SelectItem value="true">Public</SelectItem>
+                        <SelectItem value="false">
+                          {t(
+                            "pages.settingsRegistryDialog.fields.visibility.private",
+                          )}
+                        </SelectItem>
+                        <SelectItem value="true">
+                          {t(
+                            "pages.settingsRegistryDialog.fields.visibility.public",
+                          )}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -352,15 +384,13 @@ export function SystemSettingFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {t(
-                        "auto.features.system_settings.components.systemsettingformdialog.s13",
-                      )}
+                      {t("pages.settingsRegistryDialog.fields.value.label")}
                     </FormLabel>
                     <FormControl>
                       <Textarea
                         rows={12}
                         placeholder={t(
-                          "auto.features.system_settings.components.systemsettingformdialog.s14",
+                          "pages.settingsRegistryDialog.fields.value.placeholder",
                         )}
                         className="min-h-[260px] rounded-2xl border-gray-200 bg-gray-50 font-mono text-xs leading-6 dark:border-gray-800 dark:bg-gray-950/80"
                         {...field}
@@ -379,9 +409,7 @@ export function SystemSettingFormDialog({
                   onClick={() => onOpenChange(false)}
                   disabled={isPending}
                 >
-                  {t(
-                    "auto.features.system_settings.components.systemsettingformdialog.s15",
-                  )}
+                  {t("common.actions.cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -392,10 +420,10 @@ export function SystemSettingFormDialog({
                   }
                 >
                   {isPending
-                    ? "Saving..."
+                    ? t("common.actions.saving")
                     : isEditMode
-                      ? "Save Changes"
-                      : "Create Setting"}
+                      ? t("common.actions.saveChanges")
+                      : t("pages.settingsRegistryDialog.actions.create")}
                 </Button>
               </DialogFooter>
             </form>

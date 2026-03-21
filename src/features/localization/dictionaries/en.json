@@ -1889,11 +1889,24 @@
       "centerUnavailableTitle": "Center settings unavailable",
       "centerUnavailableDescription": "The grouped center settings payload could not be loaded.",
       "centerUpdatedTitle": "Center settings updated",
+      "centerSaved": "Center settings saved.",
       "featuresTitle": "Features",
       "featuresDescription": "Per-center feature flags from the grouped center settings payload.",
       "aiTitle": "AI",
       "aiManagementDescription": "Provider policy is driven by the grouped center settings payload.",
       "aiWorkspaceDescription": "Choose the default AI model available to your center where platform policy allows it.",
+      "groupDescriptionManaged": "Driven by grouped center settings payload for {group}.",
+      "groupDescriptionSystem": "Loaded from backend catalog group \"{group}\".",
+      "systemMaxHint": "System max: {value}",
+      "featureDisabledHint": "Feature flag \"{feature}\" is disabled for this center.",
+      "disabledBySystemAdministrator": "Disabled by system administrator.",
+      "storageDescription": "Storage: {storage}",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "notSet": "Not set",
+      "noChangesToSave": "No changes to save.",
       "managedByPlatform": "Managed by platform",
       "allowedModels": "Allowed Models",
       "defaultModel": "Default Model",
@@ -1902,9 +1915,138 @@
       "systemUnavailableTitle": "System settings unavailable",
       "systemUnavailableDescription": "The backend catalog could not be loaded for dynamic system settings.",
       "systemUpdatedTitle": "System settings updated",
+      "systemSaved": "System settings saved.",
+      "saveWorkspaceSettings": "Save workspace settings",
+      "saveCenterSettings": "Save center settings",
+      "saveSystemSettings": "Save system settings",
       "storedOverride": "Stored override",
       "defaultOnly": "Default only",
-      "registryControlDescription": "Enter the raw JSON object stored for this setting row. The metadata-driven page handles normal editing; this dialog is for exact registry control."
+      "registryControlDescription": "Enter the raw JSON object stored for this setting row. The metadata-driven page handles normal editing; this dialog is for exact registry control.",
+      "errors": {
+        "saveCenterSettings": "Unable to save center settings.",
+        "saveSystemSettings": "Unable to save system settings.",
+        "createSystemSettingOverride": "Unable to create a system setting override."
+      },
+      "types": {
+        "string": "String",
+        "integer": "Integer",
+        "number": "Number",
+        "boolean": "Boolean",
+        "object": "Object",
+        "array": "Array"
+      },
+      "groups": {
+        "general": "General",
+        "security": "Security",
+        "limits": "Limits",
+        "overrides": "Overrides",
+        "infrastructure": "Infrastructure",
+        "branding": "Branding",
+        "student_profile": "Student Profile",
+        "playback": "Playback",
+        "devices": "Devices",
+        "downloads": "Downloads",
+        "guest": "Guest Access",
+        "video_access": "Video Access"
+      },
+      "groupDescriptions": {
+        "branding": "Update your center branding.",
+        "student_profile": "Configure the student profile fields your center uses.",
+        "playback": "Adjust playback and access settings allowed for your center.",
+        "devices": "Manage the device limits available to your center.",
+        "downloads": "Manage download-related settings available to your center.",
+        "guest": "Manage guest access options allowed for your center.",
+        "video_access": "Manage video access options available to your center."
+      },
+      "fields": {
+        "site_name": "Site Name",
+        "support_email": "Support Email",
+        "timezone": "Timezone",
+        "require_device_approval": "Require Device Approval",
+        "attendance_required": "Attendance Required",
+        "whatsapp_bulk_settings": "WhatsApp Bulk Settings",
+        "max_view_limit": "Max View Limit",
+        "max_device_limit": "Max Device Limit",
+        "force_disable_extra_view_requests": "Force Disable Extra View Requests",
+        "force_disable_pdf_download": "Force Disable PDF Download",
+        "force_disable_guest_browsing": "Force Disable Guest Browsing",
+        "default_view_limit": "Default View Limit",
+        "allow_extra_view_requests": "Allow Extra View Requests",
+        "requires_video_approval": "Requires Video Approval",
+        "video_code_expiry_days": "Video Code Expiry Days",
+        "pdf_download_permission": "PDF Download Permission",
+        "device_limit": "Device Limit",
+        "allow_guest_browsing": "Allow Guest Browsing",
+        "education_profile": "Education Profile",
+        "branding": "Branding",
+        "enable_grade": "Enable Grade",
+        "enable_school": "Enable School",
+        "enable_college": "Enable College",
+        "enable_parent_phone": "Enable Parent Phone",
+        "require_grade": "Require Grade",
+        "require_school": "Require School",
+        "require_college": "Require College",
+        "require_parent_phone": "Require Parent Phone",
+        "logo_url": "Logo URL",
+        "primary_color": "Primary Color",
+        "ai_content": "AI Content",
+        "codes_access": "Codes Access",
+        "whatsapp_bulk": "WhatsApp Bulk",
+        "guest_browsing": "Guest Browsing",
+        "pdf_downloads": "PDF Downloads",
+        "is_enabled": "Enabled",
+        "allowed_models": "Allowed Models",
+        "default_model": "Default Model",
+        "limits": "Limits",
+        "delay_seconds": "Delay Seconds",
+        "batch_size": "Batch Size",
+        "batch_pause_seconds": "Batch Pause Seconds",
+        "max_retries": "Max Retries",
+        "max_failures_before_pause": "Max Failures Before Pause",
+        "daily_job_limit": "Daily Job Limit"
+      }
+    },
+    "settingsRegistryDialog": {
+      "titleEdit": "Edit System Setting",
+      "titleCreate": "Create System Setting",
+      "descriptionEdit": "Update setting value and visibility. Key cannot be changed after creation.",
+      "descriptionCreate": "Create a new global setting key with JSON value and visibility.",
+      "errorTitle": "Could not save setting",
+      "payloadNotesTitle": "Payload Notes",
+      "fields": {
+        "key": {
+          "label": "Key",
+          "placeholder": "student.default_country_code"
+        },
+        "visibility": {
+          "label": "Visibility",
+          "placeholder": "Select visibility",
+          "private": "Private",
+          "public": "Public"
+        },
+        "value": {
+          "label": "Value (JSON object or null)",
+          "placeholder": "{\"code\":\"+20\"}"
+        }
+      },
+      "validation": {
+        "keyRequired": "Key is required.",
+        "keyInvalid": "Key may only contain letters, numbers, dot (.), underscore (_) and hyphen (-).",
+        "keyExists": "A global setting with this key already exists.",
+        "keyExistsHint": "This key already exists in the system registry. Edit the existing record instead of creating a duplicate.",
+        "valueMustBeObject": "Value must be a JSON object or null.",
+        "valueMustBeJson": "Value must be valid JSON."
+      },
+      "errors": {
+        "saveFailed": "Unable to save setting. Please try again."
+      },
+      "success": {
+        "updated": "Setting updated successfully.",
+        "created": "Setting created successfully."
+      },
+      "actions": {
+        "create": "Create Setting"
+      }
     },
     "centerAISettings": {
       "title": "AI Provider Overrides",

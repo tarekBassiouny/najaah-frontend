@@ -24,11 +24,13 @@ import {
   flattenGroupedSettings,
   getDefinitionForKey,
   getSettingValueForRender,
-  humanizeKey,
   inferFieldType,
+  translateDynamicLabel,
+  translateWithFallback,
   type DynamicAIProvider,
   type DynamicSettingsCatalog,
   type DynamicSettingsMap,
+  type DynamicTranslateFunction,
 } from "@/features/settings/lib/dynamic-settings";
 import { getAdminApiErrorMessage } from "@/lib/admin-response";
 
@@ -51,32 +53,23 @@ type ProviderDraft = {
   limits: Record<string, unknown>;
 };
 
-function getCenterAdminGroupDescription(group: string) {
-  const normalized = group.trim().toLowerCase();
+function getDynamicGroupTitle(t: DynamicTranslateFunction, group: string) {
+  return translateDynamicLabel(t, "groups", group);
+}
 
-  if (normalized === "branding") {
-    return "Update your center branding.";
-  }
-  if (normalized === "student_profile") {
-    return "Configure the student profile fields your center uses.";
-  }
-  if (normalized === "playback") {
-    return "Adjust playback and access settings allowed for your center.";
-  }
-  if (normalized === "devices") {
-    return "Manage the device limits available to your center.";
-  }
-  if (normalized === "downloads") {
-    return "Manage download-related settings available to your center.";
-  }
-  if (normalized === "guest") {
-    return "Manage guest access options allowed for your center.";
-  }
-  if (normalized === "video_access") {
-    return "Manage video access options available to your center.";
-  }
+function getCenterAdminGroupDescription(
+  t: DynamicTranslateFunction,
+  group: string,
+) {
+  return translateWithFallback(
+    t,
+    `pages.dynamicSettings.groupDescriptions.${group}`,
+    "",
+  );
+}
 
-  return undefined;
+function getDynamicFieldLabel(t: DynamicTranslateFunction, key: string) {
+  return translateDynamicLabel(t, "fields", key);
 }
 
 function buildCatalogGroups(catalog: DynamicSettingsCatalog | undefined) {
@@ -326,7 +319,7 @@ export function CenterSettingsEditor({
       Object.keys(changedFeatures).length === 0 &&
       Object.keys(changedProviders).length === 0
     ) {
-      setSaveSuccess("No changes to save.");
+      setSaveSuccess(t("pages.dynamicSettings.noChangesToSave"));
       return;
     }
 
@@ -347,10 +340,13 @@ export function CenterSettingsEditor({
       });
 
       await refetch();
-      setSaveSuccess("Center settings saved.");
+      setSaveSuccess(t("pages.dynamicSettings.centerSaved"));
     } catch (error) {
       setFormError(
-        getAdminApiErrorMessage(error, "Unable to save center settings."),
+        getAdminApiErrorMessage(
+          error,
+          t("pages.dynamicSettings.errors.saveCenterSettings"),
+        ),
       );
     }
   };
@@ -425,11 +421,13 @@ export function CenterSettingsEditor({
         return (
           <SettingsSectionCard
             key={group}
-            title={humanizeKey(group)}
+            title={getDynamicGroupTitle(t, group)}
             description={
               isManagementView
-                ? `Driven by grouped center settings payload for ${humanizeKey(group)}.`
-                : getCenterAdminGroupDescription(group)
+                ? t("pages.dynamicSettings.groupDescriptionManaged", {
+                    group: getDynamicGroupTitle(t, group),
+                  })
+                : getCenterAdminGroupDescription(t, group) || undefined
             }
           >
             <div className="grid gap-5 lg:grid-cols-2">
@@ -449,15 +447,22 @@ export function CenterSettingsEditor({
                   data.system_constraints?.[overrideKey] === true;
                 const limitHint =
                   limitKey && data.system_constraints?.[limitKey] !== undefined
-                    ? `System max: ${String(data.system_constraints[limitKey])}`
+                    ? t("pages.dynamicSettings.systemMaxHint", {
+                        value: String(data.system_constraints[limitKey]),
+                      })
                     : null;
                 const featureHint =
                   definition?.feature_flag &&
                   featureValues[definition.feature_flag] === false
-                    ? `Feature flag "${humanizeKey(definition.feature_flag)}" is disabled for this center.`
+                    ? t("pages.dynamicSettings.featureDisabledHint", {
+                        feature: getDynamicFieldLabel(
+                          t,
+                          definition.feature_flag,
+                        ),
+                      })
                     : null;
                 const hint = forcedBySystem
-                  ? "Disabled by system administrator."
+                  ? t("pages.dynamicSettings.disabledBySystemAdministrator")
                   : (limitHint ?? featureHint);
 
                 return (
@@ -472,7 +477,9 @@ export function CenterSettingsEditor({
                     description={
                       isManagementView &&
                       typeof definition?.storage === "string"
-                        ? `Storage: ${definition.storage}`
+                        ? t("pages.dynamicSettings.storageDescription", {
+                            storage: definition.storage,
+                          })
                         : null
                     }
                     onChange={(nextValue) =>
@@ -561,7 +568,9 @@ export function CenterSettingsEditor({
                         <Badge
                           variant={provider.enabled ? "success" : "secondary"}
                         >
-                          {provider.enabled ? "Enabled" : "Disabled"}
+                          {provider.enabled
+                            ? t("pages.dynamicSettings.enabled")
+                            : t("pages.dynamicSettings.disabled")}
                         </Badge>
                         <Badge
                           variant={
@@ -569,8 +578,8 @@ export function CenterSettingsEditor({
                           }
                         >
                           {provider.configured
-                            ? "Configured"
-                            : "Not configured"}
+                            ? t("pages.dynamicSettings.configured")
+                            : t("pages.dynamicSettings.notConfigured")}
                         </Badge>
                       </>
                     ) : null}
@@ -673,7 +682,7 @@ export function CenterSettingsEditor({
                         ([limitKey, limitValue]) => (
                           <div key={limitKey} className="space-y-2">
                             <Label className="text-sm font-semibold text-gray-950 dark:text-white">
-                              {humanizeKey(limitKey)}
+                              {getDynamicFieldLabel(t, limitKey)}
                             </Label>
                             {provider.editable_fields.includes("limits") ? (
                               <Input
@@ -733,14 +742,14 @@ export function CenterSettingsEditor({
           }}
           disabled={isSaving}
         >
-          Reset
+          {t("common.actions.reset")}
         </Button>
         <Button type="button" onClick={handleSave} disabled={isSaving}>
           {isSaving
-            ? "Saving..."
+            ? t("common.actions.saving")
             : isWorkspaceView
-              ? "Save workspace settings"
-              : "Save center settings"}
+              ? t("pages.dynamicSettings.saveWorkspaceSettings")
+              : t("pages.dynamicSettings.saveCenterSettings")}
         </Button>
       </div>
     </div>

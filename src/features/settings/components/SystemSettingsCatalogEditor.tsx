@@ -23,8 +23,10 @@ import {
   deepEqual,
   getDefinitionForKey,
   getSystemEditorValue,
-  humanizeKey,
   serializeSystemSettingValue,
+  translateDynamicLabel,
+  translateWithFallback,
+  type DynamicTranslateFunction,
 } from "@/features/settings/lib/dynamic-settings";
 import { useTranslation } from "@/features/localization";
 
@@ -35,8 +37,14 @@ const FETCH_PARAMS = {
   per_page: 100,
 };
 
-function groupDescription(group: string) {
-  return `Loaded from backend catalog group "${humanizeKey(group)}".`;
+function getDynamicGroupTitle(t: DynamicTranslateFunction, group: string) {
+  return translateDynamicLabel(t, "groups", group);
+}
+
+function groupDescription(t: DynamicTranslateFunction, group: string) {
+  return t("pages.dynamicSettings.groupDescriptionSystem", {
+    group: getDynamicGroupTitle(t, group),
+  });
 }
 
 export function SystemSettingsCatalogEditor() {
@@ -95,7 +103,7 @@ export function SystemSettingsCatalogEditor() {
     );
 
     if (changedKeys.length === 0) {
-      setSaveSuccess("No changes to save.");
+      setSaveSuccess(t("pages.dynamicSettings.noChangesToSave"));
       return;
     }
 
@@ -123,7 +131,7 @@ export function SystemSettingsCatalogEditor() {
             setFormError(
               getAdminResponseMessage(
                 response,
-                "Unable to save system settings.",
+                t("pages.dynamicSettings.errors.saveSystemSettings"),
               ),
             );
             return;
@@ -142,7 +150,7 @@ export function SystemSettingsCatalogEditor() {
           setFormError(
             getAdminResponseMessage(
               response,
-              "Unable to create a system setting override.",
+              t("pages.dynamicSettings.errors.createSystemSettingOverride"),
             ),
           );
           return;
@@ -150,10 +158,13 @@ export function SystemSettingsCatalogEditor() {
       }
 
       await refetch();
-      setSaveSuccess("System settings saved.");
+      setSaveSuccess(t("pages.dynamicSettings.systemSaved"));
     } catch (error) {
       setFormError(
-        getAdminApiErrorMessage(error, "Unable to save system settings."),
+        getAdminApiErrorMessage(
+          error,
+          t("pages.dynamicSettings.errors.saveSystemSettings"),
+        ),
       );
     }
   };
@@ -201,8 +212,8 @@ export function SystemSettingsCatalogEditor() {
       {groups.map(([group, keys]) => (
         <SettingsSectionCard
           key={group}
-          title={humanizeKey(group)}
-          description={groupDescription(group)}
+          title={getDynamicGroupTitle(t, group)}
+          description={groupDescription(t, group)}
         >
           <div className="grid gap-5 lg:grid-cols-2">
             {keys.map((key) => {
@@ -218,7 +229,12 @@ export function SystemSettingsCatalogEditor() {
                         : t("pages.dynamicSettings.defaultOnly")}
                     </Badge>
                     <Badge variant="secondary">
-                      {definition?.type ?? "string"}
+                      {translateWithFallback(
+                        t,
+                        `pages.dynamicSettings.types.${definition?.type ?? "string"}`,
+                        definition?.type ??
+                          t("pages.dynamicSettings.types.string"),
+                      )}
                     </Badge>
                   </div>
 
@@ -229,7 +245,9 @@ export function SystemSettingsCatalogEditor() {
                     resolvedValue={data.meta.defaults?.[key]}
                     description={
                       typeof definition?.storage === "string"
-                        ? `Storage: ${definition.storage}`
+                        ? t("pages.dynamicSettings.storageDescription", {
+                            storage: definition.storage,
+                          })
                         : null
                     }
                     onChange={(nextValue) =>
@@ -257,10 +275,12 @@ export function SystemSettingsCatalogEditor() {
           }}
           disabled={isSaving}
         >
-          Reset
+          {t("common.actions.reset")}
         </Button>
         <Button type="button" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Save system settings"}
+          {isSaving
+            ? t("common.actions.saving")
+            : t("pages.dynamicSettings.saveSystemSettings")}
         </Button>
       </div>
     </div>

@@ -19,6 +19,10 @@ export type DynamicSettingsMap = Record<string, unknown>;
 export type DynamicGroupedSettings = Record<string, DynamicSettingsMap>;
 
 export type DynamicAIEditableMap = Record<string, string[]>;
+export type DynamicTranslateFunction = (
+  _key: string,
+  _params?: Record<string, string | number>,
+) => string;
 
 export type DynamicAIProvider = {
   key?: string | null;
@@ -98,6 +102,28 @@ export function humanizeKey(key: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function translateWithFallback(
+  translate: DynamicTranslateFunction,
+  key: string,
+  fallback: string,
+  params?: Record<string, string | number>,
+): string {
+  const translated = translate(key, params);
+  return translated === key ? fallback : translated;
+}
+
+export function translateDynamicLabel(
+  translate: DynamicTranslateFunction,
+  category: "groups" | "fields",
+  key: string,
+): string {
+  return translateWithFallback(
+    translate,
+    `pages.dynamicSettings.${category}.${key}`,
+    humanizeKey(key),
+  );
 }
 
 export function formatDisplayValue(value: unknown): string {

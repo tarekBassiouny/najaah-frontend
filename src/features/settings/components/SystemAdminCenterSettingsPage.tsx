@@ -190,7 +190,9 @@ export function SystemAdminCenterSettingsPage({
               </Button>
             </Link>
             <Link href={`/centers/${centerData.id}/settings`}>
-              <Button variant="ghost">Open Workspace View</Button>
+              <Button variant="ghost">
+                {t("pages.centerSettings.managementPage.openWorkspaceView")}
+              </Button>
             </Link>
           </div>
         }

@@ -105,7 +105,7 @@ export default function CenterScopedSettingsPage({ params }: PageProps) {
     <div className="space-y-6">
       <PageHeader
         title={t("pages.centerSettings.titleFallback")}
-        description="Manage your center settings from the grouped center settings payload."
+        description={t("pages.centerSettings.workspacePage.description")}
         actions={
           userScope.isSystemAdmin ? (
             <div className="flex items-center gap-2">
@@ -115,7 +115,9 @@ export default function CenterScopedSettingsPage({ params }: PageProps) {
                 </Button>
               </Link>
               <Link href={`/manage/centers/${centerId}/settings`}>
-                <Button variant="ghost">Open Management View</Button>
+                <Button variant="ghost">
+                  {t("pages.centerSettings.workspacePage.openManagementView")}
+                </Button>
               </Link>
             </div>
           ) : undefined

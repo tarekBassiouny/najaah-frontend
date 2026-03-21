@@ -70,8 +70,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="System Settings"
-        description="Backend metadata drives the editable settings sections below. The raw registry remains available for advanced CRUD."
+        title={t("pages.settingsPage.systemTitle")}
+        description={t("pages.settingsPage.systemDescription")}
         actions={
           <Link href="/settings/ai-providers">
             <Button variant="outline">
@@ -89,12 +89,10 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold tracking-tight text-gray-950 dark:text-white">
-                Metadata-driven system controls
+                {t("pages.settingsPage.metadataTitle")}
               </h2>
               <p className="max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">
-                The frontend now renders system setting groups from the backend
-                catalog and defaults. Use the advanced registry only when you
-                need raw row editing or visibility control.
+                {t("pages.settingsPage.metadataDescription")}
               </p>
             </div>
           </div>
@@ -102,28 +100,26 @@ export default function SettingsPage() {
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                Dynamic groups
+                {t("pages.settingsPage.cards.dynamicGroups.title")}
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Sections and setting keys come from `meta.catalog_groups`.
+                {t("pages.settingsPage.cards.dynamicGroups.description")}
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                Default fallback
+                {t("pages.settingsPage.cards.defaultFallback.title")}
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Missing stored rows fall back to backend defaults without hiding
-                the setting.
+                {t("pages.settingsPage.cards.defaultFallback.description")}
               </p>
             </div>
             <div className="rounded-2xl border border-gray-200/80 bg-white/85 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-400">
-                Advanced registry
+                {t("pages.settingsPage.cards.advancedRegistry.title")}
               </p>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                Raw CRUD is still available below for JSON payloads and
-                visibility flags.
+                {t("pages.settingsPage.cards.advancedRegistry.description")}
               </p>
             </div>
           </div>
@@ -142,11 +138,10 @@ export default function SettingsPage() {
       <div className="space-y-3">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold tracking-tight text-gray-950 dark:text-white">
-            Advanced Registry
+            {t("pages.settingsPage.advancedRegistryTitle")}
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Use the raw registry when you need JSON-level control over stored
-            rows.
+            {t("pages.settingsPage.advancedRegistryDescription")}
           </p>
         </div>
 

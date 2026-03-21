@@ -11,6 +11,7 @@ import {
   inferFieldType,
   type DynamicSettingDefinition,
 } from "@/features/settings/lib/dynamic-settings";
+import { useTranslation } from "@/features/localization";
 import { cn } from "@/lib/utils";
 
 type DynamicSettingFieldProps = {
@@ -59,6 +60,7 @@ export function DynamicSettingField({
   depth = 0,
   onChange,
 }: DynamicSettingFieldProps) {
+  const { t } = useTranslation();
   const type = inferFieldType(value, definition);
   const label = humanizeKey(fieldKey);
   const objectKeys = getObjectKeys(value, definition);
@@ -135,7 +137,8 @@ export function DynamicSettingField({
         {resolvedValue !== undefined &&
         formatDisplayValue(resolvedValue) !== formatDisplayValue(value) ? (
           <p className="text-xs leading-5 text-gray-500 dark:text-gray-400">
-            Effective value: {formatDisplayValue(resolvedValue)}
+            {t("pages.dynamicSettings.effectiveValueLabel")}{" "}
+            {formatDisplayValue(resolvedValue)}
           </p>
         ) : null}
       </div>

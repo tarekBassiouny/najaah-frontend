@@ -387,6 +387,8 @@
     },
     "settingsPage": {
       "title": "Settings",
+      "systemTitle": "System Settings",
+      "systemDescription": "Backend metadata drives the editable settings sections below. The raw registry remains available for advanced CRUD.",
       "descriptionPlatformLevel": "Global LMS configuration is managed at platform level.",
       "platformScopeRequiredTitle": "Platform Scope Required",
       "platformScopeRequiredDesc": "System settings are only editable in the platform-admin workspace.",
@@ -394,8 +396,12 @@
       "registryTitle": "System Registry",
       "registryDescription": "Control the global defaults that power fallback behavior across every center.",
       "platformScopeBadge": "Platform Scope",
+      "metadataTitle": "Metadata-driven system controls",
+      "metadataDescription": "The frontend now renders system setting groups from the backend catalog and defaults. Use the advanced registry only when you need raw row editing or visibility control.",
       "heroTitle": "One registry for defaults, fallbacks, and platform-wide policy.",
       "heroDescription": "These values are consumed by center policy resolution. Changes to keys like timezone or support_email affect every center that inherits the global default.",
+      "advancedRegistryTitle": "Advanced Registry",
+      "advancedRegistryDescription": "Use the raw registry when you need JSON-level control over stored rows.",
       "cards": {
         "systemKeys": {
           "title": "System Keys",
@@ -408,6 +414,18 @@
         "visibility": {
           "title": "Visibility",
           "description": "Mark public values intentionally. Visibility is now surfaced in the registry itself."
+        },
+        "dynamicGroups": {
+          "title": "Dynamic groups",
+          "description": "Sections and setting keys come from meta.catalog_groups."
+        },
+        "defaultFallback": {
+          "title": "Default fallback",
+          "description": "Missing stored rows fall back to backend defaults without hiding the setting."
+        },
+        "advancedRegistry": {
+          "title": "Advanced registry",
+          "description": "Raw CRUD is still available below for JSON payloads and visibility flags."
         }
       },
       "registryUpdated": "Registry updated"
@@ -1631,6 +1649,13 @@
       "tier": "Tier",
       "centerContextRequired": "Center context is required to manage settings.",
       "workspaceDescription": "Manage your center's branding and operational preferences",
+      "workspacePage": {
+        "description": "Manage your center settings from the grouped center settings payload.",
+        "openManagementView": "Open Management View"
+      },
+      "managementPage": {
+        "openWorkspaceView": "Open Workspace View"
+      },
       "idLabel": "ID",
       "badges": {
         "status": {
@@ -1857,6 +1882,29 @@
           }
         }
       }
+    },
+    "dynamicSettings": {
+      "noticeTitle": "Notice",
+      "saveFailedTitle": "Save failed",
+      "centerUnavailableTitle": "Center settings unavailable",
+      "centerUnavailableDescription": "The grouped center settings payload could not be loaded.",
+      "centerUpdatedTitle": "Center settings updated",
+      "featuresTitle": "Features",
+      "featuresDescription": "Per-center feature flags from the grouped center settings payload.",
+      "aiTitle": "AI",
+      "aiManagementDescription": "Provider policy is driven by the grouped center settings payload.",
+      "aiWorkspaceDescription": "Choose the default AI model available to your center where platform policy allows it.",
+      "managedByPlatform": "Managed by platform",
+      "allowedModels": "Allowed Models",
+      "defaultModel": "Default Model",
+      "selectModel": "Select a model",
+      "effectiveValueLabel": "Effective value:",
+      "systemUnavailableTitle": "System settings unavailable",
+      "systemUnavailableDescription": "The backend catalog could not be loaded for dynamic system settings.",
+      "systemUpdatedTitle": "System settings updated",
+      "storedOverride": "Stored override",
+      "defaultOnly": "Default only",
+      "registryControlDescription": "Enter the raw JSON object stored for this setting row. The metadata-driven page handles normal editing; this dialog is for exact registry control."
     },
     "centerAISettings": {
       "title": "AI Provider Overrides",

@@ -26,6 +26,7 @@ import {
   humanizeKey,
   serializeSystemSettingValue,
 } from "@/features/settings/lib/dynamic-settings";
+import { useTranslation } from "@/features/localization";
 
 type DraftValues = Record<string, unknown>;
 
@@ -39,6 +40,7 @@ function groupDescription(group: string) {
 }
 
 export function SystemSettingsCatalogEditor() {
+  const { t } = useTranslation();
   const { data, isLoading, isError, refetch } = useSystemSettings(FETCH_PARAMS);
   const { mutateAsync: createSystemSetting, isPending: isCreating } =
     useCreateSystemSetting();
@@ -168,9 +170,11 @@ export function SystemSettingsCatalogEditor() {
   if (isError || !data?.meta.catalog) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>System settings unavailable</AlertTitle>
+        <AlertTitle>
+          {t("pages.dynamicSettings.systemUnavailableTitle")}
+        </AlertTitle>
         <AlertDescription>
-          The backend catalog could not be loaded for dynamic system settings.
+          {t("pages.dynamicSettings.systemUnavailableDescription")}
         </AlertDescription>
       </Alert>
     );
@@ -180,14 +184,16 @@ export function SystemSettingsCatalogEditor() {
     <div className="space-y-6">
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Save failed</AlertTitle>
+          <AlertTitle>{t("pages.dynamicSettings.saveFailedTitle")}</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       {saveSuccess ? (
         <Alert>
-          <AlertTitle>System settings updated</AlertTitle>
+          <AlertTitle>
+            {t("pages.dynamicSettings.systemUpdatedTitle")}
+          </AlertTitle>
           <AlertDescription>{saveSuccess}</AlertDescription>
         </Alert>
       ) : null}
@@ -207,7 +213,9 @@ export function SystemSettingsCatalogEditor() {
                 <div key={key} className="space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline">
-                      {currentSetting ? "Stored override" : "Default only"}
+                      {currentSetting
+                        ? t("pages.dynamicSettings.storedOverride")
+                        : t("pages.dynamicSettings.defaultOnly")}
                     </Badge>
                     <Badge variant="secondary">
                       {definition?.type ?? "string"}

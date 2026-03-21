@@ -14,6 +14,7 @@ import {
 } from "@/features/centers/hooks/use-center-settings";
 import { DynamicSettingField } from "@/features/settings/components/DynamicSettingField";
 import { SettingsSectionCard } from "@/features/settings/components/SettingsSectionCard";
+import { useTranslation } from "@/features/localization";
 import {
   asRecord,
   asStringArray,
@@ -184,6 +185,7 @@ export function CenterSettingsEditor({
   centerId,
   mode = "workspace",
 }: CenterSettingsEditorProps) {
+  const { t } = useTranslation();
   const { data, isLoading, isError, refetch } = useCenterSettings(centerId);
   const { mutateAsync: updateCenterSettings, isPending: isSaving } =
     useUpdateCenterSettings();
@@ -365,9 +367,11 @@ export function CenterSettingsEditor({
   if (isError || !data) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Center settings unavailable</AlertTitle>
+        <AlertTitle>
+          {t("pages.dynamicSettings.centerUnavailableTitle")}
+        </AlertTitle>
         <AlertDescription>
-          The grouped center settings payload could not be loaded.
+          {t("pages.dynamicSettings.centerUnavailableDescription")}
         </AlertDescription>
       </Alert>
     );
@@ -377,21 +381,25 @@ export function CenterSettingsEditor({
     <div className="space-y-6">
       {data.summaries?.map((summary, index) => (
         <Alert key={`${summary.title}-${index}`}>
-          <AlertTitle>{summary.title ?? "Notice"}</AlertTitle>
+          <AlertTitle>
+            {summary.title ?? t("pages.dynamicSettings.noticeTitle")}
+          </AlertTitle>
           <AlertDescription>{summary.message ?? ""}</AlertDescription>
         </Alert>
       ))}
 
       {formError ? (
         <Alert variant="destructive">
-          <AlertTitle>Save failed</AlertTitle>
+          <AlertTitle>{t("pages.dynamicSettings.saveFailedTitle")}</AlertTitle>
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       ) : null}
 
       {saveSuccess ? (
         <Alert>
-          <AlertTitle>Center settings updated</AlertTitle>
+          <AlertTitle>
+            {t("pages.dynamicSettings.centerUpdatedTitle")}
+          </AlertTitle>
           <AlertDescription>{saveSuccess}</AlertDescription>
         </Alert>
       ) : null}
@@ -486,8 +494,8 @@ export function CenterSettingsEditor({
 
       {isManagementView && Object.keys(draftFeatures).length > 0 ? (
         <SettingsSectionCard
-          title="Features"
-          description="Per-center feature flags from the grouped center settings payload."
+          title={t("pages.dynamicSettings.featuresTitle")}
+          description={t("pages.dynamicSettings.featuresDescription")}
         >
           <div className="grid gap-5 lg:grid-cols-2">
             {Object.keys(draftFeatures)
@@ -515,11 +523,11 @@ export function CenterSettingsEditor({
 
       {(data.sections?.ai?.providers?.length ?? 0) > 0 ? (
         <SettingsSectionCard
-          title="AI"
+          title={t("pages.dynamicSettings.aiTitle")}
           description={
             isManagementView
-              ? "Provider policy is driven by the grouped center settings payload."
-              : "Choose the default AI model available to your center where platform policy allows it."
+              ? t("pages.dynamicSettings.aiManagementDescription")
+              : t("pages.dynamicSettings.aiWorkspaceDescription")
           }
         >
           <div className="space-y-5">
@@ -568,7 +576,9 @@ export function CenterSettingsEditor({
                     ) : null}
 
                     {!isManagementView && provider.managed_by ? (
-                      <Badge variant="outline">Managed by platform</Badge>
+                      <Badge variant="outline">
+                        {t("pages.dynamicSettings.managedByPlatform")}
+                      </Badge>
                     ) : null}
                   </div>
 
@@ -594,7 +604,7 @@ export function CenterSettingsEditor({
                     provider.editable_fields.includes("allowed_models") ? (
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold text-gray-950 dark:text-white">
-                          Allowed Models
+                          {t("pages.dynamicSettings.allowedModels")}
                         </Label>
                         <SearchableMultiSelect
                           values={provider.allowed_models}
@@ -627,7 +637,7 @@ export function CenterSettingsEditor({
                     ) ? (
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold text-gray-950 dark:text-white">
-                          Default Model
+                          {t("pages.dynamicSettings.defaultModel")}
                         </Label>
                         <select
                           value={provider.default_model ?? ""}
@@ -642,7 +652,9 @@ export function CenterSettingsEditor({
                           }
                           className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-950/40"
                         >
-                          <option value="">Select a model</option>
+                          <option value="">
+                            {t("pages.dynamicSettings.selectModel")}
+                          </option>
                           {defaultModelOptions.map((model) => (
                             <option key={model} value={model}>
                               {model}

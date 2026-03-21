@@ -284,9 +284,7 @@ export function SystemSettingFormDialog({
               )}
             </p>
             <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
-              Enter the raw JSON object stored for this setting row. The
-              metadata-driven page handles normal editing; this dialog is for
-              exact registry control.
+              {t("pages.dynamicSettings.registryControlDescription")}
             </p>
           </div>
 

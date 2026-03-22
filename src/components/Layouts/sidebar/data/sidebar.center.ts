@@ -162,8 +162,8 @@ export const CENTER_SIDEBAR: SidebarSection[] = [
         items: [],
       },
       {
-        title: "Settings",
-        titleKey: "sidebar.items.settings",
+        title: "Center Settings",
+        titleKey: "sidebar.items.centerSettings",
         capability: "view_settings",
         icon: iconFromTitle("Settings"),
         url: "/settings",

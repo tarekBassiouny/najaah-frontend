@@ -4,8 +4,10 @@ import {
   useQueryClient,
   type UseQueryOptions,
 } from "@tanstack/react-query";
-import type { PaginatedResponse } from "@/types/pagination";
-import type { SystemSetting } from "@/features/system-settings/types/system-setting";
+import type {
+  SystemSetting,
+  SystemSettingsListResponse,
+} from "@/features/system-settings/types/system-setting";
 import {
   createSystemSetting,
   deleteSystemSetting,
@@ -22,7 +24,7 @@ import {
 } from "@/features/system-settings/services/system-settings.service";
 
 type UseSystemSettingsOptions = Omit<
-  UseQueryOptions<PaginatedResponse<SystemSetting>>,
+  UseQueryOptions<SystemSettingsListResponse>,
   "queryKey" | "queryFn"
 >;
 

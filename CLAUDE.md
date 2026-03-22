@@ -100,6 +100,16 @@ export function useItems(params, options?) {
 }
 ```
 
+## Cross-Repo Feature Workflow
+
+For features spanning backend (`/Users/tarekbassiouny/projects/najaah-backend`) and frontend:
+
+- **Backend contracts skill**: `.claude/skills/lms-backend-contracts/SKILL.md`
+- **Progress trackers**: Read from backend repo at `docs/feature/{feature-slug}-progress.md`
+- **API contracts**: Read from backend repo at `docs/contracts/{feature-slug}/{contract-name}.md`
+
+Frontend builds against backend contract docs using MSW mocks before the backend PR merges. See the orchestrator agent and backend-contracts skill for the full workflow.
+
 ## Requirements
 
 - Node.js >=20 <21

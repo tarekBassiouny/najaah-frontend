@@ -148,6 +148,7 @@
       "videoCodeBatches": "دفعات أكواد الفيديو",
       "pdfs": "ملفات PDF",
       "landingPage": "الصفحة الرئيسية",
+      "centerSettings": "إعدادات المركز",
       "settings": "الإعدادات",
       "auditLog": "سجل التدقيق",
       "auditLogs": "سجلات التدقيق"
@@ -386,6 +387,8 @@
     },
     "settingsPage": {
       "title": "الإعدادات",
+      "systemTitle": "إعدادات النظام",
+      "systemDescription": "تتحكم بيانات الخلفية الوصفية في أقسام الإعدادات القابلة للتعديل أدناه. وما زال السجل الخام متاحًا لعمليات CRUD المتقدمة.",
       "descriptionPlatformLevel": "تتم إدارة إعدادات منصة التعلم العامة من مساحة إدارة المنصة.",
       "platformScopeRequiredTitle": "يتطلب نطاق المنصة",
       "platformScopeRequiredDesc": "لا يمكن تعديل إعدادات النظام إلا من مساحة إدارة المنصة.",
@@ -393,8 +396,12 @@
       "registryTitle": "سجل النظام",
       "registryDescription": "تحكم في الإعدادات الافتراضية العامة التي تحدد سلوك القيم البديلة عبر كل المراكز.",
       "platformScopeBadge": "نطاق المنصة",
+      "metadataTitle": "عناصر تحكم النظام المعتمدة على البيانات الوصفية",
+      "metadataDescription": "تعرض الواجهة الآن مجموعات إعدادات النظام من فهرس الخلفية والقيم الافتراضية. استخدم السجل المتقدم فقط عند الحاجة لتحرير الصفوف الخام أو التحكم في الظهور.",
       "heroTitle": "سجل واحد للإعدادات الافتراضية والقيم البديلة وسياسات المنصة.",
       "heroDescription": "تُستخدم هذه القيم في حل سياسات المراكز. أي تغيير في مفاتيح مثل timezone أو support_email يؤثر على كل مركز يرث القيم الافتراضية العامة.",
+      "advancedRegistryTitle": "السجل المتقدم",
+      "advancedRegistryDescription": "استخدم السجل الخام عندما تحتاج إلى تحكم على مستوى JSON في الصفوف المخزنة.",
       "cards": {
         "systemKeys": {
           "title": "مفاتيح النظام",
@@ -407,6 +414,18 @@
         "visibility": {
           "title": "إمكانية الظهور",
           "description": "حدد القيم العامة بوضوح. أصبحت حالة الظهور معروضة مباشرة داخل السجل."
+        },
+        "dynamicGroups": {
+          "title": "مجموعات ديناميكية",
+          "description": "تأتي الأقسام ومفاتيح الإعدادات من meta.catalog_groups."
+        },
+        "defaultFallback": {
+          "title": "الرجوع إلى الافتراضي",
+          "description": "تعود الصفوف غير المخزنة إلى القيم الافتراضية من الخلفية دون إخفاء الإعداد."
+        },
+        "advancedRegistry": {
+          "title": "السجل المتقدم",
+          "description": "ما زالت عمليات CRUD الخام متاحة أدناه لحمولات JSON وأعلام الظهور."
         }
       },
       "registryUpdated": "تم تحديث السجل"
@@ -1630,6 +1649,13 @@
       "tier": "المستوى",
       "centerContextRequired": "سياق المركز مطلوب لإدارة الإعدادات.",
       "workspaceDescription": "إدارة العلامة التجارية للمركز وتفضيلات التشغيل",
+      "workspacePage": {
+        "description": "أدر إعدادات مركزك من حمولة إعدادات المركز المجمعة.",
+        "openManagementView": "فتح عرض الإدارة"
+      },
+      "managementPage": {
+        "openWorkspaceView": "فتح عرض مساحة العمل"
+      },
       "idLabel": "المعرف",
       "badges": {
         "status": {
@@ -1855,6 +1881,171 @@
             "retry": "إعادة التهيئة"
           }
         }
+      }
+    },
+    "dynamicSettings": {
+      "noticeTitle": "ملاحظة",
+      "saveFailedTitle": "فشل الحفظ",
+      "centerUnavailableTitle": "إعدادات المركز غير متاحة",
+      "centerUnavailableDescription": "تعذر تحميل حمولة إعدادات المركز المجمعة.",
+      "centerUpdatedTitle": "تم تحديث إعدادات المركز",
+      "centerSaved": "تم حفظ إعدادات المركز.",
+      "featuresTitle": "الميزات",
+      "featuresDescription": "أعلام الميزات الخاصة بكل مركز من حمولة إعدادات المركز المجمعة.",
+      "aiTitle": "الذكاء الاصطناعي",
+      "aiManagementDescription": "تُدار سياسة المزوّد من خلال حمولة إعدادات المركز المجمعة.",
+      "aiWorkspaceDescription": "اختر نموذج الذكاء الاصطناعي الافتراضي المتاح لمركزك حيث تسمح سياسة المنصة بذلك.",
+      "groupDescriptionManaged": "يستند هذا القسم إلى حمولة إعدادات المركز المجمعة لقسم {group}.",
+      "groupDescriptionSystem": "تم تحميل هذا القسم من مجموعة فهرس الخلفية \"{group}\".",
+      "systemMaxHint": "الحد الأقصى من النظام: {value}",
+      "featureDisabledHint": "تم تعطيل علم الميزة \"{feature}\" لهذا المركز.",
+      "disabledBySystemAdministrator": "تم تعطيله بواسطة مسؤول النظام.",
+      "storageDescription": "مسار التخزين: {storage}",
+      "enabled": "مفعّل",
+      "disabled": "معطّل",
+      "configured": "مهيأ",
+      "notConfigured": "غير مهيأ",
+      "notSet": "غير مضبوط",
+      "noChangesToSave": "لا توجد تغييرات للحفظ.",
+      "managedByPlatform": "يُدار بواسطة المنصة",
+      "allowedModels": "النماذج المسموح بها",
+      "defaultModel": "النموذج الافتراضي",
+      "selectModel": "اختر نموذجًا",
+      "effectiveValueLabel": "القيمة الفعلية:",
+      "systemUnavailableTitle": "إعدادات النظام غير متاحة",
+      "systemUnavailableDescription": "تعذر تحميل فهرس الخلفية للإعدادات الديناميكية للنظام.",
+      "systemUpdatedTitle": "تم تحديث إعدادات النظام",
+      "systemSaved": "تم حفظ إعدادات النظام.",
+      "saveWorkspaceSettings": "حفظ إعدادات مساحة المركز",
+      "saveCenterSettings": "حفظ إعدادات المركز",
+      "saveSystemSettings": "حفظ إعدادات النظام",
+      "storedOverride": "تجاوز مخزن",
+      "defaultOnly": "القيمة الافتراضية فقط",
+      "registryControlDescription": "أدخل كائن JSON الخام المخزن لهذا الصف من الإعدادات. تتولى الصفحة المعتمدة على البيانات الوصفية التحرير العادي، بينما هذا الحوار مخصص للتحكم الدقيق في السجل.",
+      "errors": {
+        "saveCenterSettings": "تعذر حفظ إعدادات المركز.",
+        "saveSystemSettings": "تعذر حفظ إعدادات النظام.",
+        "createSystemSettingOverride": "تعذر إنشاء تجاوز لإعداد نظام."
+      },
+      "types": {
+        "string": "نص",
+        "integer": "عدد صحيح",
+        "number": "رقم",
+        "boolean": "منطقي",
+        "object": "كائن",
+        "array": "مصفوفة"
+      },
+      "groups": {
+        "general": "عام",
+        "security": "الأمان",
+        "limits": "الحدود",
+        "overrides": "التجاوزات",
+        "infrastructure": "البنية التحتية",
+        "branding": "الهوية البصرية",
+        "student_profile": "ملف الطالب",
+        "playback": "المشاهدة",
+        "devices": "الأجهزة",
+        "downloads": "التنزيلات",
+        "guest": "وصول الضيوف",
+        "video_access": "وصول الفيديو"
+      },
+      "groupDescriptions": {
+        "branding": "حدّث هوية مركزك البصرية.",
+        "student_profile": "اضبط حقول ملف الطالب التي يستخدمها مركزك.",
+        "playback": "عدّل إعدادات المشاهدة والوصول المسموح بها لمركزك.",
+        "devices": "أدر حدود الأجهزة المتاحة لمركزك.",
+        "downloads": "أدر إعدادات التنزيل المتاحة لمركزك.",
+        "guest": "أدر خيارات وصول الضيوف المسموح بها لمركزك.",
+        "video_access": "أدر خيارات وصول الفيديو المتاحة لمركزك."
+      },
+      "fields": {
+        "site_name": "اسم المنصة",
+        "support_email": "بريد الدعم",
+        "timezone": "المنطقة الزمنية",
+        "require_device_approval": "طلب موافقة الجهاز",
+        "attendance_required": "الحضور مطلوب",
+        "whatsapp_bulk_settings": "إعدادات واتساب الجماعية",
+        "max_view_limit": "الحد الأقصى للمشاهدات",
+        "max_device_limit": "الحد الأقصى للأجهزة",
+        "force_disable_extra_view_requests": "فرض تعطيل طلبات المشاهدات الإضافية",
+        "force_disable_pdf_download": "فرض تعطيل تنزيل PDF",
+        "force_disable_guest_browsing": "فرض تعطيل تصفح الضيوف",
+        "default_view_limit": "حد المشاهدة الافتراضي",
+        "allow_extra_view_requests": "السماح بطلبات مشاهدات إضافية",
+        "requires_video_approval": "يتطلب موافقة على الفيديو",
+        "video_code_expiry_days": "أيام انتهاء رمز الفيديو",
+        "pdf_download_permission": "صلاحية تنزيل PDF",
+        "device_limit": "حد الأجهزة",
+        "allow_guest_browsing": "السماح بتصفح الضيوف",
+        "education_profile": "الملف التعليمي",
+        "branding": "الهوية البصرية",
+        "enable_grade": "تفعيل الصف الدراسي",
+        "enable_school": "تفعيل المدرسة",
+        "enable_college": "تفعيل الكلية",
+        "enable_parent_phone": "تفعيل هاتف ولي الأمر",
+        "require_grade": "إلزام الصف الدراسي",
+        "require_school": "إلزام المدرسة",
+        "require_college": "إلزام الكلية",
+        "require_parent_phone": "إلزام هاتف ولي الأمر",
+        "logo_url": "رابط الشعار",
+        "primary_color": "اللون الأساسي",
+        "ai_content": "محتوى الذكاء الاصطناعي",
+        "codes_access": "الوصول عبر الأكواد",
+        "whatsapp_bulk": "واتساب الجماعي",
+        "guest_browsing": "تصفح الضيوف",
+        "pdf_downloads": "تنزيلات PDF",
+        "is_enabled": "مفعّل",
+        "allowed_models": "النماذج المسموح بها",
+        "default_model": "النموذج الافتراضي",
+        "limits": "الحدود",
+        "delay_seconds": "ثواني التأخير",
+        "batch_size": "حجم الدفعة",
+        "batch_pause_seconds": "ثواني التوقف بين الدفعات",
+        "max_retries": "الحد الأقصى لإعادة المحاولة",
+        "max_failures_before_pause": "الحد الأقصى للفشل قبل التوقف",
+        "daily_job_limit": "الحد اليومي للوظائف"
+      }
+    },
+    "settingsRegistryDialog": {
+      "titleEdit": "تعديل إعداد النظام",
+      "titleCreate": "إنشاء إعداد نظام",
+      "descriptionEdit": "حدّث قيمة الإعداد ودرجة ظهوره. لا يمكن تغيير المفتاح بعد الإنشاء.",
+      "descriptionCreate": "أنشئ مفتاح إعداد عام جديد مع قيمة JSON ودرجة الظهور.",
+      "errorTitle": "تعذر حفظ الإعداد",
+      "payloadNotesTitle": "ملاحظات الحمولة",
+      "fields": {
+        "key": {
+          "label": "المفتاح",
+          "placeholder": "student.default_country_code"
+        },
+        "visibility": {
+          "label": "الظهور",
+          "placeholder": "اختر مستوى الظهور",
+          "private": "خاص",
+          "public": "عام"
+        },
+        "value": {
+          "label": "القيمة (كائن JSON أو null)",
+          "placeholder": "{\"code\":\"+20\"}"
+        }
+      },
+      "validation": {
+        "keyRequired": "المفتاح مطلوب.",
+        "keyInvalid": "يمكن أن يحتوي المفتاح فقط على الأحرف والأرقام والنقطة (.) والشرطة السفلية (_) والشرطة (-).",
+        "keyExists": "يوجد بالفعل إعداد عام بهذا المفتاح.",
+        "keyExistsHint": "هذا المفتاح موجود بالفعل في سجل النظام. عدّل السجل الحالي بدلاً من إنشاء نسخة مكررة.",
+        "valueMustBeObject": "يجب أن تكون القيمة كائن JSON أو null.",
+        "valueMustBeJson": "يجب أن تكون القيمة JSON صالحاً."
+      },
+      "errors": {
+        "saveFailed": "تعذر حفظ الإعداد. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "updated": "تم تحديث الإعداد بنجاح.",
+        "created": "تم إنشاء الإعداد بنجاح."
+      },
+      "actions": {
+        "create": "إنشاء الإعداد"
       }
     },
     "centerAISettings": {
@@ -2680,7 +2871,7 @@
         },
         "actions": {
           "manage": "إدارة",
-          "settings": "الإعدادات",
+          "settings": "إدارة إعدادات المركز",
           "changeStatus": "تغيير الحالة",
           "retryOnboarding": "إعادة التهيئة",
           "restore": "استعادة",

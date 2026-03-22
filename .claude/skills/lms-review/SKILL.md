@@ -1,3 +1,8 @@
+---
+name: lms-review
+description: Cross-stack review skill for the Najaah LMS repos. Use for frontend pattern compliance, route and tenant safety, API contract alignment, and PR-readiness checks.
+---
+
 # LMS Admin Panel - Code Reviewer
 
 ## Purpose
@@ -10,6 +15,8 @@ Cross-stack code review knowledge base for the LMS ecosystem. This skill provide
 - Security review
 - Performance review
 - Pre-merge validation
+
+When repo-specific guidance in this file conflicts with a generic example, follow the repo-specific guidance.
 
 ---
 
@@ -193,9 +200,17 @@ const validate = () => {
 
 #### Required Checks
 - [ ] Protected routes use AdminRouteGuard
-- [ ] ROUTE_CAPABILITIES updated for new routes
+- [ ] Route capability rules come from `src/components/Layouts/sidebar/data/index.ts`
 - [ ] Capability checks before sensitive actions
+- [ ] Center-scoped routes and fallback redirects still behave correctly
 - [ ] Proper redirects on unauthorized access
+
+### Repo-Specific Frontend Checks
+- [ ] Dashboard pages use `PageHeader` and follow `docs/STYLE_GUIDE.md`
+- [ ] Tenant-aware UI uses `useTenant` from `@/app/tenant-provider`
+- [ ] Service mutations reuse `@/lib/admin-response` helpers where appropriate
+- [ ] Query keys include scope context when center-specific data can vary
+- [ ] Sidebar config remains the source of truth for navigable protected routes
 
 ---
 
@@ -567,4 +582,4 @@ improved code
 ## Related Documentation
 - Frontend Patterns: `/.claude/skills/lms-frontend/SKILL.md`
 - QA Standards: `/.claude/skills/lms-qa/SKILL.md`
-- Backend Patterns: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/najaah/SKILL.md`
+- Backend Patterns: `/Users/tarekbassiouny/projects/najaah-backend/.claude/skills/najaah/SKILL.md`

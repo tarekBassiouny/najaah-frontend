@@ -51,6 +51,24 @@ describe("getRouteCapabilities", () => {
     ).toEqual(["manage_video_access"]);
   });
 
+  it("keeps center-admin settings mapped without treating settings as a center id", () => {
+    expect(getRouteCapabilities("/centers/settings", false)).toEqual([
+      "view_settings",
+    ]);
+  });
+
+  it("maps center-scoped settings routes to view_settings", () => {
+    expect(getRouteCapabilities("/centers/3/settings", false)).toEqual([
+      "view_settings",
+    ]);
+  });
+
+  it("maps managed center settings routes to view_settings", () => {
+    expect(getRouteCapabilities("/manage/centers/3/settings", true)).toEqual([
+      "view_settings",
+    ]);
+  });
+
   it("returns null for unknown routes", () => {
     expect(getRouteCapabilities("/unknown/path", false)).toBeNull();
   });

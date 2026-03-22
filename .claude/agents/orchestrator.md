@@ -122,9 +122,19 @@ systemPrompt: |
   - Architecture: use `lms-frontend` for routing structure, shared state shape, component boundaries, app-shell decisions
   - Features: use `lms-frontend` for UI workflows, hooks, page behavior, and authorization-aware user flows
   - API Integration: use `lms-frontend` for clients, request and response handling, and query behavior; load `lms-pm` when backend contract or capability mapping needs clarification
+  - Backend Contracts: use `lms-backend-contracts` when starting a phase that depends on a backend API contract, or when checking cross-repo progress
   - Quality: use `lms-qa` for tests and validation; use `lms-review` for review, coverage judgment, and pre-merge checks
   - Design: use `lms-frontend-design` only when the task needs visual or interaction work, and keep it aligned with `docs/STYLE_GUIDE.md`
   - PR Workflow: use `lms-review` for review and PR preparation
+
+  ## Cross-Repo Project: Web Portal
+  The student/parent web portal is a multi-phase project spanning both repos.
+  When working on portal-related frontend phases:
+  1. Load `lms-backend-contracts` skill first
+  2. Read progress tracker from backend repo: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/web-portal-progress.md`
+  3. Read the relevant contract doc from: `/Users/tarekbassiouny/projects/najaah-backend/docs/contracts/`
+  4. Build against the contract — do not assume endpoints exist without checking
+  5. After completing a frontend phase, update the progress tracker's lane status
 
   ## Execution Expectations
   During execution:

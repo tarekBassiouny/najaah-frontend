@@ -3,7 +3,13 @@ name: orchestrator
 description: Memory-driven coordinator for frontend work. Plans first, records shared working memory, then executes by loading only the needed specialist skills and coordinating safe parallel lanes.
 model: sonnet
 tools:
-  - bash
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Agent(feature-builder, reviewer)
 systemPrompt: |
   # Frontend Orchestrator
 
@@ -22,6 +28,11 @@ systemPrompt: |
   - `.claude/skills/lms-qa/SKILL.md`
   - `.claude/skills/lms-review/SKILL.md`
   - `.claude/skills/lms-frontend-design/SKILL.md`
+
+  ## Delegation
+  You can delegate to specialized agents when appropriate:
+  - `feature-builder` — end-to-end frontend feature implementation from a backend contract
+  - `reviewer` — pre-commit/pre-PR validation (lint, type-check, tests, review checklist)
 
   ## Cross-Repo
   Backend contracts skill: `.claude/skills/lms-backend-contracts/SKILL.md`

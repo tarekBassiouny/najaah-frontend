@@ -26,11 +26,13 @@ Follow this sequence every time:
 2. Build working memory
 3. Plan
 4. Approval
-5. Execute by phase or parallel lane
-6. Verify
-7. Report
+5. Phase review gate
+6. Execute by phase or parallel lane
+7. Verify
+8. Report
 
 Do not implement before approval unless the user explicitly asked for immediate execution without a plan.
+Do not start a new phase until its phase review gate is completed.
 
 ## Discovery Checklist
 - Check changed files and current repo state
@@ -43,103 +45,33 @@ Do not implement before approval unless the user explicitly asked for immediate 
 - Note open risks, assumptions, and missing requirements
 
 ## Working Memory Protocol
-Create and keep a compact task memory with these sections:
-
-```text
-OBJECTIVE
-- requested outcome
-
-SCOPE
-- platform | center | shared | mixed
-
-INVARIANTS
-- auth
-- tenant scope
-- localization
-- responsive behavior
-- contract compatibility
-- design-system consistency
-
-AFFECTED AREAS
-- routes/layouts
-- components
-- hooks/state
-- services/API integration
-- docs
-- tests
-
-OWNERSHIP
-- lane or specialist -> owned files/modules
-
-DEPENDENCIES
-- what must finish before another lane can proceed
-
-DECISIONS
-- concrete choices that are now settled
-
-VERIFICATION LEDGER
-- tests/checks run
-- checks still pending
-
-OPEN RISKS
-- unresolved questions
-```
-
-Do not let specialists drift from this memory. Update it whenever component contracts, routing, API usage, or test scope changes.
+Create and keep a compact task memory. For the template and section definitions, see `references/shared-memory.md`.
 
 ## Plan Template
-Use a short phase-based plan:
+Use a short phase-based plan. For the template, see `references/execution-patterns.md`.
 
-```text
-OBJECTIVE
-- one sentence on the requested outcome
+## Phase Review Gate
+Before executing any approved phase, complete a short review gate and write it into the tracker or working notes.
 
-WORKING MEMORY
-- scope
-- invariants
-- ownership
-- key dependencies
+Required checks:
+- re-read the phase plan
+- inspect nearby implementation and affected files
+- record contract impact
+- record any phase-local adjustments discovered during code review
+- define the verification plan
+- receive explicit approval to implement that phase
 
-PHASES
-- Architecture: routing, component boundaries, shared state, app-shell decisions
-- Features: pages, components, hooks, forms, guards, user flows
-- API Integration: services, request/response handling, query behavior, capability alignment
-- Quality: unit/integration/e2e tests, lint, type-check, review pass
-- Design: style-guide alignment, responsive refinements, interaction polish
-- Documentation: skill docs, feature notes, local references
+Status rule:
+- `pending`: phase not reviewed yet
+- `reviewed`: review complete, not yet coding
+- `in_progress`: allowed only after review complete and approval explicit
 
-RISKS
-- auth
-- tenant scope
-- contract compatibility
-- localization
-- responsive behavior
-- design-system consistency
-
-VERIFICATION
-- tests or checks you will run
-```
+Git workflow rule:
+- once a phase is approved for implementation, prefer executing it from a dedicated git worktree on that phase branch
+- keep the main checkout available for planning, tracker reads, and reviews
 
 ## Parallel Execution Rules
-Parallel work is allowed only when it reduces latency without creating contract drift.
-
-Use parallel lanes for:
-- discovery across nearby routes, components, hooks, services, and tests
-- feature implementation plus quality work after component and API contracts are stable
-- documentation or design adjustments after behavior and contracts are frozen
-
-Do not parallelize when:
-- two lanes need to edit the same file set
-- shared component contracts or layout primitives are still changing
-- route guards, tenant scope, or auth assumptions are unsettled
-- API response assumptions or cache keys are still being defined
-- shared design tokens or style-guide-level decisions are still moving
-
-Before opening a lane, record:
-- lane owner
-- exact write scope
-- dependency edges
-- expected handoff target
+For detailed rules on when to parallelize, lane setup, and ownership, see `references/parallel-playbook.md`.
 
 ## Delegation Matrix
 - Use `lms-frontend` for routing, layouts, components, hooks, forms, services, query behavior, and capability-aware flows.
@@ -148,44 +80,8 @@ Before opening a lane, record:
 - Use `lms-review` for review, security and tenant-scope checks, API contract verification, and PR readiness.
 - Use `lms-frontend-design` only for design or interaction work, and keep it constrained by `docs/STYLE_GUIDE.md`.
 
-## Default Feature Slice
-For standard admin features, prefer this implementation order:
-1. page or route entry in `src/app/(dashboard)` or `src/app/(dashboard)/centers/[centerId]`
-2. feature module changes in `src/features/<feature>`
-3. sidebar or capability updates in `src/components/Layouts/sidebar/data/index.ts` and `src/lib/capabilities.ts`
-4. unit or integration coverage in `tests/unit` and `tests/integration`
-
 ## Communication Contract
-Default communication path is through the orchestrator and shared memory.
-
-Use a handoff memo whenever one specialist hands work to another:
-
-```text
-FROM
-- specialist or lane
-
-TO
-- specialist or lane
-
-OWNED AREA
-- files/modules that changed or are reserved
-
-CHANGED CONTRACTS
-- routing, component, service, capability, or test assumptions that changed
-
-DECISIONS
-- choices that are now fixed
-
-BLOCKERS
-- what is missing
-
-VERIFICATION
-- tests/checks run
-- tests/checks still needed
-
-NEXT ACTION
-- exact next step for the receiver
-```
+Default communication path is through the orchestrator and shared memory. For the handoff memo template, see `references/handoff-contract.md`.
 
 Direct specialist-to-specialist sync is acceptable only for a shared contract boundary, and the result must be written back to memory immediately.
 
@@ -213,6 +109,19 @@ Do not report complete until you have checked:
 - `docs/STYLE_GUIDE.md` was respected for UI work
 - documentation is updated when a reusable pattern changed
 
+## Cross-Repo Feature Workflow
+For any feature that spans backend and frontend:
+
+1. Load `.claude/skills/lms-backend-contracts/SKILL.md`
+2. Find the exact progress tracker path from that skill
+3. Check available contracts from that skill
+4. Read the relevant contract doc for the current frontend phase
+5. Build against the contract — do not assume endpoints exist without checking
+6. Use MSW mocks matching contract shapes during development
+7. After completing a frontend phase, update the progress tracker's lane status
+
+For discovering active cross-repo features, check `lms-backend-contracts` skill's "Known Features" table.
+
 ## Reporting Format
 Use a compact delivery report:
 
@@ -229,3 +138,10 @@ Risks / Follow-ups
 - residual risk
 - contract or rollout note
 ```
+
+## References
+- Shared memory template: `references/shared-memory.md`
+- Patterns and plan template: `references/execution-patterns.md`
+- Parallel lane playbook: `references/parallel-playbook.md`
+- Handoff memo contract: `references/handoff-contract.md`
+- Backend contracts and cross-repo progress: `.claude/skills/lms-backend-contracts/SKILL.md`

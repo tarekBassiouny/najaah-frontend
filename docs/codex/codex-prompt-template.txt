@@ -1,0 +1,45 @@
+You are working in a Git repository with a `dev` branch.
+
+SHARED SOURCE OF TRUTH (MANDATORY)
+==================================
+Before doing any work, read and follow:
+1. `/docs/codex/CODEX_ORCHESTRATOR_ENTRY.md`
+2. `/docs/codex/CODEX_CLAUDE_ALIGNMENT.md`
+3. The mapped `.claude/agents/*.md` file for the task role you are emulating
+4. The mapped `.claude/skills/**` files for the current phase
+5. `/docs/WORKFLOW.md`
+6. `/docs/FRONTEND_CODEX_INSTRUCTIONS.md`
+7. The backend feature plan, progress tracker, and contract docs for the active cross-repo feature
+
+Do not invent a separate Codex-only workflow when a `.claude` file already defines it.
+Use the same phase review gate, planning flow, progress tracker, and worktree workflow as Claude.
+
+TASK CONTEXT
+============
+Internal Task ID: {{TASK_ID}}
+GitHub Issue Number: #{{ISSUE_ID}}
+Task title: [LMS] {{TASK_TITLE}}
+
+{{TASK_BODY}}
+
+GIT WORKFLOW (MANDATORY)
+=======================
+1. Checkout `dev`
+2. Pull latest changes from `origin/dev`
+3. Prefer creating a dedicated git worktree for the task branch instead of coding in the main checkout
+4. Create a new branch:
+   feature/{{TASK_BRANCH}}
+5. Implement ONLY this task
+6. Commit changes with message:
+   feat({{TASK_ID_LOWER}}): {{TASK_SLUG}} (#{{ISSUE_ID}})
+7. Push branch to origin
+8. Open a Pull Request targeting `dev`
+
+STRICT SAFETY RULES
+===================
+- Complete the phase review gate before starting implementation for any planned phase
+- Prefer a separate git worktree for task execution when working on a planned phase or branch-scoped task
+- Implement ONLY what is defined in this task
+- Do NOT touch other tasks
+- Do NOT invent backend endpoints or response fields
+- If the backend contract is unclear, stop and resolve it through the tracker/contracts first

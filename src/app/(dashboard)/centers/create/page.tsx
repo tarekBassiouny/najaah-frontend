@@ -108,7 +108,7 @@ export default function CentersCreatePage() {
                       t("pages.centerCreate.errors.logoUploadFailed"),
                     ),
                   );
-                  router.push(`/centers/${createdCenter.id}/settings`);
+                  router.push(`/manage/centers/${createdCenter.id}/settings`);
                 },
               },
             );

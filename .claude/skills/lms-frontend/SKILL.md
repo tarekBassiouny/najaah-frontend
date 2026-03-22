@@ -1,3 +1,8 @@
+---
+name: lms-frontend
+description: Primary frontend implementation skill for the Najaah admin panel. Use for routes, pages, components, hooks, services, tenant-aware behavior, and backend contract integration.
+---
+
 # LMS Admin Panel - Senior Frontend Engineer
 
 ## Purpose
@@ -10,6 +15,20 @@ Comprehensive knowledge base for implementing frontend features in the LMS Admin
 - Integrating with backend APIs
 - Adding route protection and capability checks
 - Form validation with Zod and react-hook-form
+
+When repo-specific guidance in this file conflicts with a generic example, follow the repo-specific guidance.
+
+---
+
+## Fast Feature Delivery
+
+For most dashboard work, the fastest safe path is:
+1. Find the existing page in `src/app/(dashboard)` or the center-scoped variant under `src/app/(dashboard)/centers/[centerId]`.
+2. Reuse the feature module under `src/features/<feature>` and extend `types`, `services`, `hooks`, `components`, and optional `lib` or `utils` there.
+3. Keep page files thin: compose `PageHeader`, feature tables or forms, and dialog or drawer state in the page, similar to `src/app/(dashboard)/students/page.tsx`.
+4. Keep API logic in services, query and mutation orchestration in hooks, and tenant-aware page behavior in components via `useTenant`.
+5. If the route is new or protected, update sidebar and route capability rules in `src/components/Layouts/sidebar/data/index.ts` and ensure the needed capability exists in `src/lib/capabilities.ts`.
+6. Add the smallest useful unit or integration coverage before widening validation.
 
 ---
 
@@ -63,6 +82,9 @@ src/features/[feature-name]/
 │   └── [entity].service.ts   # API calls using http client
 ├── hooks/
 │   └── use-[entity].ts       # React Query hooks
+├── lib/                      # Feature-specific helpers or normalization
+├── utils/                    # Presentation helpers
+├── context/                  # Feature-specific state when needed
 └── components/
     └── [Component].tsx       # Feature-specific components
 ```
@@ -70,13 +92,43 @@ src/features/[feature-name]/
 ### Core Libraries
 ```
 src/lib/
-├── http.ts           # Axios instance with auth, tenant, locale headers
-├── capabilities.ts   # Permission-based access control
-├── tenant-store.ts   # Runtime tenant state (Platform vs Center)
-└── token-storage.ts  # JWT token storage and retrieval
+├── http.ts            # Axios instance with auth, tenant, locale headers
+├── capabilities.ts    # Frontend capability -> backend permission mapping
+├── admin-response.ts  # Shared success/error normalization helpers
+├── admin-scope.ts     # Scope detection helpers
+├── host-routing.ts    # Hostname and center resolution helpers
+├── tenant-store.ts    # Runtime tenant state
+└── token-storage.ts   # JWT token storage and retrieval
 ```
 
 ---
+
+## Repo-Specific Delivery Pattern
+
+### Page Composition
+- Dashboard pages usually own top-level dialog or drawer state and render a `PageHeader`.
+- Feature tables and forms live under `src/features/<feature>/components`.
+- Shared shell and protection live in `src/app/(dashboard)/layout.tsx`, not per-page.
+
+### Tenant-Aware UI
+- Use `useTenant` from `@/app/tenant-provider` in components and pages.
+- Use `tenant.centerId`, `tenant.centerSlug`, and `tenant.isResolved` rather than reading the store directly in UI code.
+- Reserve direct `tenant-store` access for lower-level infrastructure and tests.
+
+### Service Conventions
+- Use `http` from `@/lib/http`.
+- Reuse `@/lib/admin-response` helpers for action results, user-facing response messages, and API error extraction.
+- When a feature supports both system and center scope, prefer an explicit scope context and build the base path from it, as in `students.service.ts`.
+
+### React Query Conventions
+- Export feature-specific key factories such as `studentKeys`.
+- Include scope context in query keys when center-specific data can vary by tenant.
+- Invalidate the smallest stable feature key on mutation success.
+
+### Routing and Protection
+- `AdminRouteGuard` enforces auth and route access centrally.
+- Route capability lookup is derived from `src/components/Layouts/sidebar/data/index.ts` via `getRouteCapabilities`, not a page-local map.
+- New navigable admin routes usually require both a page file and sidebar or route capability updates.
 
 ## Type Definition Pattern
 
@@ -434,24 +486,19 @@ export function CreateEntityForm({ onSuccess }: { onSuccess?: () => void }) {
 
 ## Route Protection
 
-### AdminRouteGuard Integration
+### AdminRouteGuard + Sidebar Rules
 ```typescript
-// src/features/auth/components/AdminRouteGuard.tsx
-
-// Route-to-capability mapping
-const ROUTE_CAPABILITIES: Record<string, string[]> = {
-  "/dashboard": [],
-  "/courses": ["courses.list"],
-  "/courses/create": ["courses.create"],
-  "/students": ["students.list"],
-  "/enrollments": ["enrollments.list"],
-};
+// src/app/(dashboard)/layout.tsx wraps protected routes with AdminRouteGuard
+// src/components/Layouts/sidebar/data/index.ts is the source of truth
+// for sidebar sections, center-scoped URLs, and route capability rules.
 ```
 
 ### Adding New Protected Route
-1. Add route to `ROUTE_CAPABILITIES` in `AdminRouteGuard.tsx`
-2. Map capability to backend permission in `src/lib/capabilities.ts`
-3. Ensure backend permission exists
+1. Add the page in the correct app route tree.
+2. Update `src/components/Layouts/sidebar/data/index.ts` if the route should be navigable or needs explicit wildcard capability rules.
+3. Map or extend the capability in `src/lib/capabilities.ts`.
+4. Ensure backend permissions and tenant rules match the chosen capability.
+5. Add or update route capability tests when matching rules change.
 
 ---
 
@@ -459,34 +506,31 @@ const ROUTE_CAPABILITIES: Record<string, string[]> = {
 
 ### Tenant Context
 ```typescript
-// Access current tenant
-import { getTenant, TenantType } from "@/lib/tenant-store";
+import { useTenant } from "@/app/tenant-provider";
 
-const tenant = getTenant();
-if (tenant.type === TenantType.PLATFORM) {
-  // Platform admin view (all centers)
-} else {
-  // Center admin view (single center)
-}
+const tenant = useTenant();
+const centerId = tenant.centerId;
+const isPlatformAdmin = tenant.isResolved && !tenant.centerSlug;
 ```
 
-### Conditional UI
+### Scope-Aware Service Access
 ```typescript
-import { getTenant, TenantType } from "@/lib/tenant-store";
+import { useTenant } from "@/app/tenant-provider";
+import { useStudents } from "@/features/students/hooks/use-students";
 
-export function NavigationMenu() {
-  const tenant = getTenant();
-  const isPlatformAdmin = tenant.type === TenantType.PLATFORM;
+export function StudentsPageSlice() {
+  const tenant = useTenant();
 
-  return (
-    <nav>
-      {isPlatformAdmin && <Link href="/centers">Manage Centers</Link>}
-      <Link href="/courses">Courses</Link>
-      <Link href="/students">Students</Link>
-    </nav>
+  return useStudents(
+    { page: 1, per_page: 15 },
+    { centerId: tenant.centerId ?? null },
   );
 }
 ```
+
+### Marketing and Host-Based Behavior
+- Public marketing routes and center branding bootstrap are coordinated in `src/app/app-bootstrap-provider.tsx`.
+- If a change touches host-based branding or public pages, inspect `src/lib/host-routing.ts`, `src/services/resolve.service.ts`, and the bootstrap provider before changing route logic.
 
 ---
 
@@ -494,10 +538,14 @@ export function NavigationMenu() {
 
 ### Core
 ```
-src/lib/http.ts           # HTTP client with interceptors
-src/lib/capabilities.ts   # Permission mappings
-src/lib/tenant-store.ts   # Tenant state management
-src/types/pagination.ts   # Shared pagination types
+src/app/tenant-provider.tsx                   # Tenant context hook for UI
+src/app/app-bootstrap-provider.tsx            # Host-based bootstrap and branding
+src/lib/http.ts                               # HTTP client with interceptors
+src/lib/capabilities.ts                       # Permission mappings
+src/lib/admin-response.ts                     # Shared API response helpers
+src/components/Layouts/sidebar/data/index.ts  # Sidebar and route capability source of truth
+src/components/ui/page-header.tsx             # Standard dashboard page header
+src/types/pagination.ts                       # Shared pagination types
 ```
 
 ### Feature Modules
@@ -548,6 +596,9 @@ npm run test:integration  # Run integration tests only
 - Use React Query for all server state
 - Apply Zod validation for forms
 - Check capabilities before rendering protected features
+- Use `PageHeader` for dashboard page titles and actions
+- Use `useTenant` for tenant-aware UI and pass scope context into services or hooks when needed
+- Reuse `admin-response` helpers for mutation success and error handling
 - Use TypeScript strict mode
 
 ### DON'T
@@ -561,6 +612,6 @@ npm run test:integration  # Run integration tests only
 ---
 
 ## Related Documentation
-- Backend API: `/Users/tarekbassiouny/projects/najaah/backend/docs/`
-- Backend Skills: `/Users/tarekbassiouny/projects/najaah/backend/.claude/skills/`
+- Backend API: `/Users/tarekbassiouny/projects/najaah-backend/docs/`
+- Backend Skills: `/Users/tarekbassiouny/projects/najaah-backend/.claude/skills/`
 - Component Library: shadcn/ui documentation

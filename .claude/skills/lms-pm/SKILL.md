@@ -1,3 +1,8 @@
+---
+name: lms-pm
+description: Product and integration planning skill for the Najaah admin panel. Use for scope definition, capability mapping, backend contract framing, and implementation breakdowns.
+---
+
 # LMS Admin Panel - Senior Product Manager
 
 ## Purpose
@@ -10,6 +15,8 @@ Product management knowledge base for the LMS Admin Panel. This skill provides C
 - Mapping frontend features to backend services
 - Creating feature specifications
 - Understanding multi-tenant implications
+
+When repo-specific guidance in this file conflicts with a generic example, follow the repo-specific guidance.
 
 ---
 
@@ -80,6 +87,23 @@ Product management knowledge base for the LMS Admin Panel. This skill provides C
 | Audit Logs | Track admin actions | audit-logs.* |
 
 ---
+
+## Scope Framing
+
+Classify work before implementation:
+- `platform`: only for system admins or platform-wide operations
+- `center`: bound to a specific center or center admin flow
+- `shared`: same feature shape in both platform and center contexts
+- `mixed`: one feature spans both but with different route, capability, or API behavior
+
+Use that scope to decide whether the route belongs in `src/app/(dashboard)` directly, under `src/app/(dashboard)/centers/[centerId]`, or in both places.
+
+## Frontend Capability Model
+
+- Frontend capability names live in `src/lib/capabilities.ts`.
+- Those capability names map to one or more backend permission strings.
+- Plan with the frontend capability as the UI contract, then confirm the backend permission mapping.
+- If a new route is navigable, check whether sidebar and route capability rules also need updates.
 
 ## User Story Templates
 
@@ -334,17 +358,9 @@ const CAPABILITY_PERMISSION_MAP = {
 
 ### Route Protection
 ```typescript
-// Route → Required capabilities
-const ROUTE_CAPABILITIES = {
-  "/dashboard": [],
-  "/courses": ["courses.list"],
-  "/courses/create": ["courses.create"],
-  "/courses/:id/edit": ["courses.update"],
-  "/students": ["students.list"],
-  "/students/:id": ["students.view"],
-  "/enrollments": ["enrollments.list"],
-  "/enrollments/create": ["enrollments.create"],
-};
+// Route capability rules are derived from:
+// src/components/Layouts/sidebar/data/index.ts
+// AdminRouteGuard reads them via getRouteCapabilities(pathname, isPlatformAdmin)
 ```
 
 ---
@@ -375,22 +391,25 @@ When integrating a new backend feature:
    - [ ] Query hook for fetching
    - [ ] Mutation hook for actions
    - [ ] Query key strategy defined
+   - [ ] Scope context included when data can vary by center
 
 5. **Frontend UI**
    - [ ] Component implemented
+   - [ ] Page composes `PageHeader` plus feature components
    - [ ] Loading state handled
    - [ ] Error state handled
    - [ ] Empty state handled
 
 6. **Route Protection**
    - [ ] Route added to app router
-   - [ ] Capability check added
-   - [ ] Sidebar navigation updated
+   - [ ] Capability mapped in `src/lib/capabilities.ts`
+   - [ ] Sidebar or route capability rules updated in `src/components/Layouts/sidebar/data/index.ts`
+   - [ ] Tenant scope decided: platform, center, shared, or mixed
 
 7. **Testing**
-   - [ ] MSW handlers added
+   - [ ] MSW handlers added or updated in `tests/integration/msw/handlers.ts`
    - [ ] Component tests written
-   - [ ] Integration test written
+   - [ ] Service or integration test written
 
 ---
 
@@ -443,6 +462,6 @@ Features scoped to single center:
 ---
 
 ## Related Documentation
-- Backend Domain Rules: `/Users/tarekbassiouny/projects/najaah/backend/docs/codex/CODEX_DOMAIN_RULES.md`
-- Backend Features: `/Users/tarekbassiouny/projects/najaah/backend/docs/features/`
+- Backend Domain Rules: `/Users/tarekbassiouny/projects/najaah-backend/docs/codex/CODEX_DOMAIN_RULES.md`
+- Backend Features: `/Users/tarekbassiouny/projects/najaah-backend/docs/features/`
 - API Documentation: Backend Scribe docs

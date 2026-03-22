@@ -27,8 +27,13 @@ type Props = {
 export default function DashboardLayout({ children }: Props) {
   const pathname = usePathname();
   const { centerSlug } = useTenant();
-  const { data: user } = useAdminMe();
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isFetching: isUserFetching,
+  } = useAdminMe();
   const userScope = getAdminScope(user);
+  const isUserScopeReady = !isUserLoading && !isUserFetching;
   const previousPathRef = useRef(pathname);
   const routeCenterId = useMemo(() => {
     const segments = pathname.split("/").filter(Boolean);
@@ -50,12 +55,32 @@ export default function DashboardLayout({ children }: Props) {
   // System admins (center_id = null) see full platform sidebar
   // Center admins see center-scoped sidebar
   const isPlatformAdmin =
-    userScope.isSystemAdmin || (!centerSlug && !userScope.isCenterAdmin);
+    isUserScopeReady &&
+    (userScope.isSystemAdmin || (!centerSlug && !userScope.isCenterAdmin));
 
   // Get sidebar configuration based on user scope
   const sidebarConfig = useMemo(() => {
-    // Keep the same center-scoped sidebar UX regardless of who opened a center route.
+    if (!isUserScopeReady) {
+      if (routeCenterId) {
+        return getCenterScopedSections(
+          getSidebarSections(false),
+          routeCenterId,
+          "center_admin",
+        );
+      }
+
+      return [];
+    }
+
     if (isCenterScopedRoute) {
+      if (routeCenterId) {
+        return getCenterScopedSections(
+          getSidebarSections(false),
+          routeCenterId,
+          "center_admin",
+        );
+      }
+
       return getSidebarSections(false);
     }
 
@@ -63,19 +88,25 @@ export default function DashboardLayout({ children }: Props) {
 
     // For center admins, always scope sidebar to their center
     if (userScope.isCenterAdmin && userScope.centerId) {
-      return getCenterScopedSections(sections, userScope.centerId);
+      return getCenterScopedSections(
+        sections,
+        userScope.centerId,
+        "center_admin",
+      );
     }
 
     return sections;
   }, [
     isCenterScopedRoute,
     isPlatformAdmin,
+    isUserScopeReady,
+    routeCenterId,
     userScope.isCenterAdmin,
     userScope.centerId,
   ]);
 
   useEffect(() => {
-    if (!isPlatformAdmin) {
+    if (!isUserScopeReady || !isPlatformAdmin) {
       previousPathRef.current = pathname;
       return;
     }
@@ -85,7 +116,7 @@ export default function DashboardLayout({ children }: Props) {
 
     // Always clear the temporary center picker selection when navigating pages.
     setTenantState({ centerId: null, centerName: null });
-  }, [isPlatformAdmin, pathname]);
+  }, [isPlatformAdmin, isUserScopeReady, pathname]);
 
   return (
     <AuthProvider>

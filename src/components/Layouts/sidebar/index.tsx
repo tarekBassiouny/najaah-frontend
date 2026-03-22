@@ -22,7 +22,6 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 import { ChevronUp, ArrowLeftIcon, type PropsType } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
-import { getCenterScopedSections } from "./data";
 import { useCenter } from "@/features/centers/hooks/use-centers";
 import { useAdminMe } from "@/features/auth/hooks/use-admin-me";
 import { useTenant } from "@/app/tenant-provider";
@@ -83,6 +82,14 @@ function isPathActive(pathname: string, url?: string) {
   const target = normalizePath(url);
   const segments = target.split("/").filter(Boolean);
   const isCenterRoot = segments.length === 2 && segments[0] === "centers";
+
+  if (
+    target === "/centers" &&
+    (current.startsWith("/manage/centers/") ||
+      current.startsWith("/settings/centers/"))
+  ) {
+    return true;
+  }
 
   if (isCenterRoot) {
     return current === target;
@@ -479,13 +486,9 @@ export function Sidebar({ sections }: SidebarProps) {
     tenantCenterName || tenantCenterSlug || t("common.labels.center");
   const subdomainCenterLogo =
     typeof branding?.logoUrl === "string" ? branding.logoUrl : null;
-  const resolvedSections = useMemo(() => {
-    if (!centerId) return sections;
-    return getCenterScopedSections(sections, centerId);
-  }, [centerId, sections]);
 
   const filteredSections = useMemo(() => {
-    return resolvedSections
+    return sections
       .map((section) => {
         const items = section.items
           .filter(
@@ -527,7 +530,7 @@ export function Sidebar({ sections }: SidebarProps) {
         return items.length ? { ...section, items } : null;
       })
       .filter(Boolean) as SidebarSection[];
-  }, [isUnbrandedCenter, permissions, resolvedSections]);
+  }, [isUnbrandedCenter, permissions, sections]);
 
   const activeGroupTitles = useMemo(() => {
     return filteredSections

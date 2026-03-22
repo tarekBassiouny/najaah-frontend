@@ -32,6 +32,8 @@ type RouteCapabilityRule = {
   capabilities: Capability[];
 };
 
+type CenterScopedMode = "center_admin";
+
 const CENTER_SCOPED_OMIT_TITLES = new Set(["Centers", "Agents", "Permissions"]);
 
 const CENTER_SCOPED_URL_OVERRIDES: Record<
@@ -73,6 +75,10 @@ const SHARED_ROUTE_EXTRAS: RouteCapabilityRule[] = [
   { pattern: "/settings/ai-providers/*", capabilities: ["manage_settings"] },
   { pattern: "/settings", capabilities: ["view_settings"] },
   { pattern: "/settings/*", capabilities: ["view_settings"] },
+  { pattern: "/manage/centers/*/settings", capabilities: ["view_settings"] },
+  { pattern: "/manage/centers/*/settings/*", capabilities: ["view_settings"] },
+  { pattern: "/centers/settings", capabilities: ["view_settings"] },
+  { pattern: "/centers/settings/*", capabilities: ["view_settings"] },
   {
     pattern: "/centers/*/ai-content",
     capabilities: ["generate_ai_content"],
@@ -173,8 +179,17 @@ export function getSidebarSections(isPlatformAdmin: boolean): SidebarSection[] {
   return isPlatformAdmin ? PLATFORM_SIDEBAR : CENTER_SIDEBAR;
 }
 
-function getCenterScopedUrl(url: string, centerId: string) {
+function getCenterScopedUrl(
+  url: string,
+  centerId: string,
+  mode: CenterScopedMode = "center_admin",
+) {
   const normalized = normalizePath(url);
+
+  if (normalized === "/settings" && mode === "center_admin") {
+    return `/centers/${centerId}/settings`;
+  }
+
   const override = CENTER_SCOPED_URL_OVERRIDES[normalized];
   return override ? override(centerId) : url;
 }
@@ -182,6 +197,7 @@ function getCenterScopedUrl(url: string, centerId: string) {
 export function getCenterScopedSections(
   sections: SidebarSection[],
   centerId: string,
+  mode: CenterScopedMode = "center_admin",
 ): SidebarSection[] {
   return sections
     .map((section) => {
@@ -189,10 +205,12 @@ export function getCenterScopedSections(
         .filter((item) => !CENTER_SCOPED_OMIT_TITLES.has(item.title))
         .map((item) => ({
           ...item,
-          url: item.url ? getCenterScopedUrl(item.url, centerId) : undefined,
+          url: item.url
+            ? getCenterScopedUrl(item.url, centerId, mode)
+            : undefined,
           items: item.items.map((subItem) => ({
             ...subItem,
-            url: getCenterScopedUrl(subItem.url, centerId),
+            url: getCenterScopedUrl(subItem.url, centerId, mode),
           })),
         }));
 
@@ -212,7 +230,14 @@ function extractCenterIdFromPath(pathname: string): string | null {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length < 2 || segments[0] !== "centers") return null;
   const candidate = segments[1];
-  if (!candidate || candidate === "create" || candidate === "list") return null;
+  if (
+    !candidate ||
+    candidate === "create" ||
+    candidate === "list" ||
+    candidate === "settings"
+  ) {
+    return null;
+  }
   return candidate;
 }
 

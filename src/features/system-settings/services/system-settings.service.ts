@@ -4,11 +4,15 @@ import {
   withResponseMessage,
   type AdminActionResult,
 } from "@/lib/admin-response";
-import type { PaginatedResponse } from "@/types/pagination";
 import type {
   SystemSetting,
+  SystemSettingsListResponse,
   SystemSettingValue,
 } from "@/features/system-settings/types/system-setting";
+import type {
+  DynamicSettingsCatalog,
+  DynamicSettingsGroups,
+} from "@/features/settings/lib/dynamic-settings";
 
 export type ListSystemSettingsParams = {
   page: number;
@@ -40,7 +44,7 @@ type RawResponse = {
 function normalizeListResponse(
   raw: RawResponse | undefined,
   fallback: ListSystemSettingsParams,
-): PaginatedResponse<SystemSetting> {
+): SystemSettingsListResponse {
   const container =
     raw && typeof raw === "object" && raw !== null ? (raw as RawResponse) : {};
 
@@ -62,12 +66,29 @@ function normalizeListResponse(
     Number(meta.per_page ?? dataNode?.per_page) || fallback.per_page;
   const total = Number(meta.total ?? dataNode?.total) || items.length;
 
+  const catalog =
+    (meta.catalog as DynamicSettingsCatalog | undefined) ??
+    (dataNode?.catalog as DynamicSettingsCatalog | undefined) ??
+    {};
+  const catalogGroups =
+    (meta.catalog_groups as DynamicSettingsGroups | undefined) ??
+    (dataNode?.catalog_groups as DynamicSettingsGroups | undefined) ??
+    {};
+  const defaults =
+    (meta.defaults as Record<string, unknown> | undefined) ??
+    (dataNode?.defaults as Record<string, unknown> | undefined) ??
+    {};
+
   return {
     items,
     meta: {
       page,
       per_page: perPage,
       total,
+      last_page: Number(meta.last_page ?? dataNode?.last_page) || undefined,
+      catalog,
+      catalog_groups: catalogGroups,
+      defaults,
     },
   };
 }
@@ -112,7 +133,7 @@ function toPublicParam(
 
 export async function listSystemSettings(
   params: ListSystemSettingsParams,
-): Promise<PaginatedResponse<SystemSetting>> {
+): Promise<SystemSettingsListResponse> {
   const { data } = await http.get<RawResponse>("/api/v1/admin/settings", {
     params: {
       page: params.page,

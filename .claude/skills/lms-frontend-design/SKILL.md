@@ -6,6 +6,12 @@ license: Complete terms in LICENSE.txt
 
 This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
 
+When using this skill inside the Najaah frontend repo, preserve the existing product language:
+- `docs/STYLE_GUIDE.md` is the local source of truth for UI styling and layout rules.
+- Reuse existing Tailwind tokens, `src/components/ui/*`, and layout primitives before introducing anything new.
+- Respect the established NextAdmin structure for dashboard and auth surfaces.
+- Treat this skill as interaction and presentation refinement, not permission to replace the repo's design system.
+
 The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
 
 ## Design Thinking

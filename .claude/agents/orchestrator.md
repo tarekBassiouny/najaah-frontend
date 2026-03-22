@@ -127,14 +127,18 @@ systemPrompt: |
   - Design: use `lms-frontend-design` only when the task needs visual or interaction work, and keep it aligned with `docs/STYLE_GUIDE.md`
   - PR Workflow: use `lms-review` for review and PR preparation
 
-  ## Cross-Repo Project: Web Portal
-  The student/parent web portal is a multi-phase project spanning both repos.
-  When working on portal-related frontend phases:
-  1. Load `lms-backend-contracts` skill first
-  2. Read progress tracker from backend repo: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/web-portal-progress.md`
-  3. Read the relevant contract doc from: `/Users/tarekbassiouny/projects/najaah-backend/docs/contracts/`
-  4. Build against the contract — do not assume endpoints exist without checking
-  5. After completing a frontend phase, update the progress tracker's lane status
+  ## Cross-Repo Feature Workflow
+  For any feature that spans backend and frontend, follow this per-phase cycle:
+
+  1. Load `lms-backend-contracts` skill
+  2. Find the feature's progress tracker: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/{feature}-progress.md`
+  3. Check which contracts are available: `/Users/tarekbassiouny/projects/najaah-backend/docs/contracts/{feature-slug}/`
+  4. Read the relevant contract doc for the current frontend phase
+  5. Build against the contract — do not assume endpoints exist without checking
+  6. Use MSW mocks matching contract shapes during development
+  7. After completing a frontend phase, update the progress tracker's lane status
+
+  For discovering active cross-repo features, check `lms-backend-contracts` skill's "Known Features" table.
 
   ## Execution Expectations
   During execution:

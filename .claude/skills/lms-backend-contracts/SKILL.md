@@ -1,6 +1,6 @@
 ---
 name: lms-backend-contracts
-description: Read API contracts and progress from the backend repo to coordinate parallel frontend work. Use when starting a frontend phase that depends on a backend contract.
+description: Read API contracts and progress from the backend repo to coordinate parallel frontend work. Use when starting any frontend phase that depends on a backend contract.
 ---
 
 # LMS Backend Contracts Skill
@@ -9,53 +9,60 @@ description: Read API contracts and progress from the backend repo to coordinate
 - Starting frontend work that depends on a backend API contract
 - Checking if a backend phase is complete and what's unblocked
 - Resolving a contract mismatch between frontend implementation and backend API
-- The orchestrator needs to know the current state of the web portal project
+- The orchestrator needs to know the current state of any cross-repo feature
 
 ## Backend Repo Location
 `/Users/tarekbassiouny/projects/najaah-backend`
 
-## Key Files To Read
+## How To Find Contracts For Any Feature
 
-### Progress & Coordination
-- `docs/feature/web-portal-progress.md` — lane status, phase tracker, contract delivery, blockers
-- `docs/feature/web-portal-workflow.md` — parallel execution rules and communication protocol
+All cross-repo features follow the same structure in the backend repo:
 
-### Plans (read-only reference, do not modify)
-- `docs/feature/student-parent-web-portal.md` — full backend plan with all phase tasks
-- `docs/feature/web-portal-settings-governance.md` — settings classification and catalog entries
+```
+docs/feature/{feature-slug}.md              # the plan (read-only reference)
+docs/feature/{feature-slug}-progress.md     # progress tracker (read + update lane status)
+docs/contracts/{feature-slug}/              # API contracts per phase
+  {contract-name}.md
+```
 
-### API Contracts (generated per phase)
-- `docs/contracts/settings-feature-groups.md` — Phase 0A: settings API with feature_group metadata
-- `docs/contracts/web-auth-api.md` — Phase 2: student + parent JWT auth endpoints
-- `docs/contracts/web-student-api.md` — Phase 3: student web portal endpoints
-- `docs/contracts/web-parent-api.md` — Phase 4: parent web portal endpoints
-- `docs/contracts/admin-parent-api.md` — Phase 5A: admin parent management endpoints
+### Discovery Steps
+1. Check `docs/feature/` for `*-progress.md` files — each is an active cross-repo feature
+2. Read the progress tracker to find which phase is current and which contracts exist
+3. Read the relevant contract doc from `docs/contracts/{feature-slug}/`
 
-### Existing API Reference (for response shapes)
-- `routes/api/v1/mobile.php` — existing mobile routes (student web reuses these controllers)
-- `routes/api/v1/admin/` — existing admin routes
-- `config/settings_catalog.php` — settings catalog structure
+### Known Features
+| Feature | Plan | Progress | Contracts Dir |
+|---------|------|----------|---------------|
+| Web Portal | `student-parent-web-portal.md` | `web-portal-progress.md` | `docs/contracts/web-portal/` |
+
+(This table grows as new cross-repo features are added)
+
+## Existing API Reference (for response shapes)
+- `routes/api/v1/mobile.php` — mobile routes
+- `routes/api/v1/admin/` — admin routes
+- `config/settings_catalog.php` — settings catalog
 
 ## Workflow
 
 ### Before Starting a Frontend Phase
 
-1. Read `docs/feature/web-portal-progress.md` from backend repo
+1. Read the feature's progress tracker from backend repo
 2. Check the "Frontend Contract Tracker" table — is your contract `draft` or `final`?
-3. If contract exists: read it from `docs/contracts/{name}.md`
+3. If contract exists: read it from `docs/contracts/{feature-slug}/{name}.md`
 4. If contract is `draft (from plan)`: safe to scaffold components and set up types/mocking
 5. If contract is `draft (from implementation)`: safe to build real API integration
 6. If contract is `final`: safe to run integration tests
+7. If no contract yet: check if the backend phase is in progress — wait or ask
 
 ### During Frontend Development
 
 - Build against the contract doc shapes
 - Use MSW handlers to mock API responses matching the contract
-- If you find a mismatch or ambiguity, note it in the "Open Blockers" section of progress.md
+- If you find a mismatch or ambiguity, note it in the "Open Blockers" section of the progress tracker
 
 ### After Frontend Phase Complete
 
-Update the backend repo's `docs/feature/web-portal-progress.md`:
+Update the backend repo's progress tracker:
 - Update "Lane Status" for the frontend lane
 - Add "Integration verified: {phase}" if integration tested
 - Note any contract mismatches found
@@ -63,9 +70,9 @@ Update the backend repo's `docs/feature/web-portal-progress.md`:
 ## Contract Doc Structure
 
 Each contract doc follows this format:
-```
-# {Phase Name} — API Contract
-## Status: Draft | Final
+```markdown
+# {Feature} — {Phase} API Contract
+## Status: Draft (from plan) | Draft (from implementation) | Final
 
 ## Endpoints
 ### {GROUP}
@@ -76,22 +83,40 @@ Each contract doc follows this format:
 - Error Responses: {codes}
 
 ## Auth Flow (if applicable)
-## Settings / Feature Flags
+## Settings / Feature Flags (if applicable)
 ## Error Codes
+## Breaking Changes (from previous draft)
 ```
 
-## Frontend-to-Backend Mapping
+## Contract Lifecycle
 
-| Frontend Phase | Reads Contract | Builds |
-|---|---|---|
-| Phase 0B (settings cards) | settings-feature-groups.md | FeatureSettingsCard, CenterSettingsEditor update |
-| Portal scaffold + auth | web-auth-api.md | Auth pages, token management, API client setup |
-| Student pages | web-student-api.md | Course, playback, quiz, assignment, progress pages |
-| Parent pages | web-parent-api.md | Linked students, progress, quiz review pages |
-| Phase 5B (admin parent UI) | admin-parent-api.md | Parent list, detail, link management pages |
+```
+Draft (from plan)  →  Draft (from implementation)  →  Final (after tests pass)
+     │                        │                              │
+     └─ scaffold + mock       └─ build real integration      └─ integration tests
+```
+
+## Communication Protocol
+
+### Frontend → Backend signals (update progress tracker):
+| Signal | When |
+|--------|------|
+| "Building against contract: {phase}" | Started frontend work |
+| "Contract mismatch: {detail}" | Found discrepancy during integration |
+| "Need clarification: {endpoint}" | Ambiguity in contract |
+| "Integration verified: {phase}" | Successfully tested against real API |
+
+### Backend → Frontend signals (in progress tracker):
+| Signal | When |
+|--------|------|
+| "Contract ready: {phase}" | Contract doc generated |
+| "Contract updated: {phase}" | Implementation changed the contract |
+| "API live: {phase}" | Backend PR merged |
+| "Contract final: {phase}" | Tests pass, shape is stable |
 
 ## Do NOT
-- Modify backend repo files (except progress.md lane status updates)
+- Modify backend repo files except progress tracker lane status and blockers
 - Assume endpoints exist that aren't in the contract doc
 - Build features ahead of the contract — wait for at least a draft
 - Ignore contract status — `draft (from plan)` means shapes may change
+- Invent backend endpoints or response fields not in the contract

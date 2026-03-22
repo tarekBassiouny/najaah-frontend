@@ -1,5 +1,22 @@
 # FRONTEND_CODEX_INSTRUCTIONS.md
 
+## Workflow Notice
+
+This file defines frontend engineering and code-generation standards.
+
+Workflow, planning, git worktree usage, phase review gates, and Claude/Codex alignment are defined in:
+
+- `docs/WORKFLOW.md`
+- `docs/codex/CODEX_CLAUDE_ALIGNMENT.md`
+- `.claude/agents/*.md`
+- `.claude/skills/**`
+
+For cross-repo features, also read the backend repo artifacts before coding:
+
+- `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/student-parent-web-portal.md`
+- `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/web-portal-progress.md`
+- `/Users/tarekbassiouny/projects/najaah-backend/docs/contracts/student-parent-web-portal/`
+
 ### Next.js 16 Admin Panel — Engineering & Codegen Standard
 
 ---
@@ -278,10 +295,10 @@ Codex MUST:
 
 # 15. Codex Task Template
 
-When using Codex, always write tasks as:
+When using Codex, start from the shared workflow and then give the task:
 
 ```
-Using the instructions in /docs/FRONTEND_CODEX_INSTRUCTIONS.md,
+Read `/docs/WORKFLOW.md`, `/docs/codex/CODEX_CLAUDE_ALIGNMENT.md`, and `/docs/FRONTEND_CODEX_INSTRUCTIONS.md`,
 generate the following feature:
 [TASK HERE]
 ```

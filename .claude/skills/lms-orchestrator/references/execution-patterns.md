@@ -39,3 +39,30 @@ For standard admin features, prefer this implementation order:
 2. feature module changes in `src/features/<feature>`
 3. sidebar or capability updates in `src/components/Layouts/sidebar/data/index.ts` and `src/lib/capabilities.ts`
 4. unit or integration coverage in `tests/unit` and `tests/integration`
+
+## Phase Review Gate Template
+
+```text
+PHASE
+- <phase name>
+
+PLAN REVIEWED
+- yes | no
+
+CODE INSPECTED
+- files/modules:
+
+CONTRACT IMPACT
+- none | settings | auth | portal API | admin API
+
+RISKS / ADJUSTMENTS
+- concrete change from plan after code review
+
+VERIFICATION PLAN
+- exact tests/checks to run for this phase
+
+APPROVED TO IMPLEMENT
+- yes | no
+- approved by:
+- date:
+```

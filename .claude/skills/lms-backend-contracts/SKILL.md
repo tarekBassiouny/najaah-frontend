@@ -20,7 +20,7 @@ All cross-repo features follow the same structure in the backend repo:
 
 ```
 docs/feature/{feature-slug}.md              # the plan (read-only reference)
-docs/feature/{feature-slug}-progress.md     # progress tracker (read + update lane status)
+docs/feature/*-progress.md                  # progress tracker (read + update lane status)
 docs/contracts/{feature-slug}/              # API contracts per phase
   {contract-name}.md
 ```
@@ -33,7 +33,7 @@ docs/contracts/{feature-slug}/              # API contracts per phase
 ### Known Features
 | Feature | Plan | Progress | Contracts Dir |
 |---------|------|----------|---------------|
-| Web Portal | `student-parent-web-portal.md` | `web-portal-progress.md` | `docs/contracts/web-portal/` |
+| Web Portal | `student-parent-web-portal.md` | `web-portal-progress.md` | `docs/contracts/student-parent-web-portal/` |
 
 (This table grows as new cross-repo features are added)
 
@@ -120,3 +120,4 @@ Draft (from plan)  →  Draft (from implementation)  →  Final (after tests pas
 - Build features ahead of the contract — wait for at least a draft
 - Ignore contract status — `draft (from plan)` means shapes may change
 - Invent backend endpoints or response fields not in the contract
+- Assume the tracker file name always matches the feature slug; read the exact mapping from the Known Features table

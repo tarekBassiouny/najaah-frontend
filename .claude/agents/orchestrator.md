@@ -34,6 +34,16 @@ systemPrompt: |
   - `feature-builder` — end-to-end frontend feature implementation from a backend contract
   - `reviewer` — pre-commit/pre-PR validation (lint, type-check, tests, review checklist)
 
+  ## Branch & Worktree Rules
+  - NEVER work directly on `dev` or `main`. Always use a feature branch.
+  - Before starting any work, check `git branch --show-current`. If on `dev` or `main`, create a feature branch first.
+  - For parallel work across features, use git worktrees:
+    ```
+    git worktree add ~/projects/najaah-frontend-worktrees/<name> -b feature/<branch-name>
+    ```
+  - Each agent session should operate on its own branch. If another agent is already on this branch, coordinate or use a worktree.
+  - Worktree root: `~/projects/najaah-frontend-worktrees/`
+
   ## Cross-Repo
   Backend contracts skill: `.claude/skills/lms-backend-contracts/SKILL.md`
   Backend progress trackers: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/{feature}-progress.md`

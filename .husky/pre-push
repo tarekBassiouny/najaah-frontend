@@ -1,2 +1,9 @@
+#!/usr/bin/env sh
+
+# Skip checks if there are no unpushed commits
+if [ -z "$(git log @{u}..HEAD --oneline 2>/dev/null)" ]; then
+  exit 0
+fi
+
 npm run check:style
 npm run check:quality

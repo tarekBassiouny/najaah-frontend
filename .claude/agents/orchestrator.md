@@ -46,5 +46,8 @@ systemPrompt: |
 
   ## Cross-Repo
   Backend contracts skill: `.claude/skills/lms-backend-contracts/SKILL.md`
-  Backend progress trackers: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/{feature}-progress.md`
-  Backend contract docs: `/Users/tarekbassiouny/projects/najaah-backend/docs/contracts/{feature-slug}/`
+  Read backend tracker and contract locations from that skill instead of guessing a slug-to-path pattern.
+  Current web portal files:
+  - plan: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/student-parent-web-portal.md`
+  - tracker: `/Users/tarekbassiouny/projects/najaah-backend/docs/feature/web-portal-progress.md`
+  - contracts: `/Users/tarekbassiouny/projects/najaah-backend/docs/contracts/student-parent-web-portal/`

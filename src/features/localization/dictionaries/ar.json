@@ -466,6 +466,15 @@
         "defaultModelInvalid": "يجب أن يكون النموذج الافتراضي ضمن النماذج المهيأة."
       }
     },
+    "settingsFeatureGroups": {
+      "pageTitle": "نظرة عامة على إعدادات النظام",
+      "pageDescription": "تصفح مجموعات الإعدادات المبنية من كتالوج الخادم. انقر على مجموعة للانتقال إلى إعداداتها.",
+      "unavailableTitle": "مجموعات الإعدادات غير متاحة",
+      "unavailableDescription": "تعذر تحميل كتالوج الخادم. حاول تحديث الصفحة.",
+      "emptyMessage": "لم يتم العثور على مجموعات إعدادات في كتالوج الخادم.",
+      "settingsCount": "إعدادات",
+      "defaultGroupDescription": "الإعدادات في مجموعة {group}."
+    },
     "settingsPlaceholders": {
       "center": {
         "title": "إعدادات المركز",

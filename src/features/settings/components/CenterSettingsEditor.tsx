@@ -421,6 +421,7 @@ export function CenterSettingsEditor({
         return (
           <SettingsSectionCard
             key={group}
+            groupId={group}
             title={getDynamicGroupTitle(t, group)}
             description={
               isManagementView

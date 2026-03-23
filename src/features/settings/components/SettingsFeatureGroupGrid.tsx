@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FeatureGroupCard } from "@/features/settings/components/FeatureGroupCard";
@@ -11,13 +11,36 @@ import {
   type DynamicTranslateFunction,
 } from "@/features/settings/lib/dynamic-settings";
 import { useTranslation } from "@/features/localization";
+import {
+  Gear,
+  ShieldCheck,
+  ClipboardList,
+  Authentication,
+  Building,
+  PieChart,
+  User,
+  VideoPlay,
+  Table,
+  FileText,
+  UsersGroup,
+} from "@/components/Layouts/sidebar/icons";
 
-const GROUP_ICONS: Record<string, string> = {
-  general: "G",
-  security: "S",
-  limits: "L",
-  overrides: "O",
-  infrastructure: "I",
+const GROUP_ICON_MAP: Record<
+  string,
+  React.ComponentType<React.SVGProps<SVGSVGElement>>
+> = {
+  general: Gear,
+  security: ShieldCheck,
+  limits: ClipboardList,
+  overrides: Authentication,
+  infrastructure: Building,
+  branding: PieChart,
+  student_profile: User,
+  playback: VideoPlay,
+  devices: Table,
+  downloads: FileText,
+  guest: UsersGroup,
+  video_access: VideoPlay,
 };
 
 type GroupEntry = {
@@ -40,8 +63,9 @@ function getGroupDescription(
   );
 }
 
-function GroupIconPlaceholder({ label }: { label: string }) {
-  return <span className="text-sm font-semibold leading-none">{label[0]}</span>;
+function GroupIcon({ group }: { group: string }): ReactNode {
+  const IconComponent = GROUP_ICON_MAP[group] ?? Gear;
+  return <IconComponent width={18} height={18} />;
 }
 
 type SettingsFeatureGroupGridProps = {
@@ -108,7 +132,7 @@ export function SettingsFeatureGroupGrid({
           description={description}
           settingCount={keys.length}
           settingCountLabel={t("pages.settingsFeatureGroups.settingsCount")}
-          icon={<GroupIconPlaceholder label={GROUP_ICONS[group] ?? group} />}
+          icon={<GroupIcon group={group} />}
           onClick={onGroupSelect ? () => onGroupSelect(group) : undefined}
         />
       ))}

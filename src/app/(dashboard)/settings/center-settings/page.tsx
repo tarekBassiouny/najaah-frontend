@@ -1,37 +1,38 @@
 "use client";
 
-import { PlaceholderPage } from "@/components/ui/placeholder-page";
+import { useCallback, useRef } from "react";
+import { PageHeader } from "@/components/ui/page-header";
+import { SettingsFeatureGroupGrid } from "@/features/settings/components";
+import { SystemSettingsCatalogEditor } from "@/features/settings/components";
 import { useTranslation } from "@/features/localization";
 
 export default function SettingsCenterSettingsPage() {
   const { t } = useTranslation();
+  const catalogRef = useRef<HTMLDivElement>(null);
 
-  const items = [
-    {
-      title: t("pages.settingsPlaceholders.center.items.defaults.title"),
-      description: t(
-        "pages.settingsPlaceholders.center.items.defaults.description",
-      ),
-    },
-    {
-      title: t("pages.settingsPlaceholders.center.items.escalations.title"),
-      description: t(
-        "pages.settingsPlaceholders.center.items.escalations.description",
-      ),
-    },
-    {
-      title: t("pages.settingsPlaceholders.center.items.automation.title"),
-      description: t(
-        "pages.settingsPlaceholders.center.items.automation.description",
-      ),
-    },
-  ];
+  const handleGroupSelect = useCallback((group: string) => {
+    if (!catalogRef.current) return;
+
+    const heading = catalogRef.current.querySelector(
+      `[data-settings-group="${group}"]`,
+    );
+    if (heading) {
+      heading.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   return (
-    <PlaceholderPage
-      title={t("pages.settingsPlaceholders.center.title")}
-      description={t("pages.settingsPlaceholders.center.description")}
-      items={items}
-    />
+    <div className="space-y-8">
+      <PageHeader
+        title={t("pages.settingsFeatureGroups.pageTitle")}
+        description={t("pages.settingsFeatureGroups.pageDescription")}
+      />
+
+      <SettingsFeatureGroupGrid onGroupSelect={handleGroupSelect} />
+
+      <div ref={catalogRef}>
+        <SystemSettingsCatalogEditor />
+      </div>
+    </div>
   );
 }

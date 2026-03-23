@@ -28,7 +28,8 @@
       "loading": "Loading...",
       "saving": "Saving...",
       "deleting": "Deleting...",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "reset": "Reset"
     },
     "status": {
       "active": "Active",
@@ -465,6 +466,15 @@
         "modelsRequired": "Add at least one model before saving.",
         "defaultModelInvalid": "Default model must be one of the configured models."
       }
+    },
+    "settingsFeatureGroups": {
+      "pageTitle": "System Settings Overview",
+      "pageDescription": "Browse system setting groups driven by the backend catalog. Click a group to jump to its settings.",
+      "unavailableTitle": "Settings groups unavailable",
+      "unavailableDescription": "The backend catalog could not be loaded. Try refreshing the page.",
+      "emptyMessage": "No settings groups found in the backend catalog.",
+      "settingsCount": "settings",
+      "defaultGroupDescription": "Settings in the {group} group."
     },
     "settingsPlaceholders": {
       "center": {
@@ -1950,6 +1960,11 @@
         "video_access": "Video Access"
       },
       "groupDescriptions": {
+        "general": "Core platform settings such as site name, timezone, and locale.",
+        "security": "Authentication, session, and access control policies.",
+        "limits": "Rate limits, quota caps, and usage boundaries.",
+        "overrides": "Per-center overrides for platform-level defaults.",
+        "infrastructure": "Server, storage, and service configuration.",
         "branding": "Update your center branding.",
         "student_profile": "Configure the student profile fields your center uses.",
         "playback": "Adjust playback and access settings allowed for your center.",

@@ -6,6 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -354,8 +361,8 @@ export function CenterSettingsEditor({
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-56 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-56 w-full rounded-xl" />
       </div>
     );
   }
@@ -392,7 +399,7 @@ export function CenterSettingsEditor({
       ) : null}
 
       {saveSuccess ? (
-        <Alert>
+        <Alert variant="success">
           <AlertTitle>
             {t("pages.dynamicSettings.centerUpdatedTitle")}
           </AlertTitle>
@@ -421,6 +428,7 @@ export function CenterSettingsEditor({
         return (
           <SettingsSectionCard
             key={group}
+            groupId={group}
             title={getDynamicGroupTitle(t, group)}
             description={
               isManagementView
@@ -648,28 +656,33 @@ export function CenterSettingsEditor({
                         <Label className="text-sm font-semibold text-gray-950 dark:text-white">
                           {t("pages.dynamicSettings.defaultModel")}
                         </Label>
-                        <select
+                        <Select
                           value={provider.default_model ?? ""}
-                          onChange={(event) =>
+                          onValueChange={(value) =>
                             setDraftAI((current) => ({
                               ...current,
                               [provider.key]: {
                                 ...current[provider.key],
-                                default_model: event.target.value || null,
+                                default_model: value || null,
                               },
                             }))
                           }
-                          className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-950/40"
                         >
-                          <option value="">
-                            {t("pages.dynamicSettings.selectModel")}
-                          </option>
-                          {defaultModelOptions.map((model) => (
-                            <option key={model} value={model}>
-                              {model}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={t(
+                                "pages.dynamicSettings.selectModel",
+                              )}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {defaultModelOptions.map((model) => (
+                              <SelectItem key={model} value={model}>
+                                {model}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     ) : null}
                   </div>

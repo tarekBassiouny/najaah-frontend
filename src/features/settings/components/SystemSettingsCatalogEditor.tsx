@@ -212,6 +212,7 @@ export function SystemSettingsCatalogEditor() {
       {groups.map(([group, keys]) => (
         <SettingsSectionCard
           key={group}
+          groupId={group}
           title={getDynamicGroupTitle(t, group)}
           description={groupDescription(t, group)}
         >

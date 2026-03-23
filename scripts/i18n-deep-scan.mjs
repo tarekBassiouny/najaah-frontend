@@ -138,7 +138,8 @@ function collectFindings(filePath) {
 
   function visit(node) {
     if (ts.isJsxText(node)) {
-      const line = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+      const line =
+        sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1;
       classify(node.text ?? "", line, "JSXText");
     }
 

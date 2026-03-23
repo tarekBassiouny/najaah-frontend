@@ -466,6 +466,15 @@
         "defaultModelInvalid": "Default model must be one of the configured models."
       }
     },
+    "settingsFeatureGroups": {
+      "pageTitle": "System Settings Overview",
+      "pageDescription": "Browse system setting groups driven by the backend catalog. Click a group to jump to its settings.",
+      "unavailableTitle": "Settings groups unavailable",
+      "unavailableDescription": "The backend catalog could not be loaded. Try refreshing the page.",
+      "emptyMessage": "No settings groups found in the backend catalog.",
+      "settingsCount": "settings",
+      "defaultGroupDescription": "Settings in the {group} group."
+    },
     "settingsPlaceholders": {
       "center": {
         "title": "Center Settings",

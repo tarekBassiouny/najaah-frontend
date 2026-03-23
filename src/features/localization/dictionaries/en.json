@@ -28,7 +28,8 @@
       "loading": "Loading...",
       "saving": "Saving...",
       "deleting": "Deleting...",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "reset": "Reset"
     },
     "status": {
       "active": "Active",
@@ -1959,6 +1960,11 @@
         "video_access": "Video Access"
       },
       "groupDescriptions": {
+        "general": "Core platform settings such as site name, timezone, and locale.",
+        "security": "Authentication, session, and access control policies.",
+        "limits": "Rate limits, quota caps, and usage boundaries.",
+        "overrides": "Per-center overrides for platform-level defaults.",
+        "infrastructure": "Server, storage, and service configuration.",
         "branding": "Update your center branding.",
         "student_profile": "Configure the student profile fields your center uses.",
         "playback": "Adjust playback and access settings allowed for your center.",

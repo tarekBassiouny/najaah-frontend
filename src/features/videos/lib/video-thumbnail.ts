@@ -237,6 +237,23 @@ export function resolveVideoThumbnailState(video: Video): VideoThumbnailState {
       ? video.source_id.trim()
       : null;
 
+  // Custom thumbnail takes priority over all other sources.
+  const customUrl =
+    typeof video.custom_thumbnail_url === "string" &&
+    video.custom_thumbnail_url.trim()
+      ? video.custom_thumbnail_url.trim()
+      : null;
+
+  if (customUrl) {
+    return {
+      imageUrl: customUrl,
+      providerLabel: provider.label,
+      fallbackLabel: provider.label,
+      fallbackHint: provider.domain,
+      source: "backend",
+    };
+  }
+
   if (isUploadSourceVideo(video, provider.key)) {
     if (backendThumbnailUrl) {
       return {

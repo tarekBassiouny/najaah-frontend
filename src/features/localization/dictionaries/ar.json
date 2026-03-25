@@ -1136,9 +1136,13 @@
         "description": "تحديث تفاصيل الدورة واستهداف الظهور.",
         "fields": {
           "title": "العنوان",
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
           "slug": "الرابط المختصر",
           "category": "التصنيف",
           "description": "الوصف",
+          "descriptionEn": "الوصف (EN)",
+          "descriptionAr": "الوصف (AR)",
           "selectCategory": "اختر تصنيفاً",
           "searchCategories": "البحث في التصنيفات...",
           "noCategory": "بلا تصنيف"
@@ -1352,14 +1356,22 @@
         "description": "أضف قسماً ويمكنك إرفاق فيديوهات أو ملفات PDF اختيارياً.",
         "fields": {
           "title": "العنوان *",
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
           "description": "الوصف (EN)",
+          "descriptionEn": "الوصف (EN)",
+          "descriptionAr": "الوصف (AR)",
           "sortOrder": "ترتيب العرض",
           "videos": "الفيديوهات",
           "pdfs": "ملفات PDF"
         },
         "placeholders": {
           "title": "مثال: مقدمة",
+          "titleEn": "مثال: Getting Started",
+          "titleAr": "مثال: مقدمة",
           "description": "وصف اختياري للقسم",
+          "descriptionEn": "وصف اختياري للقسم",
+          "descriptionAr": "وصف اختياري للقسم",
           "sortOrder": "اختياري، مثل: 1",
           "selectVideos": "اختر فيديوهات (اختياري)",
           "searchVideos": "البحث في الفيديوهات...",
@@ -1474,10 +1486,14 @@
         "description": "أنشئ قسماً جديداً بسرعة من مساحة النظرة العامة.",
         "fields": {
           "title": "العنوان *",
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
           "sortOrder": "ترتيب العرض"
         },
         "placeholders": {
           "title": "مثال: مقدمة",
+          "titleEn": "مثال: Introduction",
+          "titleAr": "مثال: مقدمة",
           "sortOrder": "اختياري"
         }
       }
@@ -5915,7 +5931,7 @@
           "headers": {
             "name": "الاسم",
             "stage": "المرحلة",
-            "order": "الترتيب",
+            "studentsCount": "الطلاب",
             "status": "الحالة",
             "actions": "الإجراءات"
           },

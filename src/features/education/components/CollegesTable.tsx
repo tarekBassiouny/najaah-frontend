@@ -351,6 +351,7 @@ export function CollegesTable({
                         {getEducationName(
                           college,
                           t("pages.education.tables.colleges.entityName"),
+                          locale,
                         )}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">

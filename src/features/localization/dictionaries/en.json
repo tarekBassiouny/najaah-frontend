@@ -1136,9 +1136,13 @@
         "description": "Update course details and visibility targeting.",
         "fields": {
           "title": "Title",
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
           "slug": "Slug",
           "category": "Category",
           "description": "Description",
+          "descriptionEn": "Description (EN)",
+          "descriptionAr": "Description (AR)",
           "selectCategory": "Select category",
           "searchCategories": "Search categories...",
           "noCategory": "No category"
@@ -1352,14 +1356,22 @@
         "description": "Add a section and optionally attach videos or PDFs.",
         "fields": {
           "title": "Title *",
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
           "description": "Description (EN)",
+          "descriptionEn": "Description (EN)",
+          "descriptionAr": "Description (AR)",
           "sortOrder": "Sort Order",
           "videos": "Videos",
           "pdfs": "PDFs"
         },
         "placeholders": {
           "title": "e.g., Getting Started",
+          "titleEn": "e.g., Getting Started",
+          "titleAr": "e.g., مقدمة",
           "description": "Optional section description",
+          "descriptionEn": "Optional section description",
+          "descriptionAr": "وصف اختياري للقسم",
           "sortOrder": "Optional, e.g., 1",
           "selectVideos": "Select videos (optional)",
           "searchVideos": "Search videos...",
@@ -1474,10 +1486,14 @@
         "description": "Create a new section quickly from the overview workspace.",
         "fields": {
           "title": "Title *",
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
           "sortOrder": "Sort Order"
         },
         "placeholders": {
           "title": "e.g., Introduction",
+          "titleEn": "e.g., Introduction",
+          "titleAr": "e.g., مقدمة",
           "sortOrder": "Optional"
         }
       }
@@ -5915,7 +5931,7 @@
           "headers": {
             "name": "Name",
             "stage": "Stage",
-            "order": "Order",
+            "studentsCount": "Students",
             "status": "Status",
             "actions": "Actions"
           },

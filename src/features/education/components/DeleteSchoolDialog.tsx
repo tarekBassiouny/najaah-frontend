@@ -50,7 +50,7 @@ export function DeleteSchoolDialog({
   school,
   onSuccess,
 }: DeleteSchoolDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteSchool();
@@ -77,7 +77,7 @@ export function DeleteSchoolDialog({
   };
 
   const schoolLabel = school
-    ? `${getEducationName(school, t("pages.education.tables.schools.entityName"))} (${getSchoolTypeLabel(
+    ? `${getEducationName(school, t("pages.education.tables.schools.entityName"), locale)} (${getSchoolTypeLabel(
         school.type,
         school.type_label,
       )})`

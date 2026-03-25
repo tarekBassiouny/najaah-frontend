@@ -9,6 +9,7 @@ import type {
   CollegeLookupParams,
 } from "@/features/education/types/education";
 import { getEducationName } from "@/features/education/types/education";
+import { useLocale } from "@/features/localization";
 
 const COLLEGE_OPTIONS_DEBOUNCE_MS = 300;
 
@@ -26,8 +27,8 @@ type UseCollegeOptionsParams = {
   enabled?: boolean;
 };
 
-function getCollegeLabel(college: College) {
-  return getEducationName(college, "College");
+function getCollegeLabel(college: College, locale?: string) {
+  return getEducationName(college, "College", locale);
 }
 
 export function useCollegeOptions({
@@ -43,6 +44,7 @@ export function useCollegeOptions({
   noneOptionLabel = "No college",
   enabled = true,
 }: UseCollegeOptionsParams) {
+  const { locale } = useLocale();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const cachedCollegesRef = useRef<Map<string, string>>(new Map());
@@ -80,7 +82,7 @@ export function useCollegeOptions({
     (query.data ?? []).forEach((college) => {
       cachedCollegesRef.current.set(
         String(college.id),
-        getCollegeLabel(college),
+        getCollegeLabel(college, locale),
       );
     });
   }, [query.data]);
@@ -96,7 +98,7 @@ export function useCollegeOptions({
 
     const items = (query.data ?? []).map((college) => ({
       value: String(college.id),
-      label: getCollegeLabel(college),
+      label: getCollegeLabel(college, locale),
     }));
 
     const selectedKeys = Array.from(

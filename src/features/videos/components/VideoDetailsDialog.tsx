@@ -18,6 +18,7 @@ import {
   resolveVideoThumbnailState,
 } from "@/features/videos/lib/video-thumbnail";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { VideoTranscriptPanel } from "./VideoTranscriptPanel";
 
 type VideoDetailsDialogProps = {
@@ -27,21 +28,21 @@ type VideoDetailsDialogProps = {
   video?: Video | null;
 };
 
-function resolveTitle(video?: Video | null) {
-  return (
-    video?.title ??
-    video?.title_translations?.en ??
-    video?.title_translations?.ar ??
-    null
+function resolveTitle(video?: Video | null, locale?: string) {
+  if (!video) return null;
+  return resolveTranslatedValue(
+    video.title_translations as Record<string, string> | null | undefined,
+    locale ?? "en",
+    video.title,
   );
 }
 
-function resolveDescription(video?: Video | null) {
-  return (
-    video?.description ??
-    video?.description_translations?.en ??
-    video?.description_translations?.ar ??
-    null
+function resolveDescription(video?: Video | null, locale?: string) {
+  if (!video) return null;
+  return resolveTranslatedValue(
+    video.description_translations as Record<string, string> | null | undefined,
+    locale ?? "en",
+    video.description,
   );
 }
 
@@ -202,7 +203,7 @@ export function VideoDetailsDialog({
   centerId,
   video,
 }: VideoDetailsDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const videoId = video?.id;
   const shouldFetchDetail = Boolean(open && centerId && videoId != null);
   const {
@@ -216,10 +217,10 @@ export function VideoDetailsDialog({
 
   const activeVideo = fullVideo ?? video;
   const title =
-    resolveTitle(activeVideo) ??
+    resolveTitle(activeVideo, locale) ??
     t("pages.videos.dialogs.details.titleFallback");
   const description =
-    resolveDescription(activeVideo) ??
+    resolveDescription(activeVideo, locale) ??
     t("pages.videos.dialogs.details.descriptionFallback");
   const emptyValue = t("pages.videos.dialogs.details.emptyValue");
   const statusLabels = {

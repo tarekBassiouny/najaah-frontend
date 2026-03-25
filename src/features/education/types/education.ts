@@ -141,15 +141,24 @@ export function getEducationName(
     | null
     | undefined,
   fallbackPrefix: string,
+  locale?: string,
 ) {
   if (!entity) return "—";
+
+  if (locale && entity.name_translations) {
+    const primary = entity.name_translations[locale];
+    if (primary && primary.trim()) return primary.trim();
+    const fallbackLang = locale === "ar" ? "en" : "ar";
+    const secondary = entity.name_translations[fallbackLang];
+    if (secondary && secondary.trim()) return secondary.trim();
+  } else {
+    const englishName = entity.name_translations?.en;
+    if (englishName && englishName.trim()) return englishName.trim();
+    const arabicName = entity.name_translations?.ar;
+    if (arabicName && arabicName.trim()) return arabicName.trim();
+  }
+
   if (entity.name && entity.name.trim()) return entity.name.trim();
-
-  const englishName = entity.name_translations?.en;
-  if (englishName && englishName.trim()) return englishName.trim();
-
-  const arabicName = entity.name_translations?.ar;
-  if (arabicName && arabicName.trim()) return arabicName.trim();
 
   if (entity.id != null) {
     return `${fallbackPrefix} #${entity.id}`;

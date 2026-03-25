@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import type { Category } from "@/features/categories/types/category";
 
 const DEFAULT_PER_PAGE = 10;
@@ -48,13 +49,14 @@ type CategoriesTableProps = {
   onBulkDelete?: (_items: Category[]) => void;
 };
 
-function getCategoryTitle(category: Category) {
-  const translations = category.title_translations;
-  if (translations?.en) return translations.en;
-  if (translations?.ar) return translations.ar;
-  if (category.title) return String(category.title);
-  if (category.name) return String(category.name);
-  return `Category #${category.id}`;
+function getCategoryTitle(category: Category, locale: string) {
+  return (
+    resolveTranslatedValue(
+      category.title_translations,
+      locale,
+      category.title ?? category.name,
+    ) ?? `Category #${category.id}`
+  );
 }
 
 function getParentLabel(category: Category, parentMap: Map<string, string>) {
@@ -86,7 +88,7 @@ export function CategoriesTable({
   onBulkChangeStatus,
   onBulkDelete,
 }: CategoriesTableProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState<number>(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -139,10 +141,10 @@ export function CategoriesTable({
       new Map(
         parentOptions.map((category) => [
           String(category.id),
-          getCategoryTitle(category),
+          getCategoryTitle(category, locale),
         ]),
       ),
-    [parentOptions],
+    [parentOptions, locale],
   );
   const meta = data?.meta;
   const total = meta?.total ?? 0;
@@ -323,7 +325,7 @@ export function CategoriesTable({
             </SelectItem>
             {parentOptions.map((category) => (
               <SelectItem key={category.id} value={String(category.id)}>
-                {getCategoryTitle(category)}
+                {getCategoryTitle(category, locale)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -477,11 +479,11 @@ export function CategoriesTable({
                             selectedCategories[String(category.id)],
                           )}
                           onChange={() => toggleCategorySelection(category)}
-                          aria-label={`Select ${getCategoryTitle(category)}`}
+                          aria-label={`Select ${getCategoryTitle(category, locale)}`}
                         />
                       </TableCell>
                       <TableCell className="font-medium text-gray-900 dark:text-white">
-                        {getCategoryTitle(category)}
+                        {getCategoryTitle(category, locale)}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {getParentLabel(category, parentLabelMap)}

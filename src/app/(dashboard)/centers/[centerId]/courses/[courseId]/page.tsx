@@ -24,6 +24,7 @@ import { VideoCodeBatchesTable } from "@/features/video-code-batches/components/
 import { formatDateTime } from "@/lib/format-date-time";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { getInstructorLabel } from "@/features/courses/utils/course-helpers";
 
 type PageProps = {
@@ -159,10 +160,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   const categoryLabel = (() => {
     const category = cd.category;
     if (category && typeof category === "object") {
-      const label =
-        (typeof category.title === "string" && category.title.trim()) ||
-        (typeof category.name === "string" && category.name.trim()) ||
-        "";
+      const label = resolveTranslatedValue(
+        category.title_translations as
+          | Record<string, string>
+          | null
+          | undefined,
+        locale,
+        (category.title as string) ?? (category.name as string),
+      );
       if (label) return label;
       if (category.id != null && category.id !== "") {
         return t("pages.centerCourseDetail.unknown.categoryById", {
@@ -177,11 +182,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     }
     return "";
   })();
-  const courseTitle = String(
-    cd.title ??
-      cd.name ??
-      t("pages.centerCourseDetail.unknown.courseById", { id: cd.id }),
-  );
+  const courseTitle =
+    resolveTranslatedValue(
+      cd.title_translations as Record<string, string> | null | undefined,
+      locale,
+      cd.title ?? cd.name,
+    ) ?? t("pages.centerCourseDetail.unknown.courseById", { id: cd.id });
   const accessModelLabel = isVideoCodeCourse ? "Video Code" : "Enrollment";
   const assetsWorkspaceHref = `/centers/${centerId}/courses/${courseId}/assets`;
 

@@ -14,6 +14,7 @@ import { useCategoryOptions } from "@/features/categories/hooks/use-category-opt
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { useTranslation } from "@/features/localization";
 import { useLocale } from "@/features/localization/locale-context";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { useTenant } from "@/app/tenant-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -350,7 +351,11 @@ export function CoursesTable({
   };
 
   const getCourseName = (course: CourseRecord) =>
-    String(course.title ?? course.name ?? `Course #${course.id}`);
+    resolveTranslatedValue(
+      course.title_translations as Record<string, string> | null | undefined,
+      locale,
+      course.title ?? course.name,
+    ) ?? `Course #${course.id}`;
 
   const isCoursePublished = (course: CourseRecord) => {
     const value = (course as { is_published?: boolean | null }).is_published;
@@ -759,10 +764,7 @@ export function CoursesTable({
                           checked={Boolean(selectedCourses[String(course.id)])}
                           onChange={() => toggleCourseSelection(course)}
                           aria-label={t("pages.courses.table.selectCourse", {
-                            name:
-                              course.title ??
-                              course.name ??
-                              `course ${course.id}`,
+                            name: getCourseName(course),
                           })}
                         />
                       </TableCell>
@@ -771,15 +773,23 @@ export function CoursesTable({
                           href={viewHref}
                           className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
                         >
-                          {course.title ??
-                            course.name ??
-                            `Course #${course.id}`}
+                          {getCourseName(course)}
                         </Link>
-                        {course.description ? (
-                          <p className="mt-1 line-clamp-1 text-xs font-normal text-gray-500 dark:text-gray-400">
-                            {String(course.description)}
-                          </p>
-                        ) : null}
+                        {(() => {
+                          const desc = resolveTranslatedValue(
+                            course.description_translations as
+                              | Record<string, string>
+                              | null
+                              | undefined,
+                            locale,
+                            course.description as string | null | undefined,
+                          );
+                          return desc ? (
+                            <p className="mt-1 line-clamp-1 text-xs font-normal text-gray-500 dark:text-gray-400">
+                              {desc}
+                            </p>
+                          ) : null;
+                        })()}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {course.language ?? "—"}

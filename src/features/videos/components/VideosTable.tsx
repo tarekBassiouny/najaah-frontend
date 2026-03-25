@@ -5,6 +5,7 @@ import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTenant } from "@/app/tenant-provider";
 import { useTranslation } from "@/features/localization";
 import { useLocale } from "@/features/localization/locale-context";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -98,37 +99,27 @@ function resolveVideoTags(video: Video) {
     .filter(Boolean);
 }
 
-function resolveVideoTitle(video: Video) {
+function resolveVideoTitle(video: Video, locale?: string) {
   return (
-    video.title ??
-    video.title_translations?.en ??
-    video.title_translations?.ar ??
-    "—"
+    resolveTranslatedValue(
+      video.title_translations as Record<string, string> | null | undefined,
+      locale ?? "en",
+      video.title,
+    ) ?? "—"
   );
 }
 
-function resolveVideoDescription(video: Video) {
-  if (typeof video.description === "string" && video.description.trim()) {
-    return video.description.trim();
-  }
-
-  const englishDescription = video.description_translations?.en;
-  if (
-    typeof englishDescription === "string" &&
-    englishDescription.trim().length > 0
-  ) {
-    return englishDescription.trim();
-  }
-
-  const arabicDescription = video.description_translations?.ar;
-  if (
-    typeof arabicDescription === "string" &&
-    arabicDescription.trim().length > 0
-  ) {
-    return arabicDescription.trim();
-  }
-
-  return "";
+function resolveVideoDescription(video: Video, locale?: string) {
+  return (
+    resolveTranslatedValue(
+      video.description_translations as
+        | Record<string, string>
+        | null
+        | undefined,
+      locale ?? "en",
+      video.description,
+    ) ?? ""
+  );
 }
 
 function normalizeStatus(value: unknown) {
@@ -823,7 +814,7 @@ export function VideosTable({
                 </TableRow>
               ) : (
                 items.map((video, _index) => {
-                  const title = resolveVideoTitle(video);
+                  const title = resolveVideoTitle(video, locale);
                   const videoId = String(video.id);
                   const thumbnailState = resolveVideoThumbnailState(video);
                   const canRenderThumbnailImage = Boolean(
@@ -833,7 +824,7 @@ export function VideosTable({
                   const providerLabel = resolveVideoProviderLabel(video);
                   const sourceMode = resolveSourceMode(video, t);
                   const durationSeconds = resolveDurationSeconds(video);
-                  const description = resolveVideoDescription(video);
+                  const description = resolveVideoDescription(video, locale);
                   const transcriptBadge = getTranscriptBadge(video, t);
                   const tableStatus = resolveTableStatus(video);
                   const tableStatusBadge = getStatusBadge(

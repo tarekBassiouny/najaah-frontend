@@ -23,6 +23,7 @@ import {
   useSections,
 } from "@/features/sections/hooks/use-sections";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { SectionMediaManagerDialog } from "@/features/sections/components/SectionMediaManagerDialog";
 import { getSectionApiErrorMessage } from "@/features/sections/lib/api-error";
 import type { Section } from "@/features/sections/types/section";
@@ -67,11 +68,13 @@ function normalizeSectionsValue(value: unknown): Section[] {
     .filter((section): section is Section => section != null);
 }
 
-function getSectionTitle(section: Section, t: TranslateFn) {
+function getSectionTitle(section: Section, t: TranslateFn, locale?: string) {
   return (
-    section.title ??
-    section.name ??
-    t("pages.sectionManager.unknown.sectionById", { id: section.id })
+    resolveTranslatedValue(
+      section.title_translations as Record<string, string> | null | undefined,
+      locale ?? "en",
+      section.title ?? section.name,
+    ) ?? t("pages.sectionManager.unknown.sectionById", { id: section.id })
   );
 }
 
@@ -131,7 +134,7 @@ export function CourseSectionsOverview({
   managerHref,
   initialSections,
 }: CourseSectionsOverviewProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [orderedSections, setOrderedSections] = useState<Section[]>([]);
@@ -146,6 +149,7 @@ export function CourseSectionsOverview({
     useState<MediaManagerState>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
+  const [createTitleAr, setCreateTitleAr] = useState("");
   const [createSortOrder, setCreateSortOrder] = useState("");
   const hasInitialSections = initialSections !== undefined;
   const normalizedInitialSections = useMemo(
@@ -296,6 +300,7 @@ export function CourseSectionsOverview({
 
   const handleCreateSection = () => {
     const title = createTitle.trim();
+    const titleAr = createTitleAr.trim();
     if (!title) {
       setFeedback({
         type: "error",
@@ -325,7 +330,10 @@ export function CourseSectionsOverview({
         centerId,
         courseId,
         payload: {
-          title_translations: { en: title },
+          title_translations: {
+            en: title,
+            ...(titleAr ? { ar: titleAr } : {}),
+          },
           ...(typeof sortOrder === "number" ? { sort_order: sortOrder } : {}),
         },
       },
@@ -333,6 +341,7 @@ export function CourseSectionsOverview({
         onSuccess: (createdSection) => {
           invalidateCourseDetails();
           setCreateTitle("");
+          setCreateTitleAr("");
           setCreateSortOrder("");
           setIsCreateDialogOpen(false);
           setFeedback({
@@ -507,7 +516,7 @@ export function CourseSectionsOverview({
 
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {getSectionTitle(section, t)}
+                        {getSectionTitle(section, t, locale)}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {videoCount}{" "}
@@ -569,8 +578,14 @@ export function CourseSectionsOverview({
                                   </Badge>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {video.title ??
-                                        video.name ??
+                                      {resolveTranslatedValue(
+                                        video.title_translations as
+                                          | Record<string, string>
+                                          | null
+                                          | undefined,
+                                        locale,
+                                        video.title ?? video.name,
+                                      ) ??
                                         t(
                                           "pages.sectionManager.unknown.untitledVideo",
                                         )}
@@ -594,8 +609,14 @@ export function CourseSectionsOverview({
                                   </Badge>
                                   <div className="flex-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {pdf.title ??
-                                        pdf.name ??
+                                      {resolveTranslatedValue(
+                                        pdf.title_translations as
+                                          | Record<string, string>
+                                          | null
+                                          | undefined,
+                                        locale,
+                                        pdf.title ?? pdf.name,
+                                      ) ??
                                         t(
                                           "pages.sectionManager.unknown.untitledPdf",
                                         )}
@@ -638,18 +659,38 @@ export function CourseSectionsOverview({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="create-section-title">
-                {t("pages.courseSectionsOverview.createDialog.fields.title")}
-              </Label>
-              <Input
-                id="create-section-title"
-                value={createTitle}
-                onChange={(event) => setCreateTitle(event.target.value)}
-                placeholder={t(
-                  "pages.courseSectionsOverview.createDialog.placeholders.title",
-                )}
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="create-section-title-en">
+                  {t(
+                    "pages.courseSectionsOverview.createDialog.fields.titleEn",
+                  )}
+                </Label>
+                <Input
+                  id="create-section-title-en"
+                  value={createTitle}
+                  onChange={(event) => setCreateTitle(event.target.value)}
+                  placeholder={t(
+                    "pages.courseSectionsOverview.createDialog.placeholders.titleEn",
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-section-title-ar">
+                  {t(
+                    "pages.courseSectionsOverview.createDialog.fields.titleAr",
+                  )}
+                </Label>
+                <Input
+                  id="create-section-title-ar"
+                  value={createTitleAr}
+                  onChange={(event) => setCreateTitleAr(event.target.value)}
+                  placeholder={t(
+                    "pages.courseSectionsOverview.createDialog.placeholders.titleAr",
+                  )}
+                  dir="rtl"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-section-sort-order">

@@ -38,6 +38,7 @@ import {
 } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 
 const schema = z
   .object({
@@ -65,12 +66,14 @@ type CategoryFormDialogProps = {
   onSaved?: (_value: Category) => void;
 };
 
-function getCategoryTitle(category: Category) {
-  if (category.title_translations?.en) return category.title_translations.en;
-  if (category.title_translations?.ar) return category.title_translations.ar;
-  if (category.title) return String(category.title);
-  if (category.name) return String(category.name);
-  return `Category #${category.id}`;
+function getCategoryTitle(category: Category, locale: string) {
+  return (
+    resolveTranslatedValue(
+      category.title_translations,
+      locale,
+      category.title ?? category.name,
+    ) ?? `Category #${category.id}`
+  );
 }
 
 function getErrorMessage(error: unknown) {
@@ -102,7 +105,7 @@ export function CategoryFormDialog({
   onSuccess,
   onSaved,
 }: CategoryFormDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [formError, setFormError] = useState<string | null>(null);
   const isEditMode = Boolean(category);
@@ -353,7 +356,7 @@ export function CategoryFormDialog({
                         </SelectItem>
                         {filteredParents.map((parent) => (
                           <SelectItem key={parent.id} value={String(parent.id)}>
-                            {getCategoryTitle(parent)}
+                            {getCategoryTitle(parent, locale)}
                           </SelectItem>
                         ))}
                       </SelectContent>

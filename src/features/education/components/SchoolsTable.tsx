@@ -366,6 +366,7 @@ export function SchoolsTable({
                         {getEducationName(
                           school,
                           t("pages.education.tables.schools.entityName"),
+                          locale,
                         )}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">

@@ -38,6 +38,7 @@ import { useModal } from "@/components/ui/modal-store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/features/localization";
 import { useLocale } from "@/features/localization/locale-context";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { resolvePdfExtractionReadiness } from "@/lib/ai-source-readiness";
 
 const DEFAULT_PER_PAGE = 10;
@@ -718,7 +719,12 @@ export function PdfsTable({
                             checked={Boolean(selectedPdfs[String(pdf.id)])}
                             onChange={() => togglePdfSelection(pdf)}
                             aria-label={t("pages.pdfs.table.selectPdf", {
-                              name: pdf.title ?? `pdf ${pdf.id}`,
+                              name:
+                                resolveTranslatedValue(
+                                  pdf.title_translations,
+                                  locale,
+                                  pdf.title,
+                                ) ?? `pdf ${pdf.id}`,
                             })}
                             disabled={isBulkDeleteDialogOpen}
                           />
@@ -727,7 +733,11 @@ export function PdfsTable({
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         <div className="space-y-1">
                           <p className="font-medium text-gray-700 dark:text-gray-300">
-                            {pdf.title ?? "—"}
+                            {resolveTranslatedValue(
+                              pdf.title_translations,
+                              locale,
+                              pdf.title,
+                            ) ?? "—"}
                           </p>
                           {extractionBadge ? (
                             <Badge
@@ -906,7 +916,11 @@ export function PdfsTable({
                                           document.createElement("a");
                                         link.href = url;
                                         link.download =
-                                          pdf.title ?? "document.pdf";
+                                          resolveTranslatedValue(
+                                            pdf.title_translations,
+                                            locale,
+                                            pdf.title,
+                                          ) ?? "document.pdf";
                                         link.click();
                                       } catch {
                                         showToast(

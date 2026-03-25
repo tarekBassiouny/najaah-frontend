@@ -50,7 +50,7 @@ export function DeleteGradeDialog({
   grade,
   onSuccess,
 }: DeleteGradeDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteGrade();
@@ -77,7 +77,7 @@ export function DeleteGradeDialog({
   };
 
   const gradeLabel = grade
-    ? `${getEducationName(grade, t("pages.education.tables.grades.entityName"))} (${getStageLabel(
+    ? `${getEducationName(grade, t("pages.education.tables.grades.entityName"), locale)} (${getStageLabel(
         grade.stage,
         grade.stage_label,
       )})`

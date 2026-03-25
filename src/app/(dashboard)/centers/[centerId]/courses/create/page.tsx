@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
@@ -830,14 +831,13 @@ export default function CenterCoursesCreatePage({ params }: PageProps) {
                     <p className="mb-2 text-sm text-gray-600">
                       {t("pages.courseForm.thumbnail.previewLabel")}
                     </p>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={thumbnailPreview}
                       alt={t("pages.courseForm.thumbnail.previewAlt")}
+                      width={200}
+                      height={128}
+                      unoptimized
                       className="h-32 w-auto rounded-lg border object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
                     />
                   </div>
                 )}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useModal } from "@/components/ui/modal-store";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { useUploadCourseThumbnail } from "@/features/courses/hooks/use-courses";
 import { useTranslation } from "@/features/localization";
 import type { Course } from "@/features/courses/types/course";
@@ -123,8 +124,13 @@ export function CourseThumbnailCard({
 
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/40">
           {displayUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={displayUrl} alt="" className="h-44 w-full object-cover" />
+            <Thumbnail
+              src={displayUrl}
+              widthPx={400}
+              heightPx={176}
+              className="h-44 w-full"
+              fallback={null}
+            />
           ) : (
             <div className="flex h-44 w-full flex-col items-center justify-center text-center">
               <svg

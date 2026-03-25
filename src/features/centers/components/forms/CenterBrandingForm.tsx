@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -129,10 +130,12 @@ function LogoPreviewThumbnail({
         onClick={onExpandClick}
         className="group relative block w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition-colors hover:border-primary/50 dark:border-gray-700 dark:bg-gray-900/50"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={src}
           alt={alt}
+          width={200}
+          height={128}
+          unoptimized
           className="mx-auto h-32 w-auto object-contain p-2"
           onError={onLoadError}
         />
@@ -391,12 +394,14 @@ export function CenterBrandingForm({
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={selectedLogoPreviewUrl}
                       alt={t(
                         "pages.centerSettings.forms.branding.preview.selected",
                       )}
+                      width={200}
+                      height={128}
+                      unoptimized
                       className="mx-auto h-32 w-auto object-contain p-2"
                       onError={() => setSelectedLogoFailed(true)}
                     />
@@ -583,12 +588,14 @@ export function CenterBrandingForm({
                       onClick={handleOpenLogoPreview}
                       className="group relative block w-full overflow-hidden rounded-lg border-2 border-dashed border-green-300 bg-green-50/50 transition-colors hover:border-green-400 dark:border-green-700 dark:bg-green-900/20"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={selectedLogoPreviewUrl}
                         alt={t(
                           "pages.centerSettings.forms.branding.preview.newAlt",
                         )}
+                        width={200}
+                        height={128}
+                        unoptimized
                         className="mx-auto h-32 w-auto object-contain p-2"
                         onError={() => setSelectedLogoFailed(true)}
                       />
@@ -671,8 +678,7 @@ export function CenterBrandingForm({
                       )}
                 </div>
               ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={previewImageUrl}
                   alt={t(
                     "pages.centerSettings.forms.branding.preview.logoAlt",
@@ -680,6 +686,9 @@ export function CenterBrandingForm({
                       name: centerName,
                     },
                   )}
+                  width={600}
+                  height={400}
+                  unoptimized
                   className="mx-auto max-h-[70vh] w-auto rounded-md object-contain"
                   onError={() => setLogoPreviewFailed(true)}
                 />

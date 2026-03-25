@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { can } from "@/lib/capabilities";
@@ -239,11 +240,12 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                   <div className="flex gap-4">
                     {courseThumbnailUrl ? (
                       <div className="hidden flex-none sm:block">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Thumbnail
                           src={courseThumbnailUrl}
-                          alt=""
-                          className="h-[72px] w-[108px] rounded-lg object-cover"
+                          widthPx={108}
+                          heightPx={72}
+                          className="h-[72px] w-[108px] rounded-lg"
+                          fallback={null}
                         />
                       </div>
                     ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -392,12 +393,14 @@ export function VideoDetailsDialog({
                   <p className="text-xs text-gray-500">
                     {t("pages.videos.dialogs.details.fields.thumbnail")}
                   </p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={thumbnailState.imageUrl}
                     alt={t("pages.videos.dialogs.details.thumbnail.alt", {
                       title,
                     })}
+                    width={400}
+                    height={176}
+                    unoptimized
                     className="h-44 w-full rounded-md object-cover"
                     onError={() => setThumbnailLoadFailed(true)}
                   />

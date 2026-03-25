@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
@@ -861,18 +862,31 @@ export function VideosTable({
                       ) : null}
                       <TableCell>
                         {canRenderThumbnailImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={thumbnailState.imageUrl ?? undefined}
+                          <Thumbnail
+                            src={thumbnailState.imageUrl}
                             alt={`${title} thumbnail`}
-                            className="h-10 w-16 rounded-md border border-gray-200 object-cover dark:border-gray-700"
-                            loading="lazy"
+                            widthPx={64}
+                            heightPx={40}
+                            className="h-10 w-16 rounded-md border border-gray-200 dark:border-gray-700"
                             onError={() => {
                               setFailedThumbnailIds((prev) => ({
                                 ...prev,
                                 [videoId]: true,
                               }));
                             }}
+                            fallback={
+                              <div className="flex h-10 w-16 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-1 text-center dark:border-gray-700 dark:bg-gray-900">
+                                <span className="line-clamp-1 text-[9px] font-medium text-gray-500 dark:text-gray-400">
+                                  {thumbnailState.fallbackLabel}
+                                </span>
+                                <span className="line-clamp-1 text-[8px] text-gray-400 dark:text-gray-500">
+                                  {thumbnailState.fallbackHint ??
+                                    t(
+                                      "pages.videos.table.thumbnail.noThumbnail",
+                                    )}
+                                </span>
+                              </div>
+                            }
                           />
                         ) : (
                           <div className="flex h-10 w-16 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-1 text-center dark:border-gray-700 dark:bg-gray-900">

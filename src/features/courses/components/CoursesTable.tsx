@@ -30,6 +30,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -778,16 +779,12 @@ export function CoursesTable({
                         />
                       </TableCell>
                       <TableCell className="w-16 py-2">
-                        {(() => {
-                          const thumbUrl = resolveCourseThumbnail(course);
-                          return thumbUrl ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={thumbUrl}
-                              alt=""
-                              className="h-9 w-14 rounded object-cover"
-                            />
-                          ) : (
+                        <Thumbnail
+                          src={resolveCourseThumbnail(course)}
+                          widthPx={56}
+                          heightPx={36}
+                          className="h-9 w-14 rounded"
+                          fallback={
                             <div className="flex h-9 w-14 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
                               <svg
                                 className="h-4 w-4 text-gray-400 dark:text-gray-500"
@@ -803,8 +800,8 @@ export function CoursesTable({
                                 />
                               </svg>
                             </div>
-                          );
-                        })()}
+                          }
+                        />
                       </TableCell>
                       <TableCell className="font-medium text-gray-900 dark:text-white">
                         <Link

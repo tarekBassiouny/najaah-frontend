@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -1362,14 +1363,16 @@ export function VideoFormDialog({
                 </div>
                 {thumbnailPreview || currentThumbnailState?.imageUrl ? (
                   <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={
                         thumbnailPreview ??
                         currentThumbnailState?.imageUrl ??
                         ""
                       }
                       alt={t("pages.videos.dialogs.form.thumbnailPreview.alt")}
+                      width={400}
+                      height={176}
+                      unoptimized
                       className="h-44 w-full object-cover"
                     />
                   </div>
@@ -1452,8 +1455,7 @@ export function VideoFormDialog({
                     </div>
                     {urlThumbnailPreview.imageUrl ? (
                       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={urlThumbnailPreview.imageUrl}
                           alt={t(
                             "pages.videos.dialogs.form.thumbnailPreview.providerAlt",
@@ -1461,6 +1463,9 @@ export function VideoFormDialog({
                               provider: urlThumbnailPreview.providerLabel,
                             },
                           )}
+                          width={400}
+                          height={176}
+                          unoptimized
                           className="h-44 w-full object-cover"
                         />
                       </div>

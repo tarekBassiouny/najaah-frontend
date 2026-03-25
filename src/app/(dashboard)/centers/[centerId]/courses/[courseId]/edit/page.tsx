@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
@@ -886,10 +887,12 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                   </p>
                   {currentThumbnail && !currentThumbnailFailed ? (
                     <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={currentThumbnail}
                         alt={t("pages.centerCourseEdit.thumbnail.currentAlt")}
+                        width={280}
+                        height={160}
+                        unoptimized
                         className="h-40 w-auto rounded-lg border object-cover"
                         onError={() => setCurrentThumbnailFailed(true)}
                       />
@@ -923,14 +926,13 @@ export default function CenterCourseEditPage({ params }: PageProps) {
                         {t("pages.courseForm.actions.clear")}
                       </Button>
                     </div>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={thumbnailPreview}
                       alt={t("pages.courseForm.thumbnail.previewAlt")}
+                      width={280}
+                      height={160}
+                      unoptimized
                       className="h-40 w-auto rounded-lg border object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
                     />
                     <p className="truncate text-xs text-gray-500">
                       {thumbnailFile?.name}

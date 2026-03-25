@@ -85,7 +85,7 @@ export function useCollegeOptions({
         getCollegeLabel(college, locale),
       );
     });
-  }, [query.data]);
+  }, [query.data, locale]);
 
   const options = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [];
@@ -133,6 +133,7 @@ export function useCollegeOptions({
     includeNoneOption,
     noneOptionLabel,
     noneOptionValue,
+    locale,
     query.data,
     selectedValue,
     selectedValues,

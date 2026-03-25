@@ -83,7 +83,7 @@ export function useGradeOptions({
         getGradeLabel(grade, locale),
       );
     });
-  }, [query.data]);
+  }, [query.data, locale]);
 
   const options = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [];
@@ -133,6 +133,7 @@ export function useGradeOptions({
     includeNoneOption,
     noneOptionLabel,
     noneOptionValue,
+    locale,
     query.data,
     selectedValue,
     selectedValues,

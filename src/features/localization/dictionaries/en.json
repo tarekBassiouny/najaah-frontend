@@ -1494,6 +1494,10 @@
         "titleRequired": "Section title is required.",
         "sortOrderInvalid": "Sort order must be a non-negative integer."
       },
+      "media": {
+        "pageSingular": "page",
+        "pagePlural": "pages"
+      },
       "createDialog": {
         "description": "Create a new section quickly from the overview workspace.",
         "fields": {

@@ -31,6 +31,8 @@ export type Pdf = {
   course_id?: string | number | null;
   courses_count?: number | null;
   sections_count?: number | null;
+  thumbnail_url?: string | null;
+  pages_count?: number | null;
   can_delete?: boolean | null;
   [key: string]: unknown;
 };

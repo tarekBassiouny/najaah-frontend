@@ -1494,6 +1494,10 @@
         "titleRequired": "عنوان القسم مطلوب.",
         "sortOrderInvalid": "ترتيب العرض يجب أن يكون رقماً صحيحاً غير سالب."
       },
+      "media": {
+        "pageSingular": "صفحة",
+        "pagePlural": "صفحات"
+      },
       "createDialog": {
         "description": "أنشئ قسماً جديداً بسرعة من مساحة النظرة العامة.",
         "fields": {

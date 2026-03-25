@@ -211,6 +211,40 @@ export function getAdminApiFirstFieldError(error: unknown): string | null {
   return extractFirstMessage(getAdminApiFieldErrors(error));
 }
 
+/**
+ * Extract all per-field validation messages from a backend error response.
+ * Returns `{ field: ["msg1", "msg2"] }` or `undefined` if not a validation error.
+ */
+export function getAdminApiValidationErrors(
+  error: unknown,
+): Record<string, string[]> | undefined {
+  const fieldErrors = getAdminApiFieldErrors(error);
+  if (!fieldErrors) return undefined;
+
+  const result: Record<string, string[]> = {};
+  for (const [field, value] of Object.entries(fieldErrors)) {
+    if (Array.isArray(value)) {
+      const messages = value
+        .map((v) => (typeof v === "string" ? v.trim() : ""))
+        .filter(Boolean);
+      if (messages.length > 0) result[field] = messages;
+    } else if (typeof value === "string" && value.trim()) {
+      result[field] = [value.trim()];
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Flatten all per-field validation messages into a single array of strings.
+ */
+export function getAdminApiAllValidationMessages(error: unknown): string[] {
+  const fieldErrors = getAdminApiValidationErrors(error);
+  if (!fieldErrors) return [];
+  return Object.values(fieldErrors).flat();
+}
+
 export function getAdminApiErrorMessage(
   error: unknown,
   fallback: string,

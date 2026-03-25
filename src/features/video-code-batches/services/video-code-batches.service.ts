@@ -164,6 +164,7 @@ async function rethrowRequestError(
     );
     throw new Error(
       blobMessage ?? getAdminApiErrorMessage(error, fallbackMessage),
+      { cause: error },
     );
   }
 

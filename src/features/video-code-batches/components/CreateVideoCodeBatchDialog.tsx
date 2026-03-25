@@ -21,6 +21,7 @@ import { useCenterCourses } from "@/features/courses/hooks/use-courses";
 import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTranslation } from "@/features/localization";
 import { useCreateVideoCodeBatch } from "@/features/video-code-batches/hooks/use-video-code-batches";
+import { getAdminApiAllValidationMessages } from "@/lib/admin-response";
 import type { VideoCodeBatch } from "@/features/video-code-batches/types/video-code-batch";
 
 type SelectionPreset = {
@@ -61,7 +62,7 @@ export function CreateVideoCodeBatchDialog({
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState("100");
   const [viewLimitPerCode, setViewLimitPerCode] = useState("2");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -70,7 +71,7 @@ export function CreateVideoCodeBatchDialog({
     setSelectedVideoId(videoPreset ? String(videoPreset.id) : null);
     setQuantity("100");
     setViewLimitPerCode("2");
-    setErrorMessage(null);
+    setErrorMessages([]);
   }, [coursePreset, open, videoPreset]);
 
   useEffect(() => {
@@ -158,28 +159,28 @@ export function CreateVideoCodeBatchDialog({
   const isSubmitting = createMutation.isPending;
 
   const handleSubmit = () => {
-    setErrorMessage(null);
+    setErrorMessages([]);
 
     const parsedQuantity = Number(quantity);
     const parsedViewLimit = Number(viewLimitPerCode);
 
     if (!resolvedCourseId) {
-      setErrorMessage(dialogT("errors.selectCourse"));
+      setErrorMessages([dialogT("errors.selectCourse")]);
       return;
     }
 
     if (!selectedVideoId && !videoPreset) {
-      setErrorMessage(dialogT("errors.selectVideo"));
+      setErrorMessages([dialogT("errors.selectVideo")]);
       return;
     }
 
     if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
-      setErrorMessage(dialogT("errors.invalidQuantity"));
+      setErrorMessages([dialogT("errors.invalidQuantity")]);
       return;
     }
 
     if (!Number.isFinite(parsedViewLimit) || parsedViewLimit < 1) {
-      setErrorMessage(dialogT("errors.invalidViewLimit"));
+      setErrorMessages([dialogT("errors.invalidViewLimit")]);
       return;
     }
 
@@ -200,11 +201,19 @@ export function CreateVideoCodeBatchDialog({
           onOpenChange(false);
         },
         onError: (error) => {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : dialogT("errors.createFailed"),
-          );
+          // Extract per-field validation messages from the original axios error
+          const cause = error instanceof Error ? error.cause : undefined;
+          const fieldMessages = getAdminApiAllValidationMessages(cause);
+
+          if (fieldMessages.length > 0) {
+            setErrorMessages(fieldMessages);
+          } else {
+            setErrorMessages([
+              error instanceof Error
+                ? error.message
+                : dialogT("errors.createFailed"),
+            ]);
+          }
         },
       },
     );
@@ -227,14 +236,24 @@ export function CreateVideoCodeBatchDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {errorMessage ? (
+          {errorMessages.length > 0 ? (
             <Alert variant="destructive">
               <AlertTitle>
                 {t(
                   "auto.features.video_code_batches.components.createvideocodebatchdialog.errorTitle",
                 )}
               </AlertTitle>
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>
+                {errorMessages.length === 1 ? (
+                  errorMessages[0]
+                ) : (
+                  <ul className="list-inside list-disc space-y-1">
+                    {errorMessages.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
+              </AlertDescription>
             </Alert>
           ) : null}
 

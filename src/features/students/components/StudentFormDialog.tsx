@@ -37,8 +37,8 @@ import {
 } from "@/features/students/hooks/use-students";
 import type { Student } from "@/features/students/types/student";
 import {
+  getAdminApiAllValidationMessages,
   getAdminApiErrorMessage,
-  getAdminApiFirstFieldError,
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
@@ -113,16 +113,15 @@ type StudentFormDialogProps = {
   onCreated?: (_student: Student) => void;
 };
 
-function getErrorMessage(error: unknown, t: TranslateFunction) {
-  const fieldMessage = getAdminApiFirstFieldError(error);
-  if (fieldMessage) {
-    return fieldMessage;
-  }
-
-  return getAdminApiErrorMessage(
-    error,
-    t("pages.students.dialogs.form.errors.saveFailed"),
-  );
+function getErrorMessages(error: unknown, t: TranslateFunction): string[] {
+  const fieldMessages = getAdminApiAllValidationMessages(error);
+  if (fieldMessages.length > 0) return fieldMessages;
+  return [
+    getAdminApiErrorMessage(
+      error,
+      t("pages.students.dialogs.form.errors.saveFailed"),
+    ),
+  ];
 }
 
 export function StudentFormDialog({
@@ -137,7 +136,7 @@ export function StudentFormDialog({
   const { t } = useTranslation();
   const schema = useMemo(() => buildSchema(t), [t]);
 
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditMode = Boolean(student);
 
@@ -166,7 +165,7 @@ export function StudentFormDialog({
   useEffect(() => {
     if (!open) return;
 
-    setFormError(null);
+    setFormErrors([]);
     setShowAdvanced(false);
     form.reset({
       name: student?.name ? String(student.name) : "",
@@ -193,7 +192,7 @@ export function StudentFormDialog({
   }, [centerId, form, open, student]);
 
   const onSubmit = (values: FormValues) => {
-    setFormError(null);
+    setFormErrors([]);
 
     const normalizedPhone = normalizePhone(values.phone);
     const normalizedCountryCode = normalizeCountryCode(values.countryCode);
@@ -243,12 +242,12 @@ export function StudentFormDialog({
         {
           onSuccess: (response) => {
             if (!isAdminRequestSuccessful(response)) {
-              setFormError(
+              setFormErrors([
                 getAdminResponseMessage(
                   response,
                   t("pages.students.dialogs.form.errors.saveFailed"),
                 ),
-              );
+              ]);
               return;
             }
             onOpenChange(false);
@@ -259,7 +258,7 @@ export function StudentFormDialog({
               ),
             );
           },
-          onError: (error) => setFormError(getErrorMessage(error, t)),
+          onError: (error) => setFormErrors(getErrorMessages(error, t)),
         },
       );
       return;
@@ -268,12 +267,12 @@ export function StudentFormDialog({
     createMutation.mutate(payload, {
       onSuccess: (createdStudent) => {
         if (!isAdminRequestSuccessful(createdStudent)) {
-          setFormError(
+          setFormErrors([
             getAdminResponseMessage(
               createdStudent,
               t("pages.students.dialogs.form.errors.saveFailed"),
             ),
-          );
+          ]);
           return;
         }
         onOpenChange(false);
@@ -294,7 +293,7 @@ export function StudentFormDialog({
             } as Student),
         );
       },
-      onError: (error) => setFormError(getErrorMessage(error, t)),
+      onError: (error) => setFormErrors(getErrorMessages(error, t)),
     });
   };
 
@@ -355,12 +354,22 @@ export function StudentFormDialog({
           </Button>
         </div>
 
-        {formError && (
+        {formErrors.length > 0 && (
           <Alert variant="destructive">
             <AlertTitle>
               {t("pages.students.dialogs.form.errors.errorTitle")}
             </AlertTitle>
-            <AlertDescription>{formError}</AlertDescription>
+            <AlertDescription>
+              {formErrors.length === 1 ? (
+                formErrors[0]
+              ) : (
+                <ul className="list-inside list-disc space-y-1">
+                  {formErrors.map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              )}
+            </AlertDescription>
           </Alert>
         )}
 

@@ -27,6 +27,8 @@ import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { SectionMediaManagerDialog } from "@/features/sections/components/SectionMediaManagerDialog";
 import { getSectionApiErrorMessage } from "@/features/sections/lib/api-error";
 import type { Section } from "@/features/sections/types/section";
+import { resolveVideoThumbnailState } from "@/features/videos/lib/video-thumbnail";
+import type { Video } from "@/features/videos/types/video";
 import { cn } from "@/lib/utils";
 
 type CourseSectionsOverviewProps = {
@@ -566,36 +568,65 @@ export function CourseSectionsOverview({
                         ) : (
                           <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-dark">
                             <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                              {videos.map((video, videoIndex) => (
-                                <li
-                                  key={`${sectionKey}-video-${video.id ?? videoIndex}`}
-                                  className="flex items-center gap-3 px-3 py-3 text-sm"
-                                >
-                                  <Badge variant="secondary">
-                                    {t(
-                                      "pages.sectionManager.media.videoSingular",
+                              {videos.map((video, videoIndex) => {
+                                const thumbState = resolveVideoThumbnailState(
+                                  video as unknown as Video,
+                                );
+                                return (
+                                  <li
+                                    key={`${sectionKey}-video-${video.id ?? videoIndex}`}
+                                    className="flex items-center gap-3 px-3 py-2 text-sm"
+                                  >
+                                    {thumbState.imageUrl ? (
+                                      /* eslint-disable-next-line @next/next/no-img-element */
+                                      <img
+                                        src={thumbState.imageUrl}
+                                        alt=""
+                                        className="h-9 w-14 flex-none rounded object-cover"
+                                      />
+                                    ) : (
+                                      <div className="flex h-9 w-14 flex-none items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
+                                        <svg
+                                          className="h-4 w-4 text-gray-400 dark:text-gray-500"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth={1.5}
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+                                          />
+                                        </svg>
+                                      </div>
                                     )}
-                                  </Badge>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {resolveTranslatedValue(
-                                        video.title_translations as
-                                          | Record<string, string>
-                                          | null
-                                          | undefined,
-                                        locale,
-                                        video.title ?? video.name,
-                                      ) ??
-                                        t(
-                                          "pages.sectionManager.unknown.untitledVideo",
-                                        )}
-                                    </p>
-                                  </div>
-                                  <span className="text-xs text-gray-400">
-                                    {formatDuration(video.duration)}
-                                  </span>
-                                </li>
-                              ))}
+                                    <Badge variant="secondary">
+                                      {t(
+                                        "pages.sectionManager.media.videoSingular",
+                                      )}
+                                    </Badge>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {resolveTranslatedValue(
+                                          video.title_translations as
+                                            | Record<string, string>
+                                            | null
+                                            | undefined,
+                                          locale,
+                                          video.title ?? video.name,
+                                        ) ??
+                                          t(
+                                            "pages.sectionManager.unknown.untitledVideo",
+                                          )}
+                                      </p>
+                                    </div>
+                                    <span className="text-xs text-gray-400">
+                                      {formatDuration(video.duration)}
+                                    </span>
+                                  </li>
+                                );
+                              })}
 
                               {pdfs.map((pdf, pdfIndex) => (
                                 <li

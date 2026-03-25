@@ -1185,6 +1185,18 @@
         "description": "هل أنت متأكد من إزالة هذا المدرب من الدورة؟",
         "descriptionWithName": "هل أنت متأكد من إزالة \"{name}\" من الدورة؟"
       },
+      "thumbnail": {
+        "title": "صورة الدورة",
+        "description": "ارفع أو غيّر صورة غلاف الدورة. الحجم الموصى به: 800×450 (16:9).",
+        "noThumbnail": "لم يتم رفع صورة مصغرة",
+        "previewHint": "هذه معاينة محلية. انقر رفع للحفظ.",
+        "upload": "رفع",
+        "uploading": "جاري الرفع...",
+        "uploadSuccess": "تم تحديث الصورة المصغرة بنجاح.",
+        "uploadFailed": "فشل رفع الصورة المصغرة. يرجى المحاولة مرة أخرى.",
+        "errorInvalidType": "يُقبل فقط صور JPEG و PNG و WebP.",
+        "errorTooLarge": "يجب أن يكون حجم الصورة أقل من {max} ميجابايت."
+      },
       "unknown": {
         "instructor": "مدرب غير معروف",
         "instructorById": "المدرب #{id}",

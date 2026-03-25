@@ -1185,6 +1185,18 @@
         "description": "Are you sure you want to remove this instructor from the course?",
         "descriptionWithName": "Are you sure you want to remove \"{name}\" from the course?"
       },
+      "thumbnail": {
+        "title": "Course Thumbnail",
+        "description": "Upload or change the course cover image. Recommended size: 800x450 (16:9).",
+        "noThumbnail": "No thumbnail uploaded",
+        "previewHint": "This is a local preview. Click Upload to save.",
+        "upload": "Upload",
+        "uploading": "Uploading...",
+        "uploadSuccess": "Thumbnail updated successfully.",
+        "uploadFailed": "Failed to upload thumbnail. Please try again.",
+        "errorInvalidType": "Only JPEG, PNG, and WebP images are accepted.",
+        "errorTooLarge": "Image must be smaller than {max} MB."
+      },
       "unknown": {
         "instructor": "Unknown instructor",
         "instructorById": "Instructor #{id}",

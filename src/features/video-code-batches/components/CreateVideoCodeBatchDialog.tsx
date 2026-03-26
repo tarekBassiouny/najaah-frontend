@@ -236,9 +236,7 @@ export function CreateVideoCodeBatchDialog({
 
     if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
       nextErrors.push(dialogT("errors.invalidQuantity"));
-    } else if (
-      parsedQuantity > effectiveMaxQuantity
-    ) {
+    } else if (parsedQuantity > effectiveMaxQuantity) {
       nextErrors.push(
         dialogT("errors.maxQuantityExceeded", { count: effectiveMaxQuantity }),
       );
@@ -379,9 +377,7 @@ export function CreateVideoCodeBatchDialog({
                 id="video-code-batch-quantity"
                 type="number"
                 min="1"
-                max={
-                  String(effectiveMaxQuantity)
-                }
+                max={String(effectiveMaxQuantity)}
                 value={quantity}
                 onChange={(event) => setQuantity(event.target.value)}
                 disabled={isSubmitting || isPolicyLoading}
@@ -433,9 +429,7 @@ export function CreateVideoCodeBatchDialog({
             onClick={handleSubmit}
             disabled={isSubmitting || isPolicyLoading}
           >
-            {isSubmitting
-              ? dialogT("creating")
-              : dialogT("createBatch")}
+            {isSubmitting ? dialogT("creating") : dialogT("createBatch")}
           </Button>
         </DialogFooter>
       </DialogContent>

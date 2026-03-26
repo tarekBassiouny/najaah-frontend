@@ -64,6 +64,7 @@ import { formatDateTime } from "@/lib/format-date-time";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 
 const DEFAULT_PER_PAGE = 10;
 const MEDIA_PICKER_PAGE_SIZE = 20;
@@ -107,11 +108,13 @@ const statusConfig: Record<string, { variant: BadgeVariant; label: string }> = {
   failed: { variant: "error", label: "failed" },
 };
 
-function getSectionTitle(section: Section, t: TranslateFn) {
+function getSectionTitle(section: Section, t: TranslateFn, locale?: string) {
   return (
-    section.title ??
-    section.name ??
-    t("pages.sectionManager.unknown.sectionById", { id: section.id })
+    resolveTranslatedValue(
+      section.title_translations as Record<string, string> | null | undefined,
+      locale ?? "en",
+      section.title ?? section.name,
+    ) ?? t("pages.sectionManager.unknown.sectionById", { id: section.id })
   );
 }
 
@@ -251,7 +254,7 @@ export function SectionManager({
   backHref,
   breadcrumbs,
 }: SectionManagerProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
@@ -278,7 +281,9 @@ export function SectionManager({
   >(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
+  const [createTitleAr, setCreateTitleAr] = useState("");
   const [createDescription, setCreateDescription] = useState("");
+  const [createDescriptionAr, setCreateDescriptionAr] = useState("");
   const [createSortOrder, setCreateSortOrder] = useState("");
   const [selectedVideoIds, setSelectedVideoIds] = useState<string[]>([]);
   const [selectedPdfIds, setSelectedPdfIds] = useState<string[]>([]);
@@ -575,7 +580,9 @@ export function SectionManager({
 
   const resetCreateForm = () => {
     setCreateTitle("");
+    setCreateTitleAr("");
     setCreateDescription("");
+    setCreateDescriptionAr("");
     setCreateSortOrder("");
     setSelectedVideoIds([]);
     setSelectedPdfIds([]);
@@ -751,7 +758,9 @@ export function SectionManager({
 
   const handleCreateSection = () => {
     const title = createTitle.trim();
+    const titleAr = createTitleAr.trim();
     const description = createDescription.trim();
+    const descriptionAr = createDescriptionAr.trim();
     const sortOrderRaw = createSortOrder.trim();
 
     if (!title) {
@@ -781,8 +790,15 @@ export function SectionManager({
     const hasStructureMedia = videoIds.length > 0 || pdfIds.length > 0;
 
     const basePayload = {
-      title_translations: { en: title },
-      ...(description ? { description_translations: { en: description } } : {}),
+      title_translations: { en: title, ...(titleAr ? { ar: titleAr } : {}) },
+      ...(description || descriptionAr
+        ? {
+            description_translations: {
+              ...(description ? { en: description } : {}),
+              ...(descriptionAr ? { ar: descriptionAr } : {}),
+            },
+          }
+        : {}),
       ...(typeof sortOrder === "number" ? { sort_order: sortOrder } : {}),
     };
 
@@ -1294,13 +1310,13 @@ export function SectionManager({
                                 aria-label={t(
                                   "pages.sectionManager.table.selectOne",
                                   {
-                                    name: getSectionTitle(section, t),
+                                    name: getSectionTitle(section, t, locale),
                                   },
                                 )}
                               />
                             </TableCell>
                             <TableCell className="font-medium text-gray-900 dark:text-white">
-                              {getSectionTitle(section, t)}
+                              {getSectionTitle(section, t, locale)}
                             </TableCell>
                             <TableCell className="text-gray-500 dark:text-gray-400">
                               {section.order_index ?? section.sort_order ?? "—"}
@@ -1501,7 +1517,7 @@ export function SectionManager({
           <DialogHeader className="space-y-2">
             <DialogTitle>
               {detailsSectionData
-                ? getSectionTitle(detailsSectionData, t)
+                ? getSectionTitle(detailsSectionData, t, locale)
                 : t("pages.sectionManager.details.defaultTitle")}
             </DialogTitle>
             <DialogDescription>
@@ -1668,8 +1684,14 @@ export function SectionManager({
                           className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800/60"
                         >
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {video.title ??
-                              video.name ??
+                            {resolveTranslatedValue(
+                              video.title_translations as
+                                | Record<string, string>
+                                | null
+                                | undefined,
+                              locale,
+                              video.title ?? video.name,
+                            ) ??
                               t("pages.sectionManager.unknown.untitledVideo")}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -1700,9 +1722,14 @@ export function SectionManager({
                           className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800/60"
                         >
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {pdf.title ??
-                              pdf.name ??
-                              t("pages.sectionManager.unknown.untitledPdf")}
+                            {resolveTranslatedValue(
+                              pdf.title_translations as
+                                | Record<string, string>
+                                | null
+                                | undefined,
+                              locale,
+                              pdf.title ?? pdf.name,
+                            ) ?? t("pages.sectionManager.unknown.untitledPdf")}
                           </p>
                           <p className="text-xs text-gray-500">
                             {t("pages.sectionManager.details.labels.id")}:{" "}
@@ -1859,33 +1886,68 @@ export function SectionManager({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="create-section-title">
-                {t("pages.sectionManager.createDialog.fields.title")}
-              </Label>
-              <Input
-                id="create-section-title"
-                value={createTitle}
-                onChange={(event) => setCreateTitle(event.target.value)}
-                placeholder={t(
-                  "pages.sectionManager.createDialog.placeholders.title",
-                )}
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="create-section-title-en">
+                  {t("pages.sectionManager.createDialog.fields.titleEn")}
+                </Label>
+                <Input
+                  id="create-section-title-en"
+                  value={createTitle}
+                  onChange={(event) => setCreateTitle(event.target.value)}
+                  placeholder={t(
+                    "pages.sectionManager.createDialog.placeholders.titleEn",
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-section-title-ar">
+                  {t("pages.sectionManager.createDialog.fields.titleAr")}
+                </Label>
+                <Input
+                  id="create-section-title-ar"
+                  value={createTitleAr}
+                  onChange={(event) => setCreateTitleAr(event.target.value)}
+                  placeholder={t(
+                    "pages.sectionManager.createDialog.placeholders.titleAr",
+                  )}
+                  dir="rtl"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="create-section-description">
-                {t("pages.sectionManager.createDialog.fields.description")}
-              </Label>
-              <Textarea
-                id="create-section-description"
-                value={createDescription}
-                onChange={(event) => setCreateDescription(event.target.value)}
-                rows={3}
-                placeholder={t(
-                  "pages.sectionManager.createDialog.placeholders.description",
-                )}
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="create-section-description-en">
+                  {t("pages.sectionManager.createDialog.fields.descriptionEn")}
+                </Label>
+                <Textarea
+                  id="create-section-description-en"
+                  value={createDescription}
+                  onChange={(event) => setCreateDescription(event.target.value)}
+                  rows={3}
+                  placeholder={t(
+                    "pages.sectionManager.createDialog.placeholders.descriptionEn",
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-section-description-ar">
+                  {t("pages.sectionManager.createDialog.fields.descriptionAr")}
+                </Label>
+                <Textarea
+                  id="create-section-description-ar"
+                  value={createDescriptionAr}
+                  onChange={(event) =>
+                    setCreateDescriptionAr(event.target.value)
+                  }
+                  rows={3}
+                  placeholder={t(
+                    "pages.sectionManager.createDialog.placeholders.descriptionAr",
+                  )}
+                  dir="rtl"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

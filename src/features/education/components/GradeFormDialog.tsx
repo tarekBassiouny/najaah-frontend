@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,9 +39,9 @@ import {
   useUpdateGrade,
 } from "@/features/education/hooks/use-grades";
 import {
+  getAdminApiAllValidationMessages,
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
-  getAdminApiFirstFieldError,
 } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
 
@@ -62,27 +62,30 @@ type GradeFormDialogProps = {
   onSaved?: (_grade: Grade) => void;
 };
 
-function getErrorMessage(
+function getErrorMessages(
   error: unknown,
   t: (_key: string, _params?: Record<string, string | number>) => string,
-) {
+): string[] {
   const code = getAdminApiErrorCode(error);
   if (code === "DUPLICATE_SLUG") {
-    return t("pages.education.dialogs.gradeForm.errors.duplicateSlug");
+    return [t("pages.education.dialogs.gradeForm.errors.duplicateSlug")];
   }
+
+  const fieldMessages = getAdminApiAllValidationMessages(error);
+  if (fieldMessages.length > 0) {
+    return fieldMessages;
+  }
+
   if (code === "VALIDATION_ERROR") {
-    return t("pages.education.dialogs.gradeForm.errors.validation");
+    return [t("pages.education.dialogs.gradeForm.errors.validation")];
   }
 
-  const fieldMessage = getAdminApiFirstFieldError(error);
-  if (fieldMessage) {
-    return fieldMessage;
-  }
-
-  return getAdminApiErrorMessage(
-    error,
-    t("pages.education.dialogs.gradeForm.errors.fallback"),
-  );
+  return [
+    getAdminApiErrorMessage(
+      error,
+      t("pages.education.dialogs.gradeForm.errors.fallback"),
+    ),
+  ];
 }
 
 export function GradeFormDialog({
@@ -111,6 +114,7 @@ export function GradeFormDialog({
     });
 
   const isEditMode = Boolean(grade);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const createMutation = useCreateGrade();
   const updateMutation = useUpdateGrade();
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -129,6 +133,7 @@ export function GradeFormDialog({
   useEffect(() => {
     if (!open) return;
 
+    setFormErrors([]);
     form.reset({
       nameEn: grade?.name_translations?.en ?? "",
       nameAr: grade?.name_translations?.ar ?? "",
@@ -145,6 +150,8 @@ export function GradeFormDialog({
   }, [form, grade, open]);
 
   const onSubmit = (values: FormValues) => {
+    setFormErrors([]);
+
     const payload = {
       name_translations: {
         ...(values.nameEn ? { en: values.nameEn } : {}),
@@ -164,14 +171,13 @@ export function GradeFormDialog({
         },
         {
           onSuccess: (savedGrade) => {
+            setFormErrors([]);
             onOpenChange(false);
             onSaved?.(savedGrade);
             onSuccess?.(t("pages.education.dialogs.gradeForm.success.updated"));
           },
           onError: (error) => {
-            form.setError("root", {
-              message: getErrorMessage(error, t),
-            });
+            setFormErrors(getErrorMessages(error, t));
           },
         },
       );
@@ -185,14 +191,13 @@ export function GradeFormDialog({
       },
       {
         onSuccess: (savedGrade) => {
+          setFormErrors([]);
           onOpenChange(false);
           onSaved?.(savedGrade);
           onSuccess?.(t("pages.education.dialogs.gradeForm.success.created"));
         },
         onError: (error) => {
-          form.setError("root", {
-            message: getErrorMessage(error, t),
-          });
+          setFormErrors(getErrorMessages(error, t));
         },
       },
     );
@@ -218,13 +223,21 @@ export function GradeFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {form.formState.errors.root?.message ? (
+        {formErrors.length > 0 ? (
           <Alert variant="destructive">
             <AlertTitle>
               {t("pages.education.dialogs.gradeForm.errorTitle")}
             </AlertTitle>
             <AlertDescription>
-              {form.formState.errors.root.message}
+              {formErrors.length === 1 ? (
+                formErrors[0]
+              ) : (
+                <ul className="list-inside list-disc space-y-1">
+                  {formErrors.map((message, index) => (
+                    <li key={index}>{message}</li>
+                  ))}
+                </ul>
+              )}
             </AlertDescription>
           </Alert>
         ) : null}

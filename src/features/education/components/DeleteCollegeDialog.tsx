@@ -47,7 +47,7 @@ export function DeleteCollegeDialog({
   college,
   onSuccess,
 }: DeleteCollegeDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteCollege();
@@ -95,6 +95,7 @@ export function DeleteCollegeDialog({
               ? getEducationName(
                   college,
                   t("pages.education.tables.colleges.entityName"),
+                  locale,
                 )
               : null
           }

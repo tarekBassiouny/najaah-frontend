@@ -14,6 +14,7 @@ import { useCategoryOptions } from "@/features/categories/hooks/use-category-opt
 import { useInstructorOptions } from "@/features/instructors/hooks/use-instructor-options";
 import { useTranslation } from "@/features/localization";
 import { useLocale } from "@/features/localization/locale-context";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { useTenant } from "@/app/tenant-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -116,6 +118,11 @@ function getStatusConfig(status: CourseStatus) {
   );
 }
 
+function resolveCourseThumbnail(course: CourseRecord) {
+  const url = course.thumbnail_url ?? course.thumbnail;
+  return typeof url === "string" && url.trim() ? url.trim() : null;
+}
+
 function LoadingSkeleton() {
   return (
     <>
@@ -123,6 +130,9 @@ function LoadingSkeleton() {
         <TableRow key={index} className="animate-pulse">
           <TableCell>
             <Skeleton className="h-4 w-4" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-9 w-14 rounded" />
           </TableCell>
           <TableCell>
             <Skeleton className="h-4 w-48" />
@@ -350,7 +360,11 @@ export function CoursesTable({
   };
 
   const getCourseName = (course: CourseRecord) =>
-    String(course.title ?? course.name ?? `Course #${course.id}`);
+    resolveTranslatedValue(
+      course.title_translations as Record<string, string> | null | undefined,
+      locale,
+      course.title ?? course.name,
+    ) ?? `Course #${course.id}`;
 
   const isCoursePublished = (course: CourseRecord) => {
     const value = (course as { is_published?: boolean | null }).is_published;
@@ -672,6 +686,7 @@ export function CoursesTable({
                     aria-label={t("pages.courses.table.selectAll")}
                   />
                 </TableHead>
+                <TableHead className="w-16 font-medium" />
                 <TableHead className="font-medium">
                   {t("pages.courses.table.headers.title")}
                 </TableHead>
@@ -699,7 +714,7 @@ export function CoursesTable({
                 <LoadingSkeleton />
               ) : showEmptyState ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48">
+                  <TableCell colSpan={7} className="h-48">
                     <EmptyState
                       title={
                         query
@@ -759,11 +774,33 @@ export function CoursesTable({
                           checked={Boolean(selectedCourses[String(course.id)])}
                           onChange={() => toggleCourseSelection(course)}
                           aria-label={t("pages.courses.table.selectCourse", {
-                            name:
-                              course.title ??
-                              course.name ??
-                              `course ${course.id}`,
+                            name: getCourseName(course),
                           })}
+                        />
+                      </TableCell>
+                      <TableCell className="w-16 py-2">
+                        <Thumbnail
+                          src={resolveCourseThumbnail(course)}
+                          widthPx={56}
+                          heightPx={36}
+                          className="h-9 w-14 rounded"
+                          fallback={
+                            <div className="flex h-9 w-14 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
+                              <svg
+                                className="h-4 w-4 text-gray-400 dark:text-gray-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={1.5}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
+                                />
+                              </svg>
+                            </div>
+                          }
                         />
                       </TableCell>
                       <TableCell className="font-medium text-gray-900 dark:text-white">
@@ -771,15 +808,23 @@ export function CoursesTable({
                           href={viewHref}
                           className="font-medium text-gray-900 transition-colors hover:text-primary dark:text-white dark:hover:text-primary"
                         >
-                          {course.title ??
-                            course.name ??
-                            `Course #${course.id}`}
+                          {getCourseName(course)}
                         </Link>
-                        {course.description ? (
-                          <p className="mt-1 line-clamp-1 text-xs font-normal text-gray-500 dark:text-gray-400">
-                            {String(course.description)}
-                          </p>
-                        ) : null}
+                        {(() => {
+                          const desc = resolveTranslatedValue(
+                            course.description_translations as
+                              | Record<string, string>
+                              | null
+                              | undefined,
+                            locale,
+                            course.description as string | null | undefined,
+                          );
+                          return desc ? (
+                            <p className="mt-1 line-clamp-1 text-xs font-normal text-gray-500 dark:text-gray-400">
+                              {desc}
+                            </p>
+                          ) : null;
+                        })()}
                       </TableCell>
                       <TableCell className="text-gray-500 dark:text-gray-400">
                         {course.language ?? "—"}

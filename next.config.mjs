@@ -63,6 +63,26 @@ const nextConfig = {
         hostname: "pub-b7fd9c30cdbf439183b75041f5f71b92.r2.dev",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "vumbnail.com",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "**.digitaloceanspaces.com",
+        port: "",
+      },
     ],
   },
 };

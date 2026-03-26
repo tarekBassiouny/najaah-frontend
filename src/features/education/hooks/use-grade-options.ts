@@ -9,6 +9,7 @@ import type {
   GradeLookupParams,
 } from "@/features/education/types/education";
 import { getEducationName } from "@/features/education/types/education";
+import { useLocale } from "@/features/localization";
 
 const GRADE_OPTIONS_DEBOUNCE_MS = 300;
 
@@ -27,8 +28,8 @@ type UseGradeOptionsParams = {
   enabled?: boolean;
 };
 
-function getGradeLabel(grade: Grade) {
-  return getEducationName(grade, "Grade");
+function getGradeLabel(grade: Grade, locale?: string) {
+  return getEducationName(grade, "Grade", locale);
 }
 
 export function useGradeOptions({
@@ -45,6 +46,7 @@ export function useGradeOptions({
   noneOptionLabel = "No grade",
   enabled = true,
 }: UseGradeOptionsParams) {
+  const { locale } = useLocale();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const cachedGradesRef = useRef<Map<string, string>>(new Map());
@@ -76,9 +78,12 @@ export function useGradeOptions({
 
   useEffect(() => {
     (query.data ?? []).forEach((grade) => {
-      cachedGradesRef.current.set(String(grade.id), getGradeLabel(grade));
+      cachedGradesRef.current.set(
+        String(grade.id),
+        getGradeLabel(grade, locale),
+      );
     });
-  }, [query.data]);
+  }, [query.data, locale]);
 
   const options = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [];
@@ -91,7 +96,7 @@ export function useGradeOptions({
 
     const items = (query.data ?? []).map((grade) => ({
       value: String(grade.id),
-      label: getGradeLabel(grade),
+      label: getGradeLabel(grade, locale),
       description: grade.stage_label ?? undefined,
     }));
 
@@ -128,6 +133,7 @@ export function useGradeOptions({
     includeNoneOption,
     noneOptionLabel,
     noneOptionValue,
+    locale,
     query.data,
     selectedValue,
     selectedValues,

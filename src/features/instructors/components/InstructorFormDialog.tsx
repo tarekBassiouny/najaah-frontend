@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -369,12 +370,14 @@ export function InstructorFormDialog({
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-semibold uppercase text-white">
                   {avatarDisplaySrc ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
+                    <Image
                       src={avatarDisplaySrc}
                       alt={t("pages.instructors.avatarAlt", {
                         name: avatarDisplayName,
                       })}
+                      width={48}
+                      height={48}
+                      unoptimized
                       className="h-full w-full object-cover"
                     />
                   ) : (

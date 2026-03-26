@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_SIZE = 36;
@@ -44,10 +45,12 @@ export function Avatar({
         )}
         style={dimensionStyle}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={src}
           alt={alt ?? name ?? "Avatar"}
+          width={size}
+          height={size}
+          unoptimized
           className="h-full w-full object-cover"
         />
       </span>

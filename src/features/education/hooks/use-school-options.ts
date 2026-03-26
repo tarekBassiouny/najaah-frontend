@@ -9,6 +9,7 @@ import type {
   SchoolLookupParams,
 } from "@/features/education/types/education";
 import { getEducationName } from "@/features/education/types/education";
+import { useLocale } from "@/features/localization";
 
 const SCHOOL_OPTIONS_DEBOUNCE_MS = 300;
 
@@ -27,8 +28,8 @@ type UseSchoolOptionsParams = {
   enabled?: boolean;
 };
 
-function getSchoolLabel(school: School) {
-  return getEducationName(school, "School");
+function getSchoolLabel(school: School, locale?: string) {
+  return getEducationName(school, "School", locale);
 }
 
 export function useSchoolOptions({
@@ -45,6 +46,7 @@ export function useSchoolOptions({
   noneOptionLabel = "No school",
   enabled = true,
 }: UseSchoolOptionsParams) {
+  const { locale } = useLocale();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const cachedSchoolsRef = useRef<Map<string, string>>(new Map());
@@ -76,9 +78,12 @@ export function useSchoolOptions({
 
   useEffect(() => {
     (query.data ?? []).forEach((school) => {
-      cachedSchoolsRef.current.set(String(school.id), getSchoolLabel(school));
+      cachedSchoolsRef.current.set(
+        String(school.id),
+        getSchoolLabel(school, locale),
+      );
     });
-  }, [query.data]);
+  }, [query.data, locale]);
 
   const options = useMemo<SearchableSelectOption<string>[]>(() => {
     const defaults: SearchableSelectOption<string>[] = [];
@@ -91,7 +96,7 @@ export function useSchoolOptions({
 
     const items = (query.data ?? []).map((school) => ({
       value: String(school.id),
-      label: getSchoolLabel(school),
+      label: getSchoolLabel(school, locale),
       description: school.type_label ?? undefined,
     }));
 
@@ -128,6 +133,7 @@ export function useSchoolOptions({
     includeNoneOption,
     noneOptionLabel,
     noneOptionValue,
+    locale,
     query.data,
     selectedValue,
     selectedValues,

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -193,12 +194,14 @@ export function InstructorDetailsDrawer({
               <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900/40">
                 <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-semibold uppercase text-white">
                   {avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={avatarUrl}
                       alt={t("pages.instructors.avatarAlt", {
                         name: displayName,
                       })}
+                      width={48}
+                      height={48}
+                      unoptimized
                       className="h-full w-full object-cover"
                     />
                   ) : (

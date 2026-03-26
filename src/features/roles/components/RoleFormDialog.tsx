@@ -30,10 +30,10 @@ import {
   type TranslateFunction,
 } from "@/features/localization";
 import {
+  getAdminApiAllValidationMessages,
   getAdminApiErrorCode,
   getAdminApiErrorMessage,
   getAdminApiFieldErrors,
-  getAdminApiFirstFieldError,
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
@@ -156,21 +156,23 @@ function getErrorCodeMessage(
   return messages[code] ?? null;
 }
 
-function extractErrorMessage(error: unknown, t: TranslateFunction): string {
+function extractErrorMessages(error: unknown, t: TranslateFunction): string[] {
   const codeMessage = getErrorCodeMessage(getAdminApiErrorCode(error), t);
   if (codeMessage) {
-    return codeMessage;
+    return [codeMessage];
   }
 
-  const validationMessage = getAdminApiFirstFieldError(error);
-  if (validationMessage) {
-    return validationMessage;
+  const validationMessages = getAdminApiAllValidationMessages(error);
+  if (validationMessages.length > 0) {
+    return validationMessages;
   }
 
-  return getAdminApiErrorMessage(
-    error,
-    t("pages.roles.dialogs.form.errors.saveFailed"),
-  );
+  return [
+    getAdminApiErrorMessage(
+      error,
+      t("pages.roles.dialogs.form.errors.saveFailed"),
+    ),
+  ];
 }
 
 function normalizeSlug(slug: string): string {
@@ -186,7 +188,7 @@ export function RoleFormDialog({
 }: RoleFormDialogProps) {
   const { t } = useTranslation();
   const schema = useMemo(() => buildSchema(t), [t]);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const isEditMode = Boolean(role);
   const createMutation = useCreateRole({ centerId: scopeCenterId ?? null });
   const updateMutation = useUpdateRole({ centerId: scopeCenterId ?? null });
@@ -204,11 +206,11 @@ export function RoleFormDialog({
 
   useEffect(() => {
     if (!open) {
-      setFormError(null);
+      setFormErrors([]);
       return;
     }
 
-    setFormError(null);
+    setFormErrors([]);
     form.reset({
       name: toText(role?.name ?? role?.name_translations?.en),
       slug: toText(role?.slug),
@@ -219,7 +221,7 @@ export function RoleFormDialog({
   }, [form, open, role]);
 
   const onSubmit = (values: FormValues) => {
-    setFormError(null);
+    setFormErrors([]);
 
     const name = values.name.trim();
     const slug = normalizeSlug(values.slug);
@@ -246,12 +248,12 @@ export function RoleFormDialog({
         {
           onSuccess: (response) => {
             if (!isAdminRequestSuccessful(response)) {
-              setFormError(
+              setFormErrors([
                 getAdminResponseMessage(
                   response,
                   t("pages.roles.dialogs.form.errors.saveFailed"),
                 ),
-              );
+              ]);
               return;
             }
             onOpenChange(false);
@@ -271,7 +273,7 @@ export function RoleFormDialog({
             );
 
             if (!hasFieldError) {
-              setFormError(extractErrorMessage(error, t));
+              setFormErrors(extractErrorMessages(error, t));
             }
           },
         },
@@ -283,12 +285,12 @@ export function RoleFormDialog({
     createMutation.mutate(payload, {
       onSuccess: (response) => {
         if (!isAdminRequestSuccessful(response)) {
-          setFormError(
+          setFormErrors([
             getAdminResponseMessage(
               response,
               t("pages.roles.dialogs.form.errors.saveFailed"),
             ),
-          );
+          ]);
           return;
         }
         onOpenChange(false);
@@ -308,7 +310,7 @@ export function RoleFormDialog({
         );
 
         if (!hasFieldError) {
-          setFormError(extractErrorMessage(error, t));
+          setFormErrors(extractErrorMessages(error, t));
         }
       },
     });
@@ -336,12 +338,22 @@ export function RoleFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {formError ? (
+        {formErrors.length > 0 ? (
           <Alert variant="destructive">
             <AlertTitle>
               {t("pages.roles.dialogs.form.errors.saveFailedTitle")}
             </AlertTitle>
-            <AlertDescription>{formError}</AlertDescription>
+            <AlertDescription>
+              {formErrors.length === 1 ? (
+                formErrors[0]
+              ) : (
+                <ul className="list-inside list-disc space-y-1">
+                  {formErrors.map((message, index) => (
+                    <li key={index}>{message}</li>
+                  ))}
+                </ul>
+              )}
+            </AlertDescription>
           </Alert>
         ) : null}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useTenant } from "@/app/tenant-provider";
 import { setTenantState } from "@/lib/tenant-store";
@@ -700,12 +701,14 @@ export function InstructorsTable({
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-xs font-semibold uppercase text-white">
                             {avatarUrl ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img
+                              <Image
                                 src={avatarUrl}
                                 alt={t("pages.instructors.avatarAlt", {
                                   name: displayName,
                                 })}
+                                width={36}
+                                height={36}
+                                unoptimized
                                 className="h-full w-full object-cover"
                               />
                             ) : (

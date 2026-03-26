@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { can } from "@/lib/capabilities";
@@ -16,6 +17,7 @@ import { useCourseSettingsForm } from "@/features/courses/hooks/use-course-setti
 import { useCourseInstructors } from "@/features/courses/hooks/use-course-instructors";
 import { CoursePublishAction } from "@/features/courses/components/CoursePublishAction";
 import { CourseSettingsForm } from "@/features/courses/components/CourseSettingsForm";
+import { CourseThumbnailCard } from "@/features/courses/components/CourseThumbnailCard";
 import { CourseInstructorCard } from "@/features/courses/components/CourseInstructorCard";
 import { RemoveInstructorDialog } from "@/features/courses/components/RemoveInstructorDialog";
 import { EnrollmentsTable } from "@/features/enrollments/components/EnrollmentsTable";
@@ -24,6 +26,7 @@ import { VideoCodeBatchesTable } from "@/features/video-code-batches/components/
 import { formatDateTime } from "@/lib/format-date-time";
 import { isAdminApiNotFoundError } from "@/lib/admin-response";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { getInstructorLabel } from "@/features/courses/utils/course-helpers";
 
 type PageProps = {
@@ -159,10 +162,14 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
   const categoryLabel = (() => {
     const category = cd.category;
     if (category && typeof category === "object") {
-      const label =
-        (typeof category.title === "string" && category.title.trim()) ||
-        (typeof category.name === "string" && category.name.trim()) ||
-        "";
+      const label = resolveTranslatedValue(
+        category.title_translations as
+          | Record<string, string>
+          | null
+          | undefined,
+        locale,
+        (category.title as string) ?? (category.name as string),
+      );
       if (label) return label;
       if (category.id != null && category.id !== "") {
         return t("pages.centerCourseDetail.unknown.categoryById", {
@@ -177,12 +184,17 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
     }
     return "";
   })();
-  const courseTitle = String(
-    cd.title ??
-      cd.name ??
-      t("pages.centerCourseDetail.unknown.courseById", { id: cd.id }),
-  );
+  const courseTitle =
+    resolveTranslatedValue(
+      cd.title_translations as Record<string, string> | null | undefined,
+      locale,
+      cd.title ?? cd.name,
+    ) ?? t("pages.centerCourseDetail.unknown.courseById", { id: cd.id });
   const accessModelLabel = isVideoCodeCourse ? "Video Code" : "Enrollment";
+  const courseThumbnailUrl = (() => {
+    const url = cd.thumbnail_url ?? cd.thumbnail;
+    return typeof url === "string" && url.trim() ? url.trim() : null;
+  })();
   const assetsWorkspaceHref = `/centers/${centerId}/courses/${courseId}/assets`;
 
   return (
@@ -225,35 +237,51 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                       : "flex-col sm:flex-row",
                   )}
                 >
-                  <div
-                    className={cn(
-                      "space-y-2",
-                      isRtl ? "text-right" : "text-left",
-                    )}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        {courseTitle}
-                      </h1>
-                      {statusLabel ? (
-                        <Badge variant={statusVariant} className="text-[11px]">
-                          {statusLabel}
-                        </Badge>
-                      ) : null}
-                      {categoryLabel ? (
-                        <Badge variant="secondary" className="text-[11px]">
-                          {categoryLabel}
-                        </Badge>
-                      ) : null}
-                      <Badge variant="secondary" className="text-[11px]">
-                        {accessModelLabel}
-                      </Badge>
-                    </div>
-                    {cd.description ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {String(cd.description)}
-                      </p>
+                  <div className="flex gap-4">
+                    {courseThumbnailUrl ? (
+                      <div className="hidden flex-none sm:block">
+                        <Thumbnail
+                          src={courseThumbnailUrl}
+                          widthPx={108}
+                          heightPx={72}
+                          className="h-[72px] w-[108px] rounded-lg"
+                          fallback={null}
+                        />
+                      </div>
                     ) : null}
+                    <div
+                      className={cn(
+                        "space-y-2",
+                        isRtl ? "text-right" : "text-left",
+                      )}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                          {courseTitle}
+                        </h1>
+                        {statusLabel ? (
+                          <Badge
+                            variant={statusVariant}
+                            className="text-[11px]"
+                          >
+                            {statusLabel}
+                          </Badge>
+                        ) : null}
+                        {categoryLabel ? (
+                          <Badge variant="secondary" className="text-[11px]">
+                            {categoryLabel}
+                          </Badge>
+                        ) : null}
+                        <Badge variant="secondary" className="text-[11px]">
+                          {accessModelLabel}
+                        </Badge>
+                      </div>
+                      {cd.description ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {String(cd.description)}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                   <div
                     className={cn(
@@ -366,6 +394,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
 
             <TabsContent value="settings">
               <div className="space-y-4">
+                <CourseThumbnailCard
+                  centerId={centerId}
+                  courseId={courseId}
+                  course={cd}
+                />
                 <CourseSettingsForm
                   centerId={centerId}
                   settingsForm={settings.settingsForm}

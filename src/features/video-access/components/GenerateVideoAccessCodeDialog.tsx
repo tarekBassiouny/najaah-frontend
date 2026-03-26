@@ -2,6 +2,7 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -745,10 +746,12 @@ export function GenerateVideoAccessCodeDialog({
 
             {generatedCode.qr_code_url ? (
               <div className="rounded-lg border border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-950/40">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={generatedCode.qr_code_url}
                   alt={t("pages.videoAccess.dialogs.generateCode.result.qrAlt")}
+                  width={176}
+                  height={176}
+                  unoptimized
                   className="mx-auto max-h-44 max-w-full rounded"
                 />
               </div>

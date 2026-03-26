@@ -31,8 +31,8 @@ import {
 } from "@/features/admin-users/hooks/use-admin-users";
 import type { AdminUser } from "@/features/admin-users/types/admin-user";
 import {
+  getAdminApiAllValidationMessages,
   getAdminApiErrorMessage,
-  getAdminApiFirstFieldError,
   getAdminResponseMessage,
   isAdminRequestSuccessful,
 } from "@/lib/admin-response";
@@ -103,16 +103,15 @@ type AdminUserFormDialogProps = {
   scopeCenterId?: string | number | null;
 };
 
-function getErrorMessage(error: unknown, t: TranslateFunction) {
-  const fieldMessage = getAdminApiFirstFieldError(error);
-  if (fieldMessage) {
-    return fieldMessage;
-  }
-
-  return getAdminApiErrorMessage(
-    error,
-    t("pages.admins.dialogs.form.errors.saveFailed"),
-  );
+function getErrorMessages(error: unknown, t: TranslateFunction): string[] {
+  const fieldMessages = getAdminApiAllValidationMessages(error);
+  if (fieldMessages.length > 0) return fieldMessages;
+  return [
+    getAdminApiErrorMessage(
+      error,
+      t("pages.admins.dialogs.form.errors.saveFailed"),
+    ),
+  ];
 }
 
 export function AdminUserFormDialog({
@@ -125,7 +124,7 @@ export function AdminUserFormDialog({
   const { t } = useTranslation();
   const schema = useMemo(() => buildSchema(t), [t]);
 
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditMode = Boolean(user);
   const { centerSlug, centerId: tenantCenterId, centerName } = useTenant();
@@ -161,7 +160,7 @@ export function AdminUserFormDialog({
   });
 
   useEffect(() => {
-    setFormError(null);
+    setFormErrors([]);
     setShowAdvanced(false);
     form.reset({
       name: user?.name ? String(user.name) : "",
@@ -186,7 +185,7 @@ export function AdminUserFormDialog({
   }, [effectiveScopeCenterId, form, user]);
 
   const onSubmit = (values: FormValues) => {
-    setFormError(null);
+    setFormErrors([]);
 
     const normalizedPhone = normalizePhone(values.phone);
     const normalizedCountryCode = normalizeCountryCode(values.countryCode);
@@ -243,12 +242,12 @@ export function AdminUserFormDialog({
         {
           onSuccess: (response) => {
             if (!isAdminRequestSuccessful(response)) {
-              setFormError(
+              setFormErrors([
                 getAdminResponseMessage(
                   response,
                   t("pages.admins.dialogs.form.errors.saveFailed"),
                 ),
-              );
+              ]);
               return;
             }
             onClose();
@@ -259,7 +258,7 @@ export function AdminUserFormDialog({
               ),
             );
           },
-          onError: (error) => setFormError(getErrorMessage(error, t)),
+          onError: (error) => setFormErrors(getErrorMessages(error, t)),
         },
       );
       return;
@@ -268,12 +267,12 @@ export function AdminUserFormDialog({
     createMutation.mutate(payload, {
       onSuccess: (createdUser) => {
         if (!isAdminRequestSuccessful(createdUser)) {
-          setFormError(
+          setFormErrors([
             getAdminResponseMessage(
               createdUser,
               t("pages.admins.dialogs.form.errors.saveFailed"),
             ),
-          );
+          ]);
           return;
         }
         onClose();
@@ -287,7 +286,7 @@ export function AdminUserFormDialog({
           onCreated?.(createdUser);
         }
       },
-      onError: (error) => setFormError(getErrorMessage(error, t)),
+      onError: (error) => setFormErrors(getErrorMessages(error, t)),
     });
   };
 
@@ -347,12 +346,22 @@ export function AdminUserFormDialog({
         </Button>
       </div>
 
-      {formError && (
+      {formErrors.length > 0 && (
         <Alert variant="destructive">
           <AlertTitle>
             {t("pages.admins.dialogs.form.errors.errorTitle")}
           </AlertTitle>
-          <AlertDescription>{formError}</AlertDescription>
+          <AlertDescription>
+            {formErrors.length === 1 ? (
+              formErrors[0]
+            ) : (
+              <ul className="list-inside list-disc space-y-1">
+                {formErrors.map((msg, i) => (
+                  <li key={i}>{msg}</li>
+                ))}
+              </ul>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 

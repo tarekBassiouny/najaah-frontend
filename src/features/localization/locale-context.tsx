@@ -41,7 +41,6 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() =>
     parseLocale(getApiLocale()),
   );
-
   useEffect(() => {
     if (typeof window === "undefined") {
       return;

@@ -9,6 +9,7 @@ import {
   closeVideoCodeBatch,
   createVideoCodeBatch,
   expandVideoCodeBatch,
+  getVideoCodeBatchSettings,
   getVideoCodeBatch,
   getVideoCodeBatchStatistics,
   listVideoCodeBatchRedemptions,
@@ -24,6 +25,7 @@ import type {
   SendVideoCodeBatchWhatsappCsvPayload,
   VideoCodeBatch,
   VideoCodeBatchExportRecord,
+  VideoCodeBatchSettings,
   VideoCodeBatchStatistics,
   VideoCodeRedemption,
 } from "@/features/video-code-batches/types/video-code-batch";
@@ -40,6 +42,11 @@ type UseVideoCodeBatchOptions = Omit<
 
 type UseVideoCodeBatchStatisticsOptions = Omit<
   UseQueryOptions<VideoCodeBatchStatistics>,
+  "queryKey" | "queryFn"
+>;
+
+type UseVideoCodeBatchSettingsOptions = Omit<
+  UseQueryOptions<VideoCodeBatchSettings>,
   "queryKey" | "queryFn"
 >;
 
@@ -88,6 +95,19 @@ export function useVideoCodeBatchStatistics(
     ],
     queryFn: () => getVideoCodeBatchStatistics(centerId!, batchId!),
     enabled: Boolean(centerId) && Boolean(batchId),
+    ...options,
+  });
+}
+
+export function useVideoCodeBatchSettings(
+  centerId: string | number | undefined,
+  options?: UseVideoCodeBatchSettingsOptions,
+) {
+  return useQuery({
+    queryKey: ["video-code-batch-settings", centerId ?? null],
+    queryFn: () => getVideoCodeBatchSettings(centerId!),
+    enabled: Boolean(centerId),
+    staleTime: 30_000,
     ...options,
   });
 }

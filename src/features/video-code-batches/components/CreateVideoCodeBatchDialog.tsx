@@ -20,7 +20,11 @@ import {
 import { useCenterCourses } from "@/features/courses/hooks/use-courses";
 import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTranslation } from "@/features/localization";
-import { useCreateVideoCodeBatch } from "@/features/video-code-batches/hooks/use-video-code-batches";
+import {
+  useCreateVideoCodeBatch,
+  useVideoCodeBatchSettings,
+} from "@/features/video-code-batches/hooks/use-video-code-batches";
+import { getAdminApiAllValidationMessages } from "@/lib/admin-response";
 import type { VideoCodeBatch } from "@/features/video-code-batches/types/video-code-batch";
 
 type SelectionPreset = {
@@ -37,6 +41,11 @@ type CreateVideoCodeBatchDialogProps = {
   onCreated?: (_batch: VideoCodeBatch) => void;
   onCompleted?: () => void | Promise<void>;
 };
+
+const DEFAULT_BATCH_QUANTITY = 1000;
+const DEFAULT_VIEW_LIMIT_PER_CODE = 10;
+const MAX_BATCH_QUANTITY = 1000;
+const MAX_VIEW_LIMIT_PER_CODE = 10;
 
 export function CreateVideoCodeBatchDialog({
   open,
@@ -57,21 +66,73 @@ export function CreateVideoCodeBatchDialog({
     [t],
   );
   const createMutation = useCreateVideoCodeBatch();
+  const settingsQuery = useVideoCodeBatchSettings(centerId, {
+    enabled: open,
+  });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState("100");
-  const [viewLimitPerCode, setViewLimitPerCode] = useState("2");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [viewLimitPerCode, setViewLimitPerCode] = useState("");
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
+
+  const maxQuantity = settingsQuery.data?.max_quantity ?? null;
+  const defaultViewLimit = settingsQuery.data?.default_view_limit ?? null;
+  const effectiveMaxQuantity =
+    maxQuantity != null && Number.isFinite(maxQuantity)
+      ? Math.min(maxQuantity, MAX_BATCH_QUANTITY)
+      : MAX_BATCH_QUANTITY;
+  const effectiveDefaultViewLimit =
+    defaultViewLimit != null && Number.isFinite(defaultViewLimit)
+      ? Math.min(Math.max(defaultViewLimit, 1), MAX_VIEW_LIMIT_PER_CODE)
+      : DEFAULT_VIEW_LIMIT_PER_CODE;
 
   useEffect(() => {
     if (!open) return;
 
     setSelectedCourseId(coursePreset ? String(coursePreset.id) : null);
     setSelectedVideoId(videoPreset ? String(videoPreset.id) : null);
-    setQuantity("100");
-    setViewLimitPerCode("2");
-    setErrorMessage(null);
-  }, [coursePreset, open, videoPreset]);
+    setQuantity(String(DEFAULT_BATCH_QUANTITY));
+    setViewLimitPerCode(String(effectiveDefaultViewLimit));
+    setErrorMessages([]);
+  }, [coursePreset, effectiveDefaultViewLimit, open, videoPreset]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setQuantity((current) => {
+      if (current.trim().length === 0) {
+        return String(DEFAULT_BATCH_QUANTITY);
+      }
+
+      const parsed = Number(current);
+      if (!Number.isFinite(parsed)) {
+        return String(DEFAULT_BATCH_QUANTITY);
+      }
+
+      if (parsed > effectiveMaxQuantity) {
+        return String(effectiveMaxQuantity);
+      }
+
+      return current;
+    });
+
+    setViewLimitPerCode((current) => {
+      if (current.trim().length === 0) {
+        return String(effectiveDefaultViewLimit);
+      }
+
+      const parsed = Number(current);
+      if (!Number.isFinite(parsed)) {
+        return String(effectiveDefaultViewLimit);
+      }
+
+      if (parsed > MAX_VIEW_LIMIT_PER_CODE) {
+        return String(MAX_VIEW_LIMIT_PER_CODE);
+      }
+
+      return current;
+    });
+  }, [effectiveDefaultViewLimit, effectiveMaxQuantity, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -156,30 +217,43 @@ export function CreateVideoCodeBatchDialog({
   }, [dialogT, videoPreset, videosQuery.data?.items]);
 
   const isSubmitting = createMutation.isPending;
+  const isPolicyLoading = settingsQuery.isLoading;
 
   const handleSubmit = () => {
-    setErrorMessage(null);
+    setErrorMessages([]);
 
     const parsedQuantity = Number(quantity);
     const parsedViewLimit = Number(viewLimitPerCode);
+    const nextErrors: string[] = [];
 
     if (!resolvedCourseId) {
-      setErrorMessage(dialogT("errors.selectCourse"));
-      return;
+      nextErrors.push(dialogT("errors.selectCourse"));
     }
 
     if (!selectedVideoId && !videoPreset) {
-      setErrorMessage(dialogT("errors.selectVideo"));
-      return;
+      nextErrors.push(dialogT("errors.selectVideo"));
     }
 
     if (!Number.isFinite(parsedQuantity) || parsedQuantity < 1) {
-      setErrorMessage(dialogT("errors.invalidQuantity"));
-      return;
+      nextErrors.push(dialogT("errors.invalidQuantity"));
+    } else if (parsedQuantity > effectiveMaxQuantity) {
+      nextErrors.push(
+        dialogT("errors.maxQuantityExceeded", { count: effectiveMaxQuantity }),
+      );
     }
 
     if (!Number.isFinite(parsedViewLimit) || parsedViewLimit < 1) {
-      setErrorMessage(dialogT("errors.invalidViewLimit"));
+      nextErrors.push(dialogT("errors.invalidViewLimit"));
+    } else if (parsedViewLimit > MAX_VIEW_LIMIT_PER_CODE) {
+      nextErrors.push(
+        dialogT("errors.maxViewLimitExceeded", {
+          count: MAX_VIEW_LIMIT_PER_CODE,
+        }),
+      );
+    }
+
+    if (nextErrors.length > 0) {
+      setErrorMessages(nextErrors);
       return;
     }
 
@@ -200,11 +274,19 @@ export function CreateVideoCodeBatchDialog({
           onOpenChange(false);
         },
         onError: (error) => {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : dialogT("errors.createFailed"),
-          );
+          // Extract per-field validation messages from the original axios error
+          const cause = error instanceof Error ? error.cause : undefined;
+          const fieldMessages = getAdminApiAllValidationMessages(cause);
+
+          if (fieldMessages.length > 0) {
+            setErrorMessages(fieldMessages);
+          } else {
+            setErrorMessages([
+              error instanceof Error
+                ? error.message
+                : dialogT("errors.createFailed"),
+            ]);
+          }
         },
       },
     );
@@ -227,14 +309,24 @@ export function CreateVideoCodeBatchDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {errorMessage ? (
+          {errorMessages.length > 0 ? (
             <Alert variant="destructive">
               <AlertTitle>
                 {t(
                   "auto.features.video_code_batches.components.createvideocodebatchdialog.errorTitle",
                 )}
               </AlertTitle>
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>
+                {errorMessages.length === 1 ? (
+                  errorMessages[0]
+                ) : (
+                  <ul className="list-inside list-disc space-y-1">
+                    {errorMessages.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
+              </AlertDescription>
             </Alert>
           ) : null}
 
@@ -285,9 +377,10 @@ export function CreateVideoCodeBatchDialog({
                 id="video-code-batch-quantity"
                 type="number"
                 min="1"
+                max={String(effectiveMaxQuantity)}
                 value={quantity}
                 onChange={(event) => setQuantity(event.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isPolicyLoading}
               />
             </div>
             <div className="space-y-2">
@@ -300,9 +393,10 @@ export function CreateVideoCodeBatchDialog({
                 id="video-code-batch-view-limit"
                 type="number"
                 min="1"
+                max={String(MAX_VIEW_LIMIT_PER_CODE)}
                 value={viewLimitPerCode}
                 onChange={(event) => setViewLimitPerCode(event.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isPolicyLoading}
               />
             </div>
           </div>
@@ -330,7 +424,11 @@ export function CreateVideoCodeBatchDialog({
           >
             {t("common.actions.cancel")}
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting || isPolicyLoading}
+          >
             {isSubmitting ? dialogT("creating") : dialogT("createBatch")}
           </Button>
         </DialogFooter>

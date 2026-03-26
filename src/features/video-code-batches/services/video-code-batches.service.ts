@@ -15,6 +15,7 @@ import type {
   VideoCodeBatchExportParams,
   VideoCodeBatchExportRecord,
   VideoCodeBatchMetadata,
+  VideoCodeBatchSettings,
   VideoCodeBatchStatistics,
   VideoCodeBatchStudentRef,
   VideoCodeBatchUserRef,
@@ -24,6 +25,7 @@ import type {
 type RawPaginatedResponse<T> = {
   data?: T[] | RawPaginatedContainer<T>;
   meta?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
   success?: boolean;
   message?: string;
   error?: {
@@ -164,6 +166,7 @@ async function rethrowRequestError(
     );
     throw new Error(
       blobMessage ?? getAdminApiErrorMessage(error, fallbackMessage),
+      { cause: error },
     );
   }
 
@@ -350,6 +353,16 @@ function normalizeStatistics(raw: unknown): VideoCodeBatchStatistics {
   };
 }
 
+function normalizeBatchSettings(raw: unknown): VideoCodeBatchSettings {
+  const payload = asRecord(raw) ?? {};
+
+  return {
+    ...payload,
+    max_quantity: asFiniteNumber(payload.max_quantity),
+    default_view_limit: asFiniteNumber(payload.default_view_limit),
+  };
+}
+
 function normalizePaginatedList<T>(
   payload: RawPaginatedResponse<T> | undefined,
   fallbackPage: number,
@@ -449,6 +462,25 @@ export async function listVideoCodeBatches(
       normalizeBatch,
     );
   }, "Failed to load video code batches.");
+}
+
+export async function getVideoCodeBatchSettings(
+  centerId: string | number,
+): Promise<VideoCodeBatchSettings> {
+  return withResolvedRequestError(async () => {
+    const { data } = await http.get<RawPaginatedResponse<VideoCodeBatch>>(
+      buildBatchesBasePath(centerId),
+      {
+        params: {
+          page: 1,
+          per_page: 1,
+        },
+      },
+    );
+
+    assertEnvelopeSuccess(data, "Failed to load video code batch settings.");
+    return normalizeBatchSettings(data?.settings);
+  }, "Failed to load video code batch settings.");
 }
 
 export async function getVideoCodeBatch(

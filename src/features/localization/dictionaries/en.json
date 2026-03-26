@@ -1136,9 +1136,13 @@
         "description": "Update course details and visibility targeting.",
         "fields": {
           "title": "Title",
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
           "slug": "Slug",
           "category": "Category",
           "description": "Description",
+          "descriptionEn": "Description (EN)",
+          "descriptionAr": "Description (AR)",
           "selectCategory": "Select category",
           "searchCategories": "Search categories...",
           "noCategory": "No category"
@@ -1180,6 +1184,18 @@
         "title": "Remove instructor",
         "description": "Are you sure you want to remove this instructor from the course?",
         "descriptionWithName": "Are you sure you want to remove \"{name}\" from the course?"
+      },
+      "thumbnail": {
+        "title": "Course Thumbnail",
+        "description": "Upload or change the course cover image. Recommended size: 800x450 (16:9).",
+        "noThumbnail": "No thumbnail uploaded",
+        "previewHint": "This is a local preview. Click Upload to save.",
+        "upload": "Upload",
+        "uploading": "Uploading...",
+        "uploadSuccess": "Thumbnail updated successfully.",
+        "uploadFailed": "Failed to upload thumbnail. Please try again.",
+        "errorInvalidType": "Only JPEG, PNG, and WebP images are accepted.",
+        "errorTooLarge": "Image must be smaller than {max} MB."
       },
       "unknown": {
         "instructor": "Unknown instructor",
@@ -1352,14 +1368,22 @@
         "description": "Add a section and optionally attach videos or PDFs.",
         "fields": {
           "title": "Title *",
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
           "description": "Description (EN)",
+          "descriptionEn": "Description (EN)",
+          "descriptionAr": "Description (AR)",
           "sortOrder": "Sort Order",
           "videos": "Videos",
           "pdfs": "PDFs"
         },
         "placeholders": {
           "title": "e.g., Getting Started",
+          "titleEn": "e.g., Getting Started",
+          "titleAr": "e.g., مقدمة",
           "description": "Optional section description",
+          "descriptionEn": "Optional section description",
+          "descriptionAr": "وصف اختياري للقسم",
           "sortOrder": "Optional, e.g., 1",
           "selectVideos": "Select videos (optional)",
           "searchVideos": "Search videos...",
@@ -1470,14 +1494,22 @@
         "titleRequired": "Section title is required.",
         "sortOrderInvalid": "Sort order must be a non-negative integer."
       },
+      "media": {
+        "pageSingular": "page",
+        "pagePlural": "pages"
+      },
       "createDialog": {
         "description": "Create a new section quickly from the overview workspace.",
         "fields": {
           "title": "Title *",
+          "titleEn": "Title (EN) *",
+          "titleAr": "Title (AR)",
           "sortOrder": "Sort Order"
         },
         "placeholders": {
           "title": "e.g., Introduction",
+          "titleEn": "e.g., Introduction",
+          "titleAr": "e.g., مقدمة",
           "sortOrder": "Optional"
         }
       }
@@ -1957,7 +1989,10 @@
         "devices": "Devices",
         "downloads": "Downloads",
         "guest": "Guest Access",
-        "video_access": "Video Access"
+        "video_access": "Video Access",
+        "video_code_batches": "Video Code Batches",
+        "web_portal": "Web Portal",
+        "parent_portal": "Parent Portal"
       },
       "groupDescriptions": {
         "general": "Core platform settings such as site name, timezone, and locale.",
@@ -1971,7 +2006,10 @@
         "devices": "Manage the device limits available to your center.",
         "downloads": "Manage download-related settings available to your center.",
         "guest": "Manage guest access options allowed for your center.",
-        "video_access": "Manage video access options available to your center."
+        "video_access": "Manage video access options available to your center.",
+        "video_code_batches": "Manage video code batch defaults and operational limits for your center.",
+        "web_portal": "Manage web portal access, playback permissions, and device limits for your center.",
+        "parent_portal": "Manage parent portal access options for your center."
       },
       "fields": {
         "site_name": "Site Name",
@@ -1980,7 +2018,9 @@
         "require_device_approval": "Require Device Approval",
         "attendance_required": "Attendance Required",
         "whatsapp_bulk_settings": "WhatsApp Bulk Settings",
+        "whatsapp_max_retries": "WhatsApp Max Retries",
         "max_view_limit": "Max View Limit",
+        "max_quantity": "Max Quantity",
         "max_device_limit": "Max Device Limit",
         "force_disable_extra_view_requests": "Force Disable Extra View Requests",
         "force_disable_pdf_download": "Force Disable PDF Download",
@@ -1989,9 +2029,14 @@
         "allow_extra_view_requests": "Allow Extra View Requests",
         "requires_video_approval": "Requires Video Approval",
         "video_code_expiry_days": "Video Code Expiry Days",
+        "video_code_batch_max_quantity": "Video Code Batch Max Quantity",
+        "video_code_batch_default_view_limit": "Video Code Batch Default View Limit",
         "pdf_download_permission": "PDF Download Permission",
         "device_limit": "Device Limit",
         "allow_guest_browsing": "Allow Guest Browsing",
+        "allow_web_access": "Allow Web Access",
+        "allow_web_playback": "Allow Web Playback",
+        "allow_parent_portal": "Allow Parent Portal",
         "education_profile": "Education Profile",
         "branding": "Branding",
         "enable_grade": "Enable Grade",
@@ -2006,13 +2051,24 @@
         "primary_color": "Primary Color",
         "ai_content": "AI Content",
         "codes_access": "Codes Access",
+        "web_access": "Web Access",
+        "web_playback": "Web Playback",
+        "parent_portal": "Parent Portal",
         "whatsapp_bulk": "WhatsApp Bulk",
         "guest_browsing": "Guest Browsing",
+        "web_device_limit": "Web Device Limit",
         "pdf_downloads": "PDF Downloads",
         "is_enabled": "Enabled",
         "allowed_models": "Allowed Models",
         "default_model": "Default Model",
         "limits": "Limits",
+        "monthly_job_limit": "Monthly Job Limit",
+        "daily_token_limit": "Daily Token Limit",
+        "monthly_token_limit": "Monthly Token Limit",
+        "max_input_chars": "Max Input Chars",
+        "max_output_chars": "Max Output Chars",
+        "max_concurrent_jobs": "Max Concurrent Jobs",
+        "default_output_token_estimate": "Default Output Token Estimate",
         "delay_seconds": "Delay Seconds",
         "batch_size": "Batch Size",
         "batch_pause_seconds": "Batch Pause Seconds",
@@ -5915,7 +5971,7 @@
           "headers": {
             "name": "Name",
             "stage": "Stage",
-            "order": "Order",
+            "studentsCount": "Students",
             "status": "Status",
             "actions": "Actions"
           },
@@ -7899,7 +7955,9 @@
               "selectCourse": "Select a video code course before creating a batch.",
               "selectVideo": "Select a video before creating a batch.",
               "invalidQuantity": "Quantity must be at least 1.",
+              "maxQuantityExceeded": "Quantity must not be greater than {count}.",
               "invalidViewLimit": "View limit per code must be at least 1.",
+              "maxViewLimitExceeded": "View limit per code must not be greater than {count}.",
               "createFailed": "Failed to create video code batch."
             }
           },

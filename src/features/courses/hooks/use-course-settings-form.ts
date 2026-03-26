@@ -19,8 +19,10 @@ import type { Course } from "@/features/courses/types/course";
 
 type SettingsFormState = {
   title: string;
+  titleAr: string;
   slug: string;
   description: string;
+  descriptionAr: string;
   category_id: string;
 };
 
@@ -45,8 +47,10 @@ export function useCourseSettingsForm({
 
   const [settingsForm, setSettingsForm] = useState<SettingsFormState>({
     title: "",
+    titleAr: "",
     slug: "",
     description: "",
+    descriptionAr: "",
     category_id: "none",
   });
   const [settingsFieldErrors, setSettingsFieldErrors] = useState<
@@ -84,11 +88,23 @@ export function useCourseSettingsForm({
     if (!course) return;
 
     const record = course as Record<string, unknown>;
+    const titleTranslations = record.title_translations as
+      | Record<string, string>
+      | null
+      | undefined;
+    const descriptionTranslations = record.description_translations as
+      | Record<string, string>
+      | null
+      | undefined;
 
     setSettingsForm({
-      title: String(record.title ?? record.name ?? ""),
+      title: String(titleTranslations?.en ?? record.title ?? record.name ?? ""),
+      titleAr: String(titleTranslations?.ar ?? ""),
       slug: String(record.slug ?? ""),
-      description: String(record.description ?? ""),
+      description: String(
+        descriptionTranslations?.en ?? record.description ?? "",
+      ),
+      descriptionAr: String(descriptionTranslations?.ar ?? ""),
       category_id: resolveCategoryId(record),
     });
     setEducationTargeting(getCourseEducationTargetingValues(course));
@@ -137,14 +153,30 @@ export function useCourseSettingsForm({
       return;
     }
 
+    const titleTranslations: Record<string, string> = {};
+    if (settingsForm.title.trim())
+      titleTranslations.en = settingsForm.title.trim();
+    if (settingsForm.titleAr.trim())
+      titleTranslations.ar = settingsForm.titleAr.trim();
+
+    const descriptionTranslations: Record<string, string> = {};
+    if (settingsForm.description.trim())
+      descriptionTranslations.en = settingsForm.description.trim();
+    if (settingsForm.descriptionAr.trim())
+      descriptionTranslations.ar = settingsForm.descriptionAr.trim();
+
     updateCourse(
       {
         centerId,
         courseId,
         payload: {
-          title: settingsForm.title || undefined,
+          title_translations: Object.keys(titleTranslations).length
+            ? titleTranslations
+            : undefined,
+          description_translations: Object.keys(descriptionTranslations).length
+            ? descriptionTranslations
+            : undefined,
           slug: settingsForm.slug || undefined,
-          description: settingsForm.description || undefined,
           category_id:
             settingsForm.category_id !== "none"
               ? settingsForm.category_id
@@ -177,7 +209,7 @@ export function useCourseSettingsForm({
   };
 
   const handleSettingsChange =
-    (field: "title" | "slug" | "description") =>
+    (field: "title" | "titleAr" | "slug" | "description" | "descriptionAr") =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setSettingsForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
@@ -186,11 +218,21 @@ export function useCourseSettingsForm({
     if (!course) return;
 
     const record = course as Record<string, unknown>;
+    const titleTrans = record.title_translations as
+      | Record<string, string>
+      | null
+      | undefined;
+    const descTrans = record.description_translations as
+      | Record<string, string>
+      | null
+      | undefined;
 
     setSettingsForm({
-      title: String(record.title ?? record.name ?? ""),
+      title: String(titleTrans?.en ?? record.title ?? record.name ?? ""),
+      titleAr: String(titleTrans?.ar ?? ""),
       slug: String(record.slug ?? ""),
-      description: String(record.description ?? ""),
+      description: String(descTrans?.en ?? record.description ?? ""),
+      descriptionAr: String(descTrans?.ar ?? ""),
       category_id: resolveCategoryId(record),
     });
     setEducationTargeting(getCourseEducationTargetingValues(course));

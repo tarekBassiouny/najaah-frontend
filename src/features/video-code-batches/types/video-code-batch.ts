@@ -101,6 +101,12 @@ export type VideoCodeBatchStatistics = {
   [key: string]: unknown;
 };
 
+export type VideoCodeBatchSettings = {
+  max_quantity?: number | null;
+  default_view_limit?: number | null;
+  [key: string]: unknown;
+};
+
 export type ListVideoCodeBatchesParams = {
   page?: number;
   per_page?: number;

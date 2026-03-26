@@ -12,6 +12,7 @@ import { HardDeletePanel } from "@/components/ui/hard-delete-panel";
 import { useDeleteCategory } from "@/features/categories/hooks/use-categories";
 import type { Category } from "@/features/categories/types/category";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 
 type DeleteCategoryDialogProps = {
   centerId: string | number;
@@ -21,12 +22,14 @@ type DeleteCategoryDialogProps = {
   onSuccess?: (_value: string) => void;
 };
 
-function getCategoryTitle(category: Category) {
-  if (category.title_translations?.en) return category.title_translations.en;
-  if (category.title_translations?.ar) return category.title_translations.ar;
-  if (category.title) return String(category.title);
-  if (category.name) return String(category.name);
-  return `Category #${category.id}`;
+function getCategoryTitle(category: Category, locale: string) {
+  return (
+    resolveTranslatedValue(
+      category.title_translations,
+      locale,
+      category.title ?? category.name,
+    ) ?? `Category #${category.id}`
+  );
 }
 
 function getErrorMessage(error: unknown) {
@@ -45,7 +48,7 @@ export function DeleteCategoryDialog({
   category,
   onSuccess,
 }: DeleteCategoryDialogProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const deleteMutation = useDeleteCategory();
@@ -90,7 +93,7 @@ export function DeleteCategoryDialog({
           title={t(
             "auto.features.categories.components.deletecategorydialog.s1",
           )}
-          entityName={category ? getCategoryTitle(category) : null}
+          entityName={category ? getCategoryTitle(category, locale) : null}
           entityFallback="this category"
           confirmButtonLabel="Delete Category"
           pendingLabel="Deleting..."

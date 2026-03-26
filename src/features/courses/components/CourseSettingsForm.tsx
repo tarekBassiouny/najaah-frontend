@@ -23,8 +23,10 @@ type CourseSettingsFormProps = {
   centerId: string;
   settingsForm: {
     title: string;
+    titleAr: string;
     slug: string;
     description: string;
+    descriptionAr: string;
     category_id: string;
   };
   educationTargeting: CourseEducationTargetingValues;
@@ -34,7 +36,7 @@ type CourseSettingsFormProps = {
   settingsError: Error | null;
   onSubmit: (_event: React.FormEvent<HTMLFormElement>) => void;
   onChange: (
-    _field: "title" | "slug" | "description",
+    _field: "title" | "titleAr" | "slug" | "description" | "descriptionAr",
   ) => (
     _event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
@@ -83,7 +85,7 @@ export function CourseSettingsForm({
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="settings-title">
-                  {t("pages.centerCourseDetail.settings.fields.title")}
+                  {t("pages.centerCourseDetail.settings.fields.titleEn")}
                 </Label>
                 <Input
                   id="settings-title"
@@ -92,6 +94,20 @@ export function CourseSettingsForm({
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="settings-title-ar">
+                  {t("pages.centerCourseDetail.settings.fields.titleAr")}
+                </Label>
+                <Input
+                  id="settings-title-ar"
+                  value={settingsForm.titleAr}
+                  onChange={onChange("titleAr")}
+                  dir="rtl"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="settings-slug">
                   {t("pages.centerCourseDetail.settings.fields.slug")}
@@ -130,17 +146,32 @@ export function CourseSettingsForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="settings-description">
-                {t("pages.centerCourseDetail.settings.fields.description")}
-              </Label>
-              <textarea
-                id="settings-description"
-                value={settingsForm.description}
-                onChange={onChange("description")}
-                rows={4}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="settings-description">
+                  {t("pages.centerCourseDetail.settings.fields.descriptionEn")}
+                </Label>
+                <textarea
+                  id="settings-description"
+                  value={settingsForm.description}
+                  onChange={onChange("description")}
+                  rows={4}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settings-description-ar">
+                  {t("pages.centerCourseDetail.settings.fields.descriptionAr")}
+                </Label>
+                <textarea
+                  id="settings-description-ar"
+                  value={settingsForm.descriptionAr}
+                  onChange={onChange("descriptionAr")}
+                  rows={4}
+                  dir="rtl"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
             </div>
 
             <CourseEducationTargetingSection

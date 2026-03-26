@@ -5,6 +5,7 @@ import { useVideos } from "@/features/videos/hooks/use-videos";
 import { useTenant } from "@/app/tenant-provider";
 import { useTranslation } from "@/features/localization";
 import { useLocale } from "@/features/localization/locale-context";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { ListingCard } from "@/components/ui/listing-card";
 import { ListingFilters } from "@/components/ui/listing-filters";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
@@ -98,37 +100,27 @@ function resolveVideoTags(video: Video) {
     .filter(Boolean);
 }
 
-function resolveVideoTitle(video: Video) {
+function resolveVideoTitle(video: Video, locale?: string) {
   return (
-    video.title ??
-    video.title_translations?.en ??
-    video.title_translations?.ar ??
-    "—"
+    resolveTranslatedValue(
+      video.title_translations as Record<string, string> | null | undefined,
+      locale ?? "en",
+      video.title,
+    ) ?? "—"
   );
 }
 
-function resolveVideoDescription(video: Video) {
-  if (typeof video.description === "string" && video.description.trim()) {
-    return video.description.trim();
-  }
-
-  const englishDescription = video.description_translations?.en;
-  if (
-    typeof englishDescription === "string" &&
-    englishDescription.trim().length > 0
-  ) {
-    return englishDescription.trim();
-  }
-
-  const arabicDescription = video.description_translations?.ar;
-  if (
-    typeof arabicDescription === "string" &&
-    arabicDescription.trim().length > 0
-  ) {
-    return arabicDescription.trim();
-  }
-
-  return "";
+function resolveVideoDescription(video: Video, locale?: string) {
+  return (
+    resolveTranslatedValue(
+      video.description_translations as
+        | Record<string, string>
+        | null
+        | undefined,
+      locale ?? "en",
+      video.description,
+    ) ?? ""
+  );
 }
 
 function normalizeStatus(value: unknown) {
@@ -823,7 +815,7 @@ export function VideosTable({
                 </TableRow>
               ) : (
                 items.map((video, _index) => {
-                  const title = resolveVideoTitle(video);
+                  const title = resolveVideoTitle(video, locale);
                   const videoId = String(video.id);
                   const thumbnailState = resolveVideoThumbnailState(video);
                   const canRenderThumbnailImage = Boolean(
@@ -833,7 +825,7 @@ export function VideosTable({
                   const providerLabel = resolveVideoProviderLabel(video);
                   const sourceMode = resolveSourceMode(video, t);
                   const durationSeconds = resolveDurationSeconds(video);
-                  const description = resolveVideoDescription(video);
+                  const description = resolveVideoDescription(video, locale);
                   const transcriptBadge = getTranscriptBadge(video, t);
                   const tableStatus = resolveTableStatus(video);
                   const tableStatusBadge = getStatusBadge(
@@ -870,18 +862,31 @@ export function VideosTable({
                       ) : null}
                       <TableCell>
                         {canRenderThumbnailImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={thumbnailState.imageUrl ?? undefined}
+                          <Thumbnail
+                            src={thumbnailState.imageUrl}
                             alt={`${title} thumbnail`}
-                            className="h-10 w-16 rounded-md border border-gray-200 object-cover dark:border-gray-700"
-                            loading="lazy"
+                            widthPx={64}
+                            heightPx={40}
+                            className="h-10 w-16 rounded-md border border-gray-200 dark:border-gray-700"
                             onError={() => {
                               setFailedThumbnailIds((prev) => ({
                                 ...prev,
                                 [videoId]: true,
                               }));
                             }}
+                            fallback={
+                              <div className="flex h-10 w-16 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-1 text-center dark:border-gray-700 dark:bg-gray-900">
+                                <span className="line-clamp-1 text-[9px] font-medium text-gray-500 dark:text-gray-400">
+                                  {thumbnailState.fallbackLabel}
+                                </span>
+                                <span className="line-clamp-1 text-[8px] text-gray-400 dark:text-gray-500">
+                                  {thumbnailState.fallbackHint ??
+                                    t(
+                                      "pages.videos.table.thumbnail.noThumbnail",
+                                    )}
+                                </span>
+                              </div>
+                            }
                           />
                         ) : (
                           <div className="flex h-10 w-16 flex-col items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-1 text-center dark:border-gray-700 dark:bg-gray-900">

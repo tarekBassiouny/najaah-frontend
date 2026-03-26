@@ -17,15 +17,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Thumbnail } from "@/components/ui/thumbnail";
 import {
   useCreateSection,
   useReorderSections,
   useSections,
 } from "@/features/sections/hooks/use-sections";
 import { useTranslation } from "@/features/localization";
+import { resolveTranslatedValue } from "@/lib/resolve-translated-value";
 import { SectionMediaManagerDialog } from "@/features/sections/components/SectionMediaManagerDialog";
 import { getSectionApiErrorMessage } from "@/features/sections/lib/api-error";
 import type { Section } from "@/features/sections/types/section";
+import { resolveVideoThumbnailState } from "@/features/videos/lib/video-thumbnail";
+import type { Video } from "@/features/videos/types/video";
 import { cn } from "@/lib/utils";
 
 type CourseSectionsOverviewProps = {
@@ -67,11 +71,13 @@ function normalizeSectionsValue(value: unknown): Section[] {
     .filter((section): section is Section => section != null);
 }
 
-function getSectionTitle(section: Section, t: TranslateFn) {
+function getSectionTitle(section: Section, t: TranslateFn, locale?: string) {
   return (
-    section.title ??
-    section.name ??
-    t("pages.sectionManager.unknown.sectionById", { id: section.id })
+    resolveTranslatedValue(
+      section.title_translations as Record<string, string> | null | undefined,
+      locale ?? "en",
+      section.title ?? section.name,
+    ) ?? t("pages.sectionManager.unknown.sectionById", { id: section.id })
   );
 }
 
@@ -131,7 +137,7 @@ export function CourseSectionsOverview({
   managerHref,
   initialSections,
 }: CourseSectionsOverviewProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const queryClient = useQueryClient();
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [orderedSections, setOrderedSections] = useState<Section[]>([]);
@@ -146,6 +152,7 @@ export function CourseSectionsOverview({
     useState<MediaManagerState>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
+  const [createTitleAr, setCreateTitleAr] = useState("");
   const [createSortOrder, setCreateSortOrder] = useState("");
   const hasInitialSections = initialSections !== undefined;
   const normalizedInitialSections = useMemo(
@@ -296,6 +303,7 @@ export function CourseSectionsOverview({
 
   const handleCreateSection = () => {
     const title = createTitle.trim();
+    const titleAr = createTitleAr.trim();
     if (!title) {
       setFeedback({
         type: "error",
@@ -325,7 +333,10 @@ export function CourseSectionsOverview({
         centerId,
         courseId,
         payload: {
-          title_translations: { en: title },
+          title_translations: {
+            en: title,
+            ...(titleAr ? { ar: titleAr } : {}),
+          },
           ...(typeof sortOrder === "number" ? { sort_order: sortOrder } : {}),
         },
       },
@@ -333,6 +344,7 @@ export function CourseSectionsOverview({
         onSuccess: (createdSection) => {
           invalidateCourseDetails();
           setCreateTitle("");
+          setCreateTitleAr("");
           setCreateSortOrder("");
           setIsCreateDialogOpen(false);
           setFeedback({
@@ -507,7 +519,7 @@ export function CourseSectionsOverview({
 
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {getSectionTitle(section, t)}
+                        {getSectionTitle(section, t, locale)}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {videoCount}{" "}
@@ -557,52 +569,125 @@ export function CourseSectionsOverview({
                         ) : (
                           <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-dark">
                             <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                              {videos.map((video, videoIndex) => (
-                                <li
-                                  key={`${sectionKey}-video-${video.id ?? videoIndex}`}
-                                  className="flex items-center gap-3 px-3 py-3 text-sm"
-                                >
-                                  <Badge variant="secondary">
-                                    {t(
-                                      "pages.sectionManager.media.videoSingular",
-                                    )}
-                                  </Badge>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {video.title ??
-                                        video.name ??
-                                        t(
-                                          "pages.sectionManager.unknown.untitledVideo",
-                                        )}
-                                    </p>
-                                  </div>
-                                  <span className="text-xs text-gray-400">
-                                    {formatDuration(video.duration)}
-                                  </span>
-                                </li>
-                              ))}
+                              {videos.map((video, videoIndex) => {
+                                const thumbState = resolveVideoThumbnailState(
+                                  video as unknown as Video,
+                                );
+                                return (
+                                  <li
+                                    key={`${sectionKey}-video-${video.id ?? videoIndex}`}
+                                    className="flex items-center gap-3 px-3 py-2 text-sm"
+                                  >
+                                    <Thumbnail
+                                      src={thumbState.imageUrl}
+                                      widthPx={56}
+                                      heightPx={36}
+                                      className="h-9 w-14 flex-none rounded"
+                                      fallback={
+                                        <div className="flex h-9 w-14 flex-none items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
+                                          <svg
+                                            className="h-4 w-4 text-gray-400 dark:text-gray-500"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+                                            />
+                                          </svg>
+                                        </div>
+                                      }
+                                    />
+                                    <Badge variant="secondary">
+                                      {t(
+                                        "pages.sectionManager.media.videoSingular",
+                                      )}
+                                    </Badge>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {resolveTranslatedValue(
+                                          video.title_translations as
+                                            | Record<string, string>
+                                            | null
+                                            | undefined,
+                                          locale,
+                                          video.title ?? video.name,
+                                        ) ??
+                                          t(
+                                            "pages.sectionManager.unknown.untitledVideo",
+                                          )}
+                                      </p>
+                                    </div>
+                                    <span className="text-xs text-gray-400">
+                                      {formatDuration(video.duration)}
+                                    </span>
+                                  </li>
+                                );
+                              })}
 
-                              {pdfs.map((pdf, pdfIndex) => (
-                                <li
-                                  key={`${sectionKey}-pdf-${pdf.id ?? pdfIndex}`}
-                                  className="flex items-center gap-3 px-3 py-3 text-sm"
-                                >
-                                  <Badge variant="secondary">
-                                    {t(
-                                      "pages.sectionManager.media.pdfSingular",
-                                    )}
-                                  </Badge>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {pdf.title ??
-                                        pdf.name ??
-                                        t(
-                                          "pages.sectionManager.unknown.untitledPdf",
+                              {pdfs.map((pdf, pdfIndex) => {
+                                const pagesCount =
+                                  typeof pdf.page_count === "number"
+                                    ? (pdf.page_count as number)
+                                    : typeof pdf.pages_count === "number"
+                                      ? (pdf.pages_count as number)
+                                      : null;
+                                return (
+                                  <li
+                                    key={`${sectionKey}-pdf-${pdf.id ?? pdfIndex}`}
+                                    className="flex items-center gap-3 px-3 py-2 text-sm"
+                                  >
+                                    <div className="flex h-9 w-14 flex-none items-center justify-center rounded bg-red-50 dark:bg-red-900/20">
+                                      <svg
+                                        className="h-5 w-5 text-red-400 dark:text-red-500"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={1.5}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <Badge variant="secondary">
+                                      {t(
+                                        "pages.sectionManager.media.pdfSingular",
+                                      )}
+                                    </Badge>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {resolveTranslatedValue(
+                                          pdf.title_translations as
+                                            | Record<string, string>
+                                            | null
+                                            | undefined,
+                                          locale,
+                                          pdf.title ?? pdf.name,
+                                        ) ??
+                                          t(
+                                            "pages.sectionManager.unknown.untitledPdf",
+                                          )}
+                                      </p>
+                                    </div>
+                                    {pagesCount != null ? (
+                                      <span className="text-xs text-gray-400">
+                                        {pagesCount}{" "}
+                                        {t(
+                                          pagesCount === 1
+                                            ? "pages.courseSectionsOverview.media.pageSingular"
+                                            : "pages.courseSectionsOverview.media.pagePlural",
                                         )}
-                                    </p>
-                                  </div>
-                                </li>
-                              ))}
+                                      </span>
+                                    ) : null}
+                                  </li>
+                                );
+                              })}
                             </ul>
                           </div>
                         )}
@@ -638,18 +723,38 @@ export function CourseSectionsOverview({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="create-section-title">
-                {t("pages.courseSectionsOverview.createDialog.fields.title")}
-              </Label>
-              <Input
-                id="create-section-title"
-                value={createTitle}
-                onChange={(event) => setCreateTitle(event.target.value)}
-                placeholder={t(
-                  "pages.courseSectionsOverview.createDialog.placeholders.title",
-                )}
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="create-section-title-en">
+                  {t(
+                    "pages.courseSectionsOverview.createDialog.fields.titleEn",
+                  )}
+                </Label>
+                <Input
+                  id="create-section-title-en"
+                  value={createTitle}
+                  onChange={(event) => setCreateTitle(event.target.value)}
+                  placeholder={t(
+                    "pages.courseSectionsOverview.createDialog.placeholders.titleEn",
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-section-title-ar">
+                  {t(
+                    "pages.courseSectionsOverview.createDialog.fields.titleAr",
+                  )}
+                </Label>
+                <Input
+                  id="create-section-title-ar"
+                  value={createTitleAr}
+                  onChange={(event) => setCreateTitleAr(event.target.value)}
+                  placeholder={t(
+                    "pages.courseSectionsOverview.createDialog.placeholders.titleAr",
+                  )}
+                  dir="rtl"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="create-section-sort-order">

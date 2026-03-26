@@ -1136,9 +1136,13 @@
         "description": "تحديث تفاصيل الدورة واستهداف الظهور.",
         "fields": {
           "title": "العنوان",
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
           "slug": "الرابط المختصر",
           "category": "التصنيف",
           "description": "الوصف",
+          "descriptionEn": "الوصف (EN)",
+          "descriptionAr": "الوصف (AR)",
           "selectCategory": "اختر تصنيفاً",
           "searchCategories": "البحث في التصنيفات...",
           "noCategory": "بلا تصنيف"
@@ -1180,6 +1184,18 @@
         "title": "إزالة المدرب",
         "description": "هل أنت متأكد من إزالة هذا المدرب من الدورة؟",
         "descriptionWithName": "هل أنت متأكد من إزالة \"{name}\" من الدورة؟"
+      },
+      "thumbnail": {
+        "title": "صورة الدورة",
+        "description": "ارفع أو غيّر صورة غلاف الدورة. الحجم الموصى به: 800×450 (16:9).",
+        "noThumbnail": "لم يتم رفع صورة مصغرة",
+        "previewHint": "هذه معاينة محلية. انقر رفع للحفظ.",
+        "upload": "رفع",
+        "uploading": "جاري الرفع...",
+        "uploadSuccess": "تم تحديث الصورة المصغرة بنجاح.",
+        "uploadFailed": "فشل رفع الصورة المصغرة. يرجى المحاولة مرة أخرى.",
+        "errorInvalidType": "يُقبل فقط صور JPEG و PNG و WebP.",
+        "errorTooLarge": "يجب أن يكون حجم الصورة أقل من {max} ميجابايت."
       },
       "unknown": {
         "instructor": "مدرب غير معروف",
@@ -1352,14 +1368,22 @@
         "description": "أضف قسماً ويمكنك إرفاق فيديوهات أو ملفات PDF اختيارياً.",
         "fields": {
           "title": "العنوان *",
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
           "description": "الوصف (EN)",
+          "descriptionEn": "الوصف (EN)",
+          "descriptionAr": "الوصف (AR)",
           "sortOrder": "ترتيب العرض",
           "videos": "الفيديوهات",
           "pdfs": "ملفات PDF"
         },
         "placeholders": {
           "title": "مثال: مقدمة",
+          "titleEn": "مثال: Getting Started",
+          "titleAr": "مثال: مقدمة",
           "description": "وصف اختياري للقسم",
+          "descriptionEn": "وصف اختياري للقسم",
+          "descriptionAr": "وصف اختياري للقسم",
           "sortOrder": "اختياري، مثل: 1",
           "selectVideos": "اختر فيديوهات (اختياري)",
           "searchVideos": "البحث في الفيديوهات...",
@@ -1470,14 +1494,22 @@
         "titleRequired": "عنوان القسم مطلوب.",
         "sortOrderInvalid": "ترتيب العرض يجب أن يكون رقماً صحيحاً غير سالب."
       },
+      "media": {
+        "pageSingular": "صفحة",
+        "pagePlural": "صفحات"
+      },
       "createDialog": {
         "description": "أنشئ قسماً جديداً بسرعة من مساحة النظرة العامة.",
         "fields": {
           "title": "العنوان *",
+          "titleEn": "العنوان (EN) *",
+          "titleAr": "العنوان (AR)",
           "sortOrder": "ترتيب العرض"
         },
         "placeholders": {
           "title": "مثال: مقدمة",
+          "titleEn": "مثال: Introduction",
+          "titleAr": "مثال: مقدمة",
           "sortOrder": "اختياري"
         }
       }
@@ -1957,7 +1989,10 @@
         "devices": "الأجهزة",
         "downloads": "التنزيلات",
         "guest": "وصول الضيوف",
-        "video_access": "وصول الفيديو"
+        "video_access": "وصول الفيديو",
+        "video_code_batches": "دفعات أكواد الفيديو",
+        "web_portal": "بوابة الويب",
+        "parent_portal": "بوابة أولياء الأمور"
       },
       "groupDescriptions": {
         "general": "إعدادات المنصة الأساسية مثل اسم الموقع والمنطقة الزمنية واللغة.",
@@ -1971,7 +2006,10 @@
         "devices": "أدر حدود الأجهزة المتاحة لمركزك.",
         "downloads": "أدر إعدادات التنزيل المتاحة لمركزك.",
         "guest": "أدر خيارات وصول الضيوف المسموح بها لمركزك.",
-        "video_access": "أدر خيارات وصول الفيديو المتاحة لمركزك."
+        "video_access": "أدر خيارات وصول الفيديو المتاحة لمركزك.",
+        "video_code_batches": "أدر الإعدادات الافتراضية والحدود التشغيلية لدفعات أكواد الفيديو في مركزك.",
+        "web_portal": "أدر وصول بوابة الويب وصلاحيات المشاهدة وحدود الأجهزة لمركزك.",
+        "parent_portal": "أدر خيارات وصول بوابة أولياء الأمور لمركزك."
       },
       "fields": {
         "site_name": "اسم المنصة",
@@ -1980,7 +2018,9 @@
         "require_device_approval": "طلب موافقة الجهاز",
         "attendance_required": "الحضور مطلوب",
         "whatsapp_bulk_settings": "إعدادات واتساب الجماعية",
+        "whatsapp_max_retries": "الحد الأقصى لمحاولات واتساب",
         "max_view_limit": "الحد الأقصى للمشاهدات",
+        "max_quantity": "الحد الأقصى للكمية",
         "max_device_limit": "الحد الأقصى للأجهزة",
         "force_disable_extra_view_requests": "فرض تعطيل طلبات المشاهدات الإضافية",
         "force_disable_pdf_download": "فرض تعطيل تنزيل PDF",
@@ -1989,9 +2029,14 @@
         "allow_extra_view_requests": "السماح بطلبات مشاهدات إضافية",
         "requires_video_approval": "يتطلب موافقة على الفيديو",
         "video_code_expiry_days": "أيام انتهاء رمز الفيديو",
+        "video_code_batch_max_quantity": "الحد الأقصى لكمية دفعة أكواد الفيديو",
+        "video_code_batch_default_view_limit": "حد المشاهدة الافتراضي لدفعة أكواد الفيديو",
         "pdf_download_permission": "صلاحية تنزيل PDF",
         "device_limit": "حد الأجهزة",
         "allow_guest_browsing": "السماح بتصفح الضيوف",
+        "allow_web_access": "السماح بالوصول عبر الويب",
+        "allow_web_playback": "السماح بالمشاهدة عبر الويب",
+        "allow_parent_portal": "السماح ببوابة أولياء الأمور",
         "education_profile": "الملف التعليمي",
         "branding": "الهوية البصرية",
         "enable_grade": "تفعيل الصف الدراسي",
@@ -2006,13 +2051,24 @@
         "primary_color": "اللون الأساسي",
         "ai_content": "محتوى الذكاء الاصطناعي",
         "codes_access": "الوصول عبر الأكواد",
+        "web_access": "الوصول عبر الويب",
+        "web_playback": "المشاهدة عبر الويب",
+        "parent_portal": "بوابة أولياء الأمور",
         "whatsapp_bulk": "واتساب الجماعي",
         "guest_browsing": "تصفح الضيوف",
+        "web_device_limit": "حد أجهزة الويب",
         "pdf_downloads": "تنزيلات PDF",
         "is_enabled": "مفعّل",
         "allowed_models": "النماذج المسموح بها",
         "default_model": "النموذج الافتراضي",
         "limits": "الحدود",
+        "monthly_job_limit": "الحد الشهري للوظائف",
+        "daily_token_limit": "الحد اليومي للرموز",
+        "monthly_token_limit": "الحد الشهري للرموز",
+        "max_input_chars": "الحد الأقصى لأحرف الإدخال",
+        "max_output_chars": "الحد الأقصى لأحرف الإخراج",
+        "max_concurrent_jobs": "الحد الأقصى للوظائف المتزامنة",
+        "default_output_token_estimate": "التقدير الافتراضي لرموز الإخراج",
         "delay_seconds": "ثواني التأخير",
         "batch_size": "حجم الدفعة",
         "batch_pause_seconds": "ثواني التوقف بين الدفعات",
@@ -5915,7 +5971,7 @@
           "headers": {
             "name": "الاسم",
             "stage": "المرحلة",
-            "order": "الترتيب",
+            "studentsCount": "الطلاب",
             "status": "الحالة",
             "actions": "الإجراءات"
           },
@@ -7899,7 +7955,9 @@
               "selectCourse": "اختر دورة أكواد فيديو قبل إنشاء الدفعة.",
               "selectVideo": "اختر فيديو قبل إنشاء الدفعة.",
               "invalidQuantity": "يجب أن تكون الكمية 1 على الأقل.",
+              "maxQuantityExceeded": "يجب ألا تزيد الكمية عن {count}.",
               "invalidViewLimit": "يجب أن يكون حد المشاهدة لكل كود 1 على الأقل.",
+              "maxViewLimitExceeded": "يجب ألا يزيد حد المشاهدة لكل كود عن {count}.",
               "createFailed": "فشل إنشاء دفعة أكواد الفيديو."
             }
           },

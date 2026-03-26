@@ -237,17 +237,19 @@ export function resolveVideoThumbnailState(video: Video): VideoThumbnailState {
       ? video.source_id.trim()
       : null;
 
-  if (isUploadSourceVideo(video, provider.key)) {
-    if (backendThumbnailUrl) {
-      return {
-        imageUrl: backendThumbnailUrl,
-        providerLabel: provider.label,
-        fallbackLabel: provider.label,
-        fallbackHint: provider.domain,
-        source: "backend",
-      };
-    }
+  // Backend thumbnail_url takes priority when the backend signals a custom
+  // thumbnail, or when the field is present and non-empty.
+  if (backendThumbnailUrl) {
+    return {
+      imageUrl: backendThumbnailUrl,
+      providerLabel: provider.label,
+      fallbackLabel: provider.label,
+      fallbackHint: provider.domain,
+      source: "backend",
+    };
+  }
 
+  if (isUploadSourceVideo(video, provider.key)) {
     return {
       imageUrl: null,
       providerLabel: provider.label,

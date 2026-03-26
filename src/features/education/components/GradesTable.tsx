@@ -282,7 +282,7 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                   {t("pages.education.tables.grades.headers.stage")}
                 </TableHead>
                 <TableHead className="font-medium">
-                  {t("pages.education.tables.grades.headers.order")}
+                  {t("pages.education.tables.grades.headers.studentsCount")}
                 </TableHead>
                 <TableHead className="font-medium">
                   {t("pages.education.tables.grades.headers.status")}
@@ -360,13 +360,14 @@ export function GradesTable({ centerId, onEdit, onDelete }: GradesTableProps) {
                         {getEducationName(
                           grade,
                           t("pages.education.tables.grades.entityName"),
+                          locale,
                         )}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
                         {getStageLabel(grade.stage, grade.stage_label)}
                       </TableCell>
                       <TableCell className="text-gray-600 dark:text-gray-300">
-                        {grade.order ?? "—"}
+                        {grade.students_count ?? 0}
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusVariant}>

@@ -38,6 +38,7 @@ import {
 } from "@/features/system-settings/hooks/use-system-settings";
 import type { SystemSetting } from "@/features/system-settings/types/system-setting";
 import {
+  getAdminApiAllValidationMessages,
   getAdminApiErrorMessage,
   getAdminResponseMessage,
   isAdminRequestSuccessful,
@@ -73,11 +74,18 @@ type SystemSettingFormDialogProps = {
   onSuccess?: (_message: string) => void;
 };
 
-function getErrorMessage(error: unknown, t: TranslateFunction) {
-  return getAdminApiErrorMessage(
-    error,
-    t("pages.settingsRegistryDialog.errors.saveFailed"),
-  );
+function getErrorMessages(error: unknown, t: TranslateFunction): string[] {
+  const fieldMessages = getAdminApiAllValidationMessages(error);
+  if (fieldMessages.length > 0) {
+    return fieldMessages;
+  }
+
+  return [
+    getAdminApiErrorMessage(
+      error,
+      t("pages.settingsRegistryDialog.errors.saveFailed"),
+    ),
+  ];
 }
 
 function formatValueForInput(value: unknown) {
@@ -136,7 +144,7 @@ export function SystemSettingFormDialog({
   const { t } = useTranslation();
   const schema = useMemo(() => createSchema(t), [t]);
 
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const isEditMode = Boolean(setting);
   const createMutation = useCreateSystemSetting();
   const updateMutation = useUpdateSystemSetting();
@@ -163,12 +171,12 @@ export function SystemSettingFormDialog({
 
   useEffect(() => {
     if (!open) {
-      setFormError(null);
+      setFormErrors([]);
     }
   }, [open]);
 
   useEffect(() => {
-    setFormError(null);
+    setFormErrors([]);
     form.reset({
       key: setting?.key ? String(setting.key) : "",
       valueText: setting ? formatValueForInput(setting.value) : "{\n  \n}",
@@ -177,7 +185,7 @@ export function SystemSettingFormDialog({
   }, [form, setting]);
 
   const onSubmit = (values: FormValues) => {
-    setFormError(null);
+    setFormErrors([]);
 
     const trimmedKey = values.key.trim();
     if (!isEditMode && matchingExistingSetting) {
@@ -209,12 +217,12 @@ export function SystemSettingFormDialog({
         {
           onSuccess: (response) => {
             if (!isAdminRequestSuccessful(response)) {
-              setFormError(
+              setFormErrors([
                 getAdminResponseMessage(
                   response,
                   t("pages.settingsRegistryDialog.errors.saveFailed"),
                 ),
-              );
+              ]);
               return;
             }
             onOpenChange(false);
@@ -225,7 +233,7 @@ export function SystemSettingFormDialog({
               ),
             );
           },
-          onError: (error) => setFormError(getErrorMessage(error, t)),
+          onError: (error) => setFormErrors(getErrorMessages(error, t)),
         },
       );
       return;
@@ -240,12 +248,12 @@ export function SystemSettingFormDialog({
       {
         onSuccess: (response) => {
           if (!isAdminRequestSuccessful(response)) {
-            setFormError(
+            setFormErrors([
               getAdminResponseMessage(
                 response,
                 t("pages.settingsRegistryDialog.errors.saveFailed"),
               ),
-            );
+            ]);
             return;
           }
           onOpenChange(false);
@@ -256,7 +264,7 @@ export function SystemSettingFormDialog({
             ),
           );
         },
-        onError: (error) => setFormError(getErrorMessage(error, t)),
+        onError: (error) => setFormErrors(getErrorMessages(error, t)),
       },
     );
   };
@@ -286,12 +294,22 @@ export function SystemSettingFormDialog({
         </div>
 
         <div className="space-y-5 p-6">
-          {formError && (
+          {formErrors.length > 0 && (
             <Alert variant="destructive">
               <AlertTitle>
                 {t("pages.settingsRegistryDialog.errorTitle")}
               </AlertTitle>
-              <AlertDescription>{formError}</AlertDescription>
+              <AlertDescription>
+                {formErrors.length === 1 ? (
+                  formErrors[0]
+                ) : (
+                  <ul className="list-inside list-disc space-y-1">
+                    {formErrors.map((message, index) => (
+                      <li key={index}>{message}</li>
+                    ))}
+                  </ul>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 

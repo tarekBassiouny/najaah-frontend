@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, use, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useModal } from "@/components/ui/modal-store";
 import { AppNotFoundState } from "@/components/ui/app-not-found-state";
@@ -470,10 +471,12 @@ export default function StudentProfilePage({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {studentProfile.avatar_url ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
+                <Image
                   src={studentProfile.avatar_url}
                   alt={studentProfile.name}
+                  width={56}
+                  height={56}
+                  unoptimized
                   className="h-14 w-14 rounded-full object-cover"
                 />
               ) : (
@@ -731,13 +734,15 @@ export default function StudentProfilePage({
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-3">
                             {enrollment.course.thumbnail_url ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img
+                              <Image
                                 src={enrollment.course.thumbnail_url}
                                 alt={t(
                                   "pages.centerStudentProfile.enrollments.courseThumbnailAlt",
                                   { title: enrollment.course.title },
                                 )}
+                                width={64}
+                                height={40}
+                                unoptimized
                                 className="hidden h-10 w-16 rounded border border-gray-200 object-cover dark:border-gray-700 sm:block"
                               />
                             ) : null}
@@ -948,13 +953,15 @@ export default function StudentProfilePage({
                                       <TableCell>
                                         <div className="flex items-center gap-3">
                                           {video.thumbnail_url ? (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img
+                                            <Image
                                               src={video.thumbnail_url}
                                               alt={t(
                                                 "pages.centerStudentProfile.enrollments.thumbnailAlt",
                                                 { title: video.title },
                                               )}
+                                              width={96}
+                                              height={56}
+                                              unoptimized
                                               className="h-14 w-24 rounded-lg border border-gray-200 object-cover dark:border-gray-700"
                                             />
                                           ) : (

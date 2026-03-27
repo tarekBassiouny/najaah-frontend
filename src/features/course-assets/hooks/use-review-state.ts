@@ -368,22 +368,22 @@ export function useReviewState({
 
   const summaryTitle = readLocalizedStringFromPaths(
     reviewPayload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const summaryContent = readLocalizedStringFromPaths(
     reviewPayload,
-    [["content"], ["content_translations"]],
+    [["content_translations"], ["content"]],
     activeLocale,
   );
   const quizTitle = readLocalizedStringFromPaths(
     reviewPayload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const quizDescription = readLocalizedStringFromPaths(
     reviewPayload,
-    [["description"], ["description_translations"]],
+    [["description_translations"], ["description"]],
     activeLocale,
   );
   const quizQuestionsCount = readArrayFromPaths(reviewPayload, [
@@ -391,12 +391,12 @@ export function useReviewState({
   ]).length;
   const assignmentTitle = readLocalizedStringFromPaths(
     reviewPayload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const assignmentDescription = readLocalizedStringFromPaths(
     reviewPayload,
-    [["description"], ["description_translations"]],
+    [["description_translations"], ["description"]],
     activeLocale,
   );
   const assignmentMaxPoints = readNumberFromPaths(reviewPayload, [
@@ -413,18 +413,18 @@ export function useReviewState({
     .join(", ");
   const flashcardsTitle = readLocalizedStringFromPaths(
     reviewPayload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const flashcardsCount = readArrayFromPaths(reviewPayload, [["cards"]]).length;
   const interactiveTitle = readLocalizedStringFromPaths(
     reviewPayload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const interactiveInstructions = readLocalizedStringFromPaths(
     reviewPayload,
-    [["instructions"]],
+    [["instructions_translations"], ["instructions"]],
     activeLocale,
   );
   const interactiveStepsCount = readArrayFromPaths(reviewPayload, [

@@ -190,6 +190,11 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
       locale,
       cd.title ?? cd.name,
     ) ?? t("pages.centerCourseDetail.unknown.courseById", { id: cd.id });
+  const courseDescription = resolveTranslatedValue(
+    cd.description_translations as Record<string, string> | null | undefined,
+    locale,
+    cd.description,
+  );
   const accessModelLabel = isVideoCodeCourse ? "Video Code" : "Enrollment";
   const courseThumbnailUrl = (() => {
     const url = cd.thumbnail_url ?? cd.thumbnail;
@@ -276,9 +281,9 @@ export default function CenterCourseDetailPage({ params }: PageProps) {
                           {accessModelLabel}
                         </Badge>
                       </div>
-                      {cd.description ? (
+                      {courseDescription ? (
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {String(cd.description)}
+                          {courseDescription}
                         </p>
                       ) : null}
                     </div>

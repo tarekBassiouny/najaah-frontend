@@ -1,6 +1,28 @@
 import type { CreateAIBatchAssetRequest } from "@/features/ai/types/ai";
 import type { GenerateFormState, SelectedSource } from "../types/generate-form";
 
+function toBoundedPositiveInt(
+  value: string,
+  fallback: number,
+  options?: { min?: number; max?: number },
+): number {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  const min = options?.min ?? 1;
+  const max = options?.max;
+  const normalized = Math.max(min, Math.trunc(parsed));
+
+  if (max == null) {
+    return normalized;
+  }
+
+  return Math.min(normalized, max);
+}
+
 export function toAssetBatchPayload(
   generateForm: GenerateFormState,
   selectedSource: SelectedSource,
@@ -39,9 +61,17 @@ export function toAssetBatchPayload(
           ? selectedSource.presetTargetId
           : null,
       generation_config: {
-        question_count: Number(generateForm.quizQuestionCount || 10),
+        question_count: toBoundedPositiveInt(
+          generateForm.quizQuestionCount,
+          10,
+          {
+            min: 1,
+            max: 50,
+          },
+        ),
         difficulty: generateForm.quizDifficulty,
-        question_styles: questionStyles,
+        question_styles:
+          questionStyles.length > 0 ? questionStyles : ["single_choice"],
       },
     });
   }
@@ -59,8 +89,11 @@ export function toAssetBatchPayload(
           ? selectedSource.presetTargetId
           : null,
       generation_config: {
-        card_count: Number(generateForm.flashcardsCount || 15),
-        focus,
+        card_count: toBoundedPositiveInt(generateForm.flashcardsCount, 15, {
+          min: 1,
+          max: 100,
+        }),
+        focus: focus.length > 0 ? focus : ["definitions"],
       },
     });
   }
@@ -79,8 +112,8 @@ export function toAssetBatchPayload(
           : null,
       generation_config: {
         assignment_style: generateForm.assignmentStyle,
-        submission_types: submissionTypes,
-        max_points: Number(generateForm.assignmentMaxPoints || 100),
+        submission_types: submissionTypes.length > 0 ? submissionTypes : [0],
+        max_points: toBoundedPositiveInt(generateForm.assignmentMaxPoints, 100),
       },
     });
   }
@@ -94,7 +127,14 @@ export function toAssetBatchPayload(
           : null,
       generation_config: {
         activity_style: generateForm.interactiveActivityStyle,
-        steps_count: Number(generateForm.interactiveActivityStepsCount || 5),
+        steps_count: toBoundedPositiveInt(
+          generateForm.interactiveActivityStepsCount,
+          5,
+          {
+            min: 1,
+            max: 20,
+          },
+        ),
         include_reflection: generateForm.interactiveActivityIncludeReflection,
       },
     });

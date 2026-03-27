@@ -28,15 +28,15 @@ import { useUpdateAdminProfile } from "@/features/auth/hooks/use-admin-profile-u
 import { useTranslation } from "@/features/localization";
 import type { AdminProfileUpdatePayload, AdminUser } from "@/types/auth";
 
-const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
-const COUNTRY_CODE_REGEX = /^\+[1-9]\d{0,3}$/;
+const FLEXIBLE_PHONE_REGEX = /^(?=.*\d)[+\d()\s-]{6,20}$/;
+const FLEXIBLE_COUNTRY_CODE_REGEX = /^[+\d][+\d\s-]{0,7}$/;
 
 function normalizePhone(value?: string) {
-  return value?.replace(/\s+/g, "").trim() ?? "";
+  return value?.trim() ?? "";
 }
 
 function normalizeCountryCode(value?: string) {
-  return value?.replace(/\s+/g, "").trim() ?? "";
+  return value?.trim() ?? "";
 }
 
 type FormValues = {
@@ -187,7 +187,7 @@ export function EditAdminProfileDialog({
       .trim()
       .optional()
       .refine(
-        (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
+        (value) => !value || FLEXIBLE_PHONE_REGEX.test(normalizePhone(value)),
         t("pages.editProfile.validation.phoneFormat"),
       ),
     countryCode: z
@@ -196,7 +196,8 @@ export function EditAdminProfileDialog({
       .optional()
       .refine(
         (value) =>
-          !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
+          !value ||
+          FLEXIBLE_COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
         t("pages.editProfile.validation.countryCodeFormat"),
       ),
   });

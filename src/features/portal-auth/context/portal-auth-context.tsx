@@ -85,7 +85,9 @@ export function PortalAuthProvider({ children }: PortalAuthProviderProps) {
       }
 
       if (data.type === "portal_logout") {
-        const queryKey = getPortalMeQueryKey(portalTokenStorage.getActiveRole());
+        const queryKey = getPortalMeQueryKey(
+          portalTokenStorage.getActiveRole(),
+        );
         portalTokenStorage.clear({ broadcast: false });
         cancelPortalTokenRefresh();
         queryClient.setQueryData(queryKey, null);

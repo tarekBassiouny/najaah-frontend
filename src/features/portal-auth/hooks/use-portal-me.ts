@@ -28,8 +28,7 @@ export function usePortalMe(options?: UsePortalMeOptions) {
 
   return useQuery({
     queryKey: getPortalMeQueryKey(activeRole),
-    queryFn:
-      activeRole === "parent" ? fetchParentProfile : fetchStudentProfile,
+    queryFn: activeRole === "parent" ? fetchParentProfile : fetchStudentProfile,
     staleTime: 5 * 60 * 1000,
     retry: (failureCount, error) => {
       if (isAxiosError(error) && error.response?.status === 401) {

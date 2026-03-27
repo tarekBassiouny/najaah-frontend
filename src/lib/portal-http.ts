@@ -23,9 +23,7 @@ function redirectToPortalLogin(reason?: "session_expired") {
     const query = params.toString();
     const loginPath =
       role === "parent" ? "/portal/parent/login" : "/portal/student/login";
-    window.location.href = query
-      ? `${loginPath}?${query}`
-      : loginPath;
+    window.location.href = query ? `${loginPath}?${query}` : loginPath;
   }
 }
 

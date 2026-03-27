@@ -100,7 +100,7 @@ export function ReviewEditPanel({
               value={summaryTitle}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["title"], ["title_translations", "en"]],
+                  [["title_translations"], ["title"]],
                   event.target.value,
                 )
               }
@@ -117,7 +117,7 @@ export function ReviewEditPanel({
               value={summaryContent}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["content"], ["content_translations", "en"]],
+                  [["content_translations"], ["content"]],
                   event.target.value,
                 )
               }
@@ -138,7 +138,7 @@ export function ReviewEditPanel({
               value={quizTitle}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["title"], ["title_translations", "en"]],
+                  [["title_translations"], ["title"]],
                   event.target.value,
                 )
               }
@@ -165,7 +165,7 @@ export function ReviewEditPanel({
               value={quizDescription}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["description"], ["description_translations", "en"]],
+                  [["description_translations"], ["description"]],
                   event.target.value,
                 )
               }
@@ -186,7 +186,7 @@ export function ReviewEditPanel({
               value={assignmentTitle}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["title"], ["title_translations", "en"]],
+                  [["title_translations"], ["title"]],
                   event.target.value,
                 )
               }
@@ -244,7 +244,7 @@ export function ReviewEditPanel({
               value={assignmentDescription}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["description"], ["description_translations", "en"]],
+                  [["description_translations"], ["description"]],
                   event.target.value,
                 )
               }
@@ -284,7 +284,7 @@ export function ReviewEditPanel({
               value={flashcardsTitle}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["title"], ["title_translations", "en"]],
+                  [["title_translations"], ["title"]],
                   event.target.value,
                 )
               }
@@ -315,7 +315,7 @@ export function ReviewEditPanel({
               value={interactiveTitle}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["title"], ["title_translations", "en"]],
+                  [["title_translations"], ["title"]],
                   event.target.value,
                 )
               }
@@ -344,7 +344,7 @@ export function ReviewEditPanel({
               value={interactiveInstructions}
               onChange={(event) =>
                 onUpdatePayloadStringField(
-                  [["instructions"]],
+                  [["instructions_translations"], ["instructions"]],
                   event.target.value,
                 )
               }

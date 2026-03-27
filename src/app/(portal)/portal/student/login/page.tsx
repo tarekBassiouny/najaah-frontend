@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "@/features/localization";
 import Link from "next/link";
 
 const phoneSchema = z.object({
@@ -64,6 +65,7 @@ function getBrowserInfo() {
 }
 
 export default function StudentLoginPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, user } = usePortalAuth();
@@ -142,19 +144,19 @@ export default function StudentLoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-lg dark:border-dark-3 dark:bg-gray-900">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold text-dark dark:text-white">
-            Student Login
+            {t("pages.portalAuth.studentLogin.title")}
           </h1>
           <p className="text-sm text-dark-6 dark:text-dark-5">
             {step === "phone"
-              ? "Enter your phone number to receive a verification code"
-              : "Enter the verification code sent to your phone"}
+              ? t("pages.portalAuth.studentLogin.subtitlePhone")
+              : t("pages.portalAuth.studentLogin.subtitleOtp")}
           </p>
         </div>
 
         {(error || reason === "session_expired") && (
           <Alert variant="destructive" className="mt-6">
             <AlertDescription>
-              {error || "Your session has expired. Please log in again."}
+              {error || t("pages.portalAuth.common.sessionExpired")}
             </AlertDescription>
           </Alert>
         )}
@@ -170,9 +172,16 @@ export default function StudentLoginPage() {
                 name="country_code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country Code</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.countryCode")}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="+20 or 0020" {...field} />
+                      <Input
+                        placeholder={t(
+                          "pages.portalAuth.common.countryCodePlaceholder",
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -184,11 +193,15 @@ export default function StudentLoginPage() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.phoneNumber")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
-                        placeholder="01012345678 or +201012345678"
+                        placeholder={t(
+                          "pages.portalAuth.common.phonePlaceholder",
+                        )}
                         autoComplete="tel"
                         {...field}
                       />
@@ -217,7 +230,7 @@ export default function StudentLoginPage() {
                         htmlFor="rememberMe"
                         className="!mt-0 cursor-pointer text-sm font-normal"
                       >
-                        Remember me
+                        {t("pages.portalAuth.common.rememberMe")}
                       </FormLabel>
                     </div>
                   </FormItem>
@@ -229,16 +242,18 @@ export default function StudentLoginPage() {
                 className="w-full"
                 disabled={sendOtp.isPending}
               >
-                {sendOtp.isPending ? "Sending..." : "Send Verification Code"}
+                {sendOtp.isPending
+                  ? t("pages.portalAuth.common.sending")
+                  : t("pages.portalAuth.common.sendVerificationCode")}
               </Button>
 
               <p className="text-center text-sm text-dark-6 dark:text-dark-5">
-                Are you a parent?{" "}
+                {t("pages.portalAuth.studentLogin.parentPrompt")}{" "}
                 <Link
                   href="/portal/parent/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Parent Login
+                  {t("pages.portalAuth.common.parentLogin")}
                 </Link>
               </p>
             </form>
@@ -256,12 +271,16 @@ export default function StudentLoginPage() {
                 name="otp"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Verification Code</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.verificationCode")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         inputMode="numeric"
-                        placeholder="Enter OTP"
+                        placeholder={t(
+                          "pages.portalAuth.common.otpPlaceholder",
+                        )}
                         autoComplete="one-time-code"
                         {...field}
                       />
@@ -276,7 +295,9 @@ export default function StudentLoginPage() {
                 className="w-full"
                 disabled={verify.isPending}
               >
-                {verify.isPending ? "Verifying..." : "Verify & Login"}
+                {verify.isPending
+                  ? t("pages.portalAuth.common.verifying")
+                  : t("pages.portalAuth.studentLogin.verifyAndLogin")}
               </Button>
 
               <button
@@ -288,7 +309,7 @@ export default function StudentLoginPage() {
                   otpForm.reset();
                 }}
               >
-                Back to phone number
+                {t("pages.portalAuth.common.backToPhone")}
               </button>
             </form>
           </Form>

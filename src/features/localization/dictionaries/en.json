@@ -6311,6 +6311,60 @@
         "countryCodeFormat": "Enter a valid country code such as +20 or 0020."
       }
     },
+    "portalAuth": {
+      "common": {
+        "countryCode": "Country Code",
+        "countryCodePlaceholder": "+20 or 0020",
+        "phoneNumber": "Phone Number",
+        "phonePlaceholder": "01012345678 or +201012345678",
+        "rememberMe": "Remember me",
+        "verificationCode": "Verification Code",
+        "otpPlaceholder": "Enter OTP",
+        "sending": "Sending...",
+        "verifying": "Verifying...",
+        "sendVerificationCode": "Send Verification Code",
+        "sessionExpired": "Your session has expired. Please log in again.",
+        "backToPhone": "Back to phone number",
+        "studentLogin": "Student Login",
+        "parentLogin": "Parent Login"
+      },
+      "studentLogin": {
+        "title": "Student Login",
+        "subtitlePhone": "Enter your phone number to receive a verification code",
+        "subtitleOtp": "Enter the verification code sent to your phone",
+        "parentPrompt": "Are you a parent?",
+        "verifyAndLogin": "Verify & Login"
+      },
+      "parentLogin": {
+        "title": "Parent Login",
+        "subtitlePhone": "Enter your phone number to receive a verification code",
+        "subtitleOtp": "Enter the verification code sent to your phone",
+        "newParentPrompt": "New parent?",
+        "registerHere": "Register here",
+        "studentPrompt": "Are you a student?",
+        "verifyAndLogin": "Verify & Login"
+      },
+      "parentRegister": {
+        "title": "Parent Registration",
+        "subtitleRegister": "Register to monitor your child's learning progress",
+        "subtitleOtp": "Enter the verification code sent to your phone",
+        "autoLinked": "Students matching your phone number have been automatically linked to your account.",
+        "registering": "Registering...",
+        "registerAndSend": "Register & Send Code",
+        "alreadyRegistered": "Already registered?",
+        "loginHere": "Login here",
+        "verifyAndComplete": "Verify & Complete",
+        "backToRegister": "Back to registration"
+      },
+      "studentHome": {
+        "title": "Student Portal",
+        "description": "Welcome to the student portal. This page will be replaced with the actual design."
+      },
+      "parentHome": {
+        "title": "Parent Portal",
+        "description": "Welcome to the parent portal. This page will be replaced with the actual design."
+      }
+    },
     "courseAudience": {
       "title": "Course Audience",
       "description": "Choose whether this course is visible to all students or specific education groups.",

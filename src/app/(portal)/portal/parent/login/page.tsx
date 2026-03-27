@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "@/features/localization";
 import Link from "next/link";
 
 const phoneSchema = z.object({
@@ -45,6 +46,7 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 type Step = "phone" | "otp";
 
 export default function ParentLoginPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, user } = usePortalAuth();
@@ -117,19 +119,19 @@ export default function ParentLoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-lg dark:border-dark-3 dark:bg-gray-900">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold text-dark dark:text-white">
-            Parent Login
+            {t("pages.portalAuth.parentLogin.title")}
           </h1>
           <p className="text-sm text-dark-6 dark:text-dark-5">
             {step === "phone"
-              ? "Enter your phone number to receive a verification code"
-              : "Enter the verification code sent to your phone"}
+              ? t("pages.portalAuth.parentLogin.subtitlePhone")
+              : t("pages.portalAuth.parentLogin.subtitleOtp")}
           </p>
         </div>
 
         {(error || reason === "session_expired") && (
           <Alert variant="destructive" className="mt-6">
             <AlertDescription>
-              {error || "Your session has expired. Please log in again."}
+              {error || t("pages.portalAuth.common.sessionExpired")}
             </AlertDescription>
           </Alert>
         )}
@@ -145,9 +147,16 @@ export default function ParentLoginPage() {
                 name="country_code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country Code</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.countryCode")}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="+20 or 0020" {...field} />
+                      <Input
+                        placeholder={t(
+                          "pages.portalAuth.common.countryCodePlaceholder",
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,11 +168,15 @@ export default function ParentLoginPage() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.phoneNumber")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
-                        placeholder="01012345678 or +201012345678"
+                        placeholder={t(
+                          "pages.portalAuth.common.phonePlaceholder",
+                        )}
                         autoComplete="tel"
                         {...field}
                       />
@@ -192,7 +205,7 @@ export default function ParentLoginPage() {
                         htmlFor="parentRememberMe"
                         className="!mt-0 cursor-pointer text-sm font-normal"
                       >
-                        Remember me
+                        {t("pages.portalAuth.common.rememberMe")}
                       </FormLabel>
                     </div>
                   </FormItem>
@@ -204,26 +217,28 @@ export default function ParentLoginPage() {
                 className="w-full"
                 disabled={sendOtp.isPending}
               >
-                {sendOtp.isPending ? "Sending..." : "Send Verification Code"}
+                {sendOtp.isPending
+                  ? t("pages.portalAuth.common.sending")
+                  : t("pages.portalAuth.common.sendVerificationCode")}
               </Button>
 
               <div className="space-y-2 text-center text-sm text-dark-6 dark:text-dark-5">
                 <p>
-                  New parent?{" "}
+                  {t("pages.portalAuth.parentLogin.newParentPrompt")}{" "}
                   <Link
                     href="/portal/parent/register"
                     className="font-medium text-primary hover:underline"
                   >
-                    Register here
+                    {t("pages.portalAuth.parentLogin.registerHere")}
                   </Link>
                 </p>
                 <p>
-                  Are you a student?{" "}
+                  {t("pages.portalAuth.parentLogin.studentPrompt")}{" "}
                   <Link
                     href="/portal/student/login"
                     className="font-medium text-primary hover:underline"
                   >
-                    Student Login
+                    {t("pages.portalAuth.common.studentLogin")}
                   </Link>
                 </p>
               </div>
@@ -242,12 +257,16 @@ export default function ParentLoginPage() {
                 name="otp"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Verification Code</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.verificationCode")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         inputMode="numeric"
-                        placeholder="Enter OTP"
+                        placeholder={t(
+                          "pages.portalAuth.common.otpPlaceholder",
+                        )}
                         autoComplete="one-time-code"
                         {...field}
                       />
@@ -262,7 +281,9 @@ export default function ParentLoginPage() {
                 className="w-full"
                 disabled={verify.isPending}
               >
-                {verify.isPending ? "Verifying..." : "Verify & Login"}
+                {verify.isPending
+                  ? t("pages.portalAuth.common.verifying")
+                  : t("pages.portalAuth.parentLogin.verifyAndLogin")}
               </Button>
 
               <button
@@ -274,7 +295,7 @@ export default function ParentLoginPage() {
                   otpForm.reset();
                 }}
               >
-                Back to phone number
+                {t("pages.portalAuth.common.backToPhone")}
               </button>
             </form>
           </Form>

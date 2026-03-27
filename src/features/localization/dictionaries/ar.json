@@ -6311,6 +6311,60 @@
         "countryCodeFormat": "أدخل رمز دولة صحيحًا مثل +20 أو 0020."
       }
     },
+    "portalAuth": {
+      "common": {
+        "countryCode": "رمز الدولة",
+        "countryCodePlaceholder": "+20 أو 0020",
+        "phoneNumber": "رقم الهاتف",
+        "phonePlaceholder": "01012345678 أو +201012345678",
+        "rememberMe": "تذكرني",
+        "verificationCode": "رمز التحقق",
+        "otpPlaceholder": "أدخل رمز التحقق",
+        "sending": "جارٍ الإرسال...",
+        "verifying": "جارٍ التحقق...",
+        "sendVerificationCode": "إرسال رمز التحقق",
+        "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+        "backToPhone": "العودة إلى رقم الهاتف",
+        "studentLogin": "دخول الطالب",
+        "parentLogin": "دخول ولي الأمر"
+      },
+      "studentLogin": {
+        "title": "دخول الطالب",
+        "subtitlePhone": "أدخل رقم هاتفك لاستلام رمز التحقق",
+        "subtitleOtp": "أدخل رمز التحقق المرسل إلى هاتفك",
+        "parentPrompt": "هل أنت ولي أمر؟",
+        "verifyAndLogin": "تحقق وسجل الدخول"
+      },
+      "parentLogin": {
+        "title": "دخول ولي الأمر",
+        "subtitlePhone": "أدخل رقم هاتفك لاستلام رمز التحقق",
+        "subtitleOtp": "أدخل رمز التحقق المرسل إلى هاتفك",
+        "newParentPrompt": "ولي أمر جديد؟",
+        "registerHere": "سجل هنا",
+        "studentPrompt": "هل أنت طالب؟",
+        "verifyAndLogin": "تحقق وسجل الدخول"
+      },
+      "parentRegister": {
+        "title": "تسجيل ولي الأمر",
+        "subtitleRegister": "سجل لمتابعة تقدم تعلم ابنك",
+        "subtitleOtp": "أدخل رمز التحقق المرسل إلى هاتفك",
+        "autoLinked": "تم ربط الطلاب المطابقين لرقم هاتفك بحسابك تلقائيًا.",
+        "registering": "جارٍ التسجيل...",
+        "registerAndSend": "سجل وأرسل الرمز",
+        "alreadyRegistered": "مسجل بالفعل؟",
+        "loginHere": "سجل الدخول هنا",
+        "verifyAndComplete": "تحقق وأكمل",
+        "backToRegister": "العودة إلى التسجيل"
+      },
+      "studentHome": {
+        "title": "بوابة الطالب",
+        "description": "مرحبًا بك في بوابة الطالب. سيتم استبدال هذه الصفحة بالتصميم النهائي."
+      },
+      "parentHome": {
+        "title": "بوابة ولي الأمر",
+        "description": "مرحبًا بك في بوابة ولي الأمر. سيتم استبدال هذه الصفحة بالتصميم النهائي."
+      }
+    },
     "courseAudience": {
       "title": "جمهور الدورة",
       "description": "اختر ما إذا كانت الدورة متاحة لجميع الطلاب أو لفئات تعليمية محددة.",

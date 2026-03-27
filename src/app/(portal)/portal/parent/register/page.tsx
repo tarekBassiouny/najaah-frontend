@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "@/features/localization";
 import Link from "next/link";
 
 const registerSchema = z.object({
@@ -44,6 +45,7 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 type Step = "register" | "otp";
 
 export default function ParentRegisterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { isAuthenticated, user } = usePortalAuth();
   const [step, setStep] = useState<Step>("register");
@@ -115,12 +117,12 @@ export default function ParentRegisterPage() {
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-lg dark:border-dark-3 dark:bg-gray-900">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold text-dark dark:text-white">
-            Parent Registration
+            {t("pages.portalAuth.parentRegister.title")}
           </h1>
           <p className="text-sm text-dark-6 dark:text-dark-5">
             {step === "register"
-              ? "Register to monitor your child's learning progress"
-              : "Enter the verification code sent to your phone"}
+              ? t("pages.portalAuth.parentRegister.subtitleRegister")
+              : t("pages.portalAuth.parentRegister.subtitleOtp")}
           </p>
         </div>
 
@@ -133,8 +135,7 @@ export default function ParentRegisterPage() {
         {step === "otp" && autoLinked && (
           <Alert className="mt-6">
             <AlertDescription>
-              Students matching your phone number have been automatically linked
-              to your account.
+              {t("pages.portalAuth.parentRegister.autoLinked")}
             </AlertDescription>
           </Alert>
         )}
@@ -150,9 +151,16 @@ export default function ParentRegisterPage() {
                 name="country_code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country Code</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.countryCode")}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="+20 or 0020" {...field} />
+                      <Input
+                        placeholder={t(
+                          "pages.portalAuth.common.countryCodePlaceholder",
+                        )}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -164,11 +172,15 @@ export default function ParentRegisterPage() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.phoneNumber")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
-                        placeholder="01012345678 or +201012345678"
+                        placeholder={t(
+                          "pages.portalAuth.common.phonePlaceholder",
+                        )}
                         autoComplete="tel"
                         {...field}
                       />
@@ -183,16 +195,18 @@ export default function ParentRegisterPage() {
                 className="w-full"
                 disabled={register.isPending}
               >
-                {register.isPending ? "Registering..." : "Register & Send Code"}
+                {register.isPending
+                  ? t("pages.portalAuth.parentRegister.registering")
+                  : t("pages.portalAuth.parentRegister.registerAndSend")}
               </Button>
 
               <p className="text-center text-sm text-dark-6 dark:text-dark-5">
-                Already registered?{" "}
+                {t("pages.portalAuth.parentRegister.alreadyRegistered")}{" "}
                 <Link
                   href="/portal/parent/login"
                   className="font-medium text-primary hover:underline"
                 >
-                  Login here
+                  {t("pages.portalAuth.parentRegister.loginHere")}
                 </Link>
               </p>
             </form>
@@ -210,12 +224,16 @@ export default function ParentRegisterPage() {
                 name="otp"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Verification Code</FormLabel>
+                    <FormLabel>
+                      {t("pages.portalAuth.common.verificationCode")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
                         inputMode="numeric"
-                        placeholder="Enter OTP"
+                        placeholder={t(
+                          "pages.portalAuth.common.otpPlaceholder",
+                        )}
                         autoComplete="one-time-code"
                         {...field}
                       />
@@ -230,7 +248,9 @@ export default function ParentRegisterPage() {
                 className="w-full"
                 disabled={verify.isPending}
               >
-                {verify.isPending ? "Verifying..." : "Verify & Complete"}
+                {verify.isPending
+                  ? t("pages.portalAuth.common.verifying")
+                  : t("pages.portalAuth.parentRegister.verifyAndComplete")}
               </Button>
 
               <button
@@ -242,7 +262,7 @@ export default function ParentRegisterPage() {
                   otpForm.reset();
                 }}
               >
-                Back to registration
+                {t("pages.portalAuth.parentRegister.backToRegister")}
               </button>
             </form>
           </Form>

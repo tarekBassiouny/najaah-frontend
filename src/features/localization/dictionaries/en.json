@@ -3186,19 +3186,19 @@
           "placeholders": {
             "name": "Student name",
             "email": "new.student@example.com",
-            "phone": "1225291841",
+            "phone": "01012345678 or +201012345678",
             "countryCode": "+20"
           },
           "hints": {
-            "phone": "Base number only (10 digits). Do not include country code or a leading 0.",
+            "phone": "You can enter a local or international phone number. The backend will normalize it.",
             "enrollAfterCreate": "After creating the student, you can enroll them in a course from the next step."
           },
           "validation": {
             "nameMin": "Name must be at least 2 characters.",
             "emailInvalid": "Enter a valid email address.",
             "phoneRequired": "Phone is required to create a student.",
-            "phoneInvalid": "Use base mobile number only (10 digits, no leading 0).",
-            "countryCodeInvalid": "Country code must be in +NN format (for example +20)."
+            "phoneInvalid": "Enter a valid phone number.",
+            "countryCodeInvalid": "Enter a valid country code such as +20 or 0020."
           },
           "errors": {
             "errorTitle": "Could not save student",
@@ -5162,11 +5162,11 @@
           "placeholders": {
             "name": "Jane Admin",
             "email": "jane.admin@example.com",
-            "phone": "1225291841",
+            "phone": "01012345678 or +201012345678",
             "countryCode": "+20"
           },
           "hints": {
-            "phone": "Base number only (10 digits). Do not include country code or a leading 0.",
+            "phone": "You can enter a local or international phone number. The backend will normalize it.",
             "centerScoped": "Locked to current center: {center}.",
             "centerOptional": "Leave empty to create system-level admin without center assignment."
           },
@@ -5174,8 +5174,8 @@
             "nameMin": "Name must be at least 2 characters.",
             "emailInvalid": "Enter a valid email address.",
             "phoneRequired": "Phone is required to create an admin user.",
-            "phoneInvalid": "Use base mobile number only (10 digits, no leading 0).",
-            "countryCodeInvalid": "Country code must be in +NN format (for example +20)."
+            "phoneInvalid": "Enter a valid phone number.",
+            "countryCodeInvalid": "Enter a valid country code such as +20 or 0020."
           },
           "errors": {
             "errorTitle": "Could not save admin user",
@@ -6295,8 +6295,8 @@
       "name": "Name",
       "namePlaceholder": "Admin name",
       "phone": "Phone",
-      "phonePlaceholder": "1225291841",
-      "phoneHint": "Base number only (10 digits). Do not include country code or a leading 0.",
+      "phonePlaceholder": "01012345678 or +201012345678",
+      "phoneHint": "You can enter a local or international phone number. The backend will normalize it.",
       "countryCode": "Country Code",
       "countryCodePlaceholder": "+20",
       "cancel": "Cancel",
@@ -6307,8 +6307,8 @@
       "genericError": "Unable to update profile. Please try again.",
       "validation": {
         "nameMinLength": "Name must be at least 2 characters.",
-        "phoneFormat": "Use base mobile number only (10 digits, no leading 0).",
-        "countryCodeFormat": "Country code must be in +NN format (for example +20)."
+        "phoneFormat": "Enter a valid phone number.",
+        "countryCodeFormat": "Enter a valid country code such as +20 or 0020."
       }
     },
     "courseAudience": {

@@ -57,15 +57,15 @@ function getInitials(value: string) {
     .slice(0, 2);
 }
 
-const BASE_MOBILE_REGEX = /^[1-9]\d{9}$/;
-const COUNTRY_CODE_REGEX = /^\+[1-9]\d{0,3}$/;
+const FLEXIBLE_PHONE_REGEX = /^(?=.*\d)[+\d()\s-]{6,20}$/;
+const FLEXIBLE_COUNTRY_CODE_REGEX = /^[+\d][+\d\s-]{0,7}$/;
 
 function normalizePhone(value?: string) {
-  return value?.replace(/\s+/g, "").trim() ?? "";
+  return value?.trim() ?? "";
 }
 
 function normalizeCountryCode(value?: string) {
-  return value?.replace(/\s+/g, "").trim() ?? "";
+  return value?.trim() ?? "";
 }
 
 const buildSchema = (t: TranslateFunction) =>
@@ -85,7 +85,7 @@ const buildSchema = (t: TranslateFunction) =>
       .trim()
       .optional()
       .refine(
-        (value) => !value || BASE_MOBILE_REGEX.test(normalizePhone(value)),
+        (value) => !value || FLEXIBLE_PHONE_REGEX.test(normalizePhone(value)),
         t("pages.students.dialogs.form.validation.phoneInvalid"),
       ),
     countryCode: z
@@ -94,7 +94,8 @@ const buildSchema = (t: TranslateFunction) =>
       .optional()
       .refine(
         (value) =>
-          !value || COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
+          !value ||
+          FLEXIBLE_COUNTRY_CODE_REGEX.test(normalizeCountryCode(value)),
         t("pages.students.dialogs.form.validation.countryCodeInvalid"),
       ),
     centerId: z.string().trim().optional(),
@@ -205,7 +206,7 @@ export function StudentFormDialog({
       return;
     }
 
-    if (normalizedPhone && !BASE_MOBILE_REGEX.test(normalizedPhone)) {
+    if (normalizedPhone && !FLEXIBLE_PHONE_REGEX.test(normalizedPhone)) {
       form.setError("phone", {
         type: "manual",
         message: t("pages.students.dialogs.form.validation.phoneInvalid"),
@@ -215,7 +216,7 @@ export function StudentFormDialog({
 
     if (
       normalizedCountryCode &&
-      !COUNTRY_CODE_REGEX.test(normalizedCountryCode)
+      !FLEXIBLE_COUNTRY_CODE_REGEX.test(normalizedCountryCode)
     ) {
       form.setError("countryCode", {
         type: "manual",

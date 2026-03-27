@@ -3186,19 +3186,19 @@
           "placeholders": {
             "name": "اسم الطالب",
             "email": "new.student@example.com",
-            "phone": "1225291841",
+            "phone": "01012345678 أو +201012345678",
             "countryCode": "+20"
           },
           "hints": {
-            "phone": "أدخل الرقم الأساسي فقط (10 أرقام) بدون رمز الدولة أو صفر في البداية.",
+            "phone": "يمكنك إدخال الرقم بصيغة محلية أو دولية، وسيقوم الباك إند بتوحيده.",
             "enrollAfterCreate": "بعد إنشاء الطالب يمكنك تسجيله في دورة من الخطوة التالية."
           },
           "validation": {
             "nameMin": "يجب أن يكون الاسم مكوناً من حرفين على الأقل.",
             "emailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
             "phoneRequired": "الهاتف مطلوب لإنشاء طالب.",
-            "phoneInvalid": "استخدم رقم الموبايل الأساسي فقط (10 أرقام بدون صفر في البداية).",
-            "countryCodeInvalid": "يجب أن يكون رمز الدولة بصيغة +NN مثل +20."
+            "phoneInvalid": "أدخل رقم هاتف صحيح.",
+            "countryCodeInvalid": "أدخل رمز دولة صحيحًا مثل +20 أو 0020."
           },
           "errors": {
             "errorTitle": "تعذر حفظ الطالب",
@@ -5162,11 +5162,11 @@
           "placeholders": {
             "name": "جين أدمن",
             "email": "jane.admin@example.com",
-            "phone": "1225291841",
+            "phone": "01012345678 أو +201012345678",
             "countryCode": "+20"
           },
           "hints": {
-            "phone": "أدخل الرقم الأساسي فقط (10 أرقام) بدون رمز الدولة أو صفر في البداية.",
+            "phone": "يمكنك إدخال الرقم بصيغة محلية أو دولية، وسيقوم الباك إند بتوحيده.",
             "centerScoped": "مقيد بالمركز الحالي: {center}.",
             "centerOptional": "اتركه فارغاً لإنشاء مشرف على مستوى النظام بدون تعيين مركز."
           },
@@ -5174,8 +5174,8 @@
             "nameMin": "يجب أن يتكون الاسم من حرفين على الأقل.",
             "emailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
             "phoneRequired": "رقم الهاتف مطلوب لإنشاء مشرف.",
-            "phoneInvalid": "استخدم رقم الهاتف الأساسي فقط (10 أرقام بدون صفر في البداية).",
-            "countryCodeInvalid": "يجب أن يكون رمز الدولة بصيغة +NN مثل +20."
+            "phoneInvalid": "أدخل رقم هاتف صحيح.",
+            "countryCodeInvalid": "أدخل رمز دولة صحيحًا مثل +20 أو 0020."
           },
           "errors": {
             "errorTitle": "تعذر حفظ المشرف",
@@ -6295,8 +6295,8 @@
       "name": "الاسم",
       "namePlaceholder": "اسم المشرف",
       "phone": "الهاتف",
-      "phonePlaceholder": "1225291841",
-      "phoneHint": "الرقم الأساسي فقط (10 أرقام). لا تضمن رمز الدولة أو 0 في البداية.",
+      "phonePlaceholder": "01012345678 أو +201012345678",
+      "phoneHint": "يمكنك إدخال الرقم بصيغة محلية أو دولية، وسيقوم الباك إند بتوحيده.",
       "countryCode": "رمز الدولة",
       "countryCodePlaceholder": "+20",
       "cancel": "إلغاء",
@@ -6307,8 +6307,62 @@
       "genericError": "تعذر تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.",
       "validation": {
         "nameMinLength": "الاسم يجب أن يكون حرفين على الأقل.",
-        "phoneFormat": "استخدم رقم الهاتف الأساسي فقط (10 أرقام، بدون 0 في البداية).",
-        "countryCodeFormat": "رمز الدولة يجب أن يكون بتنسيق +NN (مثال +20)."
+        "phoneFormat": "أدخل رقم هاتف صحيح.",
+        "countryCodeFormat": "أدخل رمز دولة صحيحًا مثل +20 أو 0020."
+      }
+    },
+    "portalAuth": {
+      "common": {
+        "countryCode": "رمز الدولة",
+        "countryCodePlaceholder": "+20 أو 0020",
+        "phoneNumber": "رقم الهاتف",
+        "phonePlaceholder": "01012345678 أو +201012345678",
+        "rememberMe": "تذكرني",
+        "verificationCode": "رمز التحقق",
+        "otpPlaceholder": "أدخل رمز التحقق",
+        "sending": "جارٍ الإرسال...",
+        "verifying": "جارٍ التحقق...",
+        "sendVerificationCode": "إرسال رمز التحقق",
+        "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+        "backToPhone": "العودة إلى رقم الهاتف",
+        "studentLogin": "دخول الطالب",
+        "parentLogin": "دخول ولي الأمر"
+      },
+      "studentLogin": {
+        "title": "دخول الطالب",
+        "subtitlePhone": "أدخل رقم هاتفك لاستلام رمز التحقق",
+        "subtitleOtp": "أدخل رمز التحقق المرسل إلى هاتفك",
+        "parentPrompt": "هل أنت ولي أمر؟",
+        "verifyAndLogin": "تحقق وسجل الدخول"
+      },
+      "parentLogin": {
+        "title": "دخول ولي الأمر",
+        "subtitlePhone": "أدخل رقم هاتفك لاستلام رمز التحقق",
+        "subtitleOtp": "أدخل رمز التحقق المرسل إلى هاتفك",
+        "newParentPrompt": "ولي أمر جديد؟",
+        "registerHere": "سجل هنا",
+        "studentPrompt": "هل أنت طالب؟",
+        "verifyAndLogin": "تحقق وسجل الدخول"
+      },
+      "parentRegister": {
+        "title": "تسجيل ولي الأمر",
+        "subtitleRegister": "سجل لمتابعة تقدم تعلم ابنك",
+        "subtitleOtp": "أدخل رمز التحقق المرسل إلى هاتفك",
+        "autoLinked": "تم ربط الطلاب المطابقين لرقم هاتفك بحسابك تلقائيًا.",
+        "registering": "جارٍ التسجيل...",
+        "registerAndSend": "سجل وأرسل الرمز",
+        "alreadyRegistered": "مسجل بالفعل؟",
+        "loginHere": "سجل الدخول هنا",
+        "verifyAndComplete": "تحقق وأكمل",
+        "backToRegister": "العودة إلى التسجيل"
+      },
+      "studentHome": {
+        "title": "بوابة الطالب",
+        "description": "مرحبًا بك في بوابة الطالب. سيتم استبدال هذه الصفحة بالتصميم النهائي."
+      },
+      "parentHome": {
+        "title": "بوابة ولي الأمر",
+        "description": "مرحبًا بك في بوابة ولي الأمر. سيتم استبدال هذه الصفحة بالتصميم النهائي."
       }
     },
     "courseAudience": {

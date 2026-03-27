@@ -60,12 +60,12 @@ function SummaryPreviewPanel({
   const { t } = useTranslation();
   const title = readLocalizedStringFromPaths(
     payload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const content = readLocalizedStringFromPaths(
     payload,
-    [["content"], ["content_translations"]],
+    [["content_translations"], ["content"]],
     activeLocale,
   );
 
@@ -104,7 +104,12 @@ function QuizPreviewPanel({
   const { t } = useTranslation();
   const title = readLocalizedStringFromPaths(
     payload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
+    activeLocale,
+  );
+  const description = readLocalizedStringFromPaths(
+    payload,
+    [["description_translations"], ["description"]],
     activeLocale,
   );
   const questions = readArrayFromPaths(payload, [["questions"]]) as Array<
@@ -125,6 +130,11 @@ function QuizPreviewPanel({
         <h3 className="text-base font-semibold text-gray-900 dark:text-white">
           {title}
         </h3>
+      ) : null}
+      {description ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+          {description}
+        </div>
       ) : null}
       <div className="max-h-96 space-y-2 overflow-auto">
         {questions.map((question, index) => {
@@ -197,7 +207,7 @@ function FlashcardsPreviewPanel({
   const { t } = useTranslation();
   const title = readLocalizedStringFromPaths(
     payload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const cards = readArrayFromPaths(payload, [["cards"]]) as Array<
@@ -276,12 +286,12 @@ function AssignmentPreviewPanel({
   const { t } = useTranslation();
   const title = readLocalizedStringFromPaths(
     payload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const description = readLocalizedStringFromPaths(
     payload,
-    [["description"], ["description_translations"]],
+    [["description_translations"], ["description"]],
     activeLocale,
   );
 
@@ -318,12 +328,12 @@ function InteractivePreviewPanel({
   const { t } = useTranslation();
   const title = readLocalizedStringFromPaths(
     payload,
-    [["title"], ["title_translations"]],
+    [["title_translations"], ["title"]],
     activeLocale,
   );
   const instructions = readLocalizedStringFromPaths(
     payload,
-    [["instructions"]],
+    [["instructions_translations"], ["instructions"]],
     activeLocale,
   );
   const steps = readArrayFromPaths(payload, [["steps"]]) as Array<
@@ -334,7 +344,7 @@ function InteractivePreviewPanel({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-          {t("pages.centerCourseDetail.panels.interactiveActivity")}
+          {t("pages.courseAssets.slotTypes.interactive_activity")}
         </p>
         <Badge variant="outline">
           {steps.length}{" "}

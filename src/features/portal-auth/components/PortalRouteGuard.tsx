@@ -9,7 +9,6 @@ const GUEST_ROUTE_PREFIXES = [
   "/portal/student/login",
   "/portal/parent/login",
   "/portal/parent/register",
-  "/portal/student/explore",
   "/portal/student/search",
   "/portal/student/centers",
 ] as const;

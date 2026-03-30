@@ -40,11 +40,18 @@ function interpolate(template: string, params?: TranslationParams): string {
 /**
  * Create a translation function for the given dictionary.
  */
-function createTranslator(dictionary: Dictionary) {
+function createTranslator(
+  dictionary: Dictionary,
+  fallbackDictionary?: Dictionary,
+) {
   return function t(key: string, params?: TranslationParams): string {
     const value = getNestedValue(dictionary, key);
+    const fallbackValue =
+      value === undefined && fallbackDictionary
+        ? getNestedValue(fallbackDictionary, key)
+        : undefined;
 
-    if (value === undefined) {
+    if (value === undefined && fallbackValue === undefined) {
       // In development, warn about missing translations
       if (process.env.NODE_ENV === "development") {
         console.warn(`Missing translation for key: "${key}"`);
@@ -53,7 +60,11 @@ function createTranslator(dictionary: Dictionary) {
       return key;
     }
 
-    return interpolate(value, params);
+    if (value === undefined && process.env.NODE_ENV === "development") {
+      console.warn(`Missing translation for key: "${key}" in active locale`);
+    }
+
+    return interpolate(value ?? fallbackValue ?? key, params);
   };
 }
 
@@ -89,7 +100,11 @@ export function useTranslation(): UseTranslationReturn {
   const { locale } = useLocale();
 
   const dictionary = useMemo(() => getDictionary(locale), [locale]);
-  const t = useMemo(() => createTranslator(dictionary), [dictionary]);
+  const fallbackDictionary = useMemo(() => getDictionary("en"), []);
+  const t = useMemo(
+    () => createTranslator(dictionary, fallbackDictionary),
+    [dictionary, fallbackDictionary],
+  );
 
   return { t, locale, dictionary };
 }
@@ -100,6 +115,7 @@ export function useTranslation(): UseTranslationReturn {
  */
 export function getTranslation(locale: Locale) {
   const dictionary = getDictionary(locale);
-  const t = createTranslator(dictionary);
+  const fallbackDictionary = getDictionary("en");
+  const t = createTranslator(dictionary, fallbackDictionary);
   return { t, locale, dictionary };
 }

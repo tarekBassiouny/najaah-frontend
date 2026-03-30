@@ -6328,26 +6328,58 @@
         "studentLogin": "Student Login",
         "parentLogin": "Parent Login"
       },
+      "validation": {
+        "invalidPhone": "Enter a valid phone number.",
+        "invalidCountryCode": "Enter a valid country code.",
+        "invalidOtp": "Enter a valid verification code."
+      },
       "studentLogin": {
+        "badge": "Student Access",
         "title": "Student Login",
         "subtitlePhone": "Enter your phone number to receive a verification code",
         "subtitleOtp": "Enter the verification code sent to your phone",
+        "panelEyebrow": "Learning continues here",
+        "panelTitle": "A softer, faster gateway into your next lesson.",
+        "panelDescription": "Sign in to continue your active courses, review upcoming tasks, and move through the portal with the same calm learning-focused experience planned for the full student dashboard.",
+        "highlights": {
+          "one": "Resume your latest course without digging through menus.",
+          "two": "Track assignments, quizzes, and progress from one space.",
+          "three": "Switch between Arabic and English without losing context."
+        },
         "parentPrompt": "Are you a parent?",
         "verifyAndLogin": "Verify & Login"
       },
       "parentLogin": {
+        "badge": "Parent Access",
         "title": "Parent Login",
         "subtitlePhone": "Enter your phone number to receive a verification code",
         "subtitleOtp": "Enter the verification code sent to your phone",
+        "panelEyebrow": "Family learning view",
+        "panelTitle": "Stay close to your child's learning journey.",
+        "panelDescription": "Use the parent portal to check progress, follow upcoming work, and stay aligned with the same streamlined experience students use inside Najaah.",
+        "highlights": {
+          "one": "Monitor learning progress through one focused portal.",
+          "two": "Follow assignments and exam readiness with less friction.",
+          "three": "Move between Arabic and English with a mirrored layout."
+        },
         "newParentPrompt": "New parent?",
         "registerHere": "Register here",
         "studentPrompt": "Are you a student?",
         "verifyAndLogin": "Verify & Login"
       },
       "parentRegister": {
+        "badge": "Parent Registration",
         "title": "Parent Registration",
         "subtitleRegister": "Register to monitor your child's learning progress",
         "subtitleOtp": "Enter the verification code sent to your phone",
+        "panelEyebrow": "Ready in minutes",
+        "panelTitle": "Create your parent access with a clean two-step flow.",
+        "panelDescription": "Registration is intentionally lightweight so families can start tracking student progress quickly without dealing with a long setup flow.",
+        "highlights": {
+          "one": "Register with your phone and verify in one short flow.",
+          "two": "Automatically connect linked students when available.",
+          "three": "Enter the same portal language and style used across the experience."
+        },
         "autoLinked": "Students matching your phone number have been automatically linked to your account.",
         "registering": "Registering...",
         "registerAndSend": "Register & Send Code",
@@ -6363,6 +6395,553 @@
       "parentHome": {
         "title": "Parent Portal",
         "description": "Welcome to the parent portal. This page will be replaced with the actual design."
+      }
+    },
+    "portal": {
+      "nav": {
+        "dashboard": "Dashboard",
+        "explore": "Explore",
+        "myCourses": "My Courses",
+        "assignments": "Assignments",
+        "exams": "Exams",
+        "profile": "Profile",
+        "notifications": "Notifications"
+      },
+      "common": {
+        "viewAll": "View all",
+        "brandName": "Najaah",
+        "brandSurface": "Portal",
+        "loading": "Loading..."
+      },
+      "authShell": {
+        "availability": "24/7",
+        "cards": {
+          "otp": {
+            "eyebrow": "OTP",
+            "title": "Secure"
+          },
+          "locale": {
+            "eyebrow": "AR / EN",
+            "title": "Ready"
+          },
+          "portal": {
+            "eyebrow": "Portal",
+            "title": "Unified"
+          }
+        }
+      },
+      "topbar": {
+        "welcomeBack": "Welcome back",
+        "searchPlaceholder": "Search your courses, lessons, or next task",
+        "searchCta": "Search",
+        "logout": "Logout",
+        "loggingOut": "Logging out...",
+        "studentRole": "Student Portal",
+        "parentRole": "Parent Portal",
+        "onlineNow": "Ready for your next lesson"
+      },
+      "a11y": {
+        "userAvatar": "{name} avatar",
+        "switchToStudent": "Switch to student portal",
+        "switchToParent": "Switch to parent portal"
+      },
+      "shell": {
+        "focusCardEyebrow": "Learning focus",
+        "focusCardTitle": "Keep your progress moving every week.",
+        "focusCardDescription": "The new student experience is designed to make momentum visible, reduce friction, and keep the next action close at hand."
+      },
+      "dashboard": {
+        "eyebrow": "Student dashboard",
+        "title": "Welcome back, {{name}}",
+        "subtitle": "Your learning space is now centered around progress, continuity, and the next useful step instead of scattered course lists.",
+        "resumeCta": "Resume learning",
+        "planCta": "Review this week",
+        "studyRhythmTitle": "Weekly rhythm",
+        "studyRhythmDescription": "You are keeping a steady pace. Two focused sessions this weekend would push your weekly target across the line.",
+        "stats": {
+          "xp": "XP",
+          "streak": "Streak",
+          "completion": "Completion",
+          "goal": "Goal"
+        },
+        "statsHints": {
+          "xp": "XP points",
+          "streak": "day streak",
+          "completion": "completion rate",
+          "goal": "weekly target"
+        },
+        "rhythmDays": {
+          "0": "S",
+          "1": "M",
+          "2": "T",
+          "3": "W",
+          "4": "T",
+          "5": "F",
+          "6": "S"
+        },
+        "continueCards": {
+          "0": {
+            "badge": "Coding",
+            "title": "Python Fundamentals for Beginners",
+            "subtitle": "12 of 18 lessons",
+            "lessonsLabel": "Today: functions and reuse",
+            "metaLabel": "45 min"
+          },
+          "1": {
+            "badge": "Design",
+            "title": "Advanced UI/UX Experience Design",
+            "subtitle": "4 of 24 lessons",
+            "lessonsLabel": "Next: user flow mapping",
+            "metaLabel": "30 min"
+          },
+          "2": {
+            "badge": "Data",
+            "title": "Big Data Analysis Foundations",
+            "subtitle": "9 of 10 lessons",
+            "lessonsLabel": "Final review session",
+            "metaLabel": "20 min"
+          }
+        },
+        "enrolledCards": {
+          "0": {
+            "badge": "Marketing",
+            "title": "Digital Marketing Essentials",
+            "subtitle": "Level: intermediate",
+            "lessonsLabel": "Last active: yesterday",
+            "metaLabel": "8 modules"
+          },
+          "1": {
+            "badge": "AI",
+            "title": "Artificial Intelligence and Machine Learning",
+            "subtitle": "Level: advanced",
+            "lessonsLabel": "Next live session: Sunday",
+            "metaLabel": "14 modules"
+          },
+          "2": {
+            "badge": "Web",
+            "title": "Building Web Apps with React",
+            "subtitle": "Level: intermediate",
+            "lessonsLabel": "Continue: state management",
+            "metaLabel": "11 modules"
+          }
+        },
+        "agenda": {
+          "0": {
+            "title": "React practical assignment",
+            "subtitle": "Due in 2 days"
+          },
+          "1": {
+            "title": "Python pop quiz",
+            "subtitle": "Tomorrow at 7:00 PM"
+          },
+          "2": {
+            "title": "UX review session",
+            "subtitle": "Today at 8:30 PM"
+          }
+        },
+        "sections": {
+          "continueEyebrow": "Continue learning",
+          "continueTitle": "Pick up exactly where you left off",
+          "continueDescription": "Your active tracks should always feel one click away from the next useful lesson.",
+          "enrolledEyebrow": "Enrolled courses",
+          "enrolledTitle": "Your current learning library",
+          "enrolledDescription": "A calmer course collection with progress, level, and quick orientation built in.",
+          "agendaEyebrow": "Upcoming",
+          "agendaTitle": "Assignments, quizzes, and sessions",
+          "agendaDescription": "A compact view of what needs attention next, without turning the portal into an admin screen."
+        }
+      },
+      "myCourses": {
+        "eyebrow": "Course hub",
+        "title": "A cleaner view of everything you are enrolled in",
+        "description": "The goal here is clarity: your active work, completed material, and saved learning paths should all sit inside the same visual rhythm.",
+        "tabs": {
+          "inProgress": "In progress",
+          "completed": "Completed",
+          "saved": "Saved"
+        },
+        "cards": {
+          "0": {
+            "badge": "In progress",
+            "title": "Building Web Apps with React",
+            "subtitle": "11 modules",
+            "lessonsLabel": "Next lesson: state management",
+            "metaLabel": "Today"
+          },
+          "1": {
+            "badge": "Completed",
+            "title": "Digital Marketing Essentials",
+            "subtitle": "8 modules",
+            "lessonsLabel": "Last activity: yesterday",
+            "metaLabel": "Certificate ready"
+          },
+          "2": {
+            "badge": "Saved",
+            "title": "Artificial Intelligence and Machine Learning",
+            "subtitle": "14 modules",
+            "lessonsLabel": "A good course to resume this week",
+            "metaLabel": "Sunday"
+          }
+        }
+      },
+      "explore": {
+        "eyebrow": "Explore courses",
+        "title": "Discover the next course that fits your learning rhythm",
+        "description": "Keep discovery inside the same calm student experience so search, filters, and course decisions feel connected to your actual learning flow.",
+        "searchPlaceholder": "Search by subject, skill, or course name",
+        "searchCta": "Search",
+        "resetFiltersCta": "Reset filters",
+        "allCategories": "All categories",
+        "filtersEyebrow": "Filters",
+        "filtersTitle": "Browse with intention",
+        "filtersDescription": "Keep the filter panel soft and readable so exploration never feels heavy.",
+        "resultsEyebrow": "Catalog",
+        "resultsTitle": "A cleaner learning catalog",
+        "resultsDescription": "Discovery should still feel like part of the same product, not a disconnected marketplace.",
+        "resultsCount": "{count} courses",
+        "emptyTitle": "No courses match this filter set",
+        "emptyDescription": "Try broadening your search or clear the active filters to get back to the full learning catalog.",
+        "filterGroups": {
+          "level": "Level",
+          "duration": "Duration",
+          "rating": "Rating"
+        },
+        "categories": {
+          "0": "Coding",
+          "1": "Design",
+          "2": "Mathematics",
+          "3": "Languages",
+          "4": "Science",
+          "5": "Marketing"
+        },
+        "filterValues": {
+          "level": {
+            "0": "Beginner",
+            "1": "Intermediate",
+            "2": "Advanced"
+          },
+          "duration": {
+            "0": "Under 1 hour",
+            "1": "1-3 hours",
+            "2": "3+ hours"
+          },
+          "rating": {
+            "0": "4.5 and up",
+            "1": "4.0 and up"
+          }
+        },
+        "courses": {
+          "0": {
+            "badge": "Most popular",
+            "title": "Python Fundamentals for Beginners",
+            "subtitle": "Beginner level",
+            "lessonsLabel": "18 lessons"
+          },
+          "1": {
+            "badge": "Design",
+            "title": "Mastering UI/UX Foundations",
+            "subtitle": "Intermediate level",
+            "lessonsLabel": "24 lessons"
+          },
+          "2": {
+            "badge": "Coming soon",
+            "title": "Modern Physics Explained Clearly",
+            "subtitle": "Science",
+            "lessonsLabel": "15 lessons"
+          },
+          "3": {
+            "badge": "Languages",
+            "title": "Practical English Grammar",
+            "subtitle": "Foundation level",
+            "lessonsLabel": "12 lessons"
+          }
+        }
+      },
+      "notifications": {
+        "eyebrow": "Inbox",
+        "title": "Keep up with what needs your attention",
+        "description": "Important updates, reminders, and session prompts should stay visible without overwhelming the student dashboard.",
+        "items": {
+          "0": {
+            "title": "React assignment reminder",
+            "body": "Your practical assignment is due in two days. Review state management before submitting.",
+            "time": "2 hours ago"
+          },
+          "1": {
+            "title": "Live Python session confirmed",
+            "body": "Your instructor published the next live coding session for tomorrow at 7:00 PM.",
+            "time": "Today"
+          },
+          "2": {
+            "title": "UX feedback is ready",
+            "body": "Your latest design review now includes comments and next-step suggestions from your mentor.",
+            "time": "Yesterday"
+          },
+          "3": {
+            "title": "Weekly goal nearly complete",
+            "body": "One more focused session will push your weekly target across the line.",
+            "time": "This week"
+          }
+        }
+      },
+      "course": {
+        "backToCourses": "Back to my courses",
+        "eyebrow": "Course detail",
+        "title": "Python Fundamentals for Beginners",
+        "description": "This first detail page establishes the learning view: clear course progress, curriculum visibility, instructor context, and a calm next-step model.",
+        "continueCta": "Continue lesson",
+        "exploreMoreCta": "Explore more courses",
+        "curriculumEyebrow": "Curriculum",
+        "curriculumTitle": "A course structure that keeps orientation visible",
+        "curriculumDescription": "Lessons should show progression clearly so the student always knows what is done, current, and next.",
+        "resourcesEyebrow": "Resources",
+        "resourcesTitle": "Support material",
+        "resourcesDescription": "Quick-access resources keep the detail page useful between live lessons and study sessions.",
+        "instructorEyebrow": "Instructor",
+        "instructorTitle": "Course guidance",
+        "instructorDescription": "The instructor area should feel credible and light, not overbuilt.",
+        "instructorRole": "Lead instructor",
+        "nextStepsEyebrow": "Next steps",
+        "nextStepsTitle": "What to do after this lesson",
+        "nextStepsDescription": "The portal should reduce uncertainty by always showing the next concrete action.",
+        "lessonMeta": "Lesson segment",
+        "lessonStatus": {
+          "done": "Done",
+          "current": "Current",
+          "upcoming": "Upcoming"
+        },
+        "nextSteps": {
+          "assignment": "Complete the practical assignment attached to this module.",
+          "quiz": "Take the short quiz to lock in the lesson concepts.",
+          "review": "Review the workbook before moving into the next section."
+        },
+        "stats": {
+          "progress": "Progress",
+          "lessons": "Lessons",
+          "duration": "Duration",
+          "durationValue": "6 hrs"
+        },
+        "instructorName": "Ahmed Kamal",
+        "lessons": {
+          "0": "Course orientation and expected outcomes",
+          "1": "Understanding variables and core data types",
+          "2": "Functions and reuse in small projects",
+          "3": "Final practical workshop"
+        },
+        "resources": {
+          "0": "Lesson summary",
+          "1": "Practice workbook",
+          "2": "Quick quiz"
+        }
+      },
+      "assignments": {
+        "eyebrow": "Student work",
+        "title": "Assignments should feel clear, not overwhelming",
+        "description": "Keep deadlines visible, surface urgency early, and make course context obvious at a glance.",
+        "cards": {
+          "0": {
+            "title": "React final project",
+            "subtitle": "Web development track",
+            "due": "Due in 2 days",
+            "status": "In progress"
+          },
+          "1": {
+            "title": "User persona analysis",
+            "subtitle": "UI/UX course",
+            "due": "Tomorrow",
+            "status": "Ready for review"
+          },
+          "2": {
+            "title": "Python functions practice",
+            "subtitle": "Python fundamentals",
+            "due": "Today",
+            "status": "Needs submission"
+          }
+        }
+      },
+      "exams": {
+        "eyebrow": "Readiness",
+        "title": "Upcoming exams and recent results",
+        "description": "This page should balance urgency and confidence, showing what is next and how prepared the student feels.",
+        "cards": {
+          "0": {
+            "title": "Python mid-level checkpoint",
+            "subtitle": "Duration: 35 min",
+            "status": "Tomorrow",
+            "score": "Readiness 82%"
+          },
+          "1": {
+            "title": "React practical assessment",
+            "subtitle": "Duration: 45 min",
+            "status": "Sunday",
+            "score": "Readiness 70%"
+          },
+          "2": {
+            "title": "Final UX assessment",
+            "subtitle": "Duration: 25 min",
+            "status": "Completed",
+            "score": "Score 91%"
+          }
+        }
+      },
+      "profile": {
+        "eyebrow": "Student identity",
+        "title": "Profile and learning pulse",
+        "description": "A light profile surface with enough personal context and learning insight to feel useful without becoming administrative.",
+        "noPhone": "—",
+        "insights": {
+          "0": "Your strongest focus window is between 7:00 and 9:00 PM.",
+          "1": "Your highest momentum is currently in practical coding tracks.",
+          "2": "Two short sessions this week would lift your completion trend.",
+          "3": "Your profile still needs {count} setup steps to feel complete.",
+          "4": "You completed {count} weekly checks across quizzes and assignments.",
+          "5": "You are currently balancing {count} active learning tracks."
+        },
+        "summary": {
+          "complete": "Complete",
+          "incomplete": "Needs updates",
+          "weeklyChecks": "Weekly checks",
+          "missingSteps": "Missing steps",
+          "ready": "Ready"
+        },
+        "cards": {
+          "learningPulse": "Learning pulse",
+          "activeCourses": "Active courses",
+          "completedCourses": "Completed courses",
+          "learningInsights": "Learning insights"
+        }
+      },
+      "parent": {
+        "nav": {
+          "dashboard": "Family dashboard",
+          "children": "Children"
+        },
+        "topbar": {
+          "searchPlaceholder": "Browse children and linked student details",
+          "searchCta": "Open children"
+        },
+        "shell": {
+          "caption": "Read-only family view",
+          "eyebrow": "Family visibility",
+          "description": "Parents can monitor linked students, review course momentum, and follow pending links without touching student settings or learning actions."
+        },
+        "dashboard": {
+          "eyebrow": "Parent dashboard",
+          "title": "Welcome back, {{name}}",
+          "subtitle": "This dashboard stays focused on linked students, active enrollments, and recent learning activity without turning into an admin panel.",
+          "childrenCta": "View linked children",
+          "linkStatus": "{count} pending link requests",
+          "noChildrenTitle": "No linked students yet",
+          "noChildrenDescription": "Once a student is linked to your account, this dashboard will show their learning profile, active enrollments, and weekly progress.",
+          "noCenter": "Center not assigned",
+          "noGrade": "Grade not assigned",
+          "noSchool": "School not assigned",
+          "childEyebrow": "Selected child",
+          "childDescription": "A compact profile summary for the first active linked student.",
+          "childCenter": "Center",
+          "childGrade": "Grade",
+          "childSchool": "School",
+          "progressEyebrow": "Course progress",
+          "progressTitle": "Required work and content momentum",
+          "progressDescription": "This summary comes from the first active enrollment so parents can spot academic risk quickly.",
+          "progressOverall": "Required completion",
+          "progressContent": "Content completion",
+          "progressQuizzes": "Quizzes completed",
+          "progressAssignments": "Assignments completed",
+          "requiredPassed": "All required quizzes and assignments are currently passed.",
+          "requiredPending": "Some required quizzes or assignments still need attention.",
+          "enrollmentsEyebrow": "Enrollments",
+          "enrollmentsTitle": "Current learning load",
+          "enrollmentsDescription": "Active enrollments for the selected linked student.",
+          "noEnrollments": "No active enrollments found for this student.",
+          "expiringSoon": "Expiring",
+          "active": "Active",
+          "activityEyebrow": "Weekly activity",
+          "activityTitle": "Recent engagement rhythm",
+          "activityDescription": "Parent activity uses the backend weekly summary endpoint and stays read-only by design.",
+          "stats": {
+            "children": "Linked children",
+            "pendingLinks": "Pending links",
+            "activeCourses": "Active courses",
+            "weeklyMinutes": "Weekly minutes"
+          }
+        },
+        "children": {
+          "eyebrow": "Linked students",
+          "title": "Children and family links",
+          "description": "Use this page to review active and pending student links exactly as the parent web API exposes them.",
+          "activeEyebrow": "Active links",
+          "activeTitle": "Children currently visible in the portal",
+          "activeDescription": "Only active links grant read access to student data.",
+          "pendingEyebrow": "Pending links",
+          "pendingTitle": "Awaiting approval",
+          "pendingDescription": "Parents can request links, but pending requests do not expose student records yet.",
+          "noPending": "No pending links right now.",
+          "stats": {
+            "active": "Active links",
+            "pending": "Pending links"
+          }
+        },
+        "detail": {
+          "backToChildren": "Back to children",
+          "eyebrow": "Student detail",
+          "loadingTitle": "Loading student",
+          "description": "Review the linked student's profile and choose a course to inspect progress, quiz attempts, and assignment submissions.",
+          "center": "Center",
+          "grade": "Grade",
+          "school": "School",
+          "stats": {
+            "enrollments": "Active enrollments",
+            "weeklyMinutes": "Weekly minutes"
+          },
+          "notFoundTitle": "Student detail unavailable",
+          "notFoundDescription": "This linked student could not be loaded for the current parent session.",
+          "enrollmentsEyebrow": "Course review",
+          "enrollmentsTitle": "Open a course review",
+          "enrollmentsDescription": "Choose an active enrollment to inspect progress, quiz attempts, and assignment submissions.",
+          "expiresAt": "Expires {date}",
+          "openCourse": "Open course"
+        },
+        "courseReview": {
+          "backToStudent": "Back to student",
+          "eyebrow": "Course review",
+          "loadingTitle": "Loading course",
+          "description": "Read-only review for {name}'s course progress, quiz attempts, and assignment submissions.",
+          "stats": {
+            "required": "Required completion",
+            "content": "Content completion"
+          },
+          "progressEyebrow": "Progress summary",
+          "progressTitle": "Required work and content coverage",
+          "progressDescription": "These values come directly from the parent course progress endpoint.",
+          "quizCompleted": "Quizzes completed",
+          "assignmentCompleted": "Assignments completed",
+          "quizRequired": "Required quizzes",
+          "assignmentRequired": "Required assignments",
+          "courseEyebrow": "Enrollment context",
+          "courseTitle": "Student and enrollment",
+          "courseDescription": "This section anchors the read-only review to the selected linked student.",
+          "studentLabel": "Student",
+          "enrollmentStatus": "Enrollment status",
+          "expiresLabel": "Access window",
+          "quizEyebrow": "Quiz attempts",
+          "quizTitle": "Recent quiz work",
+          "quizDescription": "Attempts are ordered from newest to oldest by the backend.",
+          "assignmentEyebrow": "Assignment submissions",
+          "assignmentTitle": "Submitted assignments",
+          "assignmentDescription": "Submissions stay read-only and reflect the grading state returned by the API.",
+          "attemptLabel": "Attempt #{number}",
+          "scoreLabel": "Score: {score}",
+          "durationLabel": "Time spent: {duration}",
+          "submittedLabel": "Submitted: {date}",
+          "passed": "Passed",
+          "needsReview": "Needs review",
+          "late": "Late submission",
+          "onTime": "On time",
+          "noFeedback": "No feedback yet.",
+          "noQuizAttempts": "No quiz attempts found for this course yet.",
+          "noAssignments": "No assignment submissions found for this course yet."
+        }
       }
     },
     "courseAudience": {

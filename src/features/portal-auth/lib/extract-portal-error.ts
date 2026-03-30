@@ -1,5 +1,4 @@
 import { isAxiosError } from "axios";
-import type { PortalAuthErrorCode } from "../types/portal-auth";
 
 type ApiErrorData = {
   message?: string;
@@ -10,18 +9,6 @@ type ApiErrorData = {
   };
   errors?: Record<string, string[]>;
 };
-
-export function extractPortalErrorCode(
-  error: unknown,
-): PortalAuthErrorCode | null {
-  if (!isAxiosError<ApiErrorData>(error)) return null;
-  const data = error.response?.data;
-  return (
-    (data?.error?.code as PortalAuthErrorCode) ??
-    (data?.code as PortalAuthErrorCode) ??
-    null
-  );
-}
 
 export function extractPortalErrorMessage(error: unknown): string {
   if (!isAxiosError<ApiErrorData>(error)) {

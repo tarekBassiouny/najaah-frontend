@@ -45,8 +45,8 @@ export type PortalUser = {
   id: number;
   name: string;
   phone: string;
-  is_student?: boolean;
-  is_parent?: boolean;
+  is_student: boolean;
+  is_parent: boolean;
   center_id?: number | null;
 };
 

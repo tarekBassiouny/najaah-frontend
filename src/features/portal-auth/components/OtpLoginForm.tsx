@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParentRegister } from "@/features/portal-auth/hooks/use-parent-register";
-import { useParentVerify } from "@/features/portal-auth/hooks/use-parent-verify";
+import type { UseMutationResult } from "@tanstack/react-query";
 import { portalTokenStorage } from "@/lib/portal-token-storage";
-import { extractPortalErrorMessage } from "@/features/portal-auth/lib/extract-portal-error";
-import { usePortalAuth } from "@/features/portal-auth";
+import { extractPortalErrorMessage } from "../lib/extract-portal-error";
+import { usePortalAuth } from "../context/portal-auth-context";
+import { getStoredDeviceUuid } from "../hooks/use-student-verify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,11 +21,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useTranslation } from "@/features/localization";
-import Link from "next/link";
-import { PortalAuthShell } from "@/features/portal-auth/components/PortalAuthShell";
+import { PortalAuthShell } from "./PortalAuthShell";
+import type {
+  ParentVerifyResponse,
+  PortalRole,
+  SendOtpRequest,
+  SendOtpResponse,
+  StudentVerifyResponse,
+  VerifyOtpRequest,
+} from "../types/portal-auth";
 
-function createRegisterSchema(t: (_key: string) => string) {
+function createPhoneSchema(t: (_key: string) => string) {
   return z.object({
     phone: z
       .string()
@@ -41,6 +47,7 @@ function createRegisterSchema(t: (_key: string) => string) {
         /^[+\d][+\d\s-]{0,7}$/,
         t("pages.portalAuth.validation.invalidCountryCode"),
       ),
+    rememberMe: z.boolean().default(false),
   });
 }
 
@@ -50,46 +57,113 @@ function createOtpSchema(t: (_key: string) => string) {
   });
 }
 
-type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
+type PhoneFormValues = z.infer<ReturnType<typeof createPhoneSchema>>;
 type OtpFormValues = z.infer<ReturnType<typeof createOtpSchema>>;
+type Step = "phone" | "otp";
+type VerifyResponse = StudentVerifyResponse | ParentVerifyResponse;
+type UseSendOtpHook = () => UseMutationResult<
+  SendOtpResponse,
+  Error,
+  SendOtpRequest
+>;
+type UseVerifyHook = () => UseMutationResult<
+  VerifyResponse,
+  Error,
+  VerifyOtpRequest
+>;
 
-type Step = "register" | "otp";
+type OtpLoginFormProps = {
+  role: PortalRole;
+  redirectPath: string;
+  allowReturnUrl?: boolean;
+  includeDeviceInfo?: boolean;
+  useSendOtp: UseSendOtpHook;
+  useVerify: UseVerifyHook;
+  footer?: ReactNode;
+  badge: string;
+  title: string;
+  subtitlePhone: string;
+  subtitleOtp: string;
+  panelEyebrow: string;
+  panelTitle: string;
+  panelDescription: string;
+  highlights: string[];
+  verifyButtonLabel: string;
+  t: (_key: string) => string;
+};
 
-export default function ParentRegisterPage() {
-  const { t } = useTranslation();
+function getBrowserInfo() {
+  if (typeof navigator === "undefined") return {};
+
+  const ua = navigator.userAgent;
+  let os = "Unknown";
+  if (ua.includes("Win")) os = "Windows";
+  else if (ua.includes("Mac")) os = "macOS";
+  else if (ua.includes("Linux")) os = "Linux";
+  else if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+
+  return {
+    device_name: "Web Browser",
+    device_os: os,
+  };
+}
+
+export function OtpLoginForm({
+  role,
+  redirectPath,
+  allowReturnUrl = false,
+  includeDeviceInfo = false,
+  useSendOtp,
+  useVerify,
+  footer,
+  badge,
+  title,
+  subtitlePhone,
+  subtitleOtp,
+  panelEyebrow,
+  panelTitle,
+  panelDescription,
+  highlights,
+  verifyButtonLabel,
+  t,
+}: OtpLoginFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, user } = usePortalAuth();
-  const [step, setStep] = useState<Step>("register");
+  const [step, setStep] = useState<Step>("phone");
   const [otpToken, setOtpToken] = useState("");
-  const [autoLinked, setAutoLinked] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect authenticated parents away from register
+  const sendOtp = useSendOtp();
+  const verify = useVerify();
+  const reason = searchParams.get("reason");
+  const destination = allowReturnUrl
+    ? searchParams.get("returnUrl") || redirectPath
+    : redirectPath;
+
   useEffect(() => {
-    if (isAuthenticated && user?.is_parent) {
-      router.replace("/portal/parent");
+    const hasRole = role === "student" ? user?.is_student : user?.is_parent;
+    if (isAuthenticated && hasRole) {
+      router.replace(destination);
     }
-  }, [isAuthenticated, user, router]);
+  }, [destination, isAuthenticated, role, router, user]);
 
-  const register = useParentRegister();
-  const verify = useParentVerify();
-  const registerSchema = createRegisterSchema(t);
-  const otpSchema = createOtpSchema(t);
-
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { phone: "", country_code: "+20" },
+  const phoneForm = useForm<PhoneFormValues>({
+    resolver: zodResolver(createPhoneSchema(t)),
+    defaultValues: { phone: "", country_code: "+20", rememberMe: false },
   });
 
   const otpForm = useForm<OtpFormValues>({
-    resolver: zodResolver(otpSchema),
+    resolver: zodResolver(createOtpSchema(t)),
     defaultValues: { otp: "" },
   });
 
-  const handleRegister = (values: RegisterFormValues) => {
+  const handleSendOtp = (values: PhoneFormValues) => {
     setError(null);
-    portalTokenStorage.setRememberMe(true);
-    register.mutate(
+    portalTokenStorage.setRememberMe(values.rememberMe);
+
+    sendOtp.mutate(
       {
         phone: values.phone,
         country_code: values.country_code,
@@ -97,7 +171,6 @@ export default function ParentRegisterPage() {
       {
         onSuccess: (data) => {
           setOtpToken(data.token);
-          setAutoLinked(data.auto_linked);
           setStep("otp");
         },
         onError: (err) => {
@@ -109,74 +182,53 @@ export default function ParentRegisterPage() {
 
   const handleVerify = (values: OtpFormValues) => {
     setError(null);
-    verify.mutate(
-      {
-        otp: values.otp,
-        token: otpToken,
+
+    const storedDeviceUuid = includeDeviceInfo ? getStoredDeviceUuid() : null;
+    const verifyPayload: VerifyOtpRequest = {
+      otp: values.otp,
+      token: otpToken,
+      ...(includeDeviceInfo ? getBrowserInfo() : {}),
+      ...(storedDeviceUuid ? { device_uuid: storedDeviceUuid } : {}),
+    };
+
+    verify.mutate(verifyPayload, {
+      onSuccess: () => {
+        router.replace(destination);
       },
-      {
-        onSuccess: () => {
-          router.replace("/portal/parent");
-        },
-        onError: (err) => {
-          setError(extractPortalErrorMessage(err));
-        },
+      onError: (err) => {
+        setError(extractPortalErrorMessage(err));
       },
-    );
+    });
   };
 
   return (
     <PortalAuthShell
-      badge={t("pages.portalAuth.parentRegister.badge")}
-      title={t("pages.portalAuth.parentRegister.title")}
-      subtitle={
-        step === "register"
-          ? t("pages.portalAuth.parentRegister.subtitleRegister")
-          : t("pages.portalAuth.parentRegister.subtitleOtp")
-      }
-      panelEyebrow={t("pages.portalAuth.parentRegister.panelEyebrow")}
-      panelTitle={t("pages.portalAuth.parentRegister.panelTitle")}
-      panelDescription={t("pages.portalAuth.parentRegister.panelDescription")}
-      highlights={[
-        t("pages.portalAuth.parentRegister.highlights.one"),
-        t("pages.portalAuth.parentRegister.highlights.two"),
-        t("pages.portalAuth.parentRegister.highlights.three"),
-      ]}
-      footer={
-        <p className="text-center text-sm text-slate-500">
-          {t("pages.portalAuth.parentRegister.alreadyRegistered")}{" "}
-          <Link
-            href="/portal/parent/login"
-            className="font-semibold text-teal-700 transition-colors hover:text-teal-800"
-          >
-            {t("pages.portalAuth.parentRegister.loginHere")}
-          </Link>
-        </p>
-      }
+      badge={badge}
+      title={title}
+      subtitle={step === "phone" ? subtitlePhone : subtitleOtp}
+      panelEyebrow={panelEyebrow}
+      panelTitle={panelTitle}
+      panelDescription={panelDescription}
+      highlights={highlights}
+      footer={footer}
     >
-      {error && (
+      {(error || reason === "session_expired") && (
         <Alert className="mb-6 border-red-100 bg-red-50 text-red-700">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {step === "otp" && autoLinked && (
-        <Alert className="mb-6 border-teal-100 bg-teal-50 text-teal-700">
           <AlertDescription>
-            {t("pages.portalAuth.parentRegister.autoLinked")}
+            {error || t("pages.portalAuth.common.sessionExpired")}
           </AlertDescription>
         </Alert>
       )}
 
-      {step === "register" && (
-        <Form {...registerForm}>
+      {step === "phone" && (
+        <Form {...phoneForm}>
           <form
-            onSubmit={registerForm.handleSubmit(handleRegister)}
+            onSubmit={phoneForm.handleSubmit(handleSendOtp)}
             className="space-y-5"
           >
             <div className="grid gap-4 md:grid-cols-[140px_minmax(0,1fr)]">
               <FormField
-                control={registerForm.control}
+                control={phoneForm.control}
                 name="country_code"
                 render={({ field }) => (
                   <FormItem>
@@ -198,7 +250,7 @@ export default function ParentRegisterPage() {
               />
 
               <FormField
-                control={registerForm.control}
+                control={phoneForm.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
@@ -222,14 +274,40 @@ export default function ParentRegisterPage() {
               />
             </div>
 
+            <FormField
+              control={phoneForm.control}
+              name="rememberMe"
+              render={({ field }) => (
+                <FormItem className="space-y-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        id={`${role}RememberMe`}
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
+                      />
+                    </FormControl>
+                    <FormLabel
+                      htmlFor={`${role}RememberMe`}
+                      className="!mt-0 cursor-pointer text-sm font-medium text-slate-600"
+                    >
+                      {t("pages.portalAuth.common.rememberMe")}
+                    </FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <Button
               type="submit"
               className="h-12 w-full rounded-2xl bg-teal-700 text-sm font-semibold hover:bg-teal-800"
-              disabled={register.isPending}
+              disabled={sendOtp.isPending}
             >
-              {register.isPending
-                ? t("pages.portalAuth.parentRegister.registering")
-                : t("pages.portalAuth.parentRegister.registerAndSend")}
+              {sendOtp.isPending
+                ? t("pages.portalAuth.common.sending")
+                : t("pages.portalAuth.common.sendVerificationCode")}
             </Button>
           </form>
         </Form>
@@ -271,19 +349,19 @@ export default function ParentRegisterPage() {
             >
               {verify.isPending
                 ? t("pages.portalAuth.common.verifying")
-                : t("pages.portalAuth.parentRegister.verifyAndComplete")}
+                : verifyButtonLabel}
             </Button>
 
             <button
               type="button"
               className="w-full text-center text-sm font-medium text-slate-500 transition-colors hover:text-teal-700"
               onClick={() => {
-                setStep("register");
+                setStep("phone");
                 setError(null);
                 otpForm.reset();
               }}
             >
-              {t("pages.portalAuth.parentRegister.backToRegister")}
+              {t("pages.portalAuth.common.backToPhone")}
             </button>
           </form>
         </Form>

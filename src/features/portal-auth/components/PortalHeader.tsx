@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { usePortalAuth } from "../context/portal-auth-context";
 import { usePortalLogout } from "../hooks/use-portal-logout";
 import { RoleSwitcher } from "./RoleSwitcher";
+import { useTranslation } from "@/features/localization";
 
 function getRouteRole(pathname: string): "student" | "parent" | null {
   if (pathname.startsWith("/portal/parent")) return "parent";
@@ -12,6 +13,7 @@ function getRouteRole(pathname: string): "student" | "parent" | null {
 }
 
 export function PortalHeader() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const { user, isAuthenticated, activeRole } = usePortalAuth();
   const logout = usePortalLogout();
@@ -42,7 +44,11 @@ export function PortalHeader() {
     <header className="border-b border-gray-200 bg-white dark:border-dark-3 dark:bg-gray-900">
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-3 md:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          <div
+            aria-label={t("pages.portal.a11y.userAvatar", { name: user.name })}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+            role="img"
+          >
             {user.name?.charAt(0)?.toUpperCase() || "U"}
           </div>
           <div className="min-w-0">
@@ -63,7 +69,9 @@ export function PortalHeader() {
             disabled={logout.isPending}
             className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-dark-6 transition-colors hover:bg-gray-100 hover:text-dark dark:border-dark-3 dark:text-dark-5 dark:hover:bg-dark-2 dark:hover:text-white"
           >
-            {logout.isPending ? "Logging out..." : "Logout"}
+            {logout.isPending
+              ? t("pages.portal.topbar.loggingOut")
+              : t("pages.portal.topbar.logout")}
           </button>
         </div>
       </div>

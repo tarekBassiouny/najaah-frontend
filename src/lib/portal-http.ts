@@ -12,10 +12,33 @@ type PortalRequestConfig = InternalAxiosRequestConfig & {
   skipAuth?: boolean;
 };
 
-function redirectToPortalLogin(reason?: "session_expired") {
+type PortalRole = "student" | "parent";
+
+function isPortalAuthBypassUrl(url?: string) {
+  if (!url) return false;
+
+  return [
+    "/auth/student/logout",
+    "/auth/parent/logout",
+    "/auth/student/refresh",
+    "/auth/parent/refresh",
+  ].some((path) => url.includes(path));
+}
+
+function getPortalRoleForUrl(url?: string): PortalRole | null {
+  if (!url) return null;
+  if (url.includes("/auth/parent/")) return "parent";
+  if (url.includes("/auth/student/")) return "student";
+  return null;
+}
+
+function redirectToPortalLogin(
+  reason?: "session_expired",
+  roleOverride?: PortalRole,
+) {
   if (typeof window !== "undefined") {
     cancelPortalTokenRefresh();
-    const role = portalTokenStorage.getActiveRole();
+    const role = roleOverride ?? portalTokenStorage.getActiveRole();
     const params = new URLSearchParams();
     if (reason) {
       params.set("reason", reason);
@@ -90,12 +113,16 @@ portalHttp.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (
-      originalConfig.url?.includes("/auth/student/refresh") ||
-      originalConfig.url?.includes("/auth/parent/refresh")
-    ) {
+    if (isPortalAuthBypassUrl(originalConfig.url)) {
+      const requestRole = getPortalRoleForUrl(originalConfig.url);
       portalTokenStorage.clear();
-      redirectToPortalLogin("session_expired");
+      cancelPortalTokenRefresh();
+      if (
+        originalConfig.url?.includes("/auth/student/refresh") ||
+        originalConfig.url?.includes("/auth/parent/refresh")
+      ) {
+        redirectToPortalLogin("session_expired", requestRole ?? undefined);
+      }
       return Promise.reject(error);
     }
 
@@ -107,8 +134,9 @@ portalHttp.interceptors.response.use(
       originalConfig.headers.Authorization = `Bearer ${newToken}`;
       return portalHttp(originalConfig);
     } catch (refreshError) {
+      const activeRole = portalTokenStorage.getActiveRole();
       portalTokenStorage.clear();
-      redirectToPortalLogin("session_expired");
+      redirectToPortalLogin("session_expired", activeRole);
       return Promise.reject(refreshError);
     }
   },

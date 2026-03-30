@@ -14,6 +14,8 @@ type TokenBroadcastMessage =
   | { type: "portal_token"; token: string }
   | { type: "portal_logout" };
 
+export type { TokenBroadcastMessage };
+
 type TokenStorageOptions = {
   broadcast?: boolean;
 };

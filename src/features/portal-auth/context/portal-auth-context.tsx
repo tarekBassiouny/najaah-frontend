@@ -16,7 +16,9 @@ import {
   schedulePortalTokenRefresh,
   cancelPortalTokenRefresh,
 } from "@/lib/portal-token-refresh";
+import type { TokenBroadcastMessage } from "@/lib/portal-token-storage";
 import type { PortalUser, PortalRole } from "../types/portal-auth";
+import { clearPortalSessionQueries } from "../lib/clear-portal-session-queries";
 
 type PortalAuthContextType = {
   user: PortalUser | null | undefined;
@@ -63,7 +65,7 @@ export function PortalAuthProvider({ children }: PortalAuthProviderProps) {
     portalTokenStorage.clear();
     cancelPortalTokenRefresh();
     queryClient.setQueryData(queryKey, null);
-    queryClient.removeQueries({ queryKey: ["portal"] });
+    clearPortalSessionQueries(queryClient);
   }, [queryClient]);
 
   // Sync BroadcastChannel for multi-tab
@@ -72,7 +74,7 @@ export function PortalAuthProvider({ children }: PortalAuthProviderProps) {
     const channel = new BroadcastChannel("portal_auth");
 
     channel.onmessage = (event) => {
-      const data = event.data as { type?: string; token?: string } | null;
+      const data = event.data as TokenBroadcastMessage | null;
       if (!data || typeof data !== "object") return;
 
       if (data.type === "portal_token" && data.token) {
@@ -91,6 +93,7 @@ export function PortalAuthProvider({ children }: PortalAuthProviderProps) {
         portalTokenStorage.clear({ broadcast: false });
         cancelPortalTokenRefresh();
         queryClient.setQueryData(queryKey, null);
+        clearPortalSessionQueries(queryClient);
       }
     };
 

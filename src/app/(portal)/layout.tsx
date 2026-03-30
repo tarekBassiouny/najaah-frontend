@@ -2,7 +2,6 @@
 
 import { type ReactNode } from "react";
 import { PortalAuthProvider, PortalRouteGuard } from "@/features/portal-auth";
-import { PortalHeader } from "@/features/portal-auth/components/PortalHeader";
 import { PageLoading } from "@/components/ui/page-loading";
 
 type Props = {
@@ -12,9 +11,8 @@ type Props = {
 export default function PortalLayout({ children }: Props) {
   return (
     <PortalAuthProvider>
-      <div className="relative flex min-h-screen flex-col bg-gray-2 dark:bg-[#020d1a]">
-        <PortalHeader />
-        <main className="flex-1">
+      <div className="relative min-h-screen bg-gray-2 dark:bg-[#020d1a]">
+        <main className="min-h-screen">
           <PortalRouteGuard fallback={<PageLoading />}>
             {children}
           </PortalRouteGuard>

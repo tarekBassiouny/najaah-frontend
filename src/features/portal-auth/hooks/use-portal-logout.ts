@@ -4,6 +4,7 @@ import { portalTokenStorage } from "@/lib/portal-token-storage";
 import { cancelPortalTokenRefresh } from "@/lib/portal-token-refresh";
 import { getPortalMeQueryKey } from "./use-portal-me";
 import type { PortalRole } from "../types/portal-auth";
+import { clearPortalSessionQueries } from "../lib/clear-portal-session-queries";
 
 export function usePortalLogout() {
   const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export function usePortalLogout() {
       cancelPortalTokenRefresh();
       const queryKey = getPortalMeQueryKey(role ?? "student");
       queryClient.setQueryData(queryKey, null);
-      queryClient.removeQueries({ queryKey: ["portal"] });
+      clearPortalSessionQueries(queryClient);
     },
   });
 }

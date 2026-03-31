@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode, type SVGProps } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, type ReactNode, type SVGProps } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocaleToggle } from "@/components/ui/locale-toggle";
@@ -77,10 +77,16 @@ export function ParentPortalShell({ children }: ParentPortalShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t, locale } = useTranslation();
-  const { user, activeRole } = usePortalAuth();
+  const { user } = usePortalAuth();
   const logout = usePortalLogout();
   const isRtl = locale === "ar";
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams.get("q") ?? "";
+  const [searchQuery, setSearchQuery] = useState(currentQuery);
+
+  useEffect(() => {
+    setSearchQuery(currentQuery);
+  }, [currentQuery]);
 
   const navItems: NavItem[] = [
     {
@@ -101,14 +107,19 @@ export function ParentPortalShell({ children }: ParentPortalShellProps) {
   };
 
   const handleLogout = () => {
-    logout.mutate(activeRole, {
+    logout.mutate("parent", {
       onSettled: () => router.replace("/portal/parent/login"),
     });
   };
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    router.push("/portal/parent/children");
+    const query = searchQuery.trim();
+    router.push(
+      query.length > 0
+        ? `/portal/parent/children?q=${encodeURIComponent(query)}`
+        : "/portal/parent/children",
+    );
   };
 
   return (

@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { PortalSectionHeader } from "@/features/portal/components/shared/PortalSectionHeader";
 import { useParentChildrenContent } from "@/features/portal/hooks/use-parent-portal-content";
 import { useTranslation } from "@/features/localization";
 
 export default function ParentChildrenPage() {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const search = searchParams.get("q") ?? "";
   const { children, pendingLinks, stats, isLoading, isEmpty } =
-    useParentChildrenContent();
+    useParentChildrenContent(search);
 
   return (
     <div className="space-y-8">

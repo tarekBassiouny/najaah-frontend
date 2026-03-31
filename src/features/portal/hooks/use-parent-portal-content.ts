@@ -159,7 +159,7 @@ export function useParentDashboardContent() {
   ]);
 }
 
-export function useParentChildrenContent() {
+export function useParentChildrenContent(search?: string) {
   const { t } = useTranslation();
   const studentsQuery = useParentLinkedStudents({ retry: 0 });
   const linksQuery = useParentLinks({ retry: 0 });
@@ -168,9 +168,30 @@ export function useParentChildrenContent() {
     const activeStudents = studentsQuery.data ?? [];
     const allLinks = linksQuery.data ?? [];
     const pendingLinks = allLinks.filter((item) => item.status !== "Active");
+    const normalizedSearch = search?.trim().toLowerCase() ?? "";
+    const matchesSearch = (value: string | null | undefined) =>
+      value?.toLowerCase().includes(normalizedSearch) ?? false;
+    const filteredStudents =
+      normalizedSearch.length > 0
+        ? activeStudents.filter(
+            (item) =>
+              matchesSearch(item.name) ||
+              matchesSearch(item.phone) ||
+              matchesSearch(item.linkMethod),
+          )
+        : activeStudents;
+    const filteredPendingLinks =
+      normalizedSearch.length > 0
+        ? pendingLinks.filter(
+            (item) =>
+              matchesSearch(item.name) ||
+              matchesSearch(item.phone) ||
+              matchesSearch(item.linkMethod),
+          )
+        : pendingLinks;
 
     return {
-      children: activeStudents.map((item) => ({
+      children: filteredStudents.map((item) => ({
         id: String(item.studentId),
         name: item.name,
         phone: item.phone,
@@ -178,7 +199,7 @@ export function useParentChildrenContent() {
         method: item.linkMethod,
         linkedAt: item.linkedAt,
       })),
-      pendingLinks: pendingLinks.map((item) => ({
+      pendingLinks: filteredPendingLinks.map((item) => ({
         id: String(item.linkId),
         name: item.name,
         phone: item.phone,
@@ -197,11 +218,13 @@ export function useParentChildrenContent() {
         },
       ],
       isLoading: studentsQuery.isLoading || linksQuery.isLoading,
-      isEmpty: activeStudents.length === 0 && pendingLinks.length === 0,
+      isEmpty:
+        filteredStudents.length === 0 && filteredPendingLinks.length === 0,
     };
   }, [
     linksQuery.data,
     linksQuery.isLoading,
+    search,
     studentsQuery.data,
     studentsQuery.isLoading,
     t,

@@ -164,7 +164,7 @@ export function StudentPortalShell({ children }: StudentPortalShellProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, locale } = useTranslation();
-  const { user, activeRole } = usePortalAuth();
+  const { user } = usePortalAuth();
   const logout = usePortalLogout();
   const isRtl = locale === "ar";
   const currentQuery = searchParams.get("q") ?? "";
@@ -218,7 +218,7 @@ export function StudentPortalShell({ children }: StudentPortalShellProps) {
   };
 
   const handleLogout = () => {
-    logout.mutate(activeRole, {
+    logout.mutate("student", {
       onSettled: () => {
         router.replace("/portal/student/login");
       },

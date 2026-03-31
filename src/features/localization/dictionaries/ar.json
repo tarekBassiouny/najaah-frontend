@@ -6404,12 +6404,19 @@
         "myCourses": "دوراتي",
         "assignments": "الواجبات",
         "exams": "الاختبارات",
+        "examsAndQuizzes": "الاختبارات والمسابقات",
+        "aiTutor": "المعلم الذكي",
         "profile": "الملف الشخصي",
         "notifications": "الإشعارات"
+      },
+      "sidebar": {
+        "upgradePro": "الترقية إلى Pro",
+        "upgradeHint": "افتح مزايا الذكاء الاصطناعي المتقدمة والشهادات"
       },
       "common": {
         "viewAll": "عرض الكل",
         "brandName": "Najaah",
+        "brandTagline": "متعلم متألق",
         "brandSurface": "Portal",
         "loading": "جارٍ التحميل..."
       },
@@ -6443,7 +6450,19 @@
       "a11y": {
         "userAvatar": "الصورة الرمزية للمستخدم {name}",
         "switchToStudent": "التبديل إلى بوابة الطالب",
-        "switchToParent": "التبديل إلى بوابة ولي الأمر"
+        "switchToParent": "التبديل إلى بوابة ولي الأمر",
+        "openProfile": "فتح الملف الشخصي",
+        "openNotifications": "فتح الإشعارات",
+        "openAiTutor": "فتح المعلم الذكي",
+        "searchPortal": "البحث داخل البوابة"
+      },
+      "enrolledCourses": {
+        "instructorLabel": "المدرب",
+        "level": {
+          "beginner": "المستوى: مبتدئ",
+          "intermediate": "المستوى: متوسط",
+          "advanced": "المستوى: متقدم"
+        }
       },
       "shell": {
         "focusCardEyebrow": "تركيز التعلم",

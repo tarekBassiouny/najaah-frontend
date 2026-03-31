@@ -6404,12 +6404,19 @@
         "myCourses": "My Courses",
         "assignments": "Assignments",
         "exams": "Exams",
+        "examsAndQuizzes": "Exams & Quizzes",
+        "aiTutor": "AI Tutor",
         "profile": "Profile",
         "notifications": "Notifications"
+      },
+      "sidebar": {
+        "upgradePro": "Upgrade to Pro",
+        "upgradeHint": "Unlock advanced AI features and certificates"
       },
       "common": {
         "viewAll": "View all",
         "brandName": "Najaah",
+        "brandTagline": "Luminescent Scholar",
         "brandSurface": "Portal",
         "loading": "Loading..."
       },
@@ -6443,7 +6450,19 @@
       "a11y": {
         "userAvatar": "{name} avatar",
         "switchToStudent": "Switch to student portal",
-        "switchToParent": "Switch to parent portal"
+        "switchToParent": "Switch to parent portal",
+        "openProfile": "Open profile",
+        "openNotifications": "Open notifications",
+        "openAiTutor": "Open AI tutor",
+        "searchPortal": "Search portal"
+      },
+      "enrolledCourses": {
+        "instructorLabel": "Instructor",
+        "level": {
+          "beginner": "Level: Beginner",
+          "intermediate": "Level: Intermediate",
+          "advanced": "Level: Advanced"
+        }
       },
       "shell": {
         "focusCardEyebrow": "Learning focus",

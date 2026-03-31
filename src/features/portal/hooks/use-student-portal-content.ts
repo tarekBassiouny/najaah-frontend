@@ -21,6 +21,25 @@ export type PortalCourseCardContent = {
   lessonsLabel: string;
   metaLabel: string;
   href: string;
+  imageUrl?: string;
+};
+
+export type EnrolledCourseCardContent = {
+  id: string;
+  title: string;
+  level: string;
+  progress: number;
+  instructorName: string;
+  instructorAvatar?: string;
+  href: string;
+  ringColorClassName?: string;
+};
+
+type DashboardStatCardContent = {
+  label: string;
+  value: string;
+  hint: string;
+  accentClassName: string;
 };
 
 export function useStudentDashboardContent() {
@@ -44,6 +63,8 @@ export function useStudentDashboardContent() {
       lessonsLabel: t("pages.portal.dashboard.continueCards.0.lessonsLabel"),
       metaLabel: t("pages.portal.dashboard.continueCards.0.metaLabel"),
       href: "/portal/student/course/python-fundamentals",
+      imageUrl:
+        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
     },
     {
       id: "ux-mastery",
@@ -54,6 +75,8 @@ export function useStudentDashboardContent() {
       lessonsLabel: t("pages.portal.dashboard.continueCards.1.lessonsLabel"),
       metaLabel: t("pages.portal.dashboard.continueCards.1.metaLabel"),
       href: "/portal/student/course/ux-mastery",
+      imageUrl:
+        "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
     },
     {
       id: "data-analysis",
@@ -64,41 +87,40 @@ export function useStudentDashboardContent() {
       lessonsLabel: t("pages.portal.dashboard.continueCards.2.lessonsLabel"),
       metaLabel: t("pages.portal.dashboard.continueCards.2.metaLabel"),
       href: "/portal/student/course/data-analysis",
+      imageUrl:
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
     },
   ] satisfies PortalCourseCardContent[];
 
   const fallbackEnrolledCourses = [
     {
       id: "digital-marketing",
-      badge: t("pages.portal.dashboard.enrolledCards.0.badge"),
       title: t("pages.portal.dashboard.enrolledCards.0.title"),
-      subtitle: t("pages.portal.dashboard.enrolledCards.0.subtitle"),
+      level: t("pages.portal.enrolledCourses.level.intermediate"),
       progress: 90,
-      lessonsLabel: t("pages.portal.dashboard.enrolledCards.0.lessonsLabel"),
-      metaLabel: t("pages.portal.dashboard.enrolledCards.0.metaLabel"),
+      instructorName: "Lina Hassan",
       href: "/portal/student/course/digital-marketing",
+      ringColorClassName: "stroke-amber-500 text-amber-600",
     },
     {
       id: "ai-machine-learning",
-      badge: t("pages.portal.dashboard.enrolledCards.1.badge"),
       title: t("pages.portal.dashboard.enrolledCards.1.title"),
-      subtitle: t("pages.portal.dashboard.enrolledCards.1.subtitle"),
+      level: t("pages.portal.enrolledCourses.level.advanced"),
       progress: 20,
-      lessonsLabel: t("pages.portal.dashboard.enrolledCards.1.lessonsLabel"),
-      metaLabel: t("pages.portal.dashboard.enrolledCards.1.metaLabel"),
+      instructorName: "Omar Adel",
       href: "/portal/student/course/ai-machine-learning",
+      ringColorClassName: "stroke-violet-500 text-violet-600",
     },
     {
       id: "react-web-apps",
-      badge: t("pages.portal.dashboard.enrolledCards.2.badge"),
       title: t("pages.portal.dashboard.enrolledCards.2.title"),
-      subtitle: t("pages.portal.dashboard.enrolledCards.2.subtitle"),
+      level: t("pages.portal.enrolledCourses.level.intermediate"),
       progress: 65,
-      lessonsLabel: t("pages.portal.dashboard.enrolledCards.2.lessonsLabel"),
-      metaLabel: t("pages.portal.dashboard.enrolledCards.2.metaLabel"),
+      instructorName: "Ahmed Kamal",
       href: "/portal/student/course/react-web-apps",
+      ringColorClassName: "stroke-teal-500 text-teal-600",
     },
-  ] satisfies PortalCourseCardContent[];
+  ] satisfies EnrolledCourseCardContent[];
 
   const enrolledItems = useMemo(
     () => enrolledCoursesQuery.data?.items ?? [],
@@ -124,31 +146,70 @@ export function useStudentDashboardContent() {
     (weeklyTotals?.assignmentSubmissionsCount ?? 0) +
     (weeklyTotals?.quizAttemptsCount ?? 0);
 
+  const fallbackStats = [
+    {
+      label: t("pages.portal.dashboard.stats.xp"),
+      value: "2.4k",
+      hint: t("pages.portal.dashboard.statsHints.xp"),
+      accentClassName: "border-s-4 border-teal-500",
+    },
+    {
+      label: t("pages.portal.dashboard.stats.streak"),
+      value: "12",
+      hint: t("pages.portal.dashboard.statsHints.streak"),
+      accentClassName: "border-s-4 border-sky-500",
+    },
+    {
+      label: t("pages.portal.dashboard.stats.completion"),
+      value: "84%",
+      hint: t("pages.portal.dashboard.statsHints.completion"),
+      accentClassName: "border-s-4 border-amber-500",
+    },
+  ] satisfies DashboardStatCardContent[];
+
   return useMemo(
     () => ({
       userName: user?.name ?? t("pages.portal.topbar.studentRole"),
       continueCourses:
-        enrolledItems.slice(0, 3).map((course) => ({
-          id: String(course.id),
-          badge: course.badge,
-          title: course.title,
-          subtitle: course.subtitle,
-          progress: course.progress,
-          lessonsLabel: course.lessonsLabel,
-          metaLabel: course.metaLabel,
-          href: course.href ?? `/portal/student/course/${course.id}`,
-        })) || fallbackContinueCourses,
+        enrolledItems.length > 0
+          ? enrolledItems.slice(0, 3).map((course, index) => ({
+              id: String(course.id),
+              badge: course.badge,
+              title: course.title,
+              subtitle: course.subtitle,
+              progress: course.progress,
+              lessonsLabel: course.lessonsLabel,
+              metaLabel: course.metaLabel,
+              href: course.href ?? `/portal/student/course/${course.id}`,
+              imageUrl:
+                fallbackContinueCourses[index % fallbackContinueCourses.length]
+                  ?.imageUrl,
+            }))
+          : fallbackContinueCourses,
       enrolledCourses:
-        enrolledItems.slice(0, 3).map((course) => ({
-          id: String(course.id),
-          badge: course.badge,
-          title: course.title,
-          subtitle: course.subtitle,
-          progress: course.progress,
-          lessonsLabel: course.lessonsLabel,
-          metaLabel: course.metaLabel,
-          href: course.href ?? `/portal/student/course/${course.id}`,
-        })) || fallbackEnrolledCourses,
+        enrolledItems.length > 0
+          ? enrolledItems.slice(0, 3).map((course, index) => ({
+              id: String(course.id),
+              title: course.title,
+              level:
+                [
+                  t("pages.portal.enrolledCourses.level.beginner"),
+                  t("pages.portal.enrolledCourses.level.intermediate"),
+                  t("pages.portal.enrolledCourses.level.advanced"),
+                ][index % 3] ??
+                t("pages.portal.enrolledCourses.level.intermediate"),
+              progress: course.progress,
+              instructorName:
+                ["Ahmed Kamal", "Lina Hassan", "Omar Adel"][index % 3] ??
+                "Ahmed Kamal",
+              href: course.href ?? `/portal/student/course/${course.id}`,
+              ringColorClassName: [
+                "stroke-amber-500 text-amber-600",
+                "stroke-violet-500 text-violet-600",
+                "stroke-teal-500 text-teal-600",
+              ][index % 3],
+            }))
+          : fallbackEnrolledCourses,
       agenda: Array.from({ length: 3 }, (_, index) => ({
         title: t(`pages.portal.dashboard.agenda.${index}.title`),
         subtitle: t(`pages.portal.dashboard.agenda.${index}.subtitle`),
@@ -164,25 +225,29 @@ export function useStudentDashboardContent() {
           value:
             weeklyTotals != null
               ? `${Math.round(weeklyTotals.watchDurationSeconds / 60)}m`
-              : "2.4k",
+              : fallbackStats[0].value,
           hint: t("pages.portal.dashboard.statsHints.xp"),
+          accentClassName: "border-s-4 border-teal-500",
         },
         {
           label: t("pages.portal.dashboard.stats.streak"),
-          value: activeDays > 0 ? String(activeDays) : "12",
+          value: activeDays > 0 ? String(activeDays) : fallbackStats[1].value,
           hint: t("pages.portal.dashboard.statsHints.streak"),
+          accentClassName: "border-s-4 border-sky-500",
         },
         {
           label: t("pages.portal.dashboard.stats.completion"),
           value: `${averageProgress}%`,
           hint: t("pages.portal.dashboard.statsHints.completion"),
+          accentClassName: "border-s-4 border-amber-500",
         },
         {
           label: t("pages.portal.dashboard.stats.goal"),
           value: weeklyGoalCount > 0 ? String(weeklyGoalCount) : "3/4",
           hint: t("pages.portal.dashboard.statsHints.goal"),
+          accentClassName: "border-s-4 border-violet-500",
         },
-      ],
+      ] satisfies DashboardStatCardContent[],
       rhythm: weeklyActivityQuery.data?.series.length
         ? weeklyActivityQuery.data.series.map((entry) => {
             const total =
@@ -201,6 +266,7 @@ export function useStudentDashboardContent() {
       enrolledItems,
       fallbackContinueCourses,
       fallbackEnrolledCourses,
+      fallbackStats,
       t,
       user?.name,
       weeklyGoalCount,
@@ -374,22 +440,23 @@ export function useStudentExploreContent(filters?: {
           ],
         },
       ],
-      courses:
-        exploreCoursesQuery.data?.items.map((course) => ({
-          id: String(course.id),
-          category:
-            course.categoryId != null ? String(course.categoryId) : "coding",
-          level: "beginner",
-          duration: "1-3h",
-          rating: 4.5,
-          badge: course.badge,
-          title: course.title,
-          subtitle: course.subtitle,
-          progress: course.progress,
-          lessonsLabel: course.lessonsLabel,
-          metaLabel: course.metaLabel,
-          href: course.href ?? `/portal/student/course/${course.id}`,
-        })) || fallbackCourses,
+      courses: exploreCoursesQuery.data?.items?.length
+        ? exploreCoursesQuery.data.items.map((course) => ({
+            id: String(course.id),
+            category:
+              course.categoryId != null ? String(course.categoryId) : "coding",
+            level: "beginner",
+            duration: "1-3h",
+            rating: 4.5,
+            badge: course.badge,
+            title: course.title,
+            subtitle: course.subtitle,
+            progress: course.progress,
+            lessonsLabel: course.lessonsLabel,
+            metaLabel: course.metaLabel,
+            href: course.href ?? `/portal/student/course/${course.id}`,
+          }))
+        : fallbackCourses,
       isLoading: exploreCoursesQuery.isLoading || categoriesQuery.isLoading,
       hasRemoteCourses: Boolean(exploreCoursesQuery.data?.items.length),
     }),

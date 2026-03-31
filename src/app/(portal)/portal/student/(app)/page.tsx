@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/features/localization";
+import { EnrolledCourseCard } from "@/features/portal/components/shared/EnrolledCourseCard";
 import { PortalSectionHeader } from "@/features/portal/components/shared/PortalSectionHeader";
 import { PortalCourseCard } from "@/features/portal/components/shared/PortalCourseCard";
 import { useStudentDashboardContent } from "@/features/portal/hooks/use-student-portal-content";
@@ -34,8 +34,8 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="space-y-5 rounded-[1.9rem] border border-[#e0efea] bg-[linear-gradient(180deg,#f3fbf8_0%,#ffffff_100%)] p-6 shadow-[0_14px_35px_rgba(148,163,184,0.08)] md:p-7">
+      <section className="space-y-6">
+        <div className="space-y-3">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">
               {t("pages.portal.dashboard.eyebrow")}
@@ -51,28 +51,13 @@ export default function StudentDashboardPage() {
           <p className="max-w-2xl text-sm leading-7 text-slate-500">
             {t("pages.portal.dashboard.subtitle")}
           </p>
-
-          <div className="flex flex-wrap gap-3">
-            <Button className="h-11 rounded-full bg-teal-700 px-5 text-sm font-semibold text-white hover:bg-teal-800">
-              {t("pages.portal.dashboard.resumeCta")}
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-11 rounded-full border-[#dcebe7] bg-white px-5 text-sm font-semibold text-slate-600 hover:bg-teal-50 hover:text-teal-700"
-            >
-              <Link href="/portal/student/explore">
-                {t("pages.portal.dashboard.planCta")}
-              </Link>
-            </Button>
-          </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           {stats.slice(0, 3).map((stat) => (
             <div
               key={stat.label}
-              className="rounded-[1.6rem] border border-[#e1efeb] bg-white p-5 shadow-[0_12px_28px_rgba(148,163,184,0.08)]"
+              className={`rounded-[1.6rem] border border-[#e1efeb] bg-white p-5 shadow-[0_12px_28px_rgba(148,163,184,0.08)] ${stat.accentClassName}`}
             >
               <p className="text-3xl font-semibold text-slate-900">
                 {stat.value}
@@ -97,12 +82,12 @@ export default function StudentDashboardPage() {
                 {t("pages.portal.common.loading")}
               </div>
             ) : (
-              <Button
-                variant="ghost"
-                className="h-10 rounded-full px-4 text-sm font-semibold text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+              <Link
+                href="/portal/student/my-courses"
+                className="text-sm font-semibold text-teal-700 transition-colors hover:text-teal-800"
               >
                 {t("pages.portal.common.viewAll")}
-              </Button>
+              </Link>
             )
           }
         />
@@ -139,7 +124,7 @@ export default function StudentDashboardPage() {
                 key={tab}
                 className={
                   index === 0
-                    ? "rounded-full bg-[#e8f6f2] px-4 py-2 text-sm font-semibold text-teal-700"
+                    ? "rounded-full bg-teal-700 px-4 py-2 text-sm font-semibold text-white"
                     : "rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-500 ring-1 ring-[#dcebe7]"
                 }
               >
@@ -149,14 +134,8 @@ export default function StudentDashboardPage() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-3">
-            {enrolledCourses.map((course, index) => (
-              <PortalCourseCard
-                key={course.title}
-                accentClassName={
-                  dashboardPalette[(index + 1) % dashboardPalette.length]
-                }
-                {...course}
-              />
+            {enrolledCourses.map((course) => (
+              <EnrolledCourseCard key={course.id} {...course} />
             ))}
           </div>
         </div>

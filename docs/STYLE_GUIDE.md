@@ -14,6 +14,8 @@ Do not introduce new global styles or one-off inline styles when a token/class a
 - Dashboard routes live under `src/app/(dashboard)` and use the dashboard layout.
 - Auth/public routes live under `src/app/(auth)` and must not mount sidebar providers or dashboard layout styles.
 - Sidebar + Header are owned by `src/app/(dashboard)/layout.tsx`.
+- Portal routes live under `src/app/(portal)` and use portal-owned shell components instead of the dashboard sidebar/header.
+- Student and parent portal shells may define their own sidebar and topbar patterns, but those patterns must stay inside the portal feature layer and must not leak back into `(dashboard)` layout rules.
 
 ## 3) Tables & Lists
 - Use `src/components/ui/table`.
@@ -39,6 +41,8 @@ Do not introduce new global styles or one-off inline styles when a token/class a
 - Active state is derived from `usePathname()` only.
 - Collapse state lives in `SidebarProvider` and must not be reimplemented per page.
 - Sidebar only appears in dashboard layout.
+- Portal navigation is separate from dashboard navigation and may use route-local config inside `src/features/portal/components/layout/*PortalShell.tsx`.
+- Portal shells may use right-side desktop sidebars and compact topbars when the portal design requires it, but search, logout, locale switching, and role switching should remain shell-owned behaviors rather than page-local implementations.
 
 ## 7) Do / Don’t
 Do:

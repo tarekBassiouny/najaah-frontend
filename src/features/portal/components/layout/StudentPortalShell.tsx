@@ -17,9 +17,11 @@ type StudentPortalShellProps = {
 };
 
 type NavItem = {
-  href: string;
+  href?: string;
   label: string;
+  ariaLabel?: string;
   icon: (_props: SVGProps<SVGSVGElement>) => ReactNode;
+  disabled?: boolean;
 };
 
 function DashboardIcon(props: SVGProps<SVGSVGElement>) {
@@ -95,15 +97,6 @@ function MedalIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function UserIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-      <circle cx="12" cy="8" r="3.5" strokeWidth="1.8" />
-      <path d="M5 19a7 7 0 0 1 14 0" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function CompassIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
@@ -144,6 +137,28 @@ function SearchIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+function SparklesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+      <path
+        d="m12 3 1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m18.5 14 0.8 2.2 2.2 0.8-2.2 0.8-0.8 2.2-0.8-2.2-2.2-0.8 2.2-0.8 0.8-2.2Z"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m5 15 0.6 1.6 1.6 0.6-1.6 0.6L5 19.4l-0.6-1.6-1.6-0.6 1.6-0.6L5 15Z"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function StudentPortalShell({ children }: StudentPortalShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -166,14 +181,14 @@ export function StudentPortalShell({ children }: StudentPortalShellProps) {
       icon: DashboardIcon,
     },
     {
-      href: "/portal/student/explore",
-      label: t("pages.portal.nav.explore"),
-      icon: CompassIcon,
-    },
-    {
       href: "/portal/student/my-courses",
       label: t("pages.portal.nav.myCourses"),
       icon: BookIcon,
+    },
+    {
+      href: "/portal/student/explore",
+      label: t("pages.portal.nav.explore"),
+      icon: CompassIcon,
     },
     {
       href: "/portal/student/assignments",
@@ -182,22 +197,19 @@ export function StudentPortalShell({ children }: StudentPortalShellProps) {
     },
     {
       href: "/portal/student/exams",
-      label: t("pages.portal.nav.exams"),
+      label: t("pages.portal.nav.examsAndQuizzes"),
       icon: MedalIcon,
     },
     {
-      href: "/portal/student/profile",
-      label: t("pages.portal.nav.profile"),
-      icon: UserIcon,
-    },
-    {
-      href: "/portal/student/notifications",
-      label: t("pages.portal.nav.notifications"),
-      icon: BellIcon,
+      label: t("pages.portal.nav.aiTutor"),
+      ariaLabel: t("pages.portal.a11y.openAiTutor"),
+      icon: SparklesIcon,
+      disabled: true,
     },
   ];
 
   const isActiveRoute = (href: string) => {
+    if (!href) return false;
     if (href === "/portal/student") {
       return pathname === href;
     }
@@ -227,168 +239,106 @@ export function StudentPortalShell({ children }: StudentPortalShellProps) {
   return (
     <div className="min-h-screen bg-[#f7fbfa] px-2 py-2 sm:px-3 sm:py-3 lg:px-4 lg:py-4">
       <div className="mx-auto flex min-h-[calc(100vh-1rem)] max-w-[1480px] overflow-hidden rounded-[2rem] border border-[#e3f0ec] bg-white shadow-[0_24px_80px_rgba(15,118,110,0.08)]">
-        <aside className="hidden w-[248px] shrink-0 border-e border-[#e5f1ee] bg-[#fbfdfc] lg:flex lg:flex-col">
-          <div className="border-b border-[#e5f1ee] px-5 py-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-[1rem] bg-teal-700 text-base font-bold text-white shadow-[0_12px_24px_rgba(15,118,110,0.22)]">
-                N
-              </div>
-              <div>
-                <p className="text-base font-semibold text-slate-900">
-                  {t("pages.portal.common.brandName")}
-                </p>
-                <p className="text-xs font-medium text-slate-400">
-                  {t("pages.portal.topbar.studentRole")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 px-4 py-5">
-            <div className="rounded-[1.5rem] border border-[#e8f1ee] bg-white p-4 shadow-[0_10px_25px_rgba(148,163,184,0.08)]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-100 text-sm font-semibold text-teal-700">
-                  {user?.name?.charAt(0)?.toUpperCase() || "S"}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {user?.name || t("pages.portal.topbar.studentRole")}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {t("pages.portal.topbar.onlineNow")}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-[#eef5f3] pt-4">
-                <RoleSwitcher />
-              </div>
-            </div>
-
-            <nav className="mt-6 space-y-1.5">
-              {navItems.map((item) => {
-                const isActive = isActiveRoute(item.href);
-                const Icon = item.icon;
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-[1.1rem] px-3.5 py-3 text-sm font-medium transition-all",
-                      isActive
-                        ? "bg-[#e6f6f2] text-teal-800"
-                        : "text-slate-500 hover:bg-white hover:text-slate-900",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-2xl border transition-colors",
-                        isActive
-                          ? "border-[#cdebe3] bg-white text-teal-700"
-                          : "border-[#e0efea] bg-white text-slate-400 group-hover:border-[#d7eae4] group-hover:text-teal-700",
-                      )}
-                    >
-                      <Icon className="h-4.5 w-4.5" />
-                    </span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </aside>
-
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="border-b border-[#e5f1ee] bg-white px-4 py-4 md:px-6 lg:px-8">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">
-                    {t("pages.portal.topbar.welcomeBack")}
-                  </p>
-                  <h1 className="text-lg font-semibold text-slate-900 md:text-xl">
-                    {user?.name || t("pages.portal.topbar.studentRole")}
-                  </h1>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Link
+                    href="/portal/student/profile"
+                    aria-label={t("pages.portal.a11y.openProfile")}
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e8f6f2] text-sm font-semibold text-teal-700 ring-1 ring-[#d5ece5] transition-colors hover:bg-[#dcf1eb]"
+                  >
+                    {user?.name?.charAt(0)?.toUpperCase() || "S"}
+                  </Link>
+                  <RoleSwitcher />
                 </div>
+
+                <form
+                  onSubmit={handleSearchSubmit}
+                  className="order-last w-full md:order-none md:max-w-[34rem] md:flex-1"
+                >
+                  <label className="sr-only" htmlFor="portal-search">
+                    {t("pages.portal.a11y.searchPortal")}
+                  </label>
+                  <div className="relative">
+                    <span
+                      className={cn(
+                        "pointer-events-none absolute top-1/2 -translate-y-1/2 text-slate-400",
+                        isRtl ? "right-4" : "left-4",
+                      )}
+                    >
+                      <SearchIcon className="h-4 w-4" />
+                    </span>
+                    <Input
+                      id="portal-search"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder={t("pages.portal.topbar.searchPlaceholder")}
+                      className={cn(
+                        "h-12 rounded-full border-[#dfece8] bg-[#fbfdfc] shadow-none placeholder:text-slate-400 focus-visible:ring-teal-700",
+                        isRtl ? "pl-4 pr-11 text-right" : "pl-11 pr-4 text-left",
+                      )}
+                    />
+                  </div>
+                </form>
 
                 <div className="flex items-center gap-2 md:gap-3">
-                  <LocaleToggle />
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    className="hidden h-9 rounded-full border-[#dfece8] px-4 text-slate-500 hover:bg-teal-50 hover:text-teal-700 sm:inline-flex"
-                    onClick={handleLogout}
-                    disabled={logout.isPending}
+                    aria-label={t("pages.portal.a11y.openAiTutor")}
+                    disabled
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[#dfece8] bg-white text-slate-400"
                   >
-                    {logout.isPending
-                      ? t("pages.portal.topbar.loggingOut")
-                      : t("pages.portal.topbar.logout")}
-                  </Button>
+                    <SparklesIcon className="h-4.5 w-4.5" />
+                  </button>
+                  <Link
+                    href="/portal/student/notifications"
+                    aria-label={t("pages.portal.a11y.openNotifications")}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[#dfece8] bg-white text-slate-500 transition-colors hover:bg-teal-50 hover:text-teal-700"
+                  >
+                    <BellIcon className="h-4.5 w-4.5" />
+                  </Link>
+                  <LocaleToggle />
                 </div>
               </div>
-
-              <form
-                onSubmit={handleSearchSubmit}
-                className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="relative max-w-xl flex-1">
-                  <span
-                    className={cn(
-                      "pointer-events-none absolute top-1/2 -translate-y-1/2 text-slate-400",
-                      isRtl ? "right-4" : "left-4",
-                    )}
-                  >
-                    <SearchIcon className="h-4 w-4" />
-                  </span>
-                  <Input
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder={t("pages.portal.topbar.searchPlaceholder")}
-                    className={cn(
-                      "h-11 rounded-full border-[#dfece8] bg-[#fbfdfc] shadow-none placeholder:text-slate-400 focus-visible:ring-teal-700",
-                      isRtl ? "pl-4 pr-10 text-right" : "pl-10 pr-4 text-left",
-                    )}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="h-11 rounded-full bg-teal-700 px-4 text-white hover:bg-teal-800 md:px-5"
-                >
-                  {t("pages.portal.topbar.searchCta")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="h-11 rounded-full bg-teal-50 px-5 text-teal-700 hover:bg-teal-100 hover:text-teal-800 sm:hidden"
-                  onClick={handleLogout}
-                  disabled={logout.isPending}
-                >
-                  {logout.isPending
-                    ? t("pages.portal.topbar.loggingOut")
-                    : t("pages.portal.topbar.logout")}
-                </Button>
-              </form>
 
               <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
                 {navItems.map((item) => {
-                  const isActive = isActiveRoute(item.href);
+                  const isActive = item.href ? isActiveRoute(item.href) : false;
                   const Icon = item.icon;
+                  const chipClassName = cn(
+                    "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "border-teal-700 bg-teal-700 text-white"
+                      : "border-[#d6ece8] bg-white text-slate-600",
+                    item.disabled && "border-dashed text-slate-400",
+                  );
+
+                  if (item.href && !item.disabled) {
+                    return (
+                      <Link
+                        key={item.href ?? item.label}
+                        href={item.href}
+                        className={chipClassName}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  }
 
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                        isActive
-                          ? "border-teal-700 bg-teal-700 text-white"
-                          : "border-[#d6ece8] bg-white text-slate-600",
-                      )}
+                    <button
+                      key={item.href ?? item.label}
+                      type="button"
+                      disabled
+                      aria-label={item.ariaLabel ?? item.label}
+                      className={chipClassName}
                     >
                       <Icon className="h-4 w-4" />
                       <span>{item.label}</span>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
@@ -399,6 +349,125 @@ export function StudentPortalShell({ children }: StudentPortalShellProps) {
             {children}
           </main>
         </div>
+
+        <aside
+          className={cn(
+            "hidden w-[280px] shrink-0 bg-[#fbfdfc] lg:order-first lg:flex lg:flex-col",
+            isRtl
+              ? "border-l border-[#e5f1ee]"
+              : "border-r border-[#e5f1ee]",
+          )}
+        >
+          <div className="border-b border-[#e5f1ee] px-6 py-7">
+            <div className="flex items-start gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[1.1rem] bg-teal-700 text-base font-bold text-white shadow-[0_12px_24px_rgba(15,118,110,0.22)]">
+                N
+              </div>
+              <div className="space-y-1">
+                <p className="text-lg font-semibold tracking-tight text-slate-900">
+                  {t("pages.portal.common.brandName")}
+                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                  {t("pages.portal.common.brandTagline")}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-1 flex-col px-4 py-6">
+            <nav className="space-y-1.5">
+              {navItems.map((item) => {
+                const isActive = item.href ? isActiveRoute(item.href) : false;
+                const Icon = item.icon;
+                const navClassName = cn(
+                  "group flex items-center justify-between gap-3 rounded-[1.1rem] px-4 py-3 text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-[#e6f6f2] text-teal-800"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900",
+                  item.disabled && "text-slate-400 hover:bg-[#fbfdfc] hover:text-slate-400",
+                );
+                const content = (
+                  <>
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span>{item.label}</span>
+                      <span
+                        className={cn(
+                          "flex h-9 w-9 items-center justify-center rounded-full border transition-colors",
+                          isActive
+                            ? "border-[#cdebe3] bg-white text-teal-700"
+                            : "border-[#e0efea] bg-white text-slate-400 group-hover:border-[#d7eae4] group-hover:text-teal-700",
+                          item.disabled &&
+                            "border-dashed border-[#e0efea] text-slate-400 group-hover:border-[#e0efea] group-hover:text-slate-400",
+                        )}
+                      >
+                        <Icon className="h-4.5 w-4.5" />
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        "h-8 w-[4px] rounded-full bg-transparent transition-colors",
+                        isActive && "bg-teal-600",
+                      )}
+                    />
+                  </>
+                );
+
+                if (item.href && !item.disabled) {
+                  return (
+                    <Link
+                      key={item.href ?? item.label}
+                      href={item.href}
+                      className={navClassName}
+                    >
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <button
+                    key={item.href ?? item.label}
+                    type="button"
+                    disabled
+                    aria-label={item.ariaLabel ?? item.label}
+                    className={navClassName}
+                  >
+                    {content}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="mt-auto space-y-4 rounded-[1.6rem] border border-[#dcebe7] bg-white p-4 shadow-[0_10px_25px_rgba(148,163,184,0.08)]">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">
+                  {t("pages.portal.sidebar.upgradePro")}
+                </p>
+                <p className="text-sm leading-6 text-slate-500">
+                  {t("pages.portal.sidebar.upgradeHint")}
+                </p>
+              </div>
+              <Button
+                type="button"
+                className="h-11 w-full rounded-full bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800"
+                disabled
+              >
+                {t("pages.portal.nav.aiTutor")}
+              </Button>
+            </div>
+
+            <button
+              type="button"
+              className="mt-4 inline-flex items-center justify-center rounded-full border border-[#dfece8] px-4 py-3 text-sm font-medium text-slate-500 transition-colors hover:bg-teal-50 hover:text-teal-700"
+              onClick={handleLogout}
+              disabled={logout.isPending}
+            >
+              {logout.isPending
+                ? t("pages.portal.topbar.loggingOut")
+                : t("pages.portal.topbar.logout")}
+            </button>
+          </div>
+        </aside>
       </div>
     </div>
   );
